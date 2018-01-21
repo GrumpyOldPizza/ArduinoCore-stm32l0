@@ -1,0 +1,41 @@
+#######################################
+# Syntax Coloring Map For LoRaWAN
+####################################### 
+# Class
+#######################################
+
+LoRaWAN		KEYWORD1
+lora		KEYWORD1
+
+#######################################
+# Methods and Functions 
+#######################################	
+
+begin		KEYWORD2
+joinOTAA	KEYWORD2
+joinABP		KEYWORD2
+beginPacket	KEYWORD2
+endPacket	KEYWORD2
+write		KEYWORD2
+parsePacket	KEYWORD2
+available	KEYWORD2
+read		KEYWORD2
+peek		KEYWORD2
+flush		KEYWORD2
+connected	KEYWORD2
+ready		KEYWORD2
+
+#######################################
+# Constants
+#######################################
+ 
+AS923		LITERAL1
+AU915		LITERAL1
+EU868		LITERAL1
+KR920		LITERAL1
+IN865		LITERAL1
+US915		LITERAL1
+US915_HYBRID	LITERAL1
+
+
+

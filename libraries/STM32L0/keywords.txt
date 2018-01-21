@@ -1,0 +1,36 @@
+#######################################
+# Syntax Coloring Map For STM32L0
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+STM32L0		KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+getSerial			KEYWORD2
+getUID				KEYWORD2
+getDID				KEYWORD2
+getVREF				KEYWORD2
+getTemperature			KEYWORD2
+resetCause			KEYWORD2
+wakeupReason			KEYWORD2
+sleep				KEYWORD2
+stop				KEYWORD2
+standby				KEYWORD2
+reset				KEYWORD2
+wdtEnable 			KEYWORD2
+wdtReset 			KEYWORD2
+flashErase			KEYWORD2
+flashProgram			KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+FLASHSTART			LITERAL1
+FLASHEND			LITERAL1

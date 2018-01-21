@@ -1,0 +1,145 @@
+menu.usb=USB Type
+menu.dosfs=DOSFS
+menu.speed=CPU Speed
+menu.opt=Optimize
+
+##############################################################
+
+# Tlera Grasshopper
+# ---------------------------------------
+Grasshopper-L082CZ.name=Grasshopper-L082CZ
+Grasshopper-L082CZ.vid.0=0x1209
+Grasshopper-L082CZ.pid.0=0x6665
+
+Grasshopper-L082CZ.upload.tool=stm32l0_dfu
+Grasshopper-L082CZ.upload.protocol=dfu
+Grasshopper-L082CZ.upload.maximum_size=196608
+Grasshopper-L082CZ.upload.use_1200bps_touch=true
+Grasshopper-L082CZ.upload.wait_for_upload_port=false
+Grasshopper-L082CZ.upload.native_usb=false
+
+Grasshopper-L082CZ.build.mcu=cortex-m0plus
+Grasshopper-L082CZ.build.f_cpu=32000000L
+Grasshopper-L082CZ.build.board=STM32L0_GRASSHOPPER
+Grasshopper-L082CZ.build.arch=STM32L0
+Grasshopper-L082CZ.build.core=arduino
+Grasshopper-L082CZ.build.vid=0x1209
+Grasshopper-L082CZ.build.pid=0x6665
+Grasshopper-L082CZ.build.did=0xffff
+Grasshopper-L082CZ.build.usb_manufacturer="Tlera Corporation"
+Grasshopper-L082CZ.build.usb_product="Grasshopper"
+Grasshopper-L082CZ.build.extra_flags=-DSTM32L082xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags} {build.dosfs_flags}
+Grasshopper-L082CZ.build.ldscript=linker_scripts/STM32L082CZ_FLASH.ld
+Grasshopper-L082CZ.build.openocdscript=openocd_scripts/stm32l082cz_grasshopper.cfg
+Grasshopper-L082CZ.build.variant=STM32L082CZ-Grasshopper
+Grasshopper-L082CZ.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l082 -larm_cortexM0l_math
+Grasshopper-L082CZ.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
+
+Grasshopper-L082CZ.menu.usb.cdc=Serial
+Grasshopper-L082CZ.menu.usb.cdc.build.usb_type=USB_TYPE_CDC
+Grasshopper-L082CZ.menu.usb.cdc_msc=Serial + Mass Storage
+Grasshopper-L082CZ.menu.usb.cdc_msc.build.usb_type=USB_TYPE_CDC_MSC
+Grasshopper-L082CZ.menu.usb.cdc_hid=Serial + Keyboard + Mouse
+Grasshopper-L082CZ.menu.usb.cdc_hid.build.usb_type=USB_TYPE_CDC_HID
+Grasshopper-L082CZ.menu.usb.cdc_msc_hid=Serial + Mass Storage + Keyboard + Mouse
+Grasshopper-L082CZ.menu.usb.cdc_msc_hid.build.usb_type=USB_TYPE_CDC_MSC_HID
+Grasshopper-L082CZ.menu.usb.none=No USB
+Grasshopper-L082CZ.menu.usb.none.build.usb_type=USB_TYPE_NONE
+
+Grasshopper-L082CZ.menu.dosfs.none=None
+Grasshopper-L082CZ.menu.dosfs.none.build.dosfs_sdcard=0
+Grasshopper-L082CZ.menu.dosfs.none.build.dosfs_sflash=0
+Grasshopper-L082CZ.menu.dosfs.sdspi=SDCARD (SPI)
+Grasshopper-L082CZ.menu.dosfs.sdspi.build.dosfs_sdcard=1
+Grasshopper-L082CZ.menu.dosfs.sdspi.build.dosfs_sflash=0
+
+Grasshopper-L082CZ.menu.speed.32=32 MHz
+Grasshopper-L082CZ.menu.speed.32.build.f_cpu=32000000L
+Grasshopper-L082CZ.menu.speed.16=16 MHz (No USB)
+Grasshopper-L082CZ.menu.speed.16.build.f_cpu=16000000L
+Grasshopper-L082CZ.menu.speed.4=4.2 MHz (No USB)
+Grasshopper-L082CZ.menu.speed.4.build.f_cpu=4200000L
+
+Grasshopper-L082CZ.menu.opt.os=Smallest Code
+Grasshopper-L082CZ.menu.opt.os.build.flags.optimize=-Os
+Grasshopper-L082CZ.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
+Grasshopper-L082CZ.menu.opt.o1=Fast
+Grasshopper-L082CZ.menu.opt.o1.build.flags.optimize=-O1
+Grasshopper-L082CZ.menu.opt.o1.build.flags.ldspecs=
+Grasshopper-L082CZ.menu.opt.o2=Faster
+Grasshopper-L082CZ.menu.opt.o2.build.flags.optimize=-O2
+Grasshopper-L082CZ.menu.opt.o2.build.flags.ldspecs=
+Grasshopper-L082CZ.menu.opt.o3=Fastest
+Grasshopper-L082CZ.menu.opt.o3.build.flags.optimize=-O3
+Grasshopper-L082CZ.menu.opt.o3.build.flags.ldspecs=
+
+# Tlera Grasshopper
+# ---------------------------------------
+Cricket-L082CZ.name=Cricket-L082CZ
+Cricket-L082CZ.vid.0=0x1209
+Cricket-L082CZ.pid.0=0x6665
+
+Cricket-L082CZ.upload.tool=stm32l0_dfu
+Cricket-L082CZ.upload.protocol=dfu
+Cricket-L082CZ.upload.maximum_size=196608
+Cricket-L082CZ.upload.use_1200bps_touch=true
+Cricket-L082CZ.upload.wait_for_upload_port=false
+Cricket-L082CZ.upload.native_usb=false
+
+Cricket-L082CZ.build.mcu=cortex-m0plus
+Cricket-L082CZ.build.f_cpu=32000000L
+Cricket-L082CZ.build.board=STM32L0_CRICKET
+Cricket-L082CZ.build.arch=STM32L0
+Cricket-L082CZ.build.core=arduino
+Cricket-L082CZ.build.vid=0x1209
+Cricket-L082CZ.build.pid=0x6664
+Cricket-L082CZ.build.did=0xffff
+Cricket-L082CZ.build.usb_manufacturer="Tlera Corporation"
+Cricket-L082CZ.build.usb_product="Cricket"
+Cricket-L082CZ.build.extra_flags=-DSTM32L082xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags} {build.dosfs_flags}
+Cricket-L082CZ.build.ldscript=linker_scripts/STM32L082CZ_FLASH.ld
+Cricket-L082CZ.build.openocdscript=openocd_scripts/stm32l082cz_grasshopper.cfg
+Cricket-L082CZ.build.variant=STM32L082CZ-Cricket
+Cricket-L082CZ.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l082 -larm_cortexM0l_math
+Cricket-L082CZ.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
+
+Cricket-L082CZ.menu.usb.cdc=Serial
+Cricket-L082CZ.menu.usb.cdc.build.usb_type=USB_TYPE_CDC
+Cricket-L082CZ.menu.usb.cdc_msc=Serial + Mass Storage
+Cricket-L082CZ.menu.usb.cdc_msc.build.usb_type=USB_TYPE_CDC_MSC
+Cricket-L082CZ.menu.usb.cdc_hid=Serial + Keyboard + Mouse
+Cricket-L082CZ.menu.usb.cdc_hid.build.usb_type=USB_TYPE_CDC_HID
+Cricket-L082CZ.menu.usb.cdc_msc_hid=Serial + Mass Storage + Keyboard + Mouse
+Cricket-L082CZ.menu.usb.cdc_msc_hid.build.usb_type=USB_TYPE_CDC_MSC_HID
+Cricket-L082CZ.menu.usb.none=No USB
+Cricket-L082CZ.menu.usb.none.build.usb_type=USB_TYPE_NONE
+
+Cricket-L082CZ.menu.dosfs.none=None
+Cricket-L082CZ.menu.dosfs.none.build.dosfs_sdcard=0
+Cricket-L082CZ.menu.dosfs.none.build.dosfs_sflash=0
+Cricket-L082CZ.menu.dosfs.sdspi=SFLASH (SPI)
+Cricket-L082CZ.menu.dosfs.sdspi.build.dosfs_sdcard=0
+Cricket-L082CZ.menu.dosfs.sdspi.build.dosfs_sflash=1
+Cricket-L082CZ.menu.dosfs.sdspi=SDCARD (SPI)
+Cricket-L082CZ.menu.dosfs.sdspi.build.dosfs_sdcard=1
+Cricket-L082CZ.menu.dosfs.sdspi.build.dosfs_sflash=0
+
+Cricket-L082CZ.menu.speed.32=32 MHz
+Cricket-L082CZ.menu.speed.32.build.f_cpu=32000000L
+Cricket-L082CZ.menu.speed.16=16 MHz (No USB)
+Cricket-L082CZ.menu.speed.16.build.f_cpu=16000000L
+Cricket-L082CZ.menu.speed.4=4.2 MHz (No USB)
+Cricket-L082CZ.menu.speed.4.build.f_cpu=4200000L
+
+Cricket-L082CZ.menu.opt.os=Smallest Code
+Cricket-L082CZ.menu.opt.os.build.flags.optimize=-Os
+Cricket-L082CZ.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
+Cricket-L082CZ.menu.opt.o1=Fast
+Cricket-L082CZ.menu.opt.o1.build.flags.optimize=-O1
+Cricket-L082CZ.menu.opt.o1.build.flags.ldspecs=
+Cricket-L082CZ.menu.opt.o2=Faster
+Cricket-L082CZ.menu.opt.o2.build.flags.optimize=-O2
+Cricket-L082CZ.menu.opt.o2.build.flags.ldspecs=
+Cricket-L082CZ.menu.opt.o3=Fastest
+Cricket-L082CZ.menu.opt.o3.build.flags.optimize=-O3
+Cricket-L082CZ.menu.opt.o3.build.flags.ldspecs=

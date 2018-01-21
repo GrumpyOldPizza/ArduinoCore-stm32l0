@@ -1,0 +1,4 @@
+#!/bin/bash
+
+LD_LIBRARY_PATH="$(dirname "$0")/../lib" "$0.bin" "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8"
+
