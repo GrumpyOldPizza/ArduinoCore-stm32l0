@@ -1,32 +1,69 @@
 #######################################
 # Syntax Coloring Map For LoRaWAN
-####################################### 
-# Class
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
 #######################################
 
 LoRaWAN		KEYWORD1
-lora		KEYWORD1
 
 #######################################
-# Methods and Functions 
-#######################################	
+# Methods and Functions (KEYWORD2)
+#######################################
 
 begin		KEYWORD2
 joinOTAA	KEYWORD2
 joinABP		KEYWORD2
+joined		KEYWORD2
+confirmed	KEYWORD2
+checked		KEYWORD2
+busy		KEYWORD2
 beginPacket	KEYWORD2
 endPacket	KEYWORD2
+sendPacket	KEYWORD2
 write		KEYWORD2
 parsePacket	KEYWORD2
 available	KEYWORD2
 read		KEYWORD2
 peek		KEYWORD2
 flush		KEYWORD2
-connected	KEYWORD2
-ready		KEYWORD2
+remotePort	KEYWORD2
+packetRSSI	KEYWORD2
+packetSNR	KEYWORD2
+linkCheck	KEYWORD2
+linkMargin	KEYWORD2
+linkGateways	KEYWORD2
+onJoin		KEYWORD2
+onReceive	KEYWORD2
+onTransmit	KEYWORD2
+getDevEui	KEYWORD2
+getMaxPayloadSize	KEYWORD2
+getDataRate	KEYWORD2
+getTxPower	KEYWORD2
+getUpLinkCounter	KEYWORD2
+getDownLinkCounter	KEYWORD2
+setJoinDelay1	KEYWORD2
+setJoinDelay2	KEYWORD2
+setJoinRetries	KEYWORD2
+setPublicNetwork	KEYWORD2
+setAdrEnable	KEYWORD2
+setDataRate	KEYWORD2
+setTxPower	KEYWORD2
+setConfirmRetries	KEYWORD2
+setReceiveDelay	KEYWORD2
+setRX2Channel	KEYWORD2
+setSubBand	KEYWORD2
+addChannel	KEYWORD2
+removeChannel	KEYWORD2
+enableChannel	KEYWORD2
+disableChannel	KEYWORD2
+setAntennaGain	KEYWORD2
+setDutyCycle	KEYWORD2
+setReceiveWindows	KEYWORD2
 
 #######################################
-# Constants
+# Constants (LITERAL1)
 #######################################
  
 AS923		LITERAL1
@@ -35,7 +72,6 @@ EU868		LITERAL1
 KR920		LITERAL1
 IN865		LITERAL1
 US915		LITERAL1
-US915_HYBRID	LITERAL1
 
 
 

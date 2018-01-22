@@ -63,14 +63,20 @@ void doneCallback(void)
 
 void receiveCallback(void)
 {
+    Serial.print("RSSI: ");
+    Serial.print(LoRaWAN.packetRSSI());
+    Serial.print(", SNR: ");
+    Serial.print(LoRaWAN.packetSNR());
+
     if (LoRaWAN.checked())
     {
-        Serial.print("MARGIN: ");
+        Serial.print(", MARGIN: ");
         Serial.print(LoRaWAN.linkMargin());
-        Serial.print(" GATEWAYS: ");
+        Serial.print(", GATEWAYS: ");
         Serial.print(LoRaWAN.linkGateways());
-        Serial.println();
     }
+
+    Serial.println();
 }
 
 void joinCallback(void)
