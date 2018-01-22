@@ -29,7 +29,7 @@
 ###### STM32 BOOTLOADER driver setup for Tlera Corp boards
 
  1. Download [Zadig](http://zadig.akeo.ie)
- 2. Plugin STM32L4 board and toggle the RESET button while holding down the BOOT button
+ 2. Plugin STM32L0 board and toggle the RESET button while holding down the BOOT button
  3. Let Windows finish searching for drivers
  4. Start ```Zadig```
  5. Select ```Options -> List All Devices```
