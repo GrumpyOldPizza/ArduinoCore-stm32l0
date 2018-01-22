@@ -315,6 +315,8 @@ LoRaWANClass::LoRaWANClass()
 
     _rx_index = 0;
     _rx_size = 0;
+    _rx_margin = 255;
+    _rx_gateways = 0;
     _rx_ack = 0;
 
     _JoinRetries = 3;
@@ -513,22 +515,24 @@ int LoRaWANClass::joinABP(const char *devAddr, const char *nwkSKey, const char *
     return 1;
 }
 
-bool LoRaWANClass::connected()
+bool LoRaWANClass::joined()
 {
     return (_session.Joined != LORAWAN_JOINED_NONE);
 }
 
-int LoRaWANClass::ready()
+bool LoRaWANClass::confirmed()
 {
-    if (_session.Joined == LORAWAN_JOINED_NONE) {
-	return 0;
-    }
+    return _tx_ack;
+}
 
-    if (_tx_busy) {
-	return 0;
-    }
+bool LoRaWANClass::checked()
+{
+    return _rx_ack;
+}
 
-    return (_tx_ack ? _tx_ack : -1);
+bool LoRaWANClass::busy()
+{
+    return _tx_busy;
 }
 
 void LoRaWANClass::beginPacket(uint8_t port)
@@ -579,7 +583,7 @@ int LoRaWANClass::sendPacket(uint8_t port, const uint8_t *buffer, size_t size, b
 	return 0;
     }
 
-    _tx_ack = 0;
+    _tx_ack = false;
     _tx_busy = true;
 
     if (size == 0)
@@ -618,8 +622,6 @@ int LoRaWANClass::sendPacket(uint8_t port, const uint8_t *buffer, size_t size, b
 	{
 	    if (confirmed)
 	    {
-		_tx_ack = false;
-
 		mcpsReq.Type = MCPS_CONFIRMED;
 		mcpsReq.Req.Confirmed.fPort = port;
 		mcpsReq.Req.Confirmed.fBuffer = (uint8_t*)buffer;
@@ -774,6 +776,11 @@ int LoRaWANClass::linkGateways()
     }
 
     return _rx_gateways;
+}
+
+void LoRaWANClass::onJoin(void(*callback)(void))
+{
+    _joinCallback = callback;
 }
 
 void LoRaWANClass::onReceive(void(*callback)(void))
@@ -1400,33 +1407,18 @@ void LoRaWANClass::__McpsConfirm( McpsConfirm_t *mcpsConfirm )
 	return;
     }
 
+    LoRaWAN._session.DataRate = mcpsConfirm->Datarate;
+    LoRaWAN._session.TxPower = mcpsConfirm->TxPower;
+    LoRaWAN._session.UpLinkCounter = mcpsConfirm->UpLinkCounter;
+
     switch (mcpsConfirm->McpsRequest) {
     case MCPS_UNCONFIRMED:
-	LoRaWAN._session.DataRate = mcpsConfirm->Datarate;
-	LoRaWAN._session.TxPower = mcpsConfirm->TxPower;
-
-	LoRaWAN._tx_ack = 1;
 	LoRaWAN._tx_busy = false;
-	    
-	if (LoRaWAN._transmitCallback) {
-	    armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)LoRaWAN._transmitCallback, NULL, 0);
-	} else {
-	    stm32l0_system_wakeup();
-	}
 	break;
 
     case MCPS_CONFIRMED:
-	LoRaWAN._session.DataRate = mcpsConfirm->Datarate;
-	LoRaWAN._session.TxPower = mcpsConfirm->TxPower;
-
-	LoRaWAN._tx_ack = mcpsConfirm->AckReceived ? (1 + mcpsConfirm->NbRetries) : 0;
+	LoRaWAN._tx_ack = mcpsConfirm->AckReceived ? mcpsConfirm->NbRetries : 0;
 	LoRaWAN._tx_busy = false;
-	    
-	if (LoRaWAN._transmitCallback) {
-	    armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)LoRaWAN._transmitCallback, NULL, 0);
-	} else {
-	    stm32l0_system_wakeup();
-	}
 	break;
 
     case MCPS_PROPRIETARY:
@@ -1435,8 +1427,12 @@ void LoRaWANClass::__McpsConfirm( McpsConfirm_t *mcpsConfirm )
     default:
 	break;
     }
-    
-    LoRaWAN._session.UpLinkCounter = mcpsConfirm->UpLinkCounter;
+
+    if (LoRaWAN._transmitCallback) {
+	armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)LoRaWAN._transmitCallback, NULL, 0);
+    } else {
+	stm32l0_system_wakeup();
+    }
 }
 
 void LoRaWANClass::__McpsIndication( McpsIndication_t *mcpsIndication )
@@ -1462,6 +1458,8 @@ void LoRaWANClass::__McpsIndication( McpsIndication_t *mcpsIndication )
 	break;
     }
 
+    LoRaWAN._session.DownLinkCounter = mcpsIndication->DownLinkCounter;
+
     LoRaWAN._rx_snr = mcpsIndication->Snr;
     LoRaWAN._rx_rssi = mcpsIndication->Rssi;
 
@@ -1472,15 +1470,13 @@ void LoRaWANClass::__McpsIndication( McpsIndication_t *mcpsIndication )
 	LoRaWAN._rx_index = 0;
 	LoRaWAN._rx_size = mcpsIndication->BufferSize; 
 	LoRaWAN._rx_port = mcpsIndication->Port;
-
-	if (LoRaWAN._receiveCallback) {
-	    armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)LoRaWAN._receiveCallback, NULL, 0);
-	} else {
-	    stm32l0_system_wakeup();
-	}
     }
 
-    LoRaWAN._session.DownLinkCounter = mcpsIndication->DownLinkCounter;
+    if (LoRaWAN._receiveCallback) {
+	armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)LoRaWAN._receiveCallback, NULL, 0);
+    } else {
+	stm32l0_system_wakeup();
+    }
 }
 
 void LoRaWANClass::__MlmeConfirm( MlmeConfirm_t *mlmeConfirm )
@@ -1505,17 +1501,15 @@ void LoRaWANClass::__MlmeConfirm( MlmeConfirm_t *mlmeConfirm )
 
 	    LoRaWAN._session.Joined = LORAWAN_JOINED_OTAA;
 
-	    LoRaWAN._tx_ack = 1 + mlmeConfirm->NbRetries;
 	    LoRaWAN._tx_busy = false;
 	}
 	else
 	{
-	    LoRaWAN._tx_ack = 0;
 	    LoRaWAN._tx_busy = false;
 	}
 
-	if (LoRaWAN._transmitCallback) {
-	    armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)LoRaWAN._transmitCallback, NULL, 0);
+	if (LoRaWAN._joinCallback) {
+	    armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)LoRaWAN._joinCallback, NULL, 0);
 	} else {
 	    stm32l0_system_wakeup();
 	}
@@ -1528,11 +1522,14 @@ void LoRaWANClass::__MlmeConfirm( MlmeConfirm_t *mlmeConfirm )
 	    LoRaWAN._rx_gateways = mlmeConfirm->NbGateways;
 	    LoRaWAN._rx_ack = true;
 
+#if 0
 	    if (LoRaWAN._receiveCallback) {
 		armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)LoRaWAN._receiveCallback, NULL, 0);
 	    } else {
 		stm32l0_system_wakeup();
 	    }
+#endif
+
 	}
 	break;
 

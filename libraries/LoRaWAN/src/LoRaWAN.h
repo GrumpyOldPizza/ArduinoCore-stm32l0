@@ -71,10 +71,12 @@ public:
     int joinOTAA(const char *appEui, const char *appKey, const char *devEui);
     int joinABP(const char *devAddr, const char *nwkSKey, const char *appSKey);
 
-    bool connected(); // true == joined, false == non-joined
-    int ready();   // 0 busy, > 1 success (n == number trials), -1 no ack received
+    bool joined();    // true == joined, false == non-joined
+    bool confirmed(); // last message was confired
+    bool checked();   // link check answer received
+    bool busy();      // 1 busy, 0 ready
 
-    operator bool() { return connected(); }
+    operator bool() { return joined(); }
 
     void beginPacket(uint8_t port = LORAWAN_DEFAULT_PORT);
     int endPacket(bool confirmed = false);
@@ -104,6 +106,7 @@ public:
     int linkMargin();
     int linkGateways();
 
+    void onJoin(void(*callback)(void));
     void onReceive(void(*callback)(void));
     void onTransmit(void(*callback)(void));
 
@@ -147,7 +150,7 @@ private:
     volatile int16_t  _rx_rssi;
     volatile uint8_t  _rx_margin;
     volatile uint8_t  _rx_gateways;
-    volatile bool     _rx_ack;
+    volatile uint8_t  _rx_ack;
 
     uint8_t           _tx_data[LORAWAN_MAX_PAYLOAD_SIZE];
     uint8_t           _tx_size;
@@ -171,6 +174,7 @@ private:
     static void __McpsIndication(struct sMcpsIndication*);
     static void __MlmeConfirm(struct sMlmeConfirm*);
 
+    void (*_joinCallback)(void);
     void (*_receiveCallback)(void);
     void (*_transmitCallback)(void);
 };
