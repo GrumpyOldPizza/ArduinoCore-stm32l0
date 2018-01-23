@@ -2403,8 +2403,7 @@ static const uint8_t ubx_cfg_rate_10hz[] = {
     0x7a, 0x12,                                     /* CK_A, CK_B                */
 };
 
-#if 0
-static const uint8_t ubx_cfg_tp5[] = { 
+static const uint8_t ubx_cfg_tp5[] = {
     0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
     0x06, 0x31,                                     /* CLASS, ID                 */
     0x20, 0x00,                                     /* LENGTH                    */
@@ -2414,29 +2413,11 @@ static const uint8_t ubx_cfg_tp5[] = {
     0x00, 0x00,                                     /* RF GROUP DELAY            */
     0x40, 0x42, 0x0f, 0x00,                         /* PERIOD                    */
     0x40, 0x42, 0x0f, 0x00,                         /* PERIOD LOCKED             */
-    0x00, 0x00, 0x00, 0x00,                         /* PULSE LENGTH              */
-    0x20, 0xa1, 0x07, 0x00,                         /* PULSE LENGTH LOCKED       */
+    0x40, 0x42, 0x0f, 0x00,                         /* PULSE LENGTH              */
+    0xa0, 0xbb, 0x0d, 0x00,                         /* PULSE LENGTH LOCKED       */
     0x00, 0x00, 0x00, 0x00,                         /* USER DELAY                */
-    0x77, 0x00, 0x00, 0x00,                         /* FLAGS (UTC, RAISING)      */
-    0xea, 0xfc,                                     /* CK_A, CK_B                */
-};
-#endif
-
-static const uint8_t ubx_cfg_tp5[] = {
-  0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
-  0x06, 0x31,                                     /* CLASS, ID                 */
-  0x20, 0x00,                                     /* LENGTH                    */
-  0x00,                                           /* TIMEPULSE                 */
-  0x00, 0x00, 0x00,                               /*                           */
-  0x32, 0x00,                                     /* ANTENNA CABLE DELAY       */
-  0x00, 0x00,                                     /* RF GROUP DELAY            */
-  0x40, 0x42, 0x0f, 0x00,                         /* PERIOD                    */
-  0x40, 0x42, 0x0f, 0x00,                         /* PERIOD LOCKED             */
-  0x40, 0x42, 0x0f, 0x00,                         /* PULSE LENGTH              */
-  0xa0, 0xbb, 0x0d, 0x00,                         /* PULSE LENGTH LOCKED       */
-  0x00, 0x00, 0x00, 0x00,                         /* USER DELAY                */
-  0x37, 0x00, 0x00, 0x00,                         /* FLAGS (UTC, RAISING)      */
-  0xdb, 0x06,                                     /* CK_A, CK_B                */
+    0x37, 0x00, 0x00, 0x00,                         /* FLAGS                     */
+    0xdb, 0x06,                                     /* CK_A, CK_B                */
 };
 
 static const uint8_t ubx_cfg_pm2[] = {
@@ -2464,7 +2445,7 @@ static const uint8_t ubx_cfg_pm2[] = {
     0xa3, 0xae,                                     /* CK_A, CK_B                */
 };
 
-static const uint8_t ubx_cfg_gnss_gnss_enable[] = {
+static const uint8_t ubx_cfg_gnss_gps_enable[] = {
     0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
     0x06, 0x3e,                                     /* CLASS, ID                 */
     0x0c, 0x00,                                     /* LENGTH                    */
@@ -2472,11 +2453,11 @@ static const uint8_t ubx_cfg_gnss_gnss_enable[] = {
     0x00,                                           /* NUM TRACKING CHANNELS HW  */
     0xff,                                           /* NUM TRACKING CHANNELS SW  */
     0x01,                                           /* NUM CONFIG BLOCKS         */
-    0x00, 0x08, 0x10, 0x00, 0x01, 0x00, 0x00, 0x00, /* GPS                       */
-    0x69, 0x45,                                     /* CK_A, CK_B                */
+    0x00, 0x08, 0x10, 0x00, 0x01, 0x00, 0x01, 0x00, /* GPS                       */
+    0x6a, 0x47,                                     /* CK_A, CK_B                */
 };
 
-static const uint8_t ubx_cfg_gnss_gnss_disable[] = {
+static const uint8_t ubx_cfg_gnss_gps_disable[] = {
     0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
     0x06, 0x3e,                                     /* CLASS, ID                 */
     0x0c, 0x00,                                     /* LENGTH                    */
@@ -2496,8 +2477,8 @@ static const uint8_t ubx_cfg_gnss_sbas_enable[] = {
     0x00,                                           /* NUM TRACKING CHANNELS HW  */
     0xff,                                           /* NUM TRACKING CHANNELS SW  */
     0x01,                                           /* NUM CONFIG BLOCKS         */
-    0x01, 0x01, 0x03, 0x00, 0x01, 0x00, 0x00, 0x00, /* GPS                       */
-    0x56, 0xce,                                     /* CK_A, CK_B                */
+    0x01, 0x01, 0x03, 0x00, 0x01, 0x00, 0x01, 0x00, /* SBAS                      */
+    0x57, 0xd0,                                     /* CK_A, CK_B                */
 };
 
 static const uint8_t ubx_cfg_gnss_sbas_disable[] = {
@@ -2508,32 +2489,8 @@ static const uint8_t ubx_cfg_gnss_sbas_disable[] = {
     0x00,                                           /* NUM TRACKING CHANNELS HW  */
     0xff,                                           /* NUM TRACKING CHANNELS SW  */
     0x01,                                           /* NUM CONFIG BLOCKS         */
-    0x01, 0x01, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, /* GPS                       */
+    0x01, 0x01, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, /* SBAS                      */
     0x55, 0xca,                                     /* CK_A, CK_B                */
-};
-
-static const uint8_t ubx_cfg_gnss_glonass_enable[] = {
-    0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
-    0x06, 0x3e,                                     /* CLASS, ID                 */
-    0x0c, 0x00,                                     /* LENGTH                    */
-    0x00,                                           /* VERSION                   */
-    0x00,                                           /* NUM TRACKING CHANNELS HW  */
-    0xff,                                           /* NUM TRACKING CHANNELS SW  */
-    0x01,                                           /* NUM CONFIG BLOCKS         */
-    0x06, 0x08, 0x0e, 0x00, 0x01, 0x00, 0x00, 0x00, /* GPS                       */
-    0x6d, 0x69,                                     /* CK_A, CK_B                */
-};
-
-static const uint8_t ubx_cfg_gnss_glonass_disable[] = {
-    0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
-    0x06, 0x3e,                                     /* CLASS, ID                 */
-    0x0c, 0x00,                                     /* LENGTH                    */
-    0x00,                                           /* VERSION                   */
-    0x00,                                           /* NUM TRACKING CHANNELS HW  */
-    0xff,                                           /* NUM TRACKING CHANNELS SW  */
-    0x01,                                           /* NUM CONFIG BLOCKS         */
-    0x06, 0x08, 0x0e, 0x00, 0x00, 0x00, 0x00, 0x00, /* GPS                       */
-    0x6c, 0x65,                                     /* CK_A, CK_B                */
 };
 
 static const uint8_t ubx_cfg_gnss_qzss_enable[] = {
@@ -2544,8 +2501,8 @@ static const uint8_t ubx_cfg_gnss_qzss_enable[] = {
     0x00,                                           /* NUM TRACKING CHANNELS HW  */
     0xff,                                           /* NUM TRACKING CHANNELS SW  */
     0x01,                                           /* NUM CONFIG BLOCKS         */
-    0x05, 0x00, 0x03, 0x00, 0x01, 0x00, 0x00, 0x00, /* GPS                       */
-    0x59, 0xe7,                                     /* CK_A, CK_B                */
+    0x05, 0x00, 0x03, 0x00, 0x01, 0x00, 0x01, 0x00, /* QZSS                      */
+    0x5a, 0xe9,                                     /* CK_A, CK_B                */
 };
 
 static const uint8_t ubx_cfg_gnss_qzss_disable[] = {
@@ -2556,8 +2513,32 @@ static const uint8_t ubx_cfg_gnss_qzss_disable[] = {
     0x00,                                           /* NUM TRACKING CHANNELS HW  */
     0xff,                                           /* NUM TRACKING CHANNELS SW  */
     0x01,                                           /* NUM CONFIG BLOCKS         */
-    0x05, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, /* GPS                       */
+    0x05, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, /* QZSS                      */
     0x58, 0xe3,                                     /* CK_A, CK_B                */
+};
+
+static const uint8_t ubx_cfg_gnss_glonass_enable[] = {
+    0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
+    0x06, 0x3e,                                     /* CLASS, ID                 */
+    0x0c, 0x00,                                     /* LENGTH                    */
+    0x00,                                           /* VERSION                   */
+    0x00,                                           /* NUM TRACKING CHANNELS HW  */
+    0xff,                                           /* NUM TRACKING CHANNELS SW  */
+    0x01,                                           /* NUM CONFIG BLOCKS         */
+    0x06, 0x08, 0x0e, 0x00, 0x01, 0x00, 0x01, 0x00, /* GLONASS                   */
+    0x6e, 0x6b,                                     /* CK_A, CK_B                */
+};
+
+static const uint8_t ubx_cfg_gnss_glonass_disable[] = {
+    0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
+    0x06, 0x3e,                                     /* CLASS, ID                 */
+    0x0c, 0x00,                                     /* LENGTH                    */
+    0x00,                                           /* VERSION                   */
+    0x00,                                           /* NUM TRACKING CHANNELS HW  */
+    0xff,                                           /* NUM TRACKING CHANNELS SW  */
+    0x01,                                           /* NUM CONFIG BLOCKS         */
+    0x06, 0x08, 0x0e, 0x00, 0x00, 0x00, 0x00, 0x00, /* GLONASS                   */
+    0x6c, 0x65,                                     /* CK_A, CK_B                */
 };
 
 static const uint8_t ubx_cfg_sbas_disable[] = {
@@ -2656,7 +2637,7 @@ static const uint8_t * const ubx_init_table_1hz[] = {
     ubx_cfg_msg_nmea_vtg,
     ubx_cfg_rate_1hz,
     ubx_cfg_tp5,
-    ubx_cfg_gnss_glonass_disable,
+    ubx_cfg_gnss_glonass_enable,
     ubx_cfg_gnss_sbas_enable,
     ubx_cfg_gnss_qzss_disable,
     ubx_cfg_sbas_auto,
@@ -2679,7 +2660,7 @@ static const uint8_t * const ubx_init_table_5hz[] = {
     ubx_cfg_msg_nmea_vtg,
     ubx_cfg_rate_5hz,
     ubx_cfg_tp5,
-    ubx_cfg_gnss_glonass_disable,
+    ubx_cfg_gnss_glonass_enable,
     ubx_cfg_gnss_sbas_enable,
     ubx_cfg_gnss_qzss_disable,
     ubx_cfg_sbas_auto,
@@ -2702,18 +2683,10 @@ static const uint8_t * const ubx_init_table_10hz[] = {
     ubx_cfg_msg_nmea_vtg,
     ubx_cfg_rate_10hz,
     ubx_cfg_tp5,
-    ubx_cfg_gnss_glonass_disable,
+    ubx_cfg_gnss_glonass_enable,
     ubx_cfg_gnss_sbas_enable,
     ubx_cfg_gnss_qzss_disable,
     ubx_cfg_sbas_auto,
-    ubx_cfg_save,
-    NULL,
-};
-
-static const uint8_t * const ubx_constellation_gps_table[] = {
-    ubx_cfg_rxm_continuous,
-    ubx_cfg_pm2,
-    ubx_cfg_gnss_glonass_disable,
     ubx_cfg_save,
     NULL,
 };
@@ -2730,6 +2703,14 @@ static const uint8_t * const ubx_external_disable_table[] = {
     ubx_cfg_rxm_continuous,
     ubx_cfg_pm2,
     ubx_cfg_external_disable,
+    ubx_cfg_save,
+    NULL,
+};
+
+static const uint8_t * const ubx_constellation_gps_table[] = {
+    ubx_cfg_rxm_continuous,
+    ubx_cfg_pm2,
+    ubx_cfg_gnss_glonass_disable,
     ubx_cfg_save,
     NULL,
 };

@@ -14,7 +14,7 @@ void setup( void )
 
     while (!GNSS.ready()) { }
 
-    GNSS.setConstellation(CONSTELLATION_GPS_AND_GLONASS);
+    GNSS.setConstellation(GNSS.CONSTELLATION_GPS_AND_GLONASS);
 
     while (!GNSS.ready()) { }
 

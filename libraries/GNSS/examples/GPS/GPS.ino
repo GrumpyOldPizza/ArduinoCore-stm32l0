@@ -11,6 +11,10 @@ void setup( void )
     delay(1000);
 
     GNSS.begin(GNSS.MODE_UBLOX, GNSS.RATE_1HZ);
+
+    while (!GNSS.ready()) { }
+
+    GNSS.setConstellation(GNSS.CONSTELLATION_GPS);
 }
 
 void loop( void )
