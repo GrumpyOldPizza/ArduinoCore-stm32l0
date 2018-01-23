@@ -64,9 +64,9 @@ void doneCallback(void)
 void receiveCallback(void)
 {
     Serial.print("RSSI: ");
-    Serial.print(LoRaWAN.packetRSSI());
+    Serial.print(LoRaWAN.lastRssi());
     Serial.print(", SNR: ");
-    Serial.print(LoRaWAN.packetSNR());
+    Serial.print(LoRaWAN.lastSnrR());
 
     if (LoRaWAN.checked())
     {

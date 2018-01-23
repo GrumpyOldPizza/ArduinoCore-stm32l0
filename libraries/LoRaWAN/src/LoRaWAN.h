@@ -32,7 +32,8 @@
 #include <Arduino.h>
 
 #define LORAWAN_DEFAULT_PORT     1
-#define LORAWAN_MAX_PAYLOAD_SIZE 255
+#define LORAWAN_MAX_PAYLOAD_SIZE 242
+#define LORAWAN_RX_BUFFER_SIZE   (2 * (3 + LORAWAN_MAX_PAYLOAD_SIZE))
 
 #define LORAWAN_JOINED_NONE      0
 #define LORAWAN_JOINED_OTAA      1
@@ -67,6 +68,7 @@ public:
     LoRaWANClass();
 
     int begin(LoRaWANBand band);
+    void stop();
 
     int joinOTAA(const char *appEui, const char *appKey, const char *devEui);
     int joinABP(const char *devAddr, const char *nwkSKey, const char *appSKey);
@@ -78,11 +80,12 @@ public:
 
     operator bool() { return joined(); }
 
-    void beginPacket(uint8_t port = LORAWAN_DEFAULT_PORT);
-    int endPacket(bool confirmed = false);
-    int sendPacket(const uint8_t *buffer, size_t size, bool confirmed = false);
-    int sendPacket(uint8_t port, const uint8_t *buffer, size_t size, bool confirmed = false);
+    int beginPacket(uint8_t port = LORAWAN_DEFAULT_PORT);
+    int endPacket(bool confirm = false);
+    int sendPacket(const uint8_t *buffer, size_t size, bool confirm = false);
+    int sendPacket(uint8_t port, const uint8_t *buffer, size_t size, bool confirm = false);
 
+    virtual int availableForWrite();
     virtual size_t write(uint8_t data);
     virtual size_t write(const uint8_t *buffer, size_t size);
     inline size_t write(unsigned long n) { return write((uint8_t)n); }
@@ -99,8 +102,8 @@ public:
     virtual void flush();
     uint8_t remotePort();
 
-    int packetRSSI();
-    int packetSNR();
+    int lastRssi();
+    int lastSnr();
 
     void linkCheck();
     int linkMargin();
@@ -142,10 +145,14 @@ public:
 private:
     uint8_t           _initialized;
 
-    uint8_t           _rx_data[LORAWAN_MAX_PAYLOAD_SIZE];
-    uint8_t           _rx_index;
+    uint8_t           _rx_data[LORAWAN_RX_BUFFER_SIZE];
+    volatile uint16_t _rx_read;
+    volatile uint16_t _rx_write;
+    uint16_t          _rx_index;
+    uint16_t          _rx_next;
     uint8_t           _rx_size;
     uint8_t           _rx_port;
+    uint8_t           _rx_multicast;
     volatile int8_t   _rx_snr;
     volatile int16_t  _rx_rssi;
     volatile uint8_t  _rx_margin;
@@ -156,6 +163,7 @@ private:
     uint8_t           _tx_size;
     uint8_t           _tx_port;
     uint8_t           _tx_active;
+    uint8_t           _tx_confirm;
     volatile uint8_t  _tx_ack;
     volatile uint8_t  _tx_busy;
 
