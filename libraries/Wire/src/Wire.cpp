@@ -329,7 +329,7 @@ size_t TwoWire::requestFrom(uint8_t address, uint8_t *buffer, size_t size, bool 
     return size;
 }
 
-size_t TwoWire::requestFrom(uint8_t address, uint8_t size, uint32_t iaddress, uint8_t isize, bool stopBit)
+size_t TwoWire::requestFrom(uint8_t address, size_t size, uint32_t iaddress, uint8_t isize, bool stopBit)
 {
     if (size > BUFFER_LENGTH) {
 	size = BUFFER_LENGTH;
@@ -346,7 +346,7 @@ size_t TwoWire::requestFrom(uint8_t address, uint8_t size, uint32_t iaddress, ui
     return size;
 }
 
-size_t TwoWire::requestFrom(uint8_t address, uint8_t *buffer, uint8_t size, uint32_t iaddress, uint8_t isize, bool stopBit)
+size_t TwoWire::requestFrom(uint8_t address, uint8_t *buffer, size_t size, uint32_t iaddress, uint8_t isize, bool stopBit)
 {
     stm32l0_i2c_transaction_t transaction;
 
@@ -564,7 +564,7 @@ TwoWireTransaction::~TwoWireTransaction()
     }
 }
 
-bool TwoWireTransaction::sendTransmission(uint8_t address, const uint8_t *buffer, size_t size, void(*callback)(void), bool stopBit)
+bool TwoWireTransaction::sendTransmission(uint8_t address, const uint8_t *buffer, size_t size, bool stopBit, void(*callback)(void))
 {
     if (!_transaction) {
 	return false;
@@ -599,7 +599,7 @@ bool TwoWireTransaction::sendTransmission(uint8_t address, const uint8_t *buffer
     return true;
 }
 
-bool TwoWireTransaction::sendTransmission(uint8_t address, const uint8_t *buffer, size_t size, uint32_t iaddress, uint8_t isize, void(*callback)(void), bool stopBit)
+bool TwoWireTransaction::sendTransmission(uint8_t address, const uint8_t *buffer, size_t size, uint32_t iaddress, uint8_t isize, bool stopBit, void(*callback)(void))
 {
     if (!_transaction) {
 	return false;
@@ -649,7 +649,7 @@ bool TwoWireTransaction::sendTransmission(uint8_t address, const uint8_t *buffer
     return true;
 }
 
-bool TwoWireTransaction::requestFrom(uint8_t address, uint8_t *buffer, uint8_t size, void(*callback)(void), bool stopBit)
+bool TwoWireTransaction::requestFrom(uint8_t address, uint8_t *buffer, size_t size, bool stopBit, void(*callback)(void))
 {
     if (!_transaction) {
 	return false;
@@ -688,7 +688,7 @@ bool TwoWireTransaction::requestFrom(uint8_t address, uint8_t *buffer, uint8_t s
     return true;
 }
 
-bool TwoWireTransaction::requestFrom(uint8_t address, uint8_t *buffer, uint8_t size, uint32_t iaddress, uint8_t isize, void(*callback)(void), bool stopBit)
+bool TwoWireTransaction::requestFrom(uint8_t address, uint8_t *buffer, size_t size, uint32_t iaddress, uint8_t isize, bool stopBit, void(*callback)(void))
 {
     if (!_transaction) {
 	return false;
@@ -736,13 +736,13 @@ int TwoWireTransaction::status()
     return _xf_status;
 }
 
-bool TwoWireTransaction::done()
+bool TwoWireTransaction::busy()
 {
     if (!_transaction) {
-	return true;
+	return false;
     }
     
-    return (_transaction->status != I2C_STATUS_BUSY);
+    return (_transaction->status == I2C_STATUS_BUSY);
 }
 
 void TwoWireTransaction::doneCallback(class TwoWireTransaction *self)

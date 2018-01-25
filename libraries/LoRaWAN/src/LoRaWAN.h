@@ -102,16 +102,19 @@ public:
     virtual void flush();
     uint8_t remotePort();
 
-    int lastRssi();
-    int lastSnr();
+    int lastRSSI();
+    int lastSNR();
 
     void linkCheck();
     int linkMargin();
     int linkGateways();
 
     void onJoin(void(*callback)(void));
+    void onJoin(Notifier notify);
     void onReceive(void(*callback)(void));
+    void onReceive(Notifier notify);
     void onTransmit(void(*callback)(void));
+    void onTransmit(Notifier notify);
 
     int getDevEui(char *buffer, size_t size);
     int getMaxPayloadSize();
@@ -125,7 +128,7 @@ public:
     int setJoinRetries(unsigned int n);
 
     int setPublicNetwork(bool enable);
-    int setAdrEnable(bool enable);
+    int setADR(bool enable);
     int setDataRate(unsigned int datarate);
     int setTxPower(unsigned int power); // 2dm to 20dbm 
     int setConfirmRetries(unsigned int n);
@@ -178,13 +181,13 @@ private:
 
     LoRaWANSession    _session;
 
+    Notifier          _joinNotify;
+    Notifier          _receiveNotify;
+    Notifier          _transmitNotify;
+
     static void __McpsConfirm(struct sMcpsConfirm*);
     static void __McpsIndication(struct sMcpsIndication*);
     static void __MlmeConfirm(struct sMlmeConfirm*);
-
-    void (*_joinCallback)(void);
-    void (*_receiveCallback)(void);
-    void (*_transmitCallback)(void);
 };
 
 extern LoRaWANClass LoRaWAN;

@@ -368,101 +368,61 @@ void armv6m_event_create(armv6m_event_t *event, armv6m_event_routine_t routine, 
 
 void armv6m_event_destroy(armv6m_event_t *event)
 {
-    IRQn_Type irq;
-
-    irq = ((__get_IPSR() & 0x1ff) - 16);
-	
-    if (irq >= SysTick_IRQn)
+    if (__get_IPSR() == 0)
     {
-	armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)armv6m_event_svc_destroy, (void*)event, 0);
-    }
-    else if (irq >= SVC_IRQn)
-    {
-	armv6m_event_svc_destroy(event);
+	armv6m_svcall_1((uint32_t)&armv6m_event_svc_destroy, (uint32_t)event);
     }
     else
     {
-	armv6m_svcall_1((uint32_t)&armv6m_event_svc_destroy, (uint32_t)event);
+	armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)armv6m_event_svc_destroy, (void*)event, 0);
     }
 }
 
 void armv6m_event_enqueue(armv6m_event_t *event)
 {
-    IRQn_Type irq;
-
-    irq = ((__get_IPSR() & 0x1ff) - 16);
-
-    if (irq >= SysTick_IRQn)
+    if (__get_IPSR() == 0)
     {
-	armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)armv6m_event_svc_enqueue, (void*)event, 0);
-    }
-    else if (irq >= SVC_IRQn)
-    {
-	armv6m_event_svc_enqueue(event);
+	armv6m_svcall_1((uint32_t)&armv6m_event_svc_enqueue, (uint32_t)event);
     }
     else
     {
-	armv6m_svcall_1((uint32_t)&armv6m_event_svc_enqueue, (uint32_t)event);
+	armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)armv6m_event_svc_enqueue, (void*)event, 0);
     }
 }
 
 void armv6m_event_lock(armv6m_event_t *event)
 {
-    IRQn_Type irq;
-
-    irq = ((__get_IPSR() & 0x1ff) - 16);
-
-    if (irq >= SysTick_IRQn)
+    if (__get_IPSR() == 0)
     {
-	armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)armv6m_event_svc_lock, (void*)event, 0);
-    }
-    else if (irq >= SVC_IRQn)
-    {
-	armv6m_event_svc_lock(event);
+	armv6m_svcall_1((uint32_t)&armv6m_event_svc_lock, (uint32_t)event);
     }
     else
     {
-	armv6m_svcall_1((uint32_t)&armv6m_event_svc_lock, (uint32_t)event);
+	armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)armv6m_event_svc_lock, (void*)event, 0);
     }
 }
 
 void armv6m_event_unlock(armv6m_event_t *event)
 {
-    IRQn_Type irq;
-
-    irq = ((__get_IPSR() & 0x1ff) - 16);
-
-    if (irq >= SysTick_IRQn)
+    if (__get_IPSR() == 0)
     {
-	armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)armv6m_event_svc_unlock, (void*)event, 0);
-    }
-    else if (irq >= SVC_IRQn)
-    {
-	armv6m_event_svc_unlock(event);
+	armv6m_svcall_1((uint32_t)&armv6m_event_svc_unlock, (uint32_t)event);
     }
     else
     {
-	armv6m_svcall_1((uint32_t)&armv6m_event_svc_unlock, (uint32_t)event);
+	armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)armv6m_event_svc_unlock, (void*)event, 0);
     }
 }
 
 void armv6m_event_set_priority(armv6m_event_t *event, uint8_t priority)
 {
-    IRQn_Type irq;
-
-    irq = ((__get_IPSR() & 0x1ff) - 16);
-
-    if (irq >= SysTick_IRQn)
+    if (__get_IPSR() == 0)
     {
-	armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)armv6m_event_svc_set_priority, (void*)event, priority);
-    }
-    else if (irq >= SVC_IRQn)
-    {
-	armv6m_event_svc_set_priority(event, priority);
+	armv6m_svcall_2((uint32_t)&armv6m_event_svc_set_priority, (uint32_t)event, priority);
     }
     else
     {
-	armv6m_svcall_2((uint32_t)&armv6m_event_svc_set_priority, (uint32_t)event, priority);
+	armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)armv6m_event_svc_set_priority, (void*)event, priority);
     }
 }
 
@@ -487,12 +447,9 @@ void armv6m_event_release(uint8_t priority)
 
 bool armv6m_event_dequeue(void)
 {
-    IRQn_Type irq;
     armv6m_core_callback_t callback;
 
-    irq = ((__get_IPSR() & 0x1ff) - 16);
-
-    if (irq != (IRQn_Type)(-16))
+    if (__get_IPSR() != 0)
     {
 	return false;
     }
@@ -509,11 +466,7 @@ bool armv6m_event_dequeue(void)
 
 armv6m_event_t *armv6m_event_self(void)
 {
-    IRQn_Type irq;
-
-    irq = ((__get_IPSR() & 0x1ff) - 16);
-
-    if (irq != (IRQn_Type)(-16))
+    if (__get_IPSR() != 0)
     {
 	return NULL;
     }

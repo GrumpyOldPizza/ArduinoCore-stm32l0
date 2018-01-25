@@ -38,10 +38,6 @@ typedef struct _armv6m_systick_control_t {
 
 static armv6m_systick_control_t armv6m_systick_control;
 
-uint32_t armv6m_systick_table[64];
-uint32_t armv6m_systick_count[64];
-uint32_t armv6m_systick_index = 1;
-
 void armv6m_systick_initialize(void)
 {
     NVIC_SetPriority(SysTick_IRQn, 0);
@@ -161,15 +157,6 @@ uint32_t armv6m_systick_millis(void)
     while (millis != armv6m_systick_control.millis);
 
     millis += (((armv6m_systick_control.cycle - count) * armv6m_systick_control.scale[1]) >> 25);
-
-    if ((millis - armv6m_systick_table[armv6m_systick_index]) > 0x0fffffff)
-    {
-	__BKPT();
-    }
-
-    armv6m_systick_index = (armv6m_systick_index + 1) & 63;;
-    armv6m_systick_table[armv6m_systick_index] = millis;
-    armv6m_systick_count[armv6m_systick_index] = count;
     
     return millis;
 }

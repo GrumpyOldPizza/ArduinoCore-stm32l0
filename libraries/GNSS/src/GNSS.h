@@ -32,8 +32,6 @@
 #include "Arduino.h"
 #include "utility/gnss_api.h"
 
-#define GNSS_RX_BUFFER_SIZE 128
-
 class GNSSLocation {
 public:
     enum GNSSfixType {
@@ -96,22 +94,22 @@ private:
 
 class GNSSSatellites {
 public:
-    enum GNSSsatelliteState {
-	STATE_NONE = 0,
-	STATE_SEARCHING = 1,
-	STATE_TRACKING = 2,
-	STATE_NAVIGATING = 3,
-    };
-
     GNSSSatellites(const gnss_satellites_t *satellites);
 
     unsigned int count() const;
 
-    unsigned int prn(unsigned int index) const;
-    enum GNSSsatelliteState state(unsigned int index) const;
+    unsigned int svid(unsigned int index) const;
     unsigned int snr(unsigned int index) const;
     unsigned int elevation(unsigned int index) const;
     unsigned int azimuth(unsigned int index) const;
+    bool unhealthy(unsigned int index) const;
+    bool almanac(unsigned int index) const;
+    bool ephemeris(unsigned int index) const;
+    bool autonomous(unsigned int index) const;
+    bool correction(unsigned int index) const;
+    bool acquired(unsigned int index) const;
+    bool locked(unsigned int index) const;
+    bool navigating(unsigned int index) const;
 
 protected:
     gnss_satellites_t _satellites;
@@ -121,16 +119,20 @@ private:
 
 class GNSSClass {
 public:
-    enum GNSSmode {
-	MODE_NMEA = 0,
-	MODE_MEDIATEK,
-	MODE_UBLOX,
+    enum GNSSprotocol {
+	PROTOCOL_NMEA = 0,
+	PROTOCOL_UBLOX,
     };
 
     enum GNSSrate {
 	RATE_1HZ = 1,
 	RATE_5HZ = 5,
 	RATE_10HZ = 10,
+    };
+
+    enum GNSSantenna {
+	ANTENNA_INTERNAL = 0,
+	ANTENNA_EXTERNAL,
     };
 
     enum GNSSconstellation {
@@ -140,44 +142,51 @@ public:
 
     GNSSClass();
 
-    void begin(GNSSmode mode, GNSSrate rate = RATE_1HZ);
+    void begin(Uart &uart, GNSSprotocol protocol, GNSSrate rate = RATE_1HZ);
     void end();
 
-    bool setExternal(bool enable);
+    bool setAntenna(GNSSantenna antenna);
     bool setConstellation(GNSSconstellation constellation);
-    bool setSBAS(bool on);
-    bool setQZSS(bool on);
+    bool setSBAS(bool enable);
+    bool setQZSS(bool enable);
+    bool setAutonomous(bool enable);
     bool setPeriodic(unsigned int onTime, unsigned int period, bool force = false);
     bool sleep();
     bool wakeup();
-    bool ready();
+    bool busy();
     
     int available(void);
     GNSSLocation location(void);
     GNSSSatellites satellites(void);
 
     void onReceive(void(*callback)(void));
+    void onReceive(Notifier notifier);
 
 protected:
 
 private:
-    struct _stm32l0_uart_t *_uart;
+    Uart *_uart;
     uint32_t _baudrate;
-    uint8_t _rx_data[GNSS_RX_BUFFER_SIZE];
     gnss_location_t _location_data;
     volatile uint32_t _location_pending;
     gnss_satellites_t _satellites_data;
     volatile uint32_t _satellites_pending;
-    void (*_send_callback)(void);
-    void (*_receive_callback)(void);
+#if 0
+    void (*_receiveCallback)(void);
+#endif
+    Notifier _receiveNotifier;
 
-    static void _doneCallback(class GNSSClass *self);
-    static void _sendRoutine(class GNSSClass *self, const uint8_t *data, uint32_t count, gnss_send_callback_t callback);
-    static void _locationCallback(class GNSSClass *self, const gnss_location_t *location);
-    static void _satellitesCallback(class GNSSClass *self, const gnss_satellites_t *satellites);
+#if 0
+    static void receiveCallback(void);
+    static void completionCallback(void);
+#endif
+    void receiveCallback(void);
+    void completionCallback(void);
 
-    static void _receiveRoutine(class GNSSClass *self);
-    static void _eventCallback(class GNSSClass *self, uint32_t events);
+    void (*_doneCallback)(void);
+    static void sendRoutine(class GNSSClass*, const uint8_t*, uint32_t, gnss_send_callback_t);
+    static void locationCallback(class GNSSClass*, const gnss_location_t*);
+    static void satellitesCallback(class GNSSClass*, const gnss_satellites_t*);
 };
 
 extern GNSSClass GNSS;

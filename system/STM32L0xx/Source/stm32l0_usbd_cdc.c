@@ -40,9 +40,9 @@ volatile stm32l0_usbd_cdc_info_t stm32l0_usbd_cdc_info;
 
 typedef struct _stm32l0_usbd_cdc_device_t {
     struct _USBD_HandleTypeDef     *USBD;
-    volatile uint8_t               rx_busy;
-    volatile uint8_t               tx_busy;
+    volatile uint32_t              tx_busy;
     volatile uint8_t               tx_flush;
+    volatile uint8_t               rx_busy;
     volatile uint8_t               reset;
     volatile uint8_t               suspended;
     uint32_t                       tx_timeout;
@@ -523,37 +523,29 @@ static void stm32l0_usbd_cdc_do_transmit(const uint8_t *tx_data, uint32_t tx_cou
 
 bool stm32l0_usbd_cdc_transmit(stm32l0_usbd_cdc_t *usbd_cdc, const uint8_t *tx_data, uint32_t tx_count, stm32l0_usbd_cdc_done_callback_t callback, void *context)
 {
-    IRQn_Type irq;
     bool success = true;
 
-    if ((usbd_cdc->state != USBD_CDC_STATE_READY) || stm32l0_usbd_cdc_device.tx_busy)
+    if (usbd_cdc->state != USBD_CDC_STATE_READY)
+    {
+	return false;
+    }
+
+    if (armv6m_atomic_swap(&stm32l0_usbd_cdc_device.tx_busy, 1))
     {
 	return false;
     }
     else
     {
-	stm32l0_usbd_cdc_device.tx_busy = 1;
-	
 	usbd_cdc->tx_callback = callback;
 	usbd_cdc->tx_context = context;
 
-	irq = ((__get_IPSR() & 0x1ff) - 16);
-	
-	if (irq >= SysTick_IRQn)
+	if (__get_IPSR() == 0)
 	{
-	    success = armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)stm32l0_usbd_cdc_do_transmit, (void*)tx_data, tx_count);
+	    armv6m_svcall_2((uint32_t)&stm32l0_usbd_cdc_do_transmit, (uint32_t)tx_data, tx_count);
 	}
 	else
 	{
-
-	    if (irq >= SVC_IRQn)
-	    {
-		stm32l0_usbd_cdc_do_transmit(tx_data, tx_count);
-	    }
-	    else
-	    {
-		armv6m_svcall_2((uint32_t)&stm32l0_usbd_cdc_do_transmit, (uint32_t)tx_data, tx_count);
-	    }
+	  success = armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)&stm32l0_usbd_cdc_do_transmit, (void*)tx_data, tx_count);
 	}
 
 	return success;

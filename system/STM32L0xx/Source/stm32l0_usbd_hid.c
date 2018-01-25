@@ -34,7 +34,7 @@
 typedef struct _stm32l0_usbd_hid_device_t {
     struct _USBD_HandleTypeDef     *USBD;
     uint8_t                        tx_data[64];
-    volatile uint8_t               tx_busy;
+    volatile uint32_t              tx_busy;
 } stm32l0_usbd_hid_device_t;
 
 static stm32l0_usbd_hid_device_t stm32l0_usbd_hid_device;
@@ -93,36 +93,24 @@ static void stm32l0_usbd_hid_do_send_report(uint8_t *tx_data, uint32_t tx_count)
 
 bool stm32l0_usbd_hid_send_report(uint8_t id, const uint8_t *data, uint32_t count)
 {
-    IRQn_Type irq;
     bool success = true;
 
-    if (stm32l0_usbd_hid_device.tx_busy)
+    if (armv6m_atomic_swap(&stm32l0_usbd_hid_device.tx_busy, 1))
     {
 	return false;
     }
     else
     {
-	irq = ((__get_IPSR() & 0x1ff) - 16);
-	
-	if (irq >= SysTick_IRQn)
+	stm32l0_usbd_hid_device.tx_data[0] = id;
+	memcpy(&stm32l0_usbd_hid_device.tx_data[1], data, count);
+
+	if (__get_IPSR() == 0)
 	{
-	    success = false;
+	    armv6m_svcall_2((uint32_t)&stm32l0_usbd_hid_do_send_report, (uint32_t)&stm32l0_usbd_hid_device.tx_data[0], (count+1));
 	}
 	else
 	{
-	    stm32l0_usbd_hid_device.tx_busy = 1;
-
-	    stm32l0_usbd_hid_device.tx_data[0] = id;
-	    memcpy(&stm32l0_usbd_hid_device.tx_data[1], data, count);
-	    
-	    if (irq >= SVC_IRQn)
-	    {
-		stm32l0_usbd_hid_do_send_report(&stm32l0_usbd_hid_device.tx_data[0], (count+1));
-	    }
-	    else
-	    {
-		armv6m_svcall_2((uint32_t)&stm32l0_usbd_hid_do_send_report, (uint32_t)&stm32l0_usbd_hid_device.tx_data[0], (count+1));
-	    }
+	    success = armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)stm32l0_usbd_hid_do_send_report, &stm32l0_usbd_hid_device.tx_data[0], (count+1));
 	}
 
 	return success;

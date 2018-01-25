@@ -35,11 +35,11 @@ void setup( void )
 {
     LoRaWAN.begin(US915);
     LoRaWAN.setSubBand(2);
-    LoRaWAN.setAdrEnable(false);
+    LoRaWAN.setADR(false);
     LoRaWAN.setDataRate(1);
     LoRaWAN.setTxPower(14);
     LoRaWAN.joinOTAA(appEui, appKey, devEui);
-}
+e}
 
 void loop( void )
 {

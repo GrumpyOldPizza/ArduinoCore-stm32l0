@@ -10,15 +10,15 @@ void setup( void )
 
     delay(1000);
 
-    GNSS.begin(GNSS.MODE_UBLOX, GNSS.RATE_1HZ);
+    GNSS.begin(Serial1, GNSS.PROTOCOL_UBLOX, GNSS.RATE_1HZ);
 
-    while (!GNSS.ready()) { }
+    while (GNSS.busy()) { }
 
     GNSS.setConstellation(GNSS.CONSTELLATION_GPS_AND_GLONASS);
 
-    while (!GNSS.ready()) { }
+    while (GNSS.busy()) { }
 
-    GNSS.setExternal(true);
+    GNSS.setAntenna(GNSS.ANTENNA_EXTERNAL);
 }
 
 void loop( void )
@@ -97,58 +97,72 @@ void loop( void )
 
 	for (unsigned int index = 0; index < mySatellites.count(); index++)
 	{
-	    unsigned int prn = mySatellites.prn(index);
+	    unsigned int svid = mySatellites.svid(index);
 
-	    static const char *stateString[] = {
-		"NONE",
-		"SEARCHING",
-		"TRACKING",
-		"NAVIGATING",
-	    };
-
-	    if ((prn >= 1) && (prn <= 32))
+	    if ((svid >= 1) && (svid <= 32))
 	    {
 		Serial.print("    ");
 
-		if (prn <= 9)
+		if (svid <= 9)
 		{
 		    Serial.print("  G");
-		    Serial.print(prn);
+		    Serial.print(svid);
 		}
 		else
 		{
 		    Serial.print(" G");
-		    Serial.print(prn);
+		    Serial.print(svid);
 		}
 	    }
-	    else if ((prn >= 33) && (prn <= 64))
-	    {
-		Serial.print("    ");
-		Serial.print("S");
-		Serial.print(prn +87);
-	    }
-	    else if ((prn >= 65) && (prn <= 96))
+	    else if ((svid >= 65) && (svid <= 96))
 	    {
 		Serial.print("    ");
 
-		if ((prn - 64) <= 9)
+		if ((svid - 64) <= 9)
 		{
 		    Serial.print("  R");
-		    Serial.print(prn -64);
+		    Serial.print(svid -64);
 		}
 		else
 		{
 		    Serial.print(" R");
-		    Serial.print(prn -64);
+		    Serial.print(svid -64);
 		}
 	    }
-	    else if ((prn >= 193) && (prn <= 197))
+	    else if ((svid >= 120) && (svid <= 158))
+	    {
+		Serial.print("    ");
+		Serial.print("S");
+		Serial.print(svid);
+	    }
+	    else if ((svid >= 173) && (svid <= 182))
+	    {
+		Serial.print("    ");
+		Serial.print("  I");
+		Serial.print(svid -172);
+	    }
+	    else if ((svid >= 193) && (svid <= 197))
 	    {
 		Serial.print("    ");
 		Serial.print("  Q");
-		Serial.print(prn -192);
+		Serial.print(svid -192);
 	    }
-	    else if (prn == 255)
+	    else if ((svid >= 211) && (svid <= 246))
+	    {
+		Serial.print("    ");
+
+		if ((svid - 210) <= 9)
+		{
+		    Serial.print("  E");
+		    Serial.print(svid -210);
+		}
+		else
+		{
+		    Serial.print(" E");
+		    Serial.print(svid -210);
+		}
+	    }
+	    else if (svid == 255)
 	    {
 		Serial.print("    ");
 		Serial.print("R???");
@@ -164,8 +178,39 @@ void loop( void )
 	    Serial.print(mySatellites.elevation(index));
 	    Serial.print(", AZIMUTH=");
 	    Serial.print(mySatellites.azimuth(index));
-	    Serial.print(", ");
-	    Serial.print(stateString[mySatellites.state(index)]);
+
+	    if (mySatellites.unhealthy(index)) {
+		Serial.print(", UNHEALTHY");
+	    }
+
+	    if (mySatellites.almanac(index)) {
+		Serial.print(", ALMANAC");
+	    }
+
+	    if (mySatellites.ephemeris(index)) {
+		Serial.print(", EPHEMERIS");
+	    }
+
+	    if (mySatellites.autonomous(index)) {
+		Serial.print(", AUTONOMOUS");
+	    }
+
+	    if (mySatellites.correction(index)) {
+		Serial.print(", CORRECTION");
+	    }
+
+	    if (mySatellites.acquired(index)) {
+		Serial.print(", ACQUIRED");
+	    }
+
+	    if (mySatellites.locked(index)) {
+		Serial.print(", LOCKED");
+	    }
+
+	    if (mySatellites.navigating(index)) {
+		Serial.print(", NAVIGATING");
+	    }
+
 	    Serial.println();
 	}
     }

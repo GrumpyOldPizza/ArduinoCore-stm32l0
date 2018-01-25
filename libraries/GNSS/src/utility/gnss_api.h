@@ -37,12 +37,16 @@
 extern "C" {
 #endif
 
+#define GNSS_PROTOCOL_NMEA                     0
+#define GNSS_PROTOCOL_UBLOX                    1
+
+#define GNSS_ANTENNA_INTERNAL                  0
+#define GNSS_ANTENNA_EXTERNAL                  1
+
 #define GNSS_CONSTELLATION_GPS                 0x00000001
 #define GNSS_CONSTELLATION_GLONASS             0x00000002
-
-#define GNSS_MODE_NMEA                         0
-#define GNSS_MODE_MEDIATEK                     1
-#define GNSS_MODE_UBLOX                        2
+#define GNSS_CONSTELLATION_BEIDOU              0x00000004
+#define GNSS_CONSTELLATION_GALILEO             0x00000008
 
 #define GNSS_LOCATION_TYPE_NONE                0
 #define GNSS_LOCATION_TYPE_TIME                1
@@ -81,7 +85,6 @@ typedef struct _utc_time_t {
 #define GNSS_LOCATION_MASK_PDOP           0x0200
 #define GNSS_LOCATION_MASK_HDOP           0x0400
 #define GNSS_LOCATION_MASK_VDOP           0x0800
-#define GNSS_LOCATION_MASK_TICKS          0x1000
 
 typedef struct _gnss_location_t {
     utc_time_t     time;             /* UTC date/time                */
@@ -104,12 +107,16 @@ typedef struct _gnss_location_t {
     uint16_t       vdop;             /* 1e2                          */
 } gnss_location_t;
 
-#define GNSS_SATELLITES_STATE_SEARCHING          0x00
-#define GNSS_SATELLITES_STATE_TRACKING           0x01
-#define GNSS_SATELLITES_STATE_NAVIGATING         0x02
-#define GNSS_SATELLITES_STATE_CORRECTION         0x04
+#define GNSS_SATELLITES_STATE_UNHEALTHY        0x01
+#define GNSS_SATELLITES_STATE_ALMANAC          0x02
+#define GNSS_SATELLITES_STATE_EPHEMERIS        0x04
+#define GNSS_SATELLITES_STATE_AUTONOMOUS       0x08
+#define GNSS_SATELLITES_STATE_CORRECTION       0x10
+#define GNSS_SATELLITES_STATE_ACQUIRED         0x20
+#define GNSS_SATELLITES_STATE_LOCKED           0x40
+#define GNSS_SATELLITES_STATE_NAVIGATING       0x80
 
-#define GNSS_SATELLITES_COUNT_MAX          32
+#define GNSS_SATELLITES_COUNT_MAX              32
 
 /* PRN ranges:
  *
@@ -125,7 +132,7 @@ typedef struct _gnss_location_t {
 typedef struct _gnss_satellites_t {
     uint32_t       count;
     struct {
-	uint8_t    prn;
+	uint8_t    svid;
         uint8_t    state;
         uint8_t    snr;
         uint8_t    elevation;
@@ -140,14 +147,15 @@ typedef void (*gnss_satellites_callback_t)(void *context, const gnss_satellites_
 
 extern void gnss_initialize(unsigned int mode, unsigned int rate, unsigned int speed, gnss_send_routine_t send_routine, gnss_location_callback_t location_callback, gnss_satellites_callback_t satellites_callback, void *context);
 extern void gnss_receive(const uint8_t *data, uint32_t count);
-extern bool gnss_set_external(bool on);
+extern bool gnss_set_antenna(unsigned int antenna);
 extern bool gnss_set_constellation(unsigned int mask);
-extern bool gnss_set_sbas(bool on);
-extern bool gnss_set_qzss(bool on);
+extern bool gnss_set_sbas(bool enable);
+extern bool gnss_set_qzss(bool enable);
+extern bool gnss_set_autonomous(bool enable);
 extern bool gnss_set_periodic(unsigned int onTime, unsigned int period, bool force);
 extern bool gnss_sleep(void);
 extern bool gnss_wakeup(void);
-extern bool gnss_done(void);
+extern bool gnss_busy(void);
 
 #ifdef __cplusplus
 }

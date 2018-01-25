@@ -62,9 +62,6 @@ CDC::CDC(struct _stm32l0_usbd_cdc_t *usbd_cdc)
     _tx_data2 = NULL;
     _tx_size2 = 0;
 
-    _completionCallback = NULL;
-    _receiveCallback = NULL;
-
     stm32l0_usbd_cdc_create(usbd_cdc);
 }
 
@@ -281,6 +278,11 @@ size_t CDC::write(const uint8_t *buffer, size_t size)
 
 bool CDC::write(const uint8_t *buffer, size_t size, void(*callback)(void))
 {
+    return write(buffer, size, Notifier(callback));
+}
+
+bool CDC::write(const uint8_t *buffer, size_t size, Notifier notify)
+{
     if (!_enabled) {
 	return false;
     }
@@ -293,7 +295,8 @@ bool CDC::write(const uint8_t *buffer, size_t size, void(*callback)(void))
 	return false;
     }
 
-    _completionCallback = callback;
+    _completionNotify = notify;
+
     _tx_data2 = buffer;
     _tx_size2 = size;
 
@@ -304,7 +307,8 @@ bool CDC::write(const uint8_t *buffer, size_t size, void(*callback)(void))
 	if (!stm32l0_usbd_cdc_transmit(_usbd_cdc, _tx_data2, _tx_size2, (stm32l0_usbd_cdc_done_callback_t)CDC::_doneCallback, (void*)this)) {
 	    _tx_busy = false;
 
-	    _completionCallback = NULL;
+	    _completionNotify = Notifier();
+
 	    _tx_data2 = NULL;
 	    _tx_size2 = 0;
 
@@ -322,7 +326,12 @@ void CDC::setNonBlocking(bool enabled)
 
 void CDC::onReceive(void(*callback)(void))
 {
-    _receiveCallback = callback;
+    _receiveNotify = Notifier(callback);
+}
+
+void CDC::onReceive(Notifier notify)
+{
+    _receiveNotify = notify;
 }
 
 CDC::operator bool()
@@ -363,11 +372,7 @@ bool CDC::rts()
 void CDC::_eventCallback(class CDC *self, uint32_t events)
 {
     if (events & USBD_CDC_EVENT_RECEIVE) {
-	if (self->_receiveCallback) {
-	    armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)self->_receiveCallback, NULL, 0);
-	} else {
-	    stm32l0_system_wakeup();
-	}
+	self->_receiveNotify.queue();
     }
 }
 
@@ -412,13 +417,8 @@ void CDC::_doneCallback(class CDC *self)
 		    self->_tx_size2 = 0;
 		    self->_tx_data2 = NULL;
 		    
-		    if (self->_completionCallback) {
-			armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)self->_completionCallback, NULL, 0);
-			
-			self->_completionCallback = NULL;
-		    } else {
-			stm32l0_system_wakeup();
-		    }
+                    self->_completionNotify.queue();
+		    self->_completionNotify = Notifier();
 		}
 	    }
 	} else {
@@ -431,13 +431,8 @@ void CDC::_doneCallback(class CDC *self)
 		    self->_tx_size2 = 0;
 		    self->_tx_data2 = NULL;
 		    
-		    if (self->_completionCallback) {
-			armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)self->_completionCallback, NULL, 0);
-			
-			self->_completionCallback = NULL;
-		    } else {
-			stm32l0_system_wakeup();
-		    }
+                    self->_completionNotify.queue();
+		    self->_completionNotify = Notifier();
 		}
 	    }
 	}
@@ -445,13 +440,8 @@ void CDC::_doneCallback(class CDC *self)
 	self->_tx_size2 = 0;
 	self->_tx_data2 = NULL;
 	
-	if (self->_completionCallback) {
-	    armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)self->_completionCallback, NULL, 0);
-	    
-	    self->_completionCallback = NULL;
-	} else {
-	    stm32l0_system_wakeup();
-	}
+	self->_completionNotify.queue();
+	self->_completionNotify = Notifier();
     }
 }
 

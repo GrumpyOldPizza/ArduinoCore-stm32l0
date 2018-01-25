@@ -100,17 +100,20 @@ static LoRaMacStatus_t LoRaWANQueryTxPossible( uint8_t size, LoRaMacTxInfo_t* tx
 
     irq = (IRQn_Type)((__get_IPSR() & 0x1ff) - 16);
 
-    if (irq >= SysTick_IRQn)
-    {	
-	return LORAMAC_STATUS_BUSY;
-    }
-    else if (irq >= SVC_IRQn)
+    if (irq == Reset_IRQn)
     {
-	return LoRaMacQueryTxPossible(size, txInfo);
+	return (LoRaMacStatus_t)armv6m_svcall_2((uint32_t)&LoRaMacQueryTxPossible, (uint32_t)size, (uint32_t)txInfo);
     }
     else
     {
-	return (LoRaMacStatus_t)armv6m_svcall_2((uint32_t)&LoRaMacQueryTxPossible, (uint32_t)size, (uint32_t)txInfo);
+	if ((irq == SVC_IRQn) || (irq == PendSV_IRQn))
+	{
+	    return LoRaMacQueryTxPossible(size, txInfo);
+	}
+	else
+	{
+	    return LORAMAC_STATUS_BUSY;
+	}
     }
 }
 
@@ -120,17 +123,20 @@ static LoRaMacStatus_t LoRaWANChannelAdd( uint8_t id, ChannelParams_t *params )
 
     irq = (IRQn_Type)((__get_IPSR() & 0x1ff) - 16);
 
-    if (irq >= SysTick_IRQn)
-    {	
-	return LORAMAC_STATUS_BUSY;
-    }
-    else if (irq >= SVC_IRQn)
+    if (irq == Reset_IRQn)
     {
-	return LoRaMacChannelAdd(id, params);
+	return (LoRaMacStatus_t)armv6m_svcall_2((uint32_t)&LoRaMacChannelAdd, (uint32_t)id, (uint32_t)params);
     }
     else
     {
-	return (LoRaMacStatus_t)armv6m_svcall_2((uint32_t)&LoRaMacChannelAdd, (uint32_t)id, (uint32_t)params);
+	if ((irq == SVC_IRQn) || (irq == PendSV_IRQn))
+	{
+	    return LoRaMacChannelAdd(id, params);
+	}
+	else
+	{
+	    return LORAMAC_STATUS_BUSY;
+	}
     }
 }
 
@@ -140,17 +146,20 @@ static LoRaMacStatus_t LoRaWANChannelRemove( uint8_t id )
 
     irq = (IRQn_Type)((__get_IPSR() & 0x1ff) - 16);
 
-    if (irq >= SysTick_IRQn)
-    {	
-	return LORAMAC_STATUS_BUSY;
-    }
-    else if (irq >= SVC_IRQn)
+    if (irq == Reset_IRQn)
     {
-	return LoRaMacChannelRemove(id);
+	return (LoRaMacStatus_t)armv6m_svcall_1((uint32_t)&LoRaMacChannelRemove, (uint32_t)id);
     }
     else
     {
-	return (LoRaMacStatus_t)armv6m_svcall_1((uint32_t)&LoRaMacChannelRemove, (uint32_t)id);
+	if ((irq == SVC_IRQn) || (irq == PendSV_IRQn))
+	{
+	    return LoRaMacChannelRemove(id);
+	}
+	else
+	{
+	    return LORAMAC_STATUS_BUSY;
+	}
     }
 }
 
@@ -162,17 +171,20 @@ static LoRaMacStatus_t LoRaWANMulticastChannelLink( MulticastParams_t *channelPa
 
     irq = (IRQn_Type)((__get_IPSR() & 0x1ff) - 16);
 
-    if (irq >= SysTick_IRQn)
-    {	
-	return LORAMAC_STATUS_BUSY;
-    }
-    else if (irq >= SVC_IRQn)
+    if (irq == Reset_IRQn)
     {
-	return LoRaMacMulticastChannelLink(channelParam);
+	return (LoRaMacStatus_t)armv6m_svcall_1((uint32_t)&LoRaMacMulticastChannelLink, (uint32_t)channelParam);
     }
     else
     {
-	return (LoRaMacStatus_t)armv6m_svcall_1((uint32_t)&LoRaMacMulticastChannelLink, (uint32_t)channelParam);
+	if ((irq == SVC_IRQn) || (irq == PendSV_IRQn))
+	{
+	    return LoRaMacMulticastChannelLink(channelParam);
+	}
+	else
+	{
+	    return LORAMAC_STATUS_BUSY;
+	}
     }
 }
 
@@ -182,17 +194,20 @@ static LoRaMacStatus_t LoRaWANMulticastChannelUnlink( MulticastParams_t *channel
 
     irq = (IRQn_Type)((__get_IPSR() & 0x1ff) - 16);
 
-    if (irq >= SysTick_IRQn)
-    {	
-	return LORAMAC_STATUS_BUSY;
-    }
-    else if (irq >= SVC_IRQn)
+    if (irq == Reset_IRQn)
     {
-	return LoRaMacMulticastChannelUnlink(channelParam);
+	return (LoRaMacStatus_t)armv6m_svcall_1((uint32_t)&LoRaMacMulticastChannelUnlink, (uint32_t)channelParam);
     }
     else
     {
-	return (LoRaMacStatus_t)armv6m_svcall_1((uint32_t)&LoRaMacMulticastChannelUnlink, (uint32_t)channelParam);
+	if ((irq == SVC_IRQn) || (irq == PendSV_IRQn))
+	{
+	    return LoRaMacMulticastChannelUnlink(channelParam);
+	}
+	else
+	{
+	    return LORAMAC_STATUS_BUSY;
+	}
     }
 }
 
@@ -204,17 +219,20 @@ static LoRaMacStatus_t LoRaWANMibGetRequestConfirm( MibRequestConfirm_t *mibGet 
 
     irq = (IRQn_Type)((__get_IPSR() & 0x1ff) - 16);
 
-    if (irq >= SysTick_IRQn)
-    {	
-	return LORAMAC_STATUS_BUSY;
-    }
-    else if (irq >= SVC_IRQn)
+    if (irq == Reset_IRQn)
     {
-	return LoRaMacMibGetRequestConfirm(mibGet);
+	return (LoRaMacStatus_t)armv6m_svcall_1((uint32_t)&LoRaMacMibGetRequestConfirm, (uint32_t)mibGet);
     }
     else
     {
-	return (LoRaMacStatus_t)armv6m_svcall_1((uint32_t)&LoRaMacMibGetRequestConfirm, (uint32_t)mibGet);
+	if ((irq == SVC_IRQn) || (irq == PendSV_IRQn))
+	{
+	    return LoRaMacMibGetRequestConfirm(mibGet);
+	}
+	else
+	{
+	    return LORAMAC_STATUS_BUSY;
+	}
     }
 }
 
@@ -224,17 +242,20 @@ static LoRaMacStatus_t LoRaWANMibSetRequestConfirm( MibRequestConfirm_t *mibSet 
 
     irq = (IRQn_Type)((__get_IPSR() & 0x1ff) - 16);
 
-    if (irq >= SysTick_IRQn)
-    {	
-	return LORAMAC_STATUS_BUSY;
-    }
-    else if (irq >= SVC_IRQn)
+    if (irq == Reset_IRQn)
     {
-	return LoRaMacMibSetRequestConfirm(mibSet);
+	return (LoRaMacStatus_t)armv6m_svcall_1((uint32_t)&LoRaMacMibSetRequestConfirm, (uint32_t)mibSet);
     }
     else
     {
-	return (LoRaMacStatus_t)armv6m_svcall_1((uint32_t)&LoRaMacMibSetRequestConfirm, (uint32_t)mibSet);
+	if ((irq == SVC_IRQn) || (irq == PendSV_IRQn))
+	{
+	    return LoRaMacMibSetRequestConfirm(mibSet);
+	}
+	else
+	{
+	    return LORAMAC_STATUS_BUSY;
+	}
     }
 }
 
@@ -244,17 +265,20 @@ static LoRaMacStatus_t LoRaWANMlmeRequest( MlmeReq_t *mlmeRequest )
 
     irq = (IRQn_Type)((__get_IPSR() & 0x1ff) - 16);
 
-    if (irq >= SysTick_IRQn)
-    {	
-	return LORAMAC_STATUS_BUSY;
-    }
-    else if (irq >= SVC_IRQn)
+    if (irq == Reset_IRQn)
     {
-	return LoRaMacMlmeRequest(mlmeRequest);
+	return (LoRaMacStatus_t)armv6m_svcall_1((uint32_t)&LoRaMacMlmeRequest, (uint32_t)mlmeRequest);
     }
     else
     {
-	return (LoRaMacStatus_t)armv6m_svcall_1((uint32_t)&LoRaMacMlmeRequest, (uint32_t)mlmeRequest);
+	if ((irq == SVC_IRQn) || (irq == PendSV_IRQn))
+	{
+	    return LoRaMacMlmeRequest(mlmeRequest);
+	}
+	else
+	{
+	    return LORAMAC_STATUS_BUSY;
+	}
     }
 }
 
@@ -264,17 +288,20 @@ static LoRaMacStatus_t LoRaWANMcpsRequest( McpsReq_t *mcpsRequest )
 
     irq = (IRQn_Type)((__get_IPSR() & 0x1ff) - 16);
 
-    if (irq >= SysTick_IRQn)
-    {	
-	return LORAMAC_STATUS_BUSY;
-    }
-    else if (irq >= SVC_IRQn)
+    if (irq == Reset_IRQn)
     {
-	return LoRaMacMcpsRequest(mcpsRequest);
+	return (LoRaMacStatus_t)armv6m_svcall_1((uint32_t)&LoRaMacMcpsRequest, (uint32_t)mcpsRequest);
     }
     else
     {
-	return (LoRaMacStatus_t)armv6m_svcall_1((uint32_t)&LoRaMacMcpsRequest, (uint32_t)mcpsRequest);
+	if ((irq == SVC_IRQn) || (irq == PendSV_IRQn))
+	{
+	    return LoRaMacMcpsRequest(mcpsRequest);
+	}
+	else
+	{
+	    return LORAMAC_STATUS_BUSY;
+	}
     }
 }
 
@@ -896,12 +923,12 @@ uint8_t LoRaWANClass::remotePort()
     return _rx_port;
 }
 
-int LoRaWANClass::lastRssi()
+int LoRaWANClass::lastRSSI()
 {
     return _rx_rssi;
 }
 
-int LoRaWANClass::lastSnr()
+int LoRaWANClass::lastSNR()
 {
     return _rx_snr;
 }
@@ -940,17 +967,32 @@ int LoRaWANClass::linkGateways()
 
 void LoRaWANClass::onJoin(void(*callback)(void))
 {
-    _joinCallback = callback;
+    _joinNotify = Notifier(callback);
+}
+
+void LoRaWANClass::onJoin(Notifier notify)
+{
+    _joinNotify = notify;
 }
 
 void LoRaWANClass::onReceive(void(*callback)(void))
 {
-    _receiveCallback = callback;
+    _receiveNotify = Notifier(callback);
+}
+
+void LoRaWANClass::onReceive(Notifier notify)
+{
+    _receiveNotify = notify;
 }
 
 void LoRaWANClass::onTransmit(void(*callback)(void))
 {
-    _transmitCallback = callback;
+    _transmitNotify = Notifier(callback);
+}
+
+void LoRaWANClass::onTransmit(Notifier notify)
+{
+    _transmitNotify = notify;
 }
 
 int LoRaWANClass::getDevEui(char *buffer, size_t size)
@@ -1097,7 +1139,7 @@ int LoRaWANClass::setPublicNetwork(bool enable)
     return 1;
 }
 
-int LoRaWANClass::setAdrEnable(bool enable)
+int LoRaWANClass::setADR(bool enable)
 {
     MibRequestConfirm_t mibReq;
 
@@ -1628,11 +1670,7 @@ void LoRaWANClass::__McpsConfirm( McpsConfirm_t *mcpsConfirm )
 	    LoRaMacMibSetRequestConfirm(&mibReq);
 	}
 
-	if (LoRaWAN._transmitCallback) {
-	    armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)LoRaWAN._transmitCallback, NULL, 0);
-	} else {
-	    stm32l0_system_wakeup();
-	}
+	LoRaWAN._transmitNotify.queue();
     }
 }
 
@@ -1722,11 +1760,7 @@ void LoRaWANClass::__McpsIndication( McpsIndication_t *mcpsIndication )
 	}
     }
 
-    if (LoRaWAN._receiveCallback) {
-	armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)LoRaWAN._receiveCallback, NULL, 0);
-    } else {
-	stm32l0_system_wakeup();
-    }
+    LoRaWAN._receiveNotify.queue();
 }
 
 void LoRaWANClass::__MlmeConfirm( MlmeConfirm_t *mlmeConfirm )
@@ -1758,11 +1792,7 @@ void LoRaWANClass::__MlmeConfirm( MlmeConfirm_t *mlmeConfirm )
 	    LoRaWAN._tx_busy = false;
 	}
 
-	if (LoRaWAN._joinCallback) {
-	    armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)LoRaWAN._joinCallback, NULL, 0);
-	} else {
-	    stm32l0_system_wakeup();
-	}
+	LoRaWAN._joinNotify.queue();
 	break;
 
     case MLME_LINK_CHECK:

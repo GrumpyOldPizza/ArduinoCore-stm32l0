@@ -131,9 +131,6 @@
 #define NMEA_FIELD_SEQUENCE_GST_END                   62
 #define NMEA_FIELD_SEQUENCE_GSV_END                   63
 #define NMEA_FIELD_SEQUENCE_RMC_END                   64
-#define NMEA_FIELD_SEQUENCE_PMTK001_COMMAND           65
-#define NMEA_FIELD_SEQUENCE_PMTK001_STATUS            66
-#define NMEA_FIELD_SEQUENCE_PMTK001_END               67
 
 #define NMEA_FIELD_MASK_TIME                          0x0001
 #define NMEA_FIELD_MASK_POSITION                      0x0002
@@ -167,14 +164,13 @@ typedef struct _nmea_context_t {
     uint8_t             sv_in_view_index;                   /* GSV                          */
     uint8_t             sv_used_count;                      /* GSA                          */
     uint32_t            sv_used_mask[3];                    /* GSA                          */
-    uint16_t            mtk_command;
-    uint16_t            mtk_status;
 } nmea_context_t;
 
 /************************************************************************************/
 
 #define UBX_MESSAGE_MASK_NAV_DOP                      0x00010000
 #define UBX_MESSAGE_MASK_NAV_PVT                      0x00040000
+#define UBX_MESSAGE_MASK_NAV_SAT                      0x00080000
 #define UBX_MESSAGE_MASK_NAV_SVINFO                   0x00100000
 #define UBX_MESSAGE_MASK_NAV_TIMEGPS                  0x00200000
 #define UBX_MESSAGE_MASK_SOLUTION                     0x00008000
@@ -187,6 +183,12 @@ typedef struct _ubx_context_t {
     uint16_t            week;
     uint32_t            tow;
     uint32_t            itow;
+    struct {
+	uint8_t         supported;
+	uint8_t         defaultGnss;
+	uint8_t         enabled;
+	uint8_t         simultaneous;
+    } gnss;
     stm32l0_rtc_timer_t timeout;
 } ubx_context_t;
 
@@ -208,10 +210,8 @@ typedef struct _ubx_context_t {
 #define GNSS_STATE_UBX_CK_B           13
 
 #define GNSS_INIT_DONE                0
-#define GNSS_INIT_MTK_BAUD_RATE       1
-#define GNSS_INIT_MTK_INIT_TABLE      2
-#define GNSS_INIT_UBX_BAUD_RATE       3
-#define GNSS_INIT_UBX_INIT_TABLE      4
+#define GNSS_INIT_UBX_BAUD_RATE       2
+#define GNSS_INIT_UBX_INIT_TABLE      3
 
 #define GNSS_RESPONSE_NONE            0
 #define GNSS_RESPONSE_ACK             1
@@ -226,7 +226,8 @@ typedef struct _ubx_context_t {
 
 typedef struct _gnss_device_t {
     uint8_t             ck_a;
-    uint8_t             mode;
+    uint8_t             protocol;
+    uint8_t             rate;
     uint8_t             state;
     volatile uint8_t    busy;
     volatile uint8_t    init;
@@ -254,7 +255,6 @@ typedef struct _gnss_device_t {
 static gnss_device_t gnss_device;
 
 static void gnss_send_callback(void);
-static void mtk_configure(gnss_device_t *device, unsigned int response, uint32_t command);
 static void ubx_configure(gnss_device_t *device, unsigned int response, uint32_t command);
 
 /************************************************************************************/
@@ -690,9 +690,6 @@ static void nmea_start_sentence(gnss_device_t *device)
     case NMEA_FIELD_SEQUENCE_RMC_END:
 	break;
 
-    case NMEA_FIELD_SEQUENCE_PMTK001_END:
-	break;
-
     default:
 	break;
     }
@@ -706,7 +703,6 @@ static void nmea_parse_sentence(gnss_device_t *device, const uint8_t *data, unsi
     uint32_t sequence, sequence_next;
     uint32_t latitude, longitude, altitude, separation, speed, course;
     uint32_t quality, stddev, pdop, hdop, vdop, date;
-    uint32_t command, status;
     utc_time_t time;
     uint32_t count, sentences, current, svid, elevation, azimuth, snr;
 
@@ -718,97 +714,87 @@ static void nmea_parse_sentence(gnss_device_t *device, const uint8_t *data, unsi
     case NMEA_FIELD_SEQUENCE_START:
 	sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
 
-	if (data[0] == 'P')
+	if ((data[0] == 'G') && ((data[1] == 'P') || (data[1] == 'L') || (data[1] == 'N')))
 	{
-	    if (!strcmp((const char*)data, "PMTK001"))
+	    context ->prefix = data[1];
+
+	    /* --GSA is the switch detector in NMEA 0183. If it's GPGSA or GLGSA, then the system
+	     * is set up as single GPS/GLONASS system, and we'd see only either a GPGSV or GLGSV
+	     * later on. If it's a GNGSA, then another GNGSA will follow, one for GPS and one for 
+	     * GLONASS. The constellation will be reported as GPGSV and GLGSV.
+	     */
+	    if (!strcmp((const char*)(data+2), "GSA"))
 	    {
-		sequence_next = NMEA_FIELD_SEQUENCE_PMTK001_COMMAND;
+		if (device->seen & NMEA_SENTENCE_MASK_GPGGA)
+		{
+		    sequence_next = NMEA_FIELD_SEQUENCE_GSA_OPERATION;
+			
+		    context->mask = (NMEA_FIELD_MASK_PDOP | NMEA_FIELD_MASK_VDOP);
+		}
 	    }
-	}
-	else
-	{
-	    if ((data[0] == 'G') && ((data[1] == 'P') || (data[1] == 'L') || (data[1] == 'N')))
+
+	    /* -- GSV is used to report the satellite constellation with either GPGSV or GLGSV.
+	     * GNGSV is not legal.
+	     */
+	    else if (!strcmp((const char*)(data+2), "GSV"))
 	    {
-		context ->prefix = data[1];
-
-		/* --GSA is the switch detector in NMEA 0183. If it's GPGSA or GLGSA, then the system
-		 * is set up as single GPS/GLONASS system, and we'd see only either a GPGSV or GLGSV
-		 * later on. If it's a GNGSA, then another GNGSA will follow, one for GPS and one for 
-		 * GLONASS. The constellation will be reported as GPGSV and GLGSV.
-		 */
-		if (!strcmp((const char*)(data+2), "GSA"))
+		if (device->seen & (NMEA_SENTENCE_MASK_GPGGA | NMEA_SENTENCE_MASK_SOLUTION))
 		{
-		    if (device->seen & NMEA_SENTENCE_MASK_GPGGA)
-		    {
-			sequence_next = NMEA_FIELD_SEQUENCE_GSA_OPERATION;
-			
-			context->mask = (NMEA_FIELD_MASK_PDOP | NMEA_FIELD_MASK_VDOP);
-		    }
+		    sequence_next = NMEA_FIELD_SEQUENCE_GSV_SENTENCES;
 		}
+	    }
 
-		/* -- GSV is used to report the satellite constellation with either GPGSV or GLGSV.
-		 * GNGSV is not legal.
-		 */
-		else if (!strcmp((const char*)(data+2), "GSV"))
-		{
-		    if (device->seen & (NMEA_SENTENCE_MASK_GPGGA | NMEA_SENTENCE_MASK_SOLUTION))
-		    {
-			sequence_next = NMEA_FIELD_SEQUENCE_GSV_SENTENCES;
-		    }
-		}
-
-		/* According to the standard, if a receiver is supporting GPS only, the prefix would 
-		 * be "GP". If it's a GLONASS only system, or a combined GPS+GLONASS system, then
-		 * the prefix should be "GN". However some GLONASS only systems use a "GL" prefix,
-		 * and quite a few GNSS_GLONASS systems mix "GP" and "GN" randomly. The system detection
-		 * is done via --GSA anyway.
-		 */
-		else if (!strcmp((const char*)(data+2), "GGA"))
-		{
-		    sequence_next = NMEA_FIELD_SEQUENCE_GGA_TIME;
+	    /* According to the standard, if a receiver is supporting GPS only, the prefix would 
+	     * be "GP". If it's a GLONASS only system, or a combined GPS+GLONASS system, then
+	     * the prefix should be "GN". However some GLONASS only systems use a "GL" prefix,
+	     * and quite a few GNSS_GLONASS systems mix "GP" and "GN" randomly. The system detection
+	     * is done via --GSA anyway.
+	     */
+	    else if (!strcmp((const char*)(data+2), "GGA"))
+	    {
+		sequence_next = NMEA_FIELD_SEQUENCE_GGA_TIME;
 		    
-		    /* GSA/GSV are subsequent to a GGA */
-		    device->seen &= ~(NMEA_SENTENCE_MASK_GPGGA |
-				      NMEA_SENTENCE_MASK_GPGSA |
-				      NMEA_SENTENCE_MASK_GPGSV |
-				      NMEA_SENTENCE_MASK_GLGSA |
-				      NMEA_SENTENCE_MASK_GLGSV |
-				      NMEA_SENTENCE_MASK_SOLUTION); 
+		/* GSA/GSV are subsequent to a GGA */
+		device->seen &= ~(NMEA_SENTENCE_MASK_GPGGA |
+				  NMEA_SENTENCE_MASK_GPGSA |
+				  NMEA_SENTENCE_MASK_GPGSV |
+				  NMEA_SENTENCE_MASK_GLGSA |
+				  NMEA_SENTENCE_MASK_GLGSV |
+				  NMEA_SENTENCE_MASK_SOLUTION); 
 		    
-		    context->mask = (NMEA_FIELD_MASK_POSITION |
-				     NMEA_FIELD_MASK_ALTITUDE |
-				     NMEA_FIELD_MASK_HDOP);
+		context->mask = (NMEA_FIELD_MASK_POSITION |
+				 NMEA_FIELD_MASK_ALTITUDE |
+				 NMEA_FIELD_MASK_HDOP);
 		    
-		    context->sv_in_view_sentences = 0;
+		context->sv_in_view_sentences = 0;
 			
-		    context->sv_used_count = 0;
-		    context->sv_used_mask[0] = 0;
-		    context->sv_used_mask[1] = 0;
-		    context->sv_used_mask[2] = 0;
+		context->sv_used_count = 0;
+		context->sv_used_mask[0] = 0;
+		context->sv_used_mask[1] = 0;
+		context->sv_used_mask[2] = 0;
 			
-		    device->satellites.count = 0;
-		}
+		device->satellites.count = 0;
+	    }
 
-		else if (!strcmp((const char*)(data+2), "GST"))
-		{
-		    sequence_next = NMEA_FIELD_SEQUENCE_GST_TIME;
+	    else if (!strcmp((const char*)(data+2), "GST"))
+	    {
+		sequence_next = NMEA_FIELD_SEQUENCE_GST_TIME;
 			
-		    device->seen &= ~(NMEA_SENTENCE_MASK_GPGST | NMEA_SENTENCE_MASK_SOLUTION);
+		device->seen &= ~(NMEA_SENTENCE_MASK_GPGST | NMEA_SENTENCE_MASK_SOLUTION);
 			
-		    context->mask = (NMEA_FIELD_MASK_EHPE |
-				     NMEA_FIELD_MASK_EVPE);
-		}
+		context->mask = (NMEA_FIELD_MASK_EHPE |
+				 NMEA_FIELD_MASK_EVPE);
+	    }
 
-		else if (!strcmp((const char*)(data+2), "RMC"))
-		{
-		    sequence_next = NMEA_FIELD_SEQUENCE_RMC_TIME;
+	    else if (!strcmp((const char*)(data+2), "RMC"))
+	    {
+		sequence_next = NMEA_FIELD_SEQUENCE_RMC_TIME;
 			
-		    device->seen &= ~(NMEA_SENTENCE_MASK_GPRMC | NMEA_SENTENCE_MASK_SOLUTION);
+		device->seen &= ~(NMEA_SENTENCE_MASK_GPRMC | NMEA_SENTENCE_MASK_SOLUTION);
 			
-		    context->mask = (NMEA_FIELD_MASK_TIME |
-				     NMEA_FIELD_MASK_SPEED |
-				     NMEA_FIELD_MASK_COURSE);
-		}
+		context->mask = (NMEA_FIELD_MASK_TIME |
+				 NMEA_FIELD_MASK_SPEED |
+				 NMEA_FIELD_MASK_COURSE);
 	    }
 	}
 	break;
@@ -1227,8 +1213,8 @@ static void nmea_parse_sentence(gnss_device_t *device, const uint8_t *data, unsi
 	{
 	    if (device->satellites.count < GNSS_SATELLITES_COUNT_MAX)
 	    {
-		device->satellites.info[device->satellites.count].prn = svid;
-		device->satellites.info[device->satellites.count].state = GNSS_SATELLITES_STATE_SEARCHING;
+		device->satellites.info[device->satellites.count].svid = svid;
+		device->satellites.info[device->satellites.count].state = 0;
 		device->satellites.info[device->satellites.count].snr = 0;
 		device->satellites.info[device->satellites.count].elevation = 0;
 		device->satellites.info[device->satellites.count].azimuth = 0;
@@ -1285,7 +1271,6 @@ static void nmea_parse_sentence(gnss_device_t *device, const uint8_t *data, unsi
 	    {
 		if (data[0] != '\0')
 		{
-		    device->satellites.info[device->satellites.count].state = GNSS_SATELLITES_STATE_TRACKING;
 		    device->satellites.info[device->satellites.count].snr = snr;
 		}
 	    }
@@ -1387,30 +1372,6 @@ static void nmea_parse_sentence(gnss_device_t *device, const uint8_t *data, unsi
     case NMEA_FIELD_SEQUENCE_RMC_MODE:
 	/* SKIP FIELD */
 	sequence_next = NMEA_FIELD_SEQUENCE_RMC_END;
-	break;
-
-    case NMEA_FIELD_SEQUENCE_PMTK001_COMMAND:
-	if ((data[0] == '\0') || !nmea_parse_unsigned(data, &command))
-	{
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	else
-	{
-	    context->mtk_command = command;
-	}
-	break;
-
-    case NMEA_FIELD_SEQUENCE_PMTK001_STATUS:
-	if ((data[0] == '\0') || !nmea_parse_unsigned(data, &status))
-	{
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	else
-	{
-	    context->mtk_status = status;
-
-	    sequence_next = NMEA_FIELD_SEQUENCE_PMTK001_END;
-	}
 	break;
     }
 
@@ -1545,15 +1506,6 @@ static void nmea_end_sentence(gnss_device_t *device)
 	device->seen &= ~NMEA_SENTENCE_MASK_SOLUTION;
 	break;
 
-    case NMEA_FIELD_SEQUENCE_PMTK001_END:
-	if (device->command == context->mtk_command)
-	{
-	    device->command = ~0l;
-
-	    mtk_configure(device, (context->mtk_status == 3) ? GNSS_RESPONSE_ACK : GNSS_RESPONSE_NACK, context->mtk_command);
-	}
-	break;
-
     default:
 	break;
     }
@@ -1604,7 +1556,7 @@ static void nmea_end_sentence(gnss_device_t *device)
 	{
 	    for (n = 0; n < device->satellites.count; n++)
 	    {
-		svid = device->satellites.info[n].prn;
+		svid = device->satellites.info[n].svid;
 
 		if ((svid >= 1) && (svid <= 96) && (context->sv_used_mask[(svid -1) >> 5] & (1ul << ((svid -1) & 31))))
 		{
@@ -1616,119 +1568,6 @@ static void nmea_end_sentence(gnss_device_t *device)
 	    
 	    device->seen &= ~(NMEA_SENTENCE_MASK_GPGSV | NMEA_SENTENCE_MASK_GLGSV);
 	}
-    }
-}
-
-static const uint8_t * const mtk_init_table_1hz[] = {
-    (const uint8_t *)"$PMTK314,0,1,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0*28\r\n",
-    (const uint8_t *)"$PMTK220,1000*1F\r\n",            /* POS FIX       */
-    (const uint8_t *)"$PMTK300,1000,0,0,0,0*1C\r\n",    /* FIX CTL       */
-    (const uint8_t *)"$PMTK286,1*23\r\n",               /* AIC           */
-    (const uint8_t *)"$PMTK397,0*23\r\n",               /* NAV THRESHOLD */
-    NULL,
-};
-
-static const uint8_t * const mtk_init_table_5hz[] = {
-    (const uint8_t *)"$PMTK314,0,1,0,1,1,5,1,1,0,0,0,0,0,0,0,0,0,0,0*2C\r\n",
-    (const uint8_t *)"$PMTK220,200*2C\r\n",             /* POS FIX       */
-    (const uint8_t *)"$PMTK300,200,0,0,0,0*2F\r\n",     /* FIX CTL       */
-    (const uint8_t *)"$PMTK286,1*23\r\n",               /* AIC           */
-    (const uint8_t *)"$PMTK397,0*23\r\n",               /* NAV THRESHOLD */
-    NULL,
-};
-
-static const uint8_t * const mtk_constellation_gps_glonass_table[] = {
-    (const uint8_t *)"$PMTK353,1,1*37\r\n",             /* GLONASS       */
-    NULL,
-};
-
-static const uint8_t * const mtk_constellation_gps_table[] = {
-    (const uint8_t *)"$PMTK353,1,0*36\r\n",             /* GLONASS       */
-    NULL,
-};
-
-static const uint8_t * const mtk_sbas_enable_table[] = {
-    (const uint8_t *)"$PMTK301,2*2E\r\n",               /* DGPS MODE     */
-    (const uint8_t *)"$PMTK313,1*2E\r\n",               /* SBAS ENABLED  */
-    NULL,
-};
-
-static const uint8_t * const mtk_sbas_disable_table[] = {
-    (const uint8_t *)"$PMTK301,0*2C\r\n",               /* DGPS MODE     */
-    (const uint8_t *)"$PMTK313,0*2F\r\n",               /* SBAS ENABLED  */
-    NULL,
-};
-
-static const uint8_t * const mtk_qzss_enable_table[] = {
-    (const uint8_t *)"$PMTK351,0*29\r\n",               /* QZSS NMEA     */
-    (const uint8_t *)"$PMTK352,0*2A\r\n",               /* QZSS STOP     */
-    NULL,
-};
-
-static const uint8_t * const mtk_qzss_disable_table[] = {
-    (const uint8_t *)"$PMTK351,0*29\r\n",               /* QZSS NMEA     */
-    (const uint8_t *)"$PMTK352,1*2B\r\n",               /* QZSS STOP     */
-    NULL,
-};
-
-static void mtk_send(gnss_device_t *device, const uint8_t *data)
-{
-    device->command = ((data[5] - '0') * 10 + (data[6] - '0')) * 10 + (data[7] - '0');
-    device->busy = 1;
-
-    (*device->send_routine)(device->context, data, strlen((const char*)data), gnss_send_callback);
-}
-
-static void mtk_table(gnss_device_t *device, const uint8_t * const * table)
-{
-    const uint8_t *data;
-
-    data = table[0];
-    device->table = table + 1;
-
-    mtk_send(device, data);
-}
-
-static void mtk_configure(gnss_device_t *device, unsigned int response, uint32_t command)
-{
-    const uint8_t *data = NULL;
-
-    if (device->table)
-    {
-	if (device->init == GNSS_INIT_MTK_BAUD_RATE)
-	{
-	    device->init = GNSS_INIT_MTK_INIT_TABLE;
-
-	    data = device->table[0];
-	    device->table = device->table + 1;
-	}
-	else
-	{
-	    if (device->table[0] != NULL)
-	    {
-		data = device->table[0];
-		device->table = device->table + 1;
-	    }
-	    else
-	    {
-		device->table = NULL;
-
-		if (device->init == GNSS_INIT_MTK_INIT_TABLE)
-		{
-		    device->init = GNSS_INIT_DONE;
-		    device->seen = 0;
-		    device->expected = NMEA_SENTENCE_MASK_GPGGA | NMEA_SENTENCE_MASK_GPGSA | NMEA_SENTENCE_MASK_GPGSV | NMEA_SENTENCE_MASK_GPRMC;
-		
-		    device->location.type = 0;
-		    device->location.mask = 0;
-		}
-	    }
-	}
-    }
-
-    if (data)
-    {
-	mtk_send(device, data);
     }
 }
 
@@ -1811,18 +1650,28 @@ static void ubx_start_message(gnss_device_t *device, unsigned int message, unsig
 {
     if (message == 0x0130)
     {
-	/* UBX-NAV-SVINFO/UBX-NAV-SAT */
+	/* UBX-NAV-SVINFO */
 	    
 	device->rx_chunk = 20;
 	device->satellites.count = 0;
 	
 	device->seen &= ~UBX_MESSAGE_MASK_NAV_SVINFO;
     }
+
+    if (message == 0x0135)
+    {
+	/* UBX-NAV-SAT */
+	    
+	device->rx_chunk = 20;
+	device->satellites.count = 0;
+	
+	device->seen &= ~UBX_MESSAGE_MASK_NAV_SAT;
+    }
 }
 
 static void ubx_parse_message(gnss_device_t *device, unsigned int message, uint8_t *data, unsigned int count)
 {
-    unsigned int svid;
+    unsigned int gnss, svid;
 
     if (message == 0x0130)
     {
@@ -1830,49 +1679,9 @@ static void ubx_parse_message(gnss_device_t *device, unsigned int message, uint8
 
 	svid = ubx_data_uint8(data, 9);
 
-	if ((svid >= 1) && (svid <= 32))
-	{
-	    /* GPS */
-	}
-	else if ((svid >= 33) && (svid <= 64))
-	{
-	    /* BEIDOU */
-	    svid += (201 + 5 - 33);
-	}
-	else if ((svid >= 65) && (svid <= 96))
-	{
-	    /* GLONASS */
-	}
-	else if ((svid >= 120) && (svid <= 151))
-	{
-	    /* SBAS */
-	    svid -= 87;
-	}
-	else if ((svid >= 152) && (svid <= 158))
-	{
-	    /* SBAS */
-	}
-	else if ((svid >= 159) && (svid <= 163))
-	{
-	    /* BEIDOU */
-	    svid += (201 - 159);
-	}
-	else if ((svid >= 193) && (svid <= 200))
-	{
-	    /* QZSS */
-	}
-	else if (svid == 255)
-	{
-	    /* GLONASS */
-	}
-	else
-	{
-	    svid = 0;
-	}
-
 	if (svid && (device->satellites.count < GNSS_SATELLITES_COUNT_MAX))
 	{
-	    device->satellites.info[device->satellites.count].prn = svid;
+	    device->satellites.info[device->satellites.count].svid = svid;
 
 	    if (ubx_data_int8(data, 13) > 0)
 	    {
@@ -1887,36 +1696,162 @@ static void ubx_parse_message(gnss_device_t *device, unsigned int message, uint8
 
 	    device->satellites.info[device->satellites.count].snr = ubx_data_uint8(data, 12);
 
-	    switch (ubx_data_uint8(data, 11) & 0x0f) {
-	    case 0x00: /* NO SIGNAL */
-	    case 0x01: /* SEARCHING */ 
-		device->satellites.info[device->satellites.count].state = GNSS_SATELLITES_STATE_SEARCHING;
-		break;
-
-	    case 0x02: /* SIGNAL ACQUIRED */
-	    case 0x03: /* SIGNAL ACQUIRED, BUT UNUSABLE */
-	    case 0x04: /* SIGNAL ACQUIRED, CODE LOCKED */
-	    case 0x05: /* SIGNAL ACQUIRED, CODE LOCKED, CARRIER LOCKED */
-	    case 0x06: /* SIGNAL ACQUIRED, CODE LOCKED, CARRIER LOCKED */
-	    case 0x07: /* SIGNAL ACQUIRED, CODE LOCKED, CARRIER LOCKED */
-		device->satellites.info[device->satellites.count].state = GNSS_SATELLITES_STATE_TRACKING;
-		break;
-
-	    default:
-		device->satellites.info[device->satellites.count].state = GNSS_SATELLITES_STATE_SEARCHING;
-		break;
-	    }
-
-	    if (device->satellites.info[device->satellites.count].state & GNSS_SATELLITES_STATE_TRACKING)
+	    if (ubx_data_uint8(data, 10) & 0x10)
 	    {
-		if (ubx_data_uint8(data, 10) & 0x01)
-		{
-		    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_NAVIGATING;
-		}
+ 	        device->satellites.info[device->satellites.count].state = GNSS_SATELLITES_STATE_UNHEALTHY;
+	    }
+	    else
+	    {
+		device->satellites.info[device->satellites.count].state = 0;
 
 		if (ubx_data_uint8(data, 10) & 0x02)
 		{
 		    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_CORRECTION;
+		}
+
+		switch (ubx_data_uint8(data, 11) & 0x0f) {
+		case 0x00: /* NO SIGNAL */
+		case 0x01: /* SEARCHING */ 
+		    break;
+		case 0x02: /* SIGNAL ACQUIRED */
+		case 0x03: /* SIGNAL ACQUIRED, BUT UNUSABLE */
+		    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_ACQUIRED;
+		    break;
+		    
+		case 0x04: /* SIGNAL ACQUIRED, CODE LOCKED */
+		case 0x05: /* SIGNAL ACQUIRED, CODE LOCKED, CARRIER LOCKED */
+		case 0x06: /* SIGNAL ACQUIRED, CODE LOCKED, CARRIER LOCKED */
+		case 0x07: /* SIGNAL ACQUIRED, CODE LOCKED, CARRIER LOCKED */
+		    device->satellites.info[device->satellites.count].state |= (GNSS_SATELLITES_STATE_ACQUIRED | GNSS_SATELLITES_STATE_LOCKED);
+
+		    if (ubx_data_uint8(data, 10) & 0x01)
+		    {
+			device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_NAVIGATING;
+		    }
+		    break;
+		    
+		default:
+		    break;
+		}
+	    }
+
+	    device->satellites.count++;
+	}
+	
+	device->rx_offset += 12;
+	device->rx_chunk += 12;
+    }
+
+    if (message == 0x0135)
+    {
+	/* UBX-NAV-SVAT */
+
+	gnss = ubx_data_uint8(data, 8);
+	svid = ubx_data_uint8(data, 9);
+
+	if (gnss == 0)
+	{
+	    /* GPS */
+	}
+	else if (gnss == 1)
+	{
+	    /* SBAS */
+	}
+	else if (gnss == 2)
+	{
+	    /* GALILEO */
+	    svid += 210;
+	}
+	else if (gnss == 4)
+	{
+	    /* IMES */
+	    svid += 172;
+	}
+	else if (gnss == 5)
+	{
+	    /* QZSS */
+	    svid += 192;
+	}
+	else if (gnss == 6)
+	{
+	    if (svid != 255)
+	    {
+		svid += 64;
+	    }
+	}
+	else
+	{
+	    svid = 0;
+	}
+
+	if (svid && (device->satellites.count < GNSS_SATELLITES_COUNT_MAX))
+	{
+	    device->satellites.info[device->satellites.count].svid = svid;
+
+	    device->satellites.info[device->satellites.count].snr = ubx_data_uint8(data, 10);
+
+	    if (ubx_data_int8(data, 11) > 0)
+	    {
+		device->satellites.info[device->satellites.count].elevation = ubx_data_int8(data, 11);
+ 		device->satellites.info[device->satellites.count].azimuth = ubx_data_int16(data, 12);
+	    }
+	    else
+	    {
+		device->satellites.info[device->satellites.count].elevation = 0;
+		device->satellites.info[device->satellites.count].azimuth = 0;
+	    }
+
+	    if (ubx_data_uint8(data, 16) & 0x20)
+	    {
+ 	        device->satellites.info[device->satellites.count].state = GNSS_SATELLITES_STATE_UNHEALTHY;
+	    }
+	    else
+	    {
+		device->satellites.info[device->satellites.count].state = 0;
+
+		if (ubx_data_uint8(data, 17) & 0x10)
+		{
+		    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_ALMANAC;
+		}
+		
+		if (ubx_data_uint8(data, 17) & 0x08)
+		{
+		    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_EPHEMERIS;
+		}
+
+		if (ubx_data_uint8(data, 16) & 0x40)
+		{
+		    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_CORRECTION;
+		}
+		
+		if (ubx_data_uint8(data, 17) & 0x40)
+		{
+		    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_AUTONOMOUS;
+		}
+
+		switch (ubx_data_uint8(data, 16) & 0x07) {
+		case 0x00: /* NO SIGNAL */
+		case 0x01: /* SEARCHING */ 
+		    break;
+		case 0x02: /* SIGNAL ACQUIRED */
+		case 0x03: /* SIGNAL ACQUIRED, BUT UNUSABLE */
+		    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_ACQUIRED;
+		    break;
+		    
+		case 0x04: /* SIGNAL ACQUIRED, CODE LOCKED */
+		case 0x05: /* SIGNAL ACQUIRED, CODE LOCKED, CARRIER LOCKED */
+		case 0x06: /* SIGNAL ACQUIRED, CODE LOCKED, CARRIER LOCKED */
+		case 0x07: /* SIGNAL ACQUIRED, CODE LOCKED, CARRIER LOCKED */
+		    device->satellites.info[device->satellites.count].state |= (GNSS_SATELLITES_STATE_ACQUIRED | GNSS_SATELLITES_STATE_LOCKED);
+
+		    if (ubx_data_uint8(data, 16) & 0x08)
+		    {
+			device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_NAVIGATING;
+		    }
+		    break;
+		    
+		default:
+		    break;
 		}
 	    }
 
@@ -2124,6 +2059,12 @@ static void ubx_end_message(gnss_device_t *device, unsigned int message, uint8_t
 	    device->seen |= UBX_MESSAGE_MASK_NAV_SVINFO;
 	    break;
 
+	case 0x35:
+	    /* UBX-NAV-SAT */
+
+	    device->seen |= UBX_MESSAGE_MASK_NAV_SAT;
+	    break;
+
 	default:
 	    break;
 	}
@@ -2133,6 +2074,8 @@ static void ubx_end_message(gnss_device_t *device, unsigned int message, uint8_t
     {
 	/* UBX-ACK-NACK */
 	command = ((ubx_data_uint8(data, 0) << 8) | ubx_data_uint8(data, 1));
+
+	// printf("NACK %04x\r\n", command);
 
 	if (command == device->command)
 	{
@@ -2147,11 +2090,31 @@ static void ubx_end_message(gnss_device_t *device, unsigned int message, uint8_t
 	/* UBX-ACK-ACK */
 	command = ((ubx_data_uint8(data, 0) << 8) | ubx_data_uint8(data, 1));
 
+	// printf("ACK %04x\r\n", command);
+
 	if (command == device->command)
 	{
 	    device->command = ~0l;
 	    
 	    ubx_configure(device, GNSS_RESPONSE_ACK, command);
+	}
+    }
+
+    else if (message == 0x0a28)
+    {
+	// printf("RESPONSE %04x\r\n", message);
+
+	/* UBX-NON-GNSS */
+	device->ubx.gnss.supported = ubx_data_uint8(data, 1);
+	device->ubx.gnss.defaultGnss = ubx_data_uint8(data, 2);
+	device->ubx.gnss.enabled = ubx_data_uint8(data, 3);
+	device->ubx.gnss.simultaneous = ubx_data_uint8(data, 4);
+
+	if (message == device->command)
+	{
+	    device->command = ~0l;
+	    
+	    ubx_configure(device, GNSS_RESPONSE_ACK, message);
 	}
     }
 
@@ -2182,13 +2145,13 @@ static void ubx_end_message(gnss_device_t *device, unsigned int message, uint8_t
 	    device->seen |= UBX_MESSAGE_MASK_SOLUTION;
 	}
 	
-	expected = device->expected & UBX_MESSAGE_MASK_NAV_SVINFO;
+	expected = device->expected & (UBX_MESSAGE_MASK_NAV_SAT | UBX_MESSAGE_MASK_NAV_SVINFO);
 	
 	if ((device->seen & UBX_MESSAGE_MASK_SOLUTION) && ((device->seen & expected) == expected))
 	{
 	    gnss_satellites(device);
 	    
-	    device->seen &= ~UBX_MESSAGE_MASK_NAV_SVINFO;
+	    device->seen &= ~(UBX_MESSAGE_MASK_NAV_SAT | UBX_MESSAGE_MASK_NAV_SVINFO);
 	}
     }
 }
@@ -2199,13 +2162,13 @@ static const uint8_t ubx_cfg_msg_nav_pvt[] = {
     0x08, 0x00,                                     /* LENGTH                    */
     0x01,                                           /* CLASS                     */
     0x07,                                           /* ID                        */
-    0x01,                                           /* RATE DDC                  */
+    0x00,                                           /* RATE DDC                  */
     0x01,                                           /* RATE UART1                */
     0x00,                                           /* RATE UART2                */
     0x00,                                           /* RATE USB                  */
     0x00,                                           /* RATE SPI                  */
     0x00,                                           /*                           */
-    0x19, 0xe7,                                     /* CK_A, CK_B                */
+    0x18, 0xe1,                                     /* CK_A, CK_B                */
 };
 
 static const uint8_t ubx_cfg_msg_nav_timegps[] = {
@@ -2214,13 +2177,13 @@ static const uint8_t ubx_cfg_msg_nav_timegps[] = {
     0x08, 0x00,                                     /* LENGTH                    */
     0x01,                                           /* CLASS                     */
     0x20,                                           /* ID                        */
-    0x01,                                           /* RATE DDC                  */
+    0x00,                                           /* RATE DDC                  */
     0x01,                                           /* RATE UART1                */
     0x00,                                           /* RATE UART2                */
     0x00,                                           /* RATE USB                  */
     0x00,                                           /* RATE SPI                  */
     0x00,                                           /*                           */
-    0x32, 0x96,                                     /* CK_A, CK_B                */
+    0x31, 0x90,                                     /* CK_A, CK_B                */
 };
 
 static const uint8_t ubx_cfg_msg_nav_dop[] = {
@@ -2229,13 +2192,58 @@ static const uint8_t ubx_cfg_msg_nav_dop[] = {
     0x08, 0x00,                                     /* LENGTH                    */
     0x01,                                           /* CLASS                     */
     0x04,                                           /* ID                        */
-    0x01,                                           /* RATE DDC                  */
+    0x00,                                           /* RATE DDC                  */
     0x01,                                           /* RATE UART1                */
     0x00,                                           /* RATE UART2                */
     0x00,                                           /* RATE USB                  */
     0x00,                                           /* RATE SPI                  */
     0x00,                                           /*                           */
-    0x16, 0xd2,                                     /* CK_A, CK_B                */
+    0x15, 0xcc,                                     /* CK_A, CK_B                */
+};
+
+static const uint8_t ubx_cfg_msg_nav_sat_1hz[] = {
+    0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
+    0x06, 0x01,                                     /* CLASS, ID                 */
+    0x08, 0x00,                                     /* LENGTH                    */
+    0x01,                                           /* CLASS                     */
+    0x35,                                           /* ID                        */
+    0x00,                                           /* RATE DDC                  */
+    0x01,                                           /* RATE UART1                */
+    0x00,                                           /* RATE UART2                */
+    0x00,                                           /* RATE USB                  */
+    0x00,                                           /* RATE SPI                  */
+    0x00,                                           /*                           */
+    0x46, 0x23,                                     /* CK_A, CK_B                */
+};
+
+static const uint8_t ubx_cfg_msg_nav_sat_5hz[] = {
+    0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
+    0x06, 0x01,                                     /* CLASS, ID                 */
+    0x08, 0x00,                                     /* LENGTH                    */
+    0x01,                                           /* CLASS                     */
+    0x35,                                           /* ID                        */
+    0x00,                                           /* RATE DDC                  */
+    0x05,                                           /* RATE UART1                */
+    0x00,                                           /* RATE UART2                */
+    0x00,                                           /* RATE USB                  */
+    0x00,                                           /* RATE SPI                  */
+    0x00,                                           /*                           */
+    0x4a, 0x37,                                     /* CK_A, CK_B                */
+};
+
+static const uint8_t ubx_cfg_msg_nav_sat_10hz[] = {
+    0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
+    0x06, 0x01,                                     /* CLASS, ID                 */
+    0x08, 0x00,                                     /* LENGTH                    */
+    0x01,                                           /* CLASS                     */
+    0x35,                                           /* ID                        */
+    0x00,                                           /* RATE DDC                  */
+    0x0a,                                           /* RATE UART1                */
+    0x00,                                           /* RATE UART2                */
+    0x00,                                           /* RATE USB                  */
+    0x00,                                           /* RATE SPI                  */
+    0x00,                                           /*                           */
+    0x4f, 0x50,                                     /* CK_A, CK_B                */
 };
 
 static const uint8_t ubx_cfg_msg_nav_svinfo_1hz[] = {
@@ -2244,13 +2252,13 @@ static const uint8_t ubx_cfg_msg_nav_svinfo_1hz[] = {
     0x08, 0x00,                                     /* LENGTH                    */
     0x01,                                           /* CLASS                     */
     0x30,                                           /* ID                        */
-    0x01,                                           /* RATE DDC                  */
+    0x00,                                           /* RATE DDC                  */
     0x01,                                           /* RATE UART1                */
     0x00,                                           /* RATE UART2                */
     0x00,                                           /* RATE USB                  */
     0x00,                                           /* RATE SPI                  */
     0x00,                                           /*                           */
-    0x42, 0x06,                                     /* CK_A, CK_B                */
+    0x41, 0x00,                                     /* CK_A, CK_B                */
 };
 
 static const uint8_t ubx_cfg_msg_nav_svinfo_5hz[] = {
@@ -2259,13 +2267,13 @@ static const uint8_t ubx_cfg_msg_nav_svinfo_5hz[] = {
     0x08, 0x00,                                     /* LENGTH                    */
     0x01,                                           /* CLASS                     */
     0x30,                                           /* ID                        */
-    0x05,                                           /* RATE DDC                  */
+    0x00,                                           /* RATE DDC                  */
     0x05,                                           /* RATE UART1                */
     0x00,                                           /* RATE UART2                */
     0x00,                                           /* RATE USB                  */
     0x00,                                           /* RATE SPI                  */
     0x00,                                           /*                           */
-    0x4a, 0x32,                                     /* CK_A, CK_B                */
+    0x45, 0x14,                                     /* CK_A, CK_B                */
 };
 
 static const uint8_t ubx_cfg_msg_nav_svinfo_10hz[] = {
@@ -2274,13 +2282,13 @@ static const uint8_t ubx_cfg_msg_nav_svinfo_10hz[] = {
     0x08, 0x00,                                     /* LENGTH                    */
     0x01,                                           /* CLASS                     */
     0x30,                                           /* ID                        */
-    0x0a,                                           /* RATE DDC                  */
+    0x00,                                           /* RATE DDC                  */
     0x0a,                                           /* RATE UART1                */
     0x00,                                           /* RATE UART2                */
     0x00,                                           /* RATE USB                  */
     0x00,                                           /* RATE SPI                  */
     0x00,                                           /*                           */
-    0x54, 0x69,                                     /* CK_A, CK_B                */
+    0x4a, 0x2d,                                     /* CK_A, CK_B                */
 };
 
 static const uint8_t ubx_cfg_msg_nmea_gga[] = {
@@ -2445,28 +2453,30 @@ static const uint8_t ubx_cfg_pm2[] = {
     0xa3, 0xae,                                     /* CK_A, CK_B                */
 };
 
-static const uint8_t ubx_cfg_gnss_gps_enable[] = {
+static const uint8_t ubx_cfg_gnss_gps[] = {
     0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
     0x06, 0x3e,                                     /* CLASS, ID                 */
-    0x0c, 0x00,                                     /* LENGTH                    */
+    0x14, 0x00,                                     /* LENGTH                    */
     0x00,                                           /* VERSION                   */
     0x00,                                           /* NUM TRACKING CHANNELS HW  */
     0xff,                                           /* NUM TRACKING CHANNELS SW  */
-    0x01,                                           /* NUM CONFIG BLOCKS         */
-    0x00, 0x08, 0x10, 0x00, 0x01, 0x00, 0x01, 0x00, /* GPS                       */
-    0x6a, 0x47,                                     /* CK_A, CK_B                */
+    0x02,                                           /* NUM CONFIG BLOCKS         */
+    0x00, 0x08, 0x10, 0x00, 0x01, 0x00, 0x01, 0x01, /* GPS                       */
+    0x06, 0x08, 0x0e, 0x00, 0x00, 0x00, 0x01, 0x01, /* GLONASS                   */
+    0x92, 0x20,                                     /* CK_A, CK_B                */
 };
 
-static const uint8_t ubx_cfg_gnss_gps_disable[] = {
+static const uint8_t ubx_cfg_gnss_gps_glonass[] = {
     0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
     0x06, 0x3e,                                     /* CLASS, ID                 */
-    0x0c, 0x00,                                     /* LENGTH                    */
+    0x14, 0x00,                                     /* LENGTH                    */
     0x00,                                           /* VERSION                   */
     0x00,                                           /* NUM TRACKING CHANNELS HW  */
     0xff,                                           /* NUM TRACKING CHANNELS SW  */
-    0x01,                                           /* NUM CONFIG BLOCKS         */
-    0x00, 0x08, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, /* GPS                       */
-    0x68, 0x41,                                     /* CK_A, CK_B                */
+    0x02,                                           /* NUM CONFIG BLOCKS         */
+    0x00, 0x08, 0x10, 0x00, 0x01, 0x00, 0x01, 0x01, /* GPS                       */
+    0x06, 0x08, 0x0e, 0x00, 0x01, 0x00, 0x01, 0x01, /* GLONASS                   */
+    0x93, 0x24,                                     /* CK_A, CK_B                */
 };
 
 static const uint8_t ubx_cfg_gnss_sbas_enable[] = {
@@ -2477,8 +2487,8 @@ static const uint8_t ubx_cfg_gnss_sbas_enable[] = {
     0x00,                                           /* NUM TRACKING CHANNELS HW  */
     0xff,                                           /* NUM TRACKING CHANNELS SW  */
     0x01,                                           /* NUM CONFIG BLOCKS         */
-    0x01, 0x01, 0x03, 0x00, 0x01, 0x00, 0x01, 0x00, /* SBAS                      */
-    0x57, 0xd0,                                     /* CK_A, CK_B                */
+    0x01, 0x01, 0x03, 0x00, 0x01, 0x00, 0x01, 0x01, /* SBAS                      */
+    0x58, 0xd1,                                     /* CK_A, CK_B                */
 };
 
 static const uint8_t ubx_cfg_gnss_sbas_disable[] = {
@@ -2489,8 +2499,8 @@ static const uint8_t ubx_cfg_gnss_sbas_disable[] = {
     0x00,                                           /* NUM TRACKING CHANNELS HW  */
     0xff,                                           /* NUM TRACKING CHANNELS SW  */
     0x01,                                           /* NUM CONFIG BLOCKS         */
-    0x01, 0x01, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, /* SBAS                      */
-    0x55, 0xca,                                     /* CK_A, CK_B                */
+    0x01, 0x01, 0x03, 0x00, 0x00, 0x00, 0x01, 0x01, /* SBAS                      */
+    0x57, 0xcd,                                     /* CK_A, CK_B                */
 };
 
 static const uint8_t ubx_cfg_gnss_qzss_enable[] = {
@@ -2501,8 +2511,8 @@ static const uint8_t ubx_cfg_gnss_qzss_enable[] = {
     0x00,                                           /* NUM TRACKING CHANNELS HW  */
     0xff,                                           /* NUM TRACKING CHANNELS SW  */
     0x01,                                           /* NUM CONFIG BLOCKS         */
-    0x05, 0x00, 0x03, 0x00, 0x01, 0x00, 0x01, 0x00, /* QZSS                      */
-    0x5a, 0xe9,                                     /* CK_A, CK_B                */
+    0x05, 0x00, 0x03, 0x00, 0x01, 0x00, 0x01, 0x01, /* QZSS                      */
+    0x5b, 0xea,                                     /* CK_A, CK_B                */
 };
 
 static const uint8_t ubx_cfg_gnss_qzss_disable[] = {
@@ -2513,44 +2523,20 @@ static const uint8_t ubx_cfg_gnss_qzss_disable[] = {
     0x00,                                           /* NUM TRACKING CHANNELS HW  */
     0xff,                                           /* NUM TRACKING CHANNELS SW  */
     0x01,                                           /* NUM CONFIG BLOCKS         */
-    0x05, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, /* QZSS                      */
-    0x58, 0xe3,                                     /* CK_A, CK_B                */
+    0x05, 0x00, 0x03, 0x00, 0x00, 0x00, 0x01, 0x01, /* QZSS                      */
+    0x5a, 0xe6,                                     /* CK_A, CK_B                */
 };
 
-static const uint8_t ubx_cfg_gnss_glonass_enable[] = {
-    0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
-    0x06, 0x3e,                                     /* CLASS, ID                 */
-    0x0c, 0x00,                                     /* LENGTH                    */
-    0x00,                                           /* VERSION                   */
-    0x00,                                           /* NUM TRACKING CHANNELS HW  */
-    0xff,                                           /* NUM TRACKING CHANNELS SW  */
-    0x01,                                           /* NUM CONFIG BLOCKS         */
-    0x06, 0x08, 0x0e, 0x00, 0x01, 0x00, 0x01, 0x00, /* GLONASS                   */
-    0x6e, 0x6b,                                     /* CK_A, CK_B                */
-};
-
-static const uint8_t ubx_cfg_gnss_glonass_disable[] = {
-    0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
-    0x06, 0x3e,                                     /* CLASS, ID                 */
-    0x0c, 0x00,                                     /* LENGTH                    */
-    0x00,                                           /* VERSION                   */
-    0x00,                                           /* NUM TRACKING CHANNELS HW  */
-    0xff,                                           /* NUM TRACKING CHANNELS SW  */
-    0x01,                                           /* NUM CONFIG BLOCKS         */
-    0x06, 0x08, 0x0e, 0x00, 0x00, 0x00, 0x00, 0x00, /* GLONASS                   */
-    0x6c, 0x65,                                     /* CK_A, CK_B                */
-};
-
-static const uint8_t ubx_cfg_sbas_disable[] = {
+static const uint8_t ubx_cfg_sbas_none[] = {
     0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
     0x06, 0x16,                                     /* CLASS, ID                 */
     0x08, 0x00,                                     /* LENGTH                    */
     0x00,                                           /* MODE                      */
-    0x00,                                           /* USAGE                     */
-    0x00,                                           /* MAX SBAS                  */
+    0x03,                                           /* USAGE                     */
+    0x03,                                           /* MAX SBAS                  */
     0x00,                                           /* SCANMODE2                 */
     0x00, 0x00, 0x00, 0x00,                         /* SCANMODE1 (133, 135, 138) */
-    0x24, 0x8a,                                     /* CK_A, CK_B                */
+    0x2a, 0xb1,                                     /* CK_A, CK_B                */
 };
 
 static const uint8_t ubx_cfg_sbas_auto[] = {
@@ -2561,8 +2547,8 @@ static const uint8_t ubx_cfg_sbas_auto[] = {
     0x03,                                           /* USAGE                     */
     0x03,                                           /* MAX SBAS                  */
     0x00,                                           /* SCANMODE2                 */
-    0x89, 0xa3, 0x07, 0x00,                         /* SCANMODE1                 */
-    0x5e, 0xd4,                                     /* CK_A, CK_B                */
+    0x00, 0x00, 0x00, 0x00,                         /* SCANMODE1                 */
+    0x2b, 0xb9,                                     /* CK_A, CK_B                */
 };
 
 static const uint8_t ubx_cfg_rxm_continuous[] = {
@@ -2604,16 +2590,14 @@ static const uint8_t ubx_rxm_pmreq[] = {
     0x4d, 0x3b,                                     /* CK_A, CK_B                */
 };
 
-static const uint8_t ubx_cfg_external_enable[] = {
+static const uint8_t ubx_mon_gnss[] = {
     0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
-    0x06, 0x13,                                     /* CLASS, ID                 */
-    0x04, 0x00,                                     /* LENGTH                    */
-    0x00, 0x00,                                     /* FLAGS                     */
-    0xf0, 0xb9,                                     /* PINS                      */
-    0xc6, 0x66,                                     /* CK_A, CK_B                */
+    0x0a, 0x28,                                     /* CLASS, ID                 */
+    0x00, 0x00,                                     /* LENGTH                    */
+    0x32, 0xa0,                                     /* CK_A, CK_B                */
 };
 
-static const uint8_t ubx_cfg_external_disable[] = {
+static const uint8_t ubx_cfg_ant_internal[] = {
     0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
     0x06, 0x13,                                     /* CLASS, ID                 */
     0x04, 0x00,                                     /* LENGTH                    */
@@ -2622,9 +2606,78 @@ static const uint8_t ubx_cfg_external_disable[] = {
     0xc7, 0x6a,                                     /* CK_A, CK_B                */
 };
 
-static const uint8_t * const ubx_init_table_1hz[] = {
+static const uint8_t ubx_cfg_ant_external[] = {
+    0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
+    0x06, 0x13,                                     /* CLASS, ID                 */
+    0x04, 0x00,                                     /* LENGTH                    */
+    0x00, 0x00,                                     /* FLAGS                     */
+    0xf0, 0xb9,                                     /* PINS                      */
+    0xc6, 0x66,                                     /* CK_A, CK_B                */
+};
+
+static const uint8_t ubx_cfg_aop_enable[] = {
+    0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
+    0x06, 0x23,                                     /* CLASS, ID                 */
+    0x28, 0x00,                                     /* LENGTH                    */
+    0x00, 0x00,                                      /* VERSION                   */
+    0x00, 0x40,                                     /* MASK1                     */
+    0x00, 0x00, 0x00, 0x00,                         /* MASK2                     */
+    0x00, 0x00,                                     /* RESERVED1                 */
+    0x00,                                           /* MIN SVS                   */
+    0x00,                                           /* MAX SVS                   */
+    0x00,                                           /* MIN CNO                   */
+    0x00,                                           /* RESERVED2                 */
+    0x00,                                           /* INI FIX 3D                */
+    0x00, 0x00,                                     /* RESERVED3                 */
+    0x00,                                           /* ACK AIDING                */
+    0x00, 0x00,                                     /* WKN ROLLOVER              */
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00,             /* RESERVED4                 */
+    0x00,                                           /* USE PPP                   */
+    0x01,                                           /* AOP CFG                   */
+    0x00, 0x00,                                     /* RESERVED5                 */
+    0x00, 0x00,                                     /* AOP ORB MAX ERR           */
+    0x00, 0x00, 0x00, 0x00,                         /* RESERVED6                 */
+    0x00, 0x00, 0x00,                               /* RESERVED7                 */
+    0x00,                                           /* USE ADR                   */
+    0x92, 0xc6,                                     /* CK_A, CK_B                */
+};
+
+static const uint8_t ubx_cfg_aop_disable[] = {
+    0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
+    0x06, 0x23,                                     /* CLASS, ID                 */
+    0x28, 0x00,                                     /* LENGTH                    */
+    0x00, 0x00,                                     /* VERSION                   */
+    0x00, 0x40,                                     /* MASK1                     */
+    0x00, 0x00, 0x00, 0x00,                         /* MASK2                     */
+    0x00, 0x00,                                     /* RESERVED1                 */
+    0x00,                                           /* MIN SVS                   */
+    0x00,                                           /* MAX SVS                   */
+    0x00,                                           /* MIN CNO                   */
+    0x00,                                           /* RESERVED2                 */
+    0x00,                                           /* INI FIX 3D                */
+    0x00, 0x00,                                     /* RESERVED3                 */
+    0x00,                                           /* ACK AIDING                */
+    0x00, 0x00,                                     /* WKN ROLLOVER              */
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00,             /* RESERVED4                 */
+    0x00,                                           /* USE PPP                   */
+    0x00,                                           /* AOP CFG                   */
+    0x00, 0x00,                                     /* RESERVED5                 */
+    0x00, 0x00,                                     /* AOP ORB MAX ERR           */
+    0x00, 0x00, 0x00, 0x00,                         /* RESERVED6                 */
+    0x00, 0x00, 0x00,                               /* RESERVED7                 */
+    0x00,                                           /* USE ADR                   */
+    0x91, 0xb9,                                     /* CK_A, CK_B                */
+};
+
+static const uint8_t * const ubx_init_table[] = {
     ubx_cfg_rxm_continuous,
     ubx_cfg_pm2,
+    ubx_cfg_tp5,
+    ubx_mon_gnss,
+    NULL,
+};
+
+static const uint8_t * const ubx_init_ublox7_1hz_table[] = {
     ubx_cfg_msg_nav_pvt,
     ubx_cfg_msg_nav_timegps,
     ubx_cfg_msg_nav_dop,
@@ -2636,18 +2689,12 @@ static const uint8_t * const ubx_init_table_1hz[] = {
     ubx_cfg_msg_nmea_rmc,
     ubx_cfg_msg_nmea_vtg,
     ubx_cfg_rate_1hz,
-    ubx_cfg_tp5,
-    ubx_cfg_gnss_glonass_enable,
-    ubx_cfg_gnss_sbas_enable,
-    ubx_cfg_gnss_qzss_disable,
     ubx_cfg_sbas_auto,
     ubx_cfg_save,
     NULL,
 };
 
-static const uint8_t * const ubx_init_table_5hz[] = {
-    ubx_cfg_rxm_continuous,
-    ubx_cfg_pm2,
+static const uint8_t * const ubx_init_ublox7_5hz_table[] = {
     ubx_cfg_msg_nav_pvt,
     ubx_cfg_msg_nav_timegps,
     ubx_cfg_msg_nav_dop,
@@ -2659,18 +2706,12 @@ static const uint8_t * const ubx_init_table_5hz[] = {
     ubx_cfg_msg_nmea_rmc,
     ubx_cfg_msg_nmea_vtg,
     ubx_cfg_rate_5hz,
-    ubx_cfg_tp5,
-    ubx_cfg_gnss_glonass_enable,
-    ubx_cfg_gnss_sbas_enable,
-    ubx_cfg_gnss_qzss_disable,
     ubx_cfg_sbas_auto,
     ubx_cfg_save,
     NULL,
 };
 
-static const uint8_t * const ubx_init_table_10hz[] = {
-    ubx_cfg_rxm_continuous,
-    ubx_cfg_pm2,
+static const uint8_t * const ubx_init_ublox7_10hz_table[] = {
     ubx_cfg_msg_nav_pvt,
     ubx_cfg_msg_nav_timegps,
     ubx_cfg_msg_nav_dop,
@@ -2682,27 +2723,86 @@ static const uint8_t * const ubx_init_table_10hz[] = {
     ubx_cfg_msg_nmea_rmc,
     ubx_cfg_msg_nmea_vtg,
     ubx_cfg_rate_10hz,
-    ubx_cfg_tp5,
-    ubx_cfg_gnss_glonass_enable,
-    ubx_cfg_gnss_sbas_enable,
-    ubx_cfg_gnss_qzss_disable,
     ubx_cfg_sbas_auto,
     ubx_cfg_save,
     NULL,
 };
 
-static const uint8_t * const ubx_external_enable_table[] = {
-    ubx_cfg_rxm_continuous,
-    ubx_cfg_pm2,
-    ubx_cfg_external_enable,
+static const uint8_t * const ubx_init_ublox8_1hz_table[] = {
+    ubx_cfg_msg_nav_pvt,
+    ubx_cfg_msg_nav_timegps,
+    ubx_cfg_msg_nav_dop,
+    ubx_cfg_msg_nav_sat_1hz,
+    ubx_cfg_msg_nmea_gga,
+    ubx_cfg_msg_nmea_gll,
+    ubx_cfg_msg_nmea_gsa,
+    ubx_cfg_msg_nmea_gsv,
+    ubx_cfg_msg_nmea_rmc,
+    ubx_cfg_msg_nmea_vtg,
+    ubx_cfg_rate_1hz,
+    ubx_cfg_gnss_gps,
+    ubx_cfg_gnss_sbas_enable,
+    ubx_cfg_sbas_auto,
+    ubx_cfg_gnss_qzss_disable,
+    ubx_cfg_aop_disable,
     ubx_cfg_save,
     NULL,
 };
 
-static const uint8_t * const ubx_external_disable_table[] = {
+static const uint8_t * const ubx_init_ublox8_5hz_table[] = {
+    ubx_cfg_msg_nav_pvt,
+    ubx_cfg_msg_nav_timegps,
+    ubx_cfg_msg_nav_dop,
+    ubx_cfg_msg_nav_sat_5hz,
+    ubx_cfg_msg_nmea_gga,
+    ubx_cfg_msg_nmea_gll,
+    ubx_cfg_msg_nmea_gsa,
+    ubx_cfg_msg_nmea_gsv,
+    ubx_cfg_msg_nmea_rmc,
+    ubx_cfg_msg_nmea_vtg,
+    ubx_cfg_rate_5hz,
+    ubx_cfg_gnss_gps,
+    ubx_cfg_gnss_sbas_enable,
+    ubx_cfg_sbas_auto,
+    ubx_cfg_gnss_qzss_disable,
+    ubx_cfg_aop_disable,
+    ubx_cfg_save,
+    NULL,
+};
+
+static const uint8_t * const ubx_init_ublox8_10hz_table[] = {
+    ubx_cfg_msg_nav_pvt,
+    ubx_cfg_msg_nav_timegps,
+    ubx_cfg_msg_nav_dop,
+    ubx_cfg_msg_nav_sat_10hz,
+    ubx_cfg_msg_nmea_gga,
+    ubx_cfg_msg_nmea_gll,
+    ubx_cfg_msg_nmea_gsa,
+    ubx_cfg_msg_nmea_gsv,
+    ubx_cfg_msg_nmea_rmc,
+    ubx_cfg_msg_nmea_vtg,
+    ubx_cfg_rate_10hz,
+    ubx_cfg_gnss_gps,
+    ubx_cfg_gnss_sbas_enable,
+    ubx_cfg_sbas_auto,
+    ubx_cfg_gnss_qzss_disable,
+    ubx_cfg_aop_disable,
+    ubx_cfg_save,
+    NULL,
+};
+
+static const uint8_t * const ubx_ant_internal_table[] = {
     ubx_cfg_rxm_continuous,
     ubx_cfg_pm2,
-    ubx_cfg_external_disable,
+    ubx_cfg_ant_internal,
+    ubx_cfg_save,
+    NULL,
+};
+
+static const uint8_t * const ubx_ant_external_table[] = {
+    ubx_cfg_rxm_continuous,
+    ubx_cfg_pm2,
+    ubx_cfg_ant_external,
     ubx_cfg_save,
     NULL,
 };
@@ -2710,7 +2810,7 @@ static const uint8_t * const ubx_external_disable_table[] = {
 static const uint8_t * const ubx_constellation_gps_table[] = {
     ubx_cfg_rxm_continuous,
     ubx_cfg_pm2,
-    ubx_cfg_gnss_glonass_disable,
+    ubx_cfg_gnss_gps,
     ubx_cfg_save,
     NULL,
 };
@@ -2718,7 +2818,16 @@ static const uint8_t * const ubx_constellation_gps_table[] = {
 static const uint8_t * const ubx_constellation_gps_glonass_table[] = {
     ubx_cfg_rxm_continuous,
     ubx_cfg_pm2,
-    ubx_cfg_gnss_glonass_enable,
+    ubx_cfg_gnss_gps_glonass,
+    ubx_cfg_save,
+    NULL,
+};
+
+static const uint8_t * const ubx_sbas_disable_table[] = {
+    ubx_cfg_rxm_continuous,
+    ubx_cfg_pm2,
+    ubx_cfg_gnss_sbas_disable,
+    ubx_cfg_sbas_none,
     ubx_cfg_save,
     NULL,
 };
@@ -2728,15 +2837,6 @@ static const uint8_t * const ubx_sbas_enable_table[] = {
     ubx_cfg_pm2,
     ubx_cfg_gnss_sbas_enable,
     ubx_cfg_sbas_auto,
-    ubx_cfg_save,
-    NULL,
-};
-
-static const uint8_t * const ubx_sbas_disable_table[] = {
-    ubx_cfg_rxm_continuous,
-    ubx_cfg_pm2,
-    ubx_cfg_gnss_sbas_disable,
-    ubx_cfg_sbas_disable,
     ubx_cfg_save,
     NULL,
 };
@@ -2753,6 +2853,22 @@ static const uint8_t * const ubx_qzss_disable_table[] = {
     ubx_cfg_rxm_continuous,
     ubx_cfg_pm2,
     ubx_cfg_gnss_qzss_disable,
+    ubx_cfg_save,
+    NULL,
+};
+
+static const uint8_t * const ubx_autonomous_enable_table[] = {
+    ubx_cfg_rxm_continuous,
+    ubx_cfg_pm2,
+    ubx_cfg_aop_enable,
+    ubx_cfg_save,
+    NULL,
+};
+
+static const uint8_t * const ubx_autonomous_disable_table[] = {
+    ubx_cfg_rxm_continuous,
+    ubx_cfg_pm2,
+    ubx_cfg_aop_disable,
     ubx_cfg_save,
     NULL,
 };
@@ -2802,6 +2918,8 @@ static void ubx_send(gnss_device_t *device, const uint8_t *data)
     device->command = command;
     device->busy = 1;
 
+    // printf("COMMAND %04x\r\n", command);
+
     (*device->send_routine)(device->context, data, count, gnss_send_callback);
 }
 
@@ -2827,32 +2945,69 @@ static void ubx_configure(gnss_device_t *device, unsigned int response, uint32_t
 	{
 	    device->init = GNSS_INIT_UBX_INIT_TABLE;
 
+	    device->ubx.gnss.supported = 0;
+	    device->ubx.gnss.defaultGnss = 0;
+	    device->ubx.gnss.enabled = 0;
+	    device->ubx.gnss.simultaneous = 0;
+
 	    data = device->table[0];
 	    device->table = device->table + 1;
 	}
 	else
 	{
-	    if (device->table[0] != NULL)
+	    if (command == 0x0a28)
 	    {
+		if (response == GNSS_RESPONSE_NACK)
+		{
+		    if      (device->rate >= 10) { device->table = ubx_init_ublox7_10hz_table; }
+		    else if (device->rate >=  5) { device->table = ubx_init_ublox7_5hz_table;  }
+		    else                         { device->table = ubx_init_ublox7_1hz_table;  }
+		}
+		else
+		{
+		    if      (device->rate >= 10) { device->table = ubx_init_ublox8_10hz_table; }
+		    else if (device->rate >=  5) { device->table = ubx_init_ublox8_5hz_table;  }
+		    else                         { device->table = ubx_init_ublox8_1hz_table;  }
+		}
+
 		data = device->table[0];
-		device->table = device->table + 1;
 	    }
 	    else
 	    {
-		device->table = NULL;
-
-		if (device->init == GNSS_INIT_UBX_INIT_TABLE)
+		if (device->table[0] != NULL)
 		{
-		    device->init = GNSS_INIT_DONE;
+		    data = device->table[0];
+		    device->table = device->table + 1;
+		}
+		else
+		{
+		    device->table = NULL;
 
-		    device->expected = (UBX_MESSAGE_MASK_NAV_DOP |
-					UBX_MESSAGE_MASK_NAV_PVT |
-					UBX_MESSAGE_MASK_NAV_SVINFO |
-					UBX_MESSAGE_MASK_NAV_TIMEGPS);
+		    if (device->init == GNSS_INIT_UBX_INIT_TABLE)
+		    {
+			device->init = GNSS_INIT_DONE;
 		
-		    device->seen = 0;
-		    device->location.type = 0;
-		    device->location.mask = 0;
+			if (device->ubx.gnss.simultaneous == 0)
+			{
+			    device->expected = (UBX_MESSAGE_MASK_NAV_DOP |
+						UBX_MESSAGE_MASK_NAV_PVT |
+						UBX_MESSAGE_MASK_NAV_SVINFO |
+						UBX_MESSAGE_MASK_NAV_TIMEGPS);
+			}
+			else
+			{
+			    device->ubx.gnss.enabled = GNSS_CONSTELLATION_GPS;
+
+			    device->expected = (UBX_MESSAGE_MASK_NAV_DOP |
+						UBX_MESSAGE_MASK_NAV_PVT |
+						UBX_MESSAGE_MASK_NAV_SAT |
+						UBX_MESSAGE_MASK_NAV_TIMEGPS);
+			}
+			
+			device->seen = 0;
+			device->location.type = 0;
+			device->location.mask = 0;
+		    }
 		}
 	    }
 	}
@@ -2917,7 +3072,7 @@ void gnss_receive(const uint8_t *data, uint32_t count)
 	{
 	    switch (device->state) {
 	    case GNSS_STATE_START:
-		if ((device->mode == GNSS_MODE_UBLOX) && (c == 0xb5))
+		if ((device->protocol == GNSS_PROTOCOL_UBLOX) && (c == 0xb5))
 		{
 		    device->state = GNSS_STATE_UBX_SYNC_2;
 		}
@@ -3013,11 +3168,6 @@ void gnss_receive(const uint8_t *data, uint32_t count)
 		{
 		    if (device->init != GNSS_INIT_DONE)
 		    {
-			if (device->init == GNSS_INIT_MTK_BAUD_RATE)
-			{
-			    mtk_configure(device, GNSS_RESPONSE_NMEA_SENTENCE, ~0l);
-			}
-
 			if (device->init == GNSS_INIT_UBX_BAUD_RATE)
 			{
 			    ubx_configure(device, GNSS_RESPONSE_NMEA_SENTENCE, ~0l);
@@ -3138,7 +3288,7 @@ void gnss_receive(const uint8_t *data, uint32_t count)
     }
 }
 
-void gnss_initialize(unsigned int mode, unsigned int rate, unsigned int speed, gnss_send_routine_t send_routine, gnss_location_callback_t location_callback, gnss_satellites_callback_t satellites_callback, void *context)
+void gnss_initialize(unsigned int protocol, unsigned int rate, unsigned int speed, gnss_send_routine_t send_routine, gnss_location_callback_t location_callback, gnss_satellites_callback_t satellites_callback, void *context)
 {
     gnss_device_t *device = &gnss_device;
     const char *uart_data = NULL;
@@ -3156,23 +3306,14 @@ void gnss_initialize(unsigned int mode, unsigned int rate, unsigned int speed, g
     memset(&device->location, 0, sizeof(device->location));
     memset(&device->satellites, 0, sizeof(device->satellites));
 
-    if (mode == GNSS_MODE_UBLOX)
+    device->protocol = protocol;
+    device->rate = rate;
+
+    if (protocol == GNSS_PROTOCOL_UBLOX)
     {
-	device->mode = mode;
 	device->init = GNSS_INIT_UBX_BAUD_RATE;
 
-	if (rate >= 10)
-	{
-	    device->table = ubx_init_table_10hz;
-	}
-	else if (rate >= 5)
-	{
-	    device->table = ubx_init_table_5hz;
-	}
-	else
-	{
-	    device->table = ubx_init_table_1hz;
-	}
+	device->table = ubx_init_table;
 
 	if (speed >= 115200)
 	{
@@ -3201,50 +3342,9 @@ void gnss_initialize(unsigned int mode, unsigned int rate, unsigned int speed, g
     }
     else
     {
-	if (mode == GNSS_MODE_MEDIATEK)
-	{
-	    device->mode = mode;
-	    device->init = GNSS_INIT_MTK_BAUD_RATE;
-
-	    if (rate >= 5)
-	    {
-		device->table = mtk_init_table_5hz;
-	    }
-	    else
-	    {
-		device->table = mtk_init_table_1hz;
-	    }
-	
-	    if (speed >= 115200)
-	    {
-		uart_data = "$PMTK251,115200*1F\r\n";
-	    }
-	    else if (speed >= 57600)
-	    {
-		uart_data = "$PMTK251,57600*2C\r\n";
-	    }
-	    else if (speed >= 38400)
-	    {
-		uart_data = "$PMTK251,38400*27\r\n";
-	    }
-	    else if (speed >= 19200)
-	    {
-		uart_data = "$PMTK251,19200*22\r\n";
-	    }
-	    else
-	    {
-		uart_data = "$PMTK251,9600*17\r\n";
-	    }
-
-	    uart_count = strlen(uart_data);
-	}
-	else
-	{
-	    device->mode = GNSS_MODE_NMEA;
-	    device->init = GNSS_INIT_DONE;
-	    device->table = NULL;
-	    device->expected = NMEA_SENTENCE_MASK_GPGGA | NMEA_SENTENCE_MASK_GPGSA | NMEA_SENTENCE_MASK_GPGSV | NMEA_SENTENCE_MASK_GPRMC;
-	}
+	device->init = GNSS_INIT_DONE;
+	device->table = NULL;
+	device->expected = NMEA_SENTENCE_MASK_GPGGA | NMEA_SENTENCE_MASK_GPGSA | NMEA_SENTENCE_MASK_GPGSV | NMEA_SENTENCE_MASK_GPRMC;
     }
 
     if (uart_data)
@@ -3253,91 +3353,132 @@ void gnss_initialize(unsigned int mode, unsigned int rate, unsigned int speed, g
     }
 }
 
-bool gnss_set_external(bool on)
+bool gnss_set_antenna(unsigned int antenna)
 {
     gnss_device_t *device = &gnss_device;
 
-    if (!gnss_done())
+    if (gnss_busy())
     {
 	return false;
     }
 
-    switch (device->mode) {
-    case GNSS_MODE_NMEA:
+    switch (device->protocol) {
+    case GNSS_PROTOCOL_NMEA:
 	break;
-    case GNSS_MODE_MEDIATEK:
-	break;
-    case GNSS_MODE_UBLOX:
-	ubx_table(device, (on ? ubx_external_enable_table : ubx_external_disable_table));
+    case GNSS_PROTOCOL_UBLOX:
+	ubx_table(device, ((antenna == GNSS_ANTENNA_EXTERNAL) ? ubx_ant_external_table : ubx_ant_internal_table));
 	break;
     }
 
     return true;
+}
+
+unsigned int gnss_get_constellation(void)
+{
+    gnss_device_t *device = &gnss_device;
+
+    if (gnss_busy())
+    {
+	return false;
+    }
+
+    switch (device->protocol) {
+    case GNSS_PROTOCOL_NMEA:
+	break;
+    case GNSS_PROTOCOL_UBLOX:
+	if (!device->ubx.gnss.simultaneous) {
+	    return GNSS_CONSTELLATION_GPS;
+	} else {
+	    return device->ubx.gnss.enabled;
+	}
+	break;
+    }
+
+    return 0;
 }
 
 bool gnss_set_constellation(unsigned int mask)
 {
     gnss_device_t *device = &gnss_device;
 
-    if (!gnss_done())
+    if (gnss_busy())
     {
 	return false;
     }
 
-    switch (device->mode) {
-    case GNSS_MODE_NMEA:
+    switch (device->protocol) {
+    case GNSS_PROTOCOL_NMEA:
 	break;
-    case GNSS_MODE_MEDIATEK:
-	mtk_table(device, ((mask & GNSS_CONSTELLATION_GLONASS) ? mtk_constellation_gps_glonass_table : mtk_constellation_gps_table));
-	break;
-    case GNSS_MODE_UBLOX:
-	ubx_table(device, ((mask & GNSS_CONSTELLATION_GLONASS) ? ubx_constellation_gps_glonass_table : ubx_constellation_gps_table));
+    case GNSS_PROTOCOL_UBLOX:
+	if (device->ubx.gnss.simultaneous) {
+	    mask = (mask & device->ubx.gnss.supported) | GNSS_CONSTELLATION_GPS;
+
+	    if (device->ubx.gnss.enabled != mask) {
+		device->ubx.gnss.enabled = mask;
+
+		ubx_table(device, ((mask & GNSS_CONSTELLATION_GLONASS) ? ubx_constellation_gps_glonass_table : ubx_constellation_gps_table));
+	    }
+	}
 	break;
     }
 
     return true;
 }
 
-bool gnss_set_sbas(bool on)
+bool gnss_set_sbas(bool enable)
 {
     gnss_device_t *device = &gnss_device;
 
-    if (!gnss_done())
+    if (gnss_busy())
     {
 	return false;
     }
 
-    switch (device->mode) {
-    case GNSS_MODE_NMEA:
+    switch (device->protocol) {
+    case GNSS_PROTOCOL_NMEA:
 	break;
-    case GNSS_MODE_MEDIATEK:
-	mtk_table(device, (on ? mtk_sbas_enable_table : mtk_sbas_disable_table));
-	break;
-    case GNSS_MODE_UBLOX:
-	ubx_table(device, (on ? ubx_sbas_enable_table : ubx_sbas_disable_table));
+    case GNSS_PROTOCOL_UBLOX:
+	ubx_table(device, (enable ? ubx_sbas_enable_table :  ubx_sbas_disable_table));
 	break;
     }
 
     return true;
 }
 
-bool gnss_set_qzss(bool on)
+bool gnss_set_qzss(bool enable)
 {
     gnss_device_t *device = &gnss_device;
 
-    if (!gnss_done())
+    if (gnss_busy())
     {
 	return false;
     }
 
-    switch (device->mode) {
-    case GNSS_MODE_NMEA:
+    switch (device->protocol) {
+    case GNSS_PROTOCOL_NMEA:
 	break;
-    case GNSS_MODE_MEDIATEK:
-	mtk_table(device, (on ? mtk_qzss_enable_table : mtk_qzss_disable_table));
+    case GNSS_PROTOCOL_UBLOX:
+	ubx_table(device, (enable ? ubx_qzss_enable_table :  ubx_qzss_disable_table));
 	break;
-    case GNSS_MODE_UBLOX:
-	ubx_table(device, (on ? ubx_qzss_enable_table : ubx_qzss_disable_table));
+    }
+
+    return true;
+}
+
+bool gnss_set_autonomous(bool enable)
+{
+    gnss_device_t *device = &gnss_device;
+
+    if (gnss_busy())
+    {
+	return false;
+    }
+
+    switch (device->protocol) {
+    case GNSS_PROTOCOL_NMEA:
+	break;
+    case GNSS_PROTOCOL_UBLOX:
+	ubx_table(device, (enable ? ubx_autonomous_enable_table :  ubx_autonomous_disable_table));
 	break;
     }
 
@@ -3351,16 +3492,15 @@ bool gnss_set_periodic(unsigned int onTime, unsigned int period, bool force)
     uint8_t *data;
     unsigned int updatePeriod, searchPeriod;
 
-    if (!gnss_done())
+    if (gnss_busy())
     {
 	return false;
     }
 
-    switch (device->mode) {
-    case GNSS_MODE_NMEA:
-    case GNSS_MODE_MEDIATEK:
+    switch (device->protocol) {
+    case GNSS_PROTOCOL_NMEA:
 	break;
-    case GNSS_MODE_UBLOX:
+    case GNSS_PROTOCOL_UBLOX:
 	if (onTime == 0)
 	{
 	    updatePeriod = 1000;
@@ -3428,16 +3568,15 @@ bool gnss_sleep(void)
 {
     gnss_device_t *device = &gnss_device;
 
-    if (!gnss_done())
+    if (gnss_busy())
     {
 	return false;
     }
 
-    switch (device->mode) {
-    case GNSS_MODE_NMEA:
-    case GNSS_MODE_MEDIATEK:
+    switch (device->protocol) {
+    case GNSS_PROTOCOL_NMEA:
 	break;
-    case GNSS_MODE_UBLOX:
+    case GNSS_PROTOCOL_UBLOX:
 	ubx_send(device, ubx_rxm_pmreq);
 	break;
     }
@@ -3449,16 +3588,15 @@ bool gnss_wakeup(void)
 {
     gnss_device_t *device = &gnss_device;
 
-    if (!gnss_done())
+    if (gnss_busy())
     {
 	return false;
     }
 
-    switch (device->mode) {
-    case GNSS_MODE_NMEA:
-    case GNSS_MODE_MEDIATEK:
+    switch (device->protocol) {
+    case GNSS_PROTOCOL_NMEA:
 	break;
-    case GNSS_MODE_UBLOX:
+    case GNSS_PROTOCOL_UBLOX:
 	ubx_send(device, ubx_cfg_rxm_continuous);
 	break;
     }
@@ -3466,19 +3604,19 @@ bool gnss_wakeup(void)
     return true;
 }
 
-bool gnss_done(void)
+bool gnss_busy(void)
 {
     gnss_device_t *device = &gnss_device;
 
     if (device->table != NULL)
     {
-	return false;
+	return true;
     }
 
     if (device->busy)
     {
-	return false;
+	return true;
     }
 
-    return true;
+    return false;
 }

@@ -26,36 +26,42 @@
  * WITH THE SOFTWARE.
  */
 
-#if !defined(_ARMV6M_CORE_H)
-#define _ARMV6M_CORE_H
+#include "Arduino.h"
+#include "wiring_private.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/* The format of a member pointer is defined in the C++ ABI.
+ * For ARM that document is IHI0041D, which describes the differences
+ * to the Itanium C++ ABI.
+ */
 
-#define Reset_IRQn ((IRQn_Type)-16)
-
-typedef void (*armv6m_core_routine_t)(void *context);
-
-typedef struct _armv6m_core_callback_t {
-    armv6m_core_routine_t  routine;
-    void                   *context;
-} armv6m_core_callback_t;
-
-
-static inline void armv6m_core_wait(void)
-{
-    __asm__ volatile ("wfe");
+bool Notifier::queue() {
+    if (_callback) {
+	return armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)_callback, _context, 0);
+    } else {
+	stm32l0_system_wakeup();
+	return false;
+    }
 }
 
-extern void armv6m_core_initialize(void);
-extern void armv6m_core_udelay(uint32_t udelay);
-
-extern void armv6m_core_c_function(armv6m_core_callback_t *callback, void *function);
-extern void armv6m_core_cxx_method(armv6m_core_callback_t *callback, const void *method, void *object);
-
-#ifdef __cplusplus
+void Notifier::call() {
+    if (_callback) {
+	(*_callback)(_context);
+    } else {
+	stm32l0_system_wakeup();
+    }
 }
-#endif
 
-#endif /* _ARMV6M_CORE_H */
+void Notifier::bind(const void *method, const void *object) {
+    void *ptr = (void*)(((const uint32_t*)method)[0]);
+    ptrdiff_t adj = ((ptrdiff_t)(((const uint32_t*)method)[1]) >> 1);
+    
+    if (!((const uint32_t*)method)[1] & 1) {
+	/* non-virtual function */
+	_callback = (void(*)(void*))ptr;
+    } else {
+	/* virtual function */
+	void *vptr = *((void**)((uintptr_t)object + adj)); 
+	_callback = (void(*)(void*))(*((void**)((uint8_t*)vptr + (ptrdiff_t)ptr)));
+    }
+    _context = (void*)((uintptr_t)object + adj);
+}

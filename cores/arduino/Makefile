@@ -46,6 +46,7 @@ SRCS = \
 	HardwareSerial.cpp \
 	HID.cpp \
 	IPAddress.cpp \
+	Notifier.cpp \
 	Print.cpp \
 	RingBuffer.cpp \
 	Stream.cpp \
@@ -85,6 +86,7 @@ OBJS = \
 	HardwareSerial.o \
 	HID.o \
 	IPAddress.o \
+	Notifier.o \
 	Print.o \
 	RingBuffer.o \
 	Stream.o \

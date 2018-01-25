@@ -98,12 +98,14 @@ public:
 
     // STM32L0 EXTENSTION: asynchronous write with callback
     bool write(const uint8_t *buffer, size_t size, void(*callback)(void));
+    bool write(const uint8_t *buffer, size_t size, Notifier notify);
 
     // STM32L0 EXTENSTION: enable/disable non-blocking writes
     void setNonBlocking(bool enable);
 
     // STM32L0 EXTENSTION: asynchronous receive
     void onReceive(void(*callback)(void));
+    void onReceive(Notifier notify);
 
 private:
     struct _stm32l0_usbd_cdc_t *_usbd_cdc;
@@ -120,8 +122,8 @@ private:
     const uint8_t *_tx_data2;
     volatile uint32_t _tx_size2;
 
-    void (*_completionCallback)(void);
-    void (*_receiveCallback)(void);
+    Notifier _completionNotify;
+    Notifier _receiveNotify;
 
     static void _eventCallback(class CDC *self, uint32_t events);
     static void _doneCallback(class CDC *self);

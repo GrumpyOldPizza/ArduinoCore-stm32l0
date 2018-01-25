@@ -735,12 +735,13 @@ void stm32l0_rtc_timer_destroy(stm32l0_rtc_timer_t *timer)
 
 bool stm32l0_rtc_timer_start(stm32l0_rtc_timer_t *timer, uint32_t seconds, uint16_t subseconds, bool absolute)
 {
-    IRQn_Type irq;
     bool success = true;
 
-    irq = ((__get_IPSR() & 0x1ff) - 16);
-
-    if (irq >= SysTick_IRQn)
+    if (__get_IPSR() == 0)
+    {
+	armv6m_svcall_4((uint32_t)&stm32l0_rtc_timer_insert, (uint32_t)timer, seconds, subseconds, absolute);
+    }
+    else
     {
 	success = armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)stm32l0_rtc_timer_insert_1, (void*)timer, subseconds | (absolute ? 0x8000 : 0x0000));
 
@@ -749,26 +750,19 @@ bool stm32l0_rtc_timer_start(stm32l0_rtc_timer_t *timer, uint32_t seconds, uint1
 	    success = armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)stm32l0_rtc_timer_insert_2, (void*)timer, seconds);
 	}
     }
-    else if (irq >= SVC_IRQn)
-    {
-	stm32l0_rtc_timer_insert((void*)timer, seconds, subseconds, absolute);
-    }
-    else
-    {
-	armv6m_svcall_4((uint32_t)&stm32l0_rtc_timer_insert, (uint32_t)timer, seconds, subseconds, absolute);
-    }
 
     return success;
 }
 
 bool stm32l0_rtc_timer_stop(stm32l0_rtc_timer_t *timer)
 {
-    IRQn_Type irq;
     bool success = true;
 
-    irq = ((__get_IPSR() & 0x1ff) - 16);
-
-    if (irq >= SysTick_IRQn)
+    if (__get_IPSR() == 0)
+    {
+	armv6m_svcall_2((uint32_t)&stm32l0_rtc_timer_remove, (uint32_t)timer, 0);
+    }
+    else
     {
 	success = armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)stm32l0_rtc_timer_remove, (void*)timer, 0);
 
@@ -776,14 +770,6 @@ bool stm32l0_rtc_timer_stop(stm32l0_rtc_timer_t *timer)
 	{
 	    armv6m_atomic_and((volatile uint32_t *)&timer->callback, ~1);
 	}
-    }
-    else if (irq >= SVC_IRQn)
-    {
-	stm32l0_rtc_timer_remove((void*)timer);
-    }
-    else
-    {
-	armv6m_svcall_2((uint32_t)&stm32l0_rtc_timer_remove, (uint32_t)timer, 0);
     }
 
     return success;

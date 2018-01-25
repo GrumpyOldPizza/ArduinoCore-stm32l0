@@ -49,9 +49,6 @@ Uart::Uart(struct _stm32l0_uart_t *uart, const struct _stm32l0_uart_params_t *pa
     _tx_data2 = NULL;
     _tx_size2 = 0;
   
-    _completionCallback = NULL;
-    _receiveCallback = NULL;
-
     stm32l0_uart_create(uart, params);
 }
 
@@ -281,6 +278,11 @@ size_t Uart::write(const uint8_t *buffer, size_t size)
 
 bool Uart::write(const uint8_t *buffer, size_t size, void(*callback)(void))
 {
+    return write(buffer, size, Notifier(callback));
+}
+
+bool Uart::write(const uint8_t *buffer, size_t size, Notifier notify)
+{
     if (!_enabled) {
 	return false;
     }
@@ -293,7 +295,8 @@ bool Uart::write(const uint8_t *buffer, size_t size, void(*callback)(void))
 	return false;
     }
 
-    _completionCallback = callback;
+    _completionNotify = notify;
+
     _tx_data2 = buffer;
     _tx_size2 = size;
 
@@ -303,7 +306,8 @@ bool Uart::write(const uint8_t *buffer, size_t size, void(*callback)(void))
 	if (!stm32l0_uart_transmit(_uart, _tx_data2, _tx_size2, (stm32l0_uart_done_callback_t)Uart::_doneCallback, (void*)this)) {
 	    _tx_busy = false;
 
-	    _completionCallback = NULL;
+	    _completionNotify = Notifier();
+
 	    _tx_data2 = NULL;
 	    _tx_size2 = 0;
 
@@ -347,17 +351,18 @@ void Uart::setFlowControl(enum FlowControl mode)
 
 void Uart::onReceive(void(*callback)(void))
 {
-    _receiveCallback = callback;
+    _receiveNotify = Notifier(callback);
+}
+
+void Uart::onReceive(Notifier notify)
+{
+    _receiveNotify = notify;
 }
 
 void Uart::_eventCallback(class Uart *self, uint32_t events)
 {
     if (events & UART_EVENT_RECEIVE) {
-	if (self->_receiveCallback) {
-	    armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)self->_receiveCallback, NULL, 0);
-	} else {
-	    stm32l0_system_wakeup();
-	}
+	self->_receiveNotify.queue();
     }
 }
 
@@ -401,14 +406,9 @@ void Uart::_doneCallback(class Uart *self)
 		if (self->_tx_size2 != 0) {
 		    self->_tx_size2 = 0;
 		    self->_tx_data2 = NULL;
-		    
-		    if (self->_completionCallback) {
-			armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)self->_completionCallback, NULL, 0);
-			
-			self->_completionCallback = NULL;
-		    } else {
-			stm32l0_system_wakeup();
-		    }
+
+                    self->_completionNotify.queue();
+		    self->_completionNotify = Notifier();
 		}
 	    }
 	} else {
@@ -420,27 +420,17 @@ void Uart::_doneCallback(class Uart *self)
 
 		    self->_tx_size2 = 0;
 		    self->_tx_data2 = NULL;
-		    
-		    if (self->_completionCallback) {
-			armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)self->_completionCallback, NULL, 0);
-			
-			self->_completionCallback = NULL;
-		    } else {
-			stm32l0_system_wakeup();
-		    }
+
+                    self->_completionNotify.queue();
+		    self->_completionNotify = Notifier();
 		}
 	    }
 	}
     } else {
 	self->_tx_size2 = 0;
 	self->_tx_data2 = NULL;
-	
-	if (self->_completionCallback) {
-	    armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)self->_completionCallback, NULL, 0);
-	    
-	    self->_completionCallback = NULL;
-	} else {
-	    stm32l0_system_wakeup();
-	}
+
+	self->_completionNotify.queue();
+	self->_completionNotify = Notifier();
     }
 }

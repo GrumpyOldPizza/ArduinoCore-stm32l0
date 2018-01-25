@@ -44,8 +44,8 @@ class TwoWire : public Stream
 
     size_t requestFrom(uint8_t address, size_t size, bool stopBit = true);
     size_t requestFrom(uint8_t address, uint8_t *buffer, size_t size, bool stopBit = true);
-    size_t requestFrom(uint8_t address, uint8_t size, uint32_t iaddress, uint8_t isize, bool stopBit = true);
-    size_t requestFrom(uint8_t address, uint8_t *buffer, uint8_t size, uint32_t iaddress, uint8_t isize, bool stopBit = true);
+    size_t requestFrom(uint8_t address, size_t size, uint32_t iaddress, uint8_t isize, bool stopBit = true);
+    size_t requestFrom(uint8_t address, uint8_t *buffer, size_t size, uint32_t iaddress, uint8_t isize, bool stopBit = true);
 
     size_t write(uint8_t data);
     size_t write(const uint8_t *buffer, size_t size);
@@ -99,21 +99,11 @@ public:
     TwoWireTransaction(class TwoWire &twowire);
     ~TwoWireTransaction();
 
-    bool sendTransmission(uint8_t address, const uint8_t *buffer, size_t size) { return sendTransmission(address, buffer, size, NULL, true); }
-    bool sendTransmission(uint8_t address, const uint8_t *buffer, size_t size, void(*callback)(void)) {	return sendTransmission(address, buffer, size, callback, true); }
-    bool sendTransmission(uint8_t address, const uint8_t *buffer, size_t size, uint32_t iaddress, uint8_t isize) { return sendTransmission(address, buffer, size, iaddress, isize, NULL, true); }
-    bool sendTransmission(uint8_t address, const uint8_t *buffer, size_t size, uint32_t iaddress, uint8_t isize, void(*callback)(void)) { return sendTransmission(address, buffer, size, iaddress, isize, callback, true); }
-
-    bool requestFrom(uint8_t address, uint8_t *buffer, uint8_t size) { return requestFrom(address, buffer, size, NULL, true); }
-    bool requestFrom(uint8_t address, uint8_t *buffer, uint8_t size, void(*callback)(void)) { return requestFrom(address, buffer, size, callback, true); }
-    bool requestFrom(uint8_t address, uint8_t *buffer, uint8_t size, uint32_t iaddress, uint8_t isize) { return requestFrom(address, buffer, size, iaddress, isize, NULL, true); }
-    bool requestFrom(uint8_t address, uint8_t *buffer, uint8_t size, uint32_t iaddress, uint8_t isize, void(*callback)(void)) { return requestFrom(address, buffer, size, iaddress, isize, callback, true); }
-
-    bool sendTransmission(uint8_t address, const uint8_t *buffer, size_t size, void(*callback)(void), bool stopBit);
-    bool sendTransmission(uint8_t address, const uint8_t *buffer, size_t size, uint32_t iaddress, uint8_t isize, void(*callback)(void), bool stopBit);
-    bool requestFrom(uint8_t address, uint8_t *buffer, uint8_t size, void(*callback)(void), bool stopBit);
-    bool requestFrom(uint8_t address, uint8_t *buffer, uint8_t size, uint32_t iaddress, uint8_t isize, void(*callback)(void), bool stopBit);
-    bool done();
+    bool sendTransmission(uint8_t address, const uint8_t *buffer, size_t size, bool stopBit, void(*callback)(void) = NULL);
+    bool sendTransmission(uint8_t address, const uint8_t *buffer, size_t size, uint32_t iaddress, uint8_t isize, bool stopBit, void(*callback)(void) = NULL);
+    bool requestFrom(uint8_t address, uint8_t *buffer, size_t size, bool stopBit, void(*callback)(void) = NULL);
+    bool requestFrom(uint8_t address, uint8_t *buffer, size_t size, uint32_t iaddress, uint8_t isize, bool stopBit, void(*callback)(void) = NULL);
+    bool busy();
     int status();
 
 private:

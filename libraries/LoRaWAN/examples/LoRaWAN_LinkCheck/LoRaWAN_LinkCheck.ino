@@ -21,19 +21,19 @@ const char *appEui = "0101010101010101";
 const char *appKey = "2B7E151628AED2A6ABF7158809CF4F3C";
 const char *devEui = "0101010101010101";
 
-TimerMillis transmitTimer;
+unsigned int linkCheckCounter = 0;
 
-unsigned int linkCheck = 0;
+TimerMillis transmitTimer;
 
 void transmitCallback(void)
 {
     digitalWrite(LED_BUILTIN, 1);
 
-    linkCheck++;
+    linkCheckCounter++;
         
-    if (linkCheck == 8) 
+    if (linkCheckCounter == 8) 
     {
-        linkCheck = 0;
+        linkCheckCounter = 0;
         
         LoRaWAN.linkCheck();
     }
@@ -64,9 +64,9 @@ void doneCallback(void)
 void receiveCallback(void)
 {
     Serial.print("RSSI: ");
-    Serial.print(LoRaWAN.lastRssi());
+    Serial.print(LoRaWAN.lastRSSI());
     Serial.print(", SNR: ");
-    Serial.print(LoRaWAN.lastSnrR());
+    Serial.print(LoRaWAN.lastSNR());
 
     if (LoRaWAN.checked())
     {
@@ -77,6 +77,25 @@ void receiveCallback(void)
     }
 
     Serial.println();
+
+    if (LoRaWAN.parsePacket())
+    {
+	uint32_t size;
+	uint8_t data[256];
+
+	size = LoRaWAN.read(&data[0], sizeof(data));
+
+	if (size)
+	{
+	    data[size] = '\0';
+
+	    Serial.print("PORT: ");
+	    Serial.print(LoRaWAN.remotePort());
+	    Serial.print(", DATA: \"");
+	    Serial.print((const char*)&data[0]);
+	    Serial.println("\"");
+	}
+    }
 }
 
 void joinCallback(void)

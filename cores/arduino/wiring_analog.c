@@ -87,17 +87,20 @@ uint32_t __analogReadInternal(uint32_t channel, uint32_t smp)
 
     irq = (IRQn_Type)((__get_IPSR() & 0x1ff) - 16);
 
-    if (irq >= SysTick_IRQn)
-    {	
-	return 0;
-    }
-    else if (irq >= SVC_IRQn)
+    if (irq == Reset_IRQn)
     {
-	return __analogReadRoutine(channel, smp);
+	return (uint32_t)armv6m_svcall_2((uint32_t)&__analogReadRoutine, (uint32_t)channel, (uint32_t)smp);
     }
     else
     {
-	return (uint32_t)armv6m_svcall_2((uint32_t)&__analogReadRoutine, (uint32_t)channel, (uint32_t)smp);
+	if ((irq == SVC_IRQn) || (irq == PendSV_IRQn))
+	{
+	    return __analogReadRoutine(channel, smp);
+	}
+	else
+	{
+	  return 0;
+	}
     }
 }
 

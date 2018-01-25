@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2016-2018 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -26,36 +26,46 @@
  * WITH THE SOFTWARE.
  */
 
-#if !defined(_ARMV6M_CORE_H)
-#define _ARMV6M_CORE_H
+#pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+class Notifier {
+public:
+    Notifier() : _callback(NULL), _context(NULL) {  }
 
-#define Reset_IRQn ((IRQn_Type)-16)
+    Notifier(void (*function)(void)) : _callback((void (*)(void*))function), _context(NULL) { }
 
-typedef void (*armv6m_core_routine_t)(void *context);
+    template<typename T>
+    Notifier(void (T::*method)(), T *object) { bind(&method, object); }
 
-typedef struct _armv6m_core_callback_t {
-    armv6m_core_routine_t  routine;
-    void                   *context;
-} armv6m_core_callback_t;
+    template<typename T>
+    Notifier(void (T::*method)() const, const T *object) { bind(&method, object); }
 
+    template<typename T>
+    Notifier(void (T::*method)() volatile, volatile T *object) { bind(&method, object); }
 
-static inline void armv6m_core_wait(void)
-{
-    __asm__ volatile ("wfe");
-}
+    template<typename T>
+    Notifier(void (T::*method)() const volatile, const volatile T *object) { bind(&method, object); }
 
-extern void armv6m_core_initialize(void);
-extern void armv6m_core_udelay(uint32_t udelay);
+    template<typename T>
+    Notifier(void (T::*method)(), T &object) { bind(&method, &object); }
 
-extern void armv6m_core_c_function(armv6m_core_callback_t *callback, void *function);
-extern void armv6m_core_cxx_method(armv6m_core_callback_t *callback, const void *method, void *object);
+    template<typename T>
+    Notifier(void (T::*method)() const, const T &object) { bind(&method, &object); }
 
-#ifdef __cplusplus
-}
-#endif
+    template<typename T>
+    Notifier(void (T::*method)() volatile, volatile T &object) { bind(&method, &object); }
 
-#endif /* _ARMV6M_CORE_H */
+    template<typename T>
+    Notifier(void (T::*method)() const volatile, const volatile T &object) { bind(&method, &object); }
+
+    bool queue();
+    void call();
+
+    operator bool() { return (_callback != NULL); }
+
+private:
+    void (*_callback)(void*);
+    void *_context;
+
+    void bind(const void *method, const void *object);
+};
