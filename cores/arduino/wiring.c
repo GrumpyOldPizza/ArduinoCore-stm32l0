@@ -48,9 +48,6 @@ extern const stm32l0_sfspi_params_t g_SFSPIParams;
 
 extern const stm32l0_sdspi_params_t g_SDSPIParams;
 
-
-stm32l0_spi_t stm32l0_spi;
-
 void HardFault_Handler(void)
 {
     while (1)

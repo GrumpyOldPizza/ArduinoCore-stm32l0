@@ -42,7 +42,7 @@ public:
 	XON_XOFF           = 4,
     };
   
-    Uart(struct _stm32l0_uart_t *uart, const struct _stm32l0_uart_params_t *params);
+    Uart(struct _stm32l0_uart_t *uart, const struct _stm32l0_uart_params_t *params, void (*serialEventRun)(void));
     void begin(unsigned long baudRate);
     void begin(unsigned long baudrate, uint16_t config);
     void begin(unsigned long baudRate, uint8_t *buffer, size_t size);

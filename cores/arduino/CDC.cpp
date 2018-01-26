@@ -45,7 +45,7 @@ static int serialusb_stdio_put(char data, FILE *fp)
     return SerialUSB.write(&data, 1);
 }
 
-CDC::CDC(struct _stm32l0_usbd_cdc_t *usbd_cdc)
+CDC::CDC(struct _stm32l0_usbd_cdc_t *usbd_cdc, void (*serialEventRun)(void))
 {
     _usbd_cdc = usbd_cdc;
 
@@ -61,6 +61,10 @@ CDC::CDC(struct _stm32l0_usbd_cdc_t *usbd_cdc)
 
     _tx_data2 = NULL;
     _tx_size2 = 0;
+
+    if (serialEventRun) {
+	g_serialEventRun = serialEventRun;
+    }
 
     stm32l0_usbd_cdc_create(usbd_cdc);
 }

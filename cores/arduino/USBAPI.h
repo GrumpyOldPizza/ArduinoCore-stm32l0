@@ -57,7 +57,7 @@ extern USBDeviceClass USBDevice;
 class CDC : public HardwareSerial
 {
 public:
-    CDC(struct _stm32l0_usbd_cdc_t *usbd_cdc);
+    CDC(struct _stm32l0_usbd_cdc_t *usbd_cdc, void (*serialEventRun)(void));
     void begin(unsigned long baudRate);
     void begin(unsigned long baudrate, uint16_t config);
     void end(void);

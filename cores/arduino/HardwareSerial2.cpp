@@ -29,62 +29,16 @@
 #include "Arduino.h"
 #include "wiring_private.h"
 
-void serialEvent() __attribute__((weak));
-
-#if defined(USBCON)
-
-extern bool Serial_available() __attribute__((weak));
-
-bool Serial_available() { return SerialUSB.available(); }
-
-extern stm32l0_usbd_cdc_t g_CDC;
-
-CDC SerialUSB(&g_CDC, (serialEvent ? serialEventRun : NULL));
-
-#else
-
-extern bool Serial_available() __attribute__((weak));
-
-bool Serial_available() { return Serial.available(); }
-
-static stm32l0_uart_t g_Serial;
-extern const stm32l0_uart_params_t g_SerialParams;
-
-Uart Serial(&g_Serial, &g_SerialParams, (serialEvent ? serialEventRun : NULL));
-
-#endif
-
-#if SERIAL_INTERFACES_COUNT > 1
-
-void serialEvent1() __attribute__((weak));
-bool Serial1_available() __attribute__((weak));
-
-#endif
-
 #if SERIAL_INTERFACES_COUNT > 2
 
-void serialEvent2() __attribute__((weak));
-bool Serial2_available() __attribute__((weak));
+extern bool Serial2_available() __attribute__((weak));
+extern void serialEvent2() __attribute__((weak));
+
+bool Serial2_available() { return Serial2.available(); }
+
+static stm32l0_uart_t g_Serial2;
+extern const stm32l0_uart_params_t g_Serial2Params;
+
+Uart Serial2(&g_Serial2, &g_Serial2Params, (serialEvent2 ? serialEventRun : NULL));
 
 #endif
-
-#if SERIAL_INTERFACES_COUNT > 3
-
-void serialEvent3() __attribute__((weak));
-bool Serial3_available() __attribute__((weak));
-
-#endif
-
-void serialEventRun()
-{
-    if (Serial_available && serialEvent && Serial_available()) serialEvent();
-#if SERIAL_INTERFACES_COUNT > 1
-    if (Serial1_available && serialEvent1 && Serial1_available()) serialEvent1();
-#endif
-#if SERIAL_INTERFACES_COUNT > 2
-    if (Serial2_available && serialEvent2 && Serial2_available()) serialEvent2();
-#endif
-#if SERIAL_INTERFACES_COUNT > 3
-    if (Serial3_available && serialEvent3 && Serial3_available()) serialEvent3();
-#endif
-}

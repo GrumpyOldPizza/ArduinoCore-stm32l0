@@ -44,6 +44,9 @@ SRCS = \
 	avr/fdevopen.c \
 	CDC.cpp \
 	HardwareSerial.cpp \
+	HardwareSerial1.cpp \
+	HardwareSerial2.cpp \
+	HardwareSerial3.cpp \
 	HID.cpp \
 	IPAddress.cpp \
 	Notifier.cpp \
@@ -84,6 +87,9 @@ OBJS = \
 	avr/fdevopen.o \
 	CDC.o \
 	HardwareSerial.o \
+	HardwareSerial1.o \
+	HardwareSerial2.o \
+	HardwareSerial3.o \
 	HID.o \
 	IPAddress.o \
 	Notifier.o \

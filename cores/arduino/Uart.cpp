@@ -32,7 +32,7 @@
 
 #define UART_TX_PACKET_SIZE 16
 
-Uart::Uart(struct _stm32l0_uart_t *uart, const struct _stm32l0_uart_params_t *params)
+Uart::Uart(struct _stm32l0_uart_t *uart, const struct _stm32l0_uart_params_t *params, void (*serialEventRun)(void))
 {
     _uart = uart;
 
@@ -48,7 +48,11 @@ Uart::Uart(struct _stm32l0_uart_t *uart, const struct _stm32l0_uart_params_t *pa
 
     _tx_data2 = NULL;
     _tx_size2 = 0;
-  
+
+    if (serialEventRun) {
+	g_serialEventRun = serialEventRun;
+    }
+
     stm32l0_uart_create(uart, params);
 }
 

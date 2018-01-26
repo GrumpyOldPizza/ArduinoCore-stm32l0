@@ -18,6 +18,7 @@
 
 #define ARDUINO_MAIN
 #include "Arduino.h"
+#include "wiring_private.h"
 
 // Weak empty variant initialization function.
 // May be redefined by variant files.
@@ -26,6 +27,8 @@ void initVariant() { }
 
 // Initialize C library
 extern "C" void __libc_init_array(void);
+
+void (*g_serialEventRun)(void) = NULL;
 
 /*
  * \brief Main entry point of Arduino application
@@ -49,7 +52,7 @@ int main( void )
   for (;;)
   {
     loop();
-    if (serialEventRun) serialEventRun();
+    if (g_serialEventRun) (*g_serialEventRun)();
   }
 
   return 0;
