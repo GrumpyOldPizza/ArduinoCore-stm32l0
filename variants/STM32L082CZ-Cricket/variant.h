@@ -46,6 +46,8 @@
 #define STM32L0_CONFIG_VBAT_EMPTY         ((float)3.3)
 #define STM32L0_CONFIG_VBAT_FULL          ((float)4.2)
 
+#define STM32L0_CONFIG_PIN_GNSS_ENABLE    GPIO_PIN_PB2
+
 #define STM32L0_CONFIG_SFLASH_DATA_START  (256 * 1024)
 
 #define USBCON

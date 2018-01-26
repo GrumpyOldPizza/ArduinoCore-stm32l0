@@ -149,7 +149,6 @@ public:
     bool setConstellation(GNSSconstellation constellation);
     bool setSBAS(bool enable);
     bool setQZSS(bool enable);
-    bool setAutonomous(bool enable);
     bool setPeriodic(unsigned int onTime, unsigned int period, bool force = false);
     bool sleep();
     bool wakeup();
@@ -171,20 +170,15 @@ private:
     volatile uint32_t _location_pending;
     gnss_satellites_t _satellites_data;
     volatile uint32_t _satellites_pending;
-#if 0
-    void (*_receiveCallback)(void);
-#endif
     Notifier _receiveNotifier;
 
-#if 0
-    static void receiveCallback(void);
-    static void completionCallback(void);
-#endif
     void receiveCallback(void);
     void completionCallback(void);
 
     void (*_doneCallback)(void);
     static void sendRoutine(class GNSSClass*, const uint8_t*, uint32_t, gnss_send_callback_t);
+    static void enableCallback(class GNSSClass*);
+    static void disableCallback(class GNSSClass*);
     static void locationCallback(class GNSSClass*, const gnss_location_t*);
     static void satellitesCallback(class GNSSClass*, const gnss_satellites_t*);
 };

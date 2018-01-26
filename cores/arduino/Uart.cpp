@@ -102,9 +102,11 @@ void Uart::begin(unsigned long baudrate, uint16_t config, uint8_t *buffer, size_
 void Uart::end()
 {
     if (_enabled) {
-      flush();
+	flush();
 
-      stm32l0_uart_disable(_uart);
+	stm32l0_uart_disable(_uart);
+
+	_enabled = false;
     }
 }
 

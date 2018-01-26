@@ -279,21 +279,40 @@ GNSSClass::GNSSClass()
 
 void GNSSClass::begin(Uart &uart, GNSSprotocol protocol, GNSSrate rate)
 {
+    static const gnss_callbacks_t GNSSCallbacks = {
+#if defined(STM32L0_CONFIG_PIN_GNSS_ENABLE)
+	(gnss_enable_callback_t)&GNSSClass::enableCallback,
+	(gnss_disable_callback_t)&GNSSClass::disableCallback,
+#else /* defined(STM32L0_CONFIG_PIN_GNSS_ENABLE) */
+	NULL,
+	NULL,
+#endif /* defined(STM32L0_CONFIG_PIN_GNSS_ENABLE) */
+	(gnss_location_callback_t)&GNSSClass::locationCallback,
+	(gnss_satellites_callback_t)&GNSSClass::satellitesCallback,
+    };
+
     _uart = &uart; 
 
     _uart->begin(9600);
+
+#if defined(STM32L0_CONFIG_PIN_GNSS_ENABLE)
+    stm32l0_gpio_pin_configure(STM32L0_CONFIG_PIN_GNSS_ENABLE, (GPIO_PARK_NONE | GPIO_PUPD_PULLDOWN | GPIO_OSPEED_LOW | GPIO_OTYPE_PUSHPULL | GPIO_MODE_OUTPUT));
+    stm32l0_gpio_pin_write(STM32L0_CONFIG_PIN_GNSS_ENABLE, 1);
+
+    armv6m_core_udelay(125000);
+#endif /* defined(STM32L0_CONFIG_PIN_GNSS_ENABLE) */
 
     if (protocol == PROTOCOL_NMEA)
     {
 	_baudrate = 9600;
 
-	gnss_initialize(protocol, rate, _baudrate, (gnss_send_routine_t)&GNSSClass::sendRoutine, (gnss_location_callback_t)&GNSSClass::locationCallback, (gnss_satellites_callback_t)&GNSSClass::satellitesCallback, (void*)this);
+	gnss_initialize(protocol, rate, _baudrate, (gnss_send_routine_t)&GNSSClass::sendRoutine, &GNSSCallbacks, (void*)this);
     }
     else
     {
         _baudrate = (rate > RATE_1HZ) ? 115200 : 38400;
 
-	gnss_initialize(protocol, rate, _baudrate, (gnss_send_routine_t)&GNSSClass::sendRoutine, (gnss_location_callback_t)&GNSSClass::locationCallback, (gnss_satellites_callback_t)&GNSSClass::satellitesCallback, (void*)this);
+	gnss_initialize(protocol, rate, _baudrate, (gnss_send_routine_t)&GNSSClass::sendRoutine, &GNSSCallbacks, (void*)this);
     }
 
     _uart->onReceive(Notifier(&GNSSClass::receiveCallback, this));
@@ -327,11 +346,6 @@ bool GNSSClass::setSBAS(bool enable)
 bool GNSSClass::setQZSS(bool enable)
 {
     return (_uart && gnss_set_qzss(enable));
-}
-
-bool GNSSClass::setAutonomous(bool enable)
-{
-    return (_uart && gnss_set_autonomous(enable));
 }
 
 bool GNSSClass::setPeriodic(unsigned int onTime, unsigned int period, bool force)
@@ -472,25 +486,33 @@ void GNSSClass::sendRoutine(class GNSSClass *self, const uint8_t *data, uint32_t
     if (self->_uart)
     {
 	self->_doneCallback = callback;
-#if 0
-	self->_uart->write(data, count, (void(*)(void))&GNSSClass::completionCallback);
-#endif
 	self->_uart->write(data, count, Notifier(&GNSSClass::completionCallback, self));
     }
+}
+
+void GNSSClass::enableCallback(class GNSSClass *self)
+{
+#if defined(STM32L0_CONFIG_PIN_GNSS_ENABLE)
+    self->_uart->begin(self->_baudrate);
+
+    stm32l0_gpio_pin_configure(STM32L0_CONFIG_PIN_GNSS_ENABLE, (GPIO_PARK_NONE | GPIO_PUPD_PULLDOWN | GPIO_OSPEED_LOW | GPIO_OTYPE_PUSHPULL | GPIO_MODE_OUTPUT));
+    stm32l0_gpio_pin_write(STM32L0_CONFIG_PIN_GNSS_ENABLE, 1);
+#endif /* defined(STM32L0_CONFIG_PIN_GNSS_ENABLE) */
+}
+
+void GNSSClass::disableCallback(class GNSSClass *self)
+{
+#if defined(STM32L0_CONFIG_PIN_GNSS_ENABLE)
+    stm32l0_gpio_pin_configure(STM32L0_CONFIG_PIN_GNSS_ENABLE, (GPIO_PARK_NONE | GPIO_MODE_ANALOG));
+    
+    self->_uart->end();
+#endif /* defined(STM32L0_CONFIG_PIN_GNSS_ENABLE) */
 }
 
 void GNSSClass::locationCallback(class GNSSClass *self, const gnss_location_t *location)
 {
     self->_location_data = *location;
     self->_location_pending = true;
-
-#if 0
-    if (self->_receiveCallback) {
-	(*self->_receiveCallback)();
-    } else {
-	stm32l0_system_wakeup();
-    }
-#endif
 
     self->_receiveNotifier.queue();
 }

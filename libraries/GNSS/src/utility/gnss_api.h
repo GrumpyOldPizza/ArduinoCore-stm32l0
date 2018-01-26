@@ -142,10 +142,19 @@ typedef struct _gnss_satellites_t {
 
 typedef void (*gnss_send_callback_t)(void);
 typedef void (*gnss_send_routine_t)(void *context, const uint8_t *data, uint32_t count, gnss_send_callback_t callback);
+typedef void (*gnss_enable_callback_t)(void *context);
+typedef void (*gnss_disable_callback_t)(void *context);
 typedef void (*gnss_location_callback_t)(void *context, const gnss_location_t *location);
 typedef void (*gnss_satellites_callback_t)(void *context, const gnss_satellites_t *satellites);
 
-extern void gnss_initialize(unsigned int mode, unsigned int rate, unsigned int speed, gnss_send_routine_t send_routine, gnss_location_callback_t location_callback, gnss_satellites_callback_t satellites_callback, void *context);
+typedef struct {
+    gnss_enable_callback_t enable_callback;
+    gnss_disable_callback_t disable_callback;
+    gnss_location_callback_t location_callback;
+    gnss_satellites_callback_t satellites_callback;
+} gnss_callbacks_t;
+
+extern void gnss_initialize(unsigned int mode, unsigned int rate, unsigned int speed, gnss_send_routine_t send_routine, const gnss_callbacks_t *callbacks, void *context);
 extern void gnss_receive(const uint8_t *data, uint32_t count);
 extern bool gnss_set_antenna(unsigned int antenna);
 extern bool gnss_set_constellation(unsigned int mask);

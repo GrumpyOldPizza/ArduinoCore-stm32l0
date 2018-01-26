@@ -189,6 +189,7 @@ typedef struct _ubx_context_t {
 	uint8_t         enabled;
 	uint8_t         simultaneous;
     } gnss;
+    stm32l0_rtc_timer_t sleep;
     stm32l0_rtc_timer_t timeout;
 } ubx_context_t;
 
@@ -225,12 +226,12 @@ typedef struct _ubx_context_t {
 #define GNSS_TX_TABLE_COUNT           8  /* UBX SET PERIODIC */
 
 typedef struct _gnss_device_t {
-    uint8_t             ck_a;
     uint8_t             protocol;
     uint8_t             rate;
     uint8_t             state;
-    volatile uint8_t    busy;
     volatile uint8_t    init;
+    volatile uint8_t    busy;
+    volatile uint8_t    wakeup;
     uint32_t            seen;
     uint32_t            expected;
     uint16_t            checksum;
@@ -247,8 +248,7 @@ typedef struct _gnss_device_t {
     gnss_satellites_t   satellites;
     volatile uint32_t   command;
     gnss_send_routine_t send_routine;
-    gnss_location_callback_t location_callback;
-    gnss_satellites_callback_t satellites_callback;
+    const gnss_callbacks_t *callbacks;
     void                *context;
 } gnss_device_t;
 
@@ -410,9 +410,9 @@ static void gnss_location(gnss_device_t *device)
 	device->location.vdop = 9999;
     }
 
-    if (device->location_callback)
+    if (device->callbacks->location_callback)
     {
-	(*device->location_callback)(device->context, &device->location);
+	(*device->callbacks->location_callback)(device->context, &device->location);
     }
 
     device->location.type = 0;
@@ -426,9 +426,9 @@ static void gnss_satellites(gnss_device_t *device)
 	device->satellites.count = GNSS_SATELLITES_COUNT_MAX;
     }
 
-    if (device->satellites_callback)
+    if (device->callbacks->satellites_callback)
     {
-	(*device->satellites_callback)(device->context, &device->satellites);
+	(*device->callbacks->satellites_callback)(device->context, &device->satellites);
     }
 }
 
@@ -2570,33 +2570,6 @@ static const uint8_t ubx_cfg_rxm_powersave[] = {
     0x1a, 0x82,                                     /* CK_A, CK_B                */
 };
 
-static const uint8_t ubx_cfg_save[] = {
-    0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
-    0x06, 0x09,                                     /* CLASS, ID                 */
-    0x0d, 0x00,                                     /* LENGTH                    */
-    0x00, 0x00, 0x00, 0x00,                         /* CLEAR MASK                */
-    0xff, 0xff, 0xff, 0xff,                         /* SAVE MASK                 */
-    0x00, 0x00, 0x00, 0x00,                         /* LOAD MASK                 */
-    0x01,                                           /* DEVICE MASK               */
-    0x19, 0x9c,                                     /* CK_A, CK_B                */
-};
-
-static const uint8_t ubx_rxm_pmreq[] = {
-    0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
-    0x02, 0x41,                                     /* CLASS, ID                 */
-    0x08, 0x00,                                     /* LENGTH                    */
-    0x00, 0x00, 0x00, 0x00,                         /* DURATION                  */
-    0x02, 0x00, 0x00, 0x00,                         /* FLAGS                     */
-    0x4d, 0x3b,                                     /* CK_A, CK_B                */
-};
-
-static const uint8_t ubx_mon_gnss[] = {
-    0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
-    0x0a, 0x28,                                     /* CLASS, ID                 */
-    0x00, 0x00,                                     /* LENGTH                    */
-    0x32, 0xa0,                                     /* CK_A, CK_B                */
-};
-
 static const uint8_t ubx_cfg_ant_internal[] = {
     0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
     0x06, 0x13,                                     /* CLASS, ID                 */
@@ -2667,6 +2640,43 @@ static const uint8_t ubx_cfg_aop_disable[] = {
     0x00, 0x00, 0x00,                               /* RESERVED7                 */
     0x00,                                           /* USE ADR                   */
     0x91, 0xb9,                                     /* CK_A, CK_B                */
+};
+
+static const uint8_t ubx_cfg_save[] = {
+    0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
+    0x06, 0x09,                                     /* CLASS, ID                 */
+    0x0d, 0x00,                                     /* LENGTH                    */
+    0x00, 0x00, 0x00, 0x00,                         /* CLEAR MASK                */
+    0xff, 0xff, 0xff, 0xff,                         /* SAVE MASK                 */
+    0x00, 0x00, 0x00, 0x00,                         /* LOAD MASK                 */
+    0x01,                                           /* DEVICE MASK               */
+    0x19, 0x9c,                                     /* CK_A, CK_B                */
+};
+
+static const uint8_t ubx_rxm_pmreq[] = {
+    0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
+    0x02, 0x41,                                     /* CLASS, ID                 */
+    0x08, 0x00,                                     /* LENGTH                    */
+    0x00, 0x00, 0x00, 0x00,                         /* DURATION                  */
+    0x02, 0x00, 0x00, 0x00,                         /* FLAGS                     */
+    0x4d, 0x3b,                                     /* CK_A, CK_B                */
+};
+
+static const uint8_t ubx_mon_gnss[] = {
+    0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
+    0x0a, 0x28,                                     /* CLASS, ID                 */
+    0x00, 0x00,                                     /* LENGTH                    */
+    0x32, 0xa0,                                     /* CK_A, CK_B                */
+};
+
+static const uint8_t ubx_gnss_stop[] = {
+    0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
+    0x06, 0x04,                                     /* CLASS, ID                 */
+    0x04, 0x00,                                     /* LENGTH                    */
+    0x00, 0x00,                                     /* NAV BBR MASK              */
+    0x08,                                           /* RESET MODE                */
+    0x00,                                           /* RESERVED                  */
+    0x16, 0x74,                                     /* CK_A, CK_B                */
 };
 
 static const uint8_t * const ubx_init_table[] = {
@@ -2873,7 +2883,12 @@ static const uint8_t * const ubx_autonomous_disable_table[] = {
     NULL,
 };
 
-static const uint8_t * const ubx_wakeup_table[] = {
+static const uint8_t * const ubx_gnss_stop_table[] = {
+    ubx_gnss_stop,
+    NULL,
+};
+
+static const uint8_t * const ubx_gnss_wakeup_table[] = {
     ubx_cfg_rxm_continuous,
     NULL,
 };
@@ -2931,6 +2946,8 @@ static void ubx_table(gnss_device_t *device, const uint8_t * const * table)
     device->table = table + 1;
 
     ubx_send(device, data);
+
+    stm32l0_rtc_timer_start(&device->ubx.timeout, 0, 4096, false); // 125ms
 }
 
 static void ubx_configure(gnss_device_t *device, unsigned int response, uint32_t command)
@@ -3012,14 +3029,23 @@ static void ubx_configure(gnss_device_t *device, unsigned int response, uint32_t
 	    }
 	}
     }
-
+    
     if (data)
     {
 	ubx_send(device, data);
 
-	stm32l0_rtc_timer_start(&device->ubx.timeout, 0, 8192, false); // 250ms
-
+	stm32l0_rtc_timer_start(&device->ubx.timeout, 0, 4096, false); // 125ms
     }
+}
+
+static void ubx_sleep(gnss_device_t *device)
+{
+    if (device->callbacks->disable_callback)
+    {
+	(*device->callbacks->disable_callback)(device->context);
+    }
+
+    device->busy = 0;
 }
 
 static void ubx_timeout(gnss_device_t *device)
@@ -3032,7 +3058,7 @@ static void ubx_timeout(gnss_device_t *device)
 
 	ubx_send(device, data);
 
-	stm32l0_rtc_timer_start(&device->ubx.timeout, 0, 8192, false); // 250ms
+	stm32l0_rtc_timer_start(&device->ubx.timeout, 0, 4096, false); // 125ms
     }
 }
 
@@ -3042,13 +3068,28 @@ static void gnss_send_callback(void)
 {
     gnss_device_t *device = &gnss_device;
 
-    device->busy = 0;
+    if ((device->protocol == GNSS_PROTOCOL_UBLOX) && (device->command == 0x0604))
+    {
+	device->command = ~0l;
+	
+	stm32l0_rtc_timer_start(&device->ubx.sleep, 0, 4096, false); // 125ms
+    }
+    else
+    {
+	device->busy = 0;
+    }
 }
 
 void gnss_receive(const uint8_t *data, uint32_t count)
 {
     gnss_device_t *device = &gnss_device;
     uint8_t c;
+
+    if (device->wakeup)
+    {
+	device->busy = 0;
+	device->wakeup = 0;
+    }
 
     while (count > 0)
     {
@@ -3288,26 +3329,27 @@ void gnss_receive(const uint8_t *data, uint32_t count)
     }
 }
 
-void gnss_initialize(unsigned int protocol, unsigned int rate, unsigned int speed, gnss_send_routine_t send_routine, gnss_location_callback_t location_callback, gnss_satellites_callback_t satellites_callback, void *context)
+void gnss_initialize(unsigned int protocol, unsigned int rate, unsigned int speed, gnss_send_routine_t send_routine, const gnss_callbacks_t *callbacks, void *context)
 {
     gnss_device_t *device = &gnss_device;
     const char *uart_data = NULL;
     unsigned int uart_count = 0;
 
     device->send_routine = send_routine;
-    device->location_callback = location_callback;
-    device->satellites_callback = satellites_callback;
+    device->callbacks = callbacks;
     device->context = context;
 
     device->state = GNSS_STATE_START;
-    device->command = -1;
     device->busy = 0;
+    device->wakeup = 0;
+    device->command = -1;
+
+    device->protocol = protocol;
+    device->rate = rate;
 
     memset(&device->location, 0, sizeof(device->location));
     memset(&device->satellites, 0, sizeof(device->satellites));
 
-    device->protocol = protocol;
-    device->rate = rate;
 
     if (protocol == GNSS_PROTOCOL_UBLOX)
     {
@@ -3338,6 +3380,7 @@ void gnss_initialize(unsigned int protocol, unsigned int rate, unsigned int spee
 	
 	uart_count = strlen(uart_data);
 
+	stm32l0_rtc_timer_create(&device->ubx.sleep, (stm32l0_rtc_callback_t)&ubx_sleep, device);
 	stm32l0_rtc_timer_create(&device->ubx.timeout, (stm32l0_rtc_callback_t)&ubx_timeout, device);
     }
     else
@@ -3577,7 +3620,7 @@ bool gnss_sleep(void)
     case GNSS_PROTOCOL_NMEA:
 	break;
     case GNSS_PROTOCOL_UBLOX:
-	ubx_send(device, ubx_rxm_pmreq);
+	ubx_send(device, (device->callbacks->disable_callback ? ubx_gnss_stop : ubx_rxm_pmreq));
 	break;
     }
 
@@ -3597,7 +3640,17 @@ bool gnss_wakeup(void)
     case GNSS_PROTOCOL_NMEA:
 	break;
     case GNSS_PROTOCOL_UBLOX:
-	ubx_send(device, ubx_cfg_rxm_continuous);
+        if (device->callbacks->enable_callback)
+	{
+	    (*device->callbacks->enable_callback)(device->context);
+
+	    device->busy = 1;
+	    device->wakeup = 1;
+	}
+	else
+	{
+	    ubx_table(device, ubx_gnss_wakeup_table);
+	}
 	break;
     }
 

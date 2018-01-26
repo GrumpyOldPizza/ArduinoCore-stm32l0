@@ -5,11 +5,6 @@ void setup( void )
 
     Serial.begin(9600);
 
-    pinMode(5, OUTPUT);
-    digitalWrite(5, HIGH);
-
-    delay(1000);
-
     GNSS.begin(Serial1, GNSS.PROTOCOL_UBLOX, GNSS.RATE_1HZ);
 
     while (GNSS.busy()) { }
