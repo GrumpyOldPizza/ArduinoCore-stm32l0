@@ -226,7 +226,7 @@ typedef struct _ubx_context_t {
 #define GNSS_TX_TABLE_COUNT           8  /* UBX SET PERIODIC */
 
 typedef struct _gnss_device_t {
-    uint8_t             protocol;
+    uint8_t             mode;
     uint8_t             rate;
     uint8_t             state;
     volatile uint8_t    init;
@@ -274,12 +274,12 @@ static int utc_diff_time(const utc_time_t *t0, uint32_t offset0, const utc_time_
 		((t1->year * 365 + (1 + ((t1->year -1) / 4))) +
 		   utc_days_since_month[(t1->year & 3) == 0][t1->month -1] +
 		 (t1->day -1))) * 24) +
-	      t0->hour -
-	      t1->hour) * 60) +
-	    t0->minute -
-	    t1->minute) * 60) +
-	  (t0->second + offset0) -
-	  (t1->second + offset1));
+	      t0->hours -
+	      t1->hours) * 60) +
+	    t0->minutes -
+	    t1->minutes) * 60) +
+	  (t0->seconds + offset0) -
+	  (t1->seconds + offset1));
 }
 
 /* utc_offset_time:
@@ -296,9 +296,9 @@ static int utc_offset_time(const utc_time_t *time, uint16_t week, uint32_t tow)
 		   utc_days_since_month[(time->year & 3) == 0][time->month -1] +
 		   (time->day -1)) -
 		  (6 -1) * 24) +
-		 time->hour) * 60) +
-	       time->minute) * 60) +
-	     time->second));
+		 time->hours) * 60) +
+	       time->minutes) * 60) +
+	     time->seconds));
 }
 
 /************************************************************************************/
@@ -345,14 +345,14 @@ static void gnss_location(gnss_device_t *device)
     }
     else
     {
-	device->location.time.year   = 1980 - 1980;
-	device->location.time.month  = 1;
-	device->location.time.day    = 6;
-	device->location.time.hour   = 0;
-	device->location.time.minute = 0;
-	device->location.time.second = 0;
-	device->location.time.millis = 0;
-	device->location.correction  = 0;
+	device->location.time.year    = 1980 - 1980;
+	device->location.time.month   = 1;
+	device->location.time.day     = 6;
+	device->location.time.hours   = 0;
+	device->location.time.minutes = 0;
+	device->location.time.seconds = 0;
+	device->location.time.millis  = 0;
+	device->location.correction   = 0;
 
 	device->location.mask = 0;
 	device->location.numsv = 0;
@@ -475,34 +475,34 @@ static const uint32_t nmea_scale[10] = {
 
 static int nmea_same_time(const utc_time_t *t0, const utc_time_t *t1)
 {
-    return ((t0->hour   == t1->hour) &&
-	    (t0->minute == t1->minute) &&
-	    (t0->second == t1->second) &&
-	    (t0->millis == t1->millis));
+    return ((t0->hours   == t1->hours) &&
+	    (t0->minutes == t1->minutes) &&
+	    (t0->seconds == t1->seconds) &&
+	    (t0->millis  == t1->millis));
 }
 
 static int nmea_parse_time(const uint8_t *data, utc_time_t *p_time)
 {
-    uint32_t hour, minute, second, millis, digits;
+    uint32_t hours, minutes, seconds, millis, digits;
 
     if ((data[0] >= '0') && (data[0] <= '9') && (data[1] >= '0') && (data[1] <= '9'))
     {
-	hour = (data[0] - '0') * 10 + (data[1] - '0');
+	hours = (data[0] - '0') * 10 + (data[1] - '0');
 	data += 2;
 	
-	if ((hour < 24) && (data[0] >= '0') && (data[0] <= '9') && (data[1] >= '0') && (data[1] <= '9'))
+	if ((hours < 24) && (data[0] >= '0') && (data[0] <= '9') && (data[1] >= '0') && (data[1] <= '9'))
 	{
-	    minute = (data[0] - '0') * 10 + (data[1] - '0');
+	    minutes = (data[0] - '0') * 10 + (data[1] - '0');
 	    data += 2;
 	    
-	    if ((minute < 60) && (data[0] >= '0') && (data[0] <= '9') && (data[1] >= '0') && (data[1] <= '9'))
+	    if ((minutes < 60) && (data[0] >= '0') && (data[0] <= '9') && (data[1] >= '0') && (data[1] <= '9'))
 	    {
-		second = (data[0] - '0') * 10 + (data[1] - '0');
+		seconds = (data[0] - '0') * 10 + (data[1] - '0');
 		data += 2;
 		
 		/* A 60 is legal here for leap seconds.
 		 */
-		if (second <= 60)
+		if (seconds <= 60)
 		{
 		    millis = 0;
 		    
@@ -532,10 +532,10 @@ static int nmea_parse_time(const uint8_t *data, utc_time_t *p_time)
 		    
 		    if (data[0] == '\0')
 		    {
-			p_time->hour   = hour;
-			p_time->minute = minute;
-			p_time->second = second;
-			p_time->millis = millis;
+			p_time->hours   = hours;
+			p_time->minutes = minutes;
+			p_time->seconds = seconds;
+			p_time->millis  = millis;
 
 			return 1;
 		    }
@@ -826,10 +826,10 @@ static void nmea_parse_sentence(gnss_device_t *device, const uint8_t *data, unsi
 		}
 	    }
 
-	    device->location.time.hour   = time.hour;
-	    device->location.time.minute = time.minute;
-	    device->location.time.second = time.second;
-	    device->location.time.millis = time.millis;
+	    device->location.time.hours   = time.hours;
+	    device->location.time.minutes = time.minutes;
+	    device->location.time.seconds = time.seconds;
+	    device->location.time.millis  = time.millis;
 	}
 	else
 	{
@@ -1912,9 +1912,9 @@ static void ubx_end_message(gnss_device_t *device, unsigned int message, uint8_t
 		device->location.time.year = ubx_data_uint16(data, 4) - 1980;
 		device->location.time.month = ubx_data_uint8(data, 6);
 		device->location.time.day = ubx_data_uint8(data, 7);
-		device->location.time.hour = ubx_data_uint8(data, 8);
-		device->location.time.minute = ubx_data_uint8(data, 9);
-		device->location.time.second = ubx_data_uint8(data, 10);
+		device->location.time.hours = ubx_data_uint8(data, 8);
+		device->location.time.minutes = ubx_data_uint8(data, 9);
+		device->location.time.seconds = ubx_data_uint8(data, 10);
 
 		if (ubx_data_int32(data, 16) > 0)
 		{
@@ -1930,9 +1930,9 @@ static void ubx_end_message(gnss_device_t *device, unsigned int message, uint8_t
 		device->location.time.year = 1980 - 1980;
 		device->location.time.month = 1;
 		device->location.time.day = 6;
-		device->location.time.hour = 0;
-		device->location.time.minute = 0;
-		device->location.time.second = 0;
+		device->location.time.hours = 0;
+		device->location.time.minutes = 0;
+		device->location.time.seconds = 0;
 		device->location.time.millis = 0;
 	    }
 
@@ -2867,7 +2867,7 @@ static const uint8_t * const ubx_qzss_disable_table[] = {
     NULL,
 };
 
-static const uint8_t * const ubx_autonomous_enable_table[] = {
+static const uint8_t * const ubx_aop_enable_table[] = {
     ubx_cfg_rxm_continuous,
     ubx_cfg_pm2,
     ubx_cfg_aop_enable,
@@ -2875,7 +2875,7 @@ static const uint8_t * const ubx_autonomous_enable_table[] = {
     NULL,
 };
 
-static const uint8_t * const ubx_autonomous_disable_table[] = {
+static const uint8_t * const ubx_aop_disable_table[] = {
     ubx_cfg_rxm_continuous,
     ubx_cfg_pm2,
     ubx_cfg_aop_disable,
@@ -3068,7 +3068,7 @@ static void gnss_send_callback(void)
 {
     gnss_device_t *device = &gnss_device;
 
-    if ((device->protocol == GNSS_PROTOCOL_UBLOX) && (device->command == 0x0604))
+    if ((device->mode == GNSS_MODE_UBLOX) && (device->command == 0x0604))
     {
 	device->command = ~0l;
 	
@@ -3113,7 +3113,7 @@ void gnss_receive(const uint8_t *data, uint32_t count)
 	{
 	    switch (device->state) {
 	    case GNSS_STATE_START:
-		if ((device->protocol == GNSS_PROTOCOL_UBLOX) && (c == 0xb5))
+		if ((device->mode == GNSS_MODE_UBLOX) && (c == 0xb5))
 		{
 		    device->state = GNSS_STATE_UBX_SYNC_2;
 		}
@@ -3329,7 +3329,7 @@ void gnss_receive(const uint8_t *data, uint32_t count)
     }
 }
 
-void gnss_initialize(unsigned int protocol, unsigned int rate, unsigned int speed, gnss_send_routine_t send_routine, const gnss_callbacks_t *callbacks, void *context)
+void gnss_initialize(unsigned int mode, unsigned int rate, unsigned int speed, gnss_send_routine_t send_routine, const gnss_callbacks_t *callbacks, void *context)
 {
     gnss_device_t *device = &gnss_device;
     const char *uart_data = NULL;
@@ -3344,14 +3344,14 @@ void gnss_initialize(unsigned int protocol, unsigned int rate, unsigned int spee
     device->wakeup = 0;
     device->command = -1;
 
-    device->protocol = protocol;
+    device->mode = mode;
     device->rate = rate;
 
     memset(&device->location, 0, sizeof(device->location));
     memset(&device->satellites, 0, sizeof(device->satellites));
 
 
-    if (protocol == GNSS_PROTOCOL_UBLOX)
+    if (mode == GNSS_MODE_UBLOX)
     {
 	device->init = GNSS_INIT_UBX_BAUD_RATE;
 
@@ -3405,10 +3405,10 @@ bool gnss_set_antenna(unsigned int antenna)
 	return false;
     }
 
-    switch (device->protocol) {
-    case GNSS_PROTOCOL_NMEA:
+    switch (device->mode) {
+    case GNSS_MODE_NMEA:
 	break;
-    case GNSS_PROTOCOL_UBLOX:
+    case GNSS_MODE_UBLOX:
 	ubx_table(device, ((antenna == GNSS_ANTENNA_EXTERNAL) ? ubx_ant_external_table : ubx_ant_internal_table));
 	break;
     }
@@ -3416,28 +3416,83 @@ bool gnss_set_antenna(unsigned int antenna)
     return true;
 }
 
-unsigned int gnss_get_constellation(void)
+bool gnss_set_pps(unsigned int width)
 {
     gnss_device_t *device = &gnss_device;
+    const uint8_t **table;
+    uint8_t *data;
 
     if (gnss_busy())
     {
 	return false;
     }
 
-    switch (device->protocol) {
-    case GNSS_PROTOCOL_NMEA:
+    switch (device->mode) {
+    case GNSS_MODE_NMEA:
 	break;
-    case GNSS_PROTOCOL_UBLOX:
-	if (!device->ubx.gnss.simultaneous) {
-	    return GNSS_CONSTELLATION_GPS;
+    case GNSS_MODE_UBLOX:
+	if (width > 999) {
+	    width = 0;
 	} else {
-	    return device->ubx.gnss.enabled;
+	    width = 1000000 - width * 1000;
 	}
-	break;
+
+	data = &device->tx_data[0];
+	table = &device->tx_table[0];
+
+	memset(&data[0], 0, sizeof(GNSS_TX_DATA_SIZE));
+	
+	data[ 0] = 0xb5;
+	data[ 1] = 0x62;
+	data[ 2] = 0x06;
+	data[ 3] = 0x31;
+	data[ 4] = 0x20;
+	data[ 5] = 0x00;
+	data[ 6] = 0x00;
+	data[ 7] = 0x00;
+	data[ 8] = 0x00;
+	data[ 9] = 0x00;
+	data[10] = 0x32;
+	data[11] = 0x00;
+	data[12] = 0x00;
+	data[13] = 0x00;
+	data[14] = (uint8_t)(1000000 >> 0);
+	data[15] = (uint8_t)(1000000 >> 8);
+	data[16] = (uint8_t)(1000000 >> 16);
+	data[17] = (uint8_t)(1000000 >> 24);
+	data[18] = (uint8_t)(1000000 >> 0);
+	data[19] = (uint8_t)(1000000 >> 8);
+	data[20] = (uint8_t)(1000000 >> 16);
+	data[21] = (uint8_t)(1000000 >> 24);
+	data[22] = (uint8_t)(1000000 >> 0);
+	data[23] = (uint8_t)(1000000 >> 8);
+	data[24] = (uint8_t)(1000000 >> 16);
+	data[25] = (uint8_t)(1000000 >> 24);
+	data[26] = (uint8_t)(width >> 0);
+	data[27] = (uint8_t)(width >> 8);
+	data[28] = (uint8_t)(width >> 16);
+	data[29] = (uint8_t)(width >> 24);
+	data[30] = 0x00;
+	data[31] = 0x00;
+	data[32] = 0x00;
+	data[33] = 0x00;
+	data[34] = width ? 0x37 : 0x00;
+	data[35] = 0x00;
+	data[36] = 0x00;
+	data[37] = 0x00;
+	
+	ubx_checksum(device, data);
+
+	table[0] = ubx_cfg_rxm_continuous;
+	table[1] = ubx_cfg_pm2,
+	table[2] = &data[0];
+	table[3] = ubx_cfg_save;
+	table[4] = NULL;
+
+	ubx_table(device, table);
     }
 
-    return 0;
+    return true;
 }
 
 bool gnss_set_constellation(unsigned int mask)
@@ -3449,10 +3504,10 @@ bool gnss_set_constellation(unsigned int mask)
 	return false;
     }
 
-    switch (device->protocol) {
-    case GNSS_PROTOCOL_NMEA:
+    switch (device->mode) {
+    case GNSS_MODE_NMEA:
 	break;
-    case GNSS_PROTOCOL_UBLOX:
+    case GNSS_MODE_UBLOX:
 	if (device->ubx.gnss.simultaneous) {
 	    mask = (mask & device->ubx.gnss.supported) | GNSS_CONSTELLATION_GPS;
 
@@ -3477,10 +3532,10 @@ bool gnss_set_sbas(bool enable)
 	return false;
     }
 
-    switch (device->protocol) {
-    case GNSS_PROTOCOL_NMEA:
+    switch (device->mode) {
+    case GNSS_MODE_NMEA:
 	break;
-    case GNSS_PROTOCOL_UBLOX:
+    case GNSS_MODE_UBLOX:
 	ubx_table(device, (enable ? ubx_sbas_enable_table :  ubx_sbas_disable_table));
 	break;
     }
@@ -3497,10 +3552,10 @@ bool gnss_set_qzss(bool enable)
 	return false;
     }
 
-    switch (device->protocol) {
-    case GNSS_PROTOCOL_NMEA:
+    switch (device->mode) {
+    case GNSS_MODE_NMEA:
 	break;
-    case GNSS_PROTOCOL_UBLOX:
+    case GNSS_MODE_UBLOX:
 	ubx_table(device, (enable ? ubx_qzss_enable_table :  ubx_qzss_disable_table));
 	break;
     }
@@ -3517,12 +3572,71 @@ bool gnss_set_autonomous(bool enable)
 	return false;
     }
 
-    switch (device->protocol) {
-    case GNSS_PROTOCOL_NMEA:
+    switch (device->mode) {
+    case GNSS_MODE_NMEA:
 	break;
-    case GNSS_PROTOCOL_UBLOX:
-	ubx_table(device, (enable ? ubx_autonomous_enable_table :  ubx_autonomous_disable_table));
+    case GNSS_MODE_UBLOX:
+	ubx_table(device, (enable ? ubx_aop_enable_table :  ubx_aop_disable_table));
 	break;
+    }
+
+    return true;
+}
+
+bool gnss_set_platform(unsigned int platform)
+{
+    gnss_device_t *device = &gnss_device;
+    const uint8_t **table;
+    uint8_t *data;
+
+    static const uint8_t ubx_platform_table[GNSS_PLATFORM_COUNT] = {
+	0x00, /* PORTABLE   */
+	0x02, /* STATIONARY */
+	0x03, /* PEDESTRIAN */
+	0x04, /* CAR        */
+	0x05, /* SEA        */
+	0x06, /* BALLON     */
+	0x07, /* AVIATION   */
+    };
+
+    if (gnss_busy())
+    {
+	return false;
+    }
+
+    if (platform >= GNSS_PLATFORM_COUNT)
+    {
+	return false;
+    }
+
+    switch (device->mode) {
+    case GNSS_MODE_NMEA:
+	break;
+    case GNSS_MODE_UBLOX:
+	data = &device->tx_data[0];
+	table = &device->tx_table[0];
+
+	memset(&data[0], 0, sizeof(GNSS_TX_DATA_SIZE));
+	
+	data[ 0] = 0xb5;
+	data[ 1] = 0x62;
+	data[ 2] = 0x06;
+	data[ 3] = 0x24;
+	data[ 4] = 0x24;
+	data[ 5] = 0x00;
+	data[ 6] = 0x01;
+	data[ 7] = 0x00;
+	data[ 8] = ubx_platform_table[platform];
+	
+	ubx_checksum(device, data);
+
+	table[0] = ubx_cfg_rxm_continuous;
+	table[1] = ubx_cfg_pm2,
+	table[2] = &data[0];
+	table[3] = ubx_cfg_save;
+	table[4] = NULL;
+
+	ubx_table(device, table);
     }
 
     return true;
@@ -3540,10 +3654,10 @@ bool gnss_set_periodic(unsigned int onTime, unsigned int period, bool force)
 	return false;
     }
 
-    switch (device->protocol) {
-    case GNSS_PROTOCOL_NMEA:
+    switch (device->mode) {
+    case GNSS_MODE_NMEA:
 	break;
-    case GNSS_PROTOCOL_UBLOX:
+    case GNSS_MODE_UBLOX:
 	if (onTime == 0)
 	{
 	    updatePeriod = 1000;
@@ -3599,9 +3713,7 @@ bool gnss_set_periodic(unsigned int onTime, unsigned int period, bool force)
 	    table[3] = NULL;
 	}
 
-	device->table = table + 1;
-
-	ubx_send(device, table[0]);
+	ubx_table(device, table);
     }
 
     return true;
@@ -3616,10 +3728,10 @@ bool gnss_sleep(void)
 	return false;
     }
 
-    switch (device->protocol) {
-    case GNSS_PROTOCOL_NMEA:
+    switch (device->mode) {
+    case GNSS_MODE_NMEA:
 	break;
-    case GNSS_PROTOCOL_UBLOX:
+    case GNSS_MODE_UBLOX:
 	ubx_send(device, (device->callbacks->disable_callback ? ubx_gnss_stop : ubx_rxm_pmreq));
 	break;
     }
@@ -3636,10 +3748,10 @@ bool gnss_wakeup(void)
 	return false;
     }
 
-    switch (device->protocol) {
-    case GNSS_PROTOCOL_NMEA:
+    switch (device->mode) {
+    case GNSS_MODE_NMEA:
 	break;
-    case GNSS_PROTOCOL_UBLOX:
+    case GNSS_MODE_UBLOX:
         if (device->callbacks->enable_callback)
 	{
 	    (*device->callbacks->enable_callback)(device->context);

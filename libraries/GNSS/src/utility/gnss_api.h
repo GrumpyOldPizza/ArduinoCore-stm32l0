@@ -37,8 +37,8 @@
 extern "C" {
 #endif
 
-#define GNSS_PROTOCOL_NMEA                     0
-#define GNSS_PROTOCOL_UBLOX                    1
+#define GNSS_MODE_NMEA                         0
+#define GNSS_MODE_UBLOX                        1
 
 #define GNSS_ANTENNA_INTERNAL                  0
 #define GNSS_ANTENNA_EXTERNAL                  1
@@ -47,6 +47,15 @@ extern "C" {
 #define GNSS_CONSTELLATION_GLONASS             0x00000002
 #define GNSS_CONSTELLATION_BEIDOU              0x00000004
 #define GNSS_CONSTELLATION_GALILEO             0x00000008
+
+#define GNSS_PLATFORM_PORTABLE                 0
+#define GNSS_PLATFORM_STATIONARY               1
+#define GNSS_PLATFORM_PEDESTRIAN               2
+#define GNSS_PLATFORM_CAR                      3
+#define GNSS_PLATFORM_SEA                      4
+#define GNSS_PLATFORM_BALLON                   5 /* AIRBORNE 1G */
+#define GNSS_PLATFORM_AVIATION                 6 /* AIRBORNE 2G */
+#define GNSS_PLATFORM_COUNT                    7
 
 #define GNSS_LOCATION_TYPE_NONE                0
 #define GNSS_LOCATION_TYPE_TIME                1
@@ -67,9 +76,9 @@ typedef struct _utc_time_t {
     uint8_t        year;             /* 0 .. 255 (1980 == 0)         */
     uint8_t        month;            /* 1 .. 12                      */
     uint8_t        day;              /* 1 .. 31                      */
-    uint8_t        hour;             /* 0 .. 23                      */
-    uint8_t        minute;           /* 0 .. 59                      */
-    uint8_t        second;           /* 0 .. 60                      */ 
+    uint8_t        hours;            /* 0 .. 23                      */
+    uint8_t        minutes;          /* 0 .. 59                      */
+    uint8_t        seconds;          /* 0 .. 60                      */ 
     uint16_t       millis;           /* 0 .. 999                     */
 } utc_time_t;
 
@@ -157,10 +166,12 @@ typedef struct {
 extern void gnss_initialize(unsigned int mode, unsigned int rate, unsigned int speed, gnss_send_routine_t send_routine, const gnss_callbacks_t *callbacks, void *context);
 extern void gnss_receive(const uint8_t *data, uint32_t count);
 extern bool gnss_set_antenna(unsigned int antenna);
+extern bool gnss_set_pps(unsigned int width);
 extern bool gnss_set_constellation(unsigned int mask);
 extern bool gnss_set_sbas(bool enable);
 extern bool gnss_set_qzss(bool enable);
 extern bool gnss_set_autonomous(bool enable);
+extern bool gnss_set_platform(unsigned int platform);
 extern bool gnss_set_periodic(unsigned int onTime, unsigned int period, bool force);
 extern bool gnss_sleep(void);
 extern bool gnss_wakeup(void);

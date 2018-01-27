@@ -1,11 +1,13 @@
 #include "GNSS.h"
 
+GNSSLocation myLocation;
+GNSSSatellites mySatellites;
+
 void setup( void )
 {
-
     Serial.begin(9600);
 
-    GNSS.begin(Serial1, GNSS.PROTOCOL_UBLOX, GNSS.RATE_1HZ);
+    GNSS.begin(Serial1, GNSS.MODE_UBLOX, GNSS.RATE_1HZ);
 
     while (GNSS.busy()) { }
 
@@ -14,10 +16,8 @@ void setup( void )
 
 void loop( void )
 {
-    if (GNSS.available())
+    if (GNSS.location(myLocation))
     {
-	GNSSLocation myLocation = GNSS.location();
-
 	static const char *fixTypeString[] = {
 	    "NONE",
 	    "TIME",
@@ -50,11 +50,28 @@ void loop( void )
 	    Serial.print("/");
 	    Serial.print(myLocation.day());
 	    Serial.print(" ");
-	    Serial.print(myLocation.hour());
+	    if (myLocation.hours() <= 9) {
+		Serial.print("0");
+	    }
+	    Serial.print(myLocation.hours());
 	    Serial.print(":");
-	    Serial.print(myLocation.minute());
+	    if (myLocation.minutes() <= 9) {
+		Serial.print("0");
+	    }
+	    Serial.print(myLocation.minutes());
 	    Serial.print(":");
-	    Serial.print(myLocation.second());
+	    if (myLocation.seconds() <= 9) {
+		Serial.print("0");
+	    }
+	    Serial.print(myLocation.seconds());
+	    Serial.print(".");
+	    if (myLocation.millis() <= 9) {
+		Serial.print("0");
+	    }
+	    if (myLocation.millis() <= 99) {
+		Serial.print("0");
+	    }
+	    Serial.print(myLocation.millis());
 
 	    if (myLocation.fixType() != GNSSLocation::TYPE_TIME)
 	    {
@@ -78,131 +95,131 @@ void loop( void )
 	}
 
 	Serial.println();
+    }
 
-	GNSSSatellites mySatellites = GNSS.satellites();
+    GNSS.satellites(mySatellites);
 
-	Serial.print("SATELLITES: ");
-	Serial.print(mySatellites.count());
+    Serial.print("SATELLITES: ");
+    Serial.print(mySatellites.count());
 	
-	Serial.println();
+    Serial.println();
 
-	for (unsigned int index = 0; index < mySatellites.count(); index++)
+    for (unsigned int index = 0; index < mySatellites.count(); index++)
+    {
+	unsigned int svid = mySatellites.svid(index);
+
+	if ((svid >= 1) && (svid <= 32))
 	{
-	    unsigned int svid = mySatellites.svid(index);
+	    Serial.print("    ");
 
-	    if ((svid >= 1) && (svid <= 32))
+	    if (svid <= 9)
 	    {
-		Serial.print("    ");
-
-		if (svid <= 9)
-		{
-		    Serial.print("  G");
-		    Serial.print(svid);
-		}
-		else
-		{
-		    Serial.print(" G");
-		    Serial.print(svid);
-		}
-	    }
-	    else if ((svid >= 65) && (svid <= 96))
-	    {
-		Serial.print("    ");
-
-		if ((svid - 64) <= 9)
-		{
-		    Serial.print("  R");
-		    Serial.print(svid -64);
-		}
-		else
-		{
-		    Serial.print(" R");
-		    Serial.print(svid -64);
-		}
-	    }
-	    else if ((svid >= 120) && (svid <= 158))
-	    {
-		Serial.print("    ");
-		Serial.print("S");
+		Serial.print("  G");
 		Serial.print(svid);
-	    }
-	    else if ((svid >= 173) && (svid <= 182))
-	    {
-		Serial.print("    ");
-		Serial.print("  I");
-		Serial.print(svid -172);
-	    }
-	    else if ((svid >= 193) && (svid <= 197))
-	    {
-		Serial.print("    ");
-		Serial.print("  Q");
-		Serial.print(svid -192);
-	    }
-	    else if ((svid >= 211) && (svid <= 246))
-	    {
-		Serial.print("    ");
-
-		if ((svid - 210) <= 9)
-		{
-		    Serial.print("  E");
-		    Serial.print(svid -210);
-		}
-		else
-		{
-		    Serial.print(" E");
-		    Serial.print(svid -210);
-		}
-	    }
-	    else if (svid == 255)
-	    {
-		Serial.print("    ");
-		Serial.print("R???");
 	    }
 	    else
 	    {
-		continue;
+		Serial.print(" G");
+		Serial.print(svid);
 	    }
-
-	    Serial.print(": SNR=");
-	    Serial.print(mySatellites.snr(index));
-	    Serial.print(", ELEVATION=");
-	    Serial.print(mySatellites.elevation(index));
-	    Serial.print(", AZIMUTH=");
-	    Serial.print(mySatellites.azimuth(index));
-
-	    if (mySatellites.unhealthy(index)) {
-		Serial.print(", UNHEALTHY");
-	    }
-
-	    if (mySatellites.almanac(index)) {
-		Serial.print(", ALMANAC");
-	    }
-
-	    if (mySatellites.ephemeris(index)) {
-		Serial.print(", EPHEMERIS");
-	    }
-
-	    if (mySatellites.autonomous(index)) {
-		Serial.print(", AUTONOMOUS");
-	    }
-
-	    if (mySatellites.correction(index)) {
-		Serial.print(", CORRECTION");
-	    }
-
-	    if (mySatellites.acquired(index)) {
-		Serial.print(", ACQUIRED");
-	    }
-
-	    if (mySatellites.locked(index)) {
-		Serial.print(", LOCKED");
-	    }
-
-	    if (mySatellites.navigating(index)) {
-		Serial.print(", NAVIGATING");
-	    }
-
-	    Serial.println();
 	}
+	else if ((svid >= 65) && (svid <= 96))
+	{
+	    Serial.print("    ");
+
+	    if ((svid - 64) <= 9)
+	    {
+		Serial.print("  R");
+		Serial.print(svid -64);
+	    }
+	    else
+	    {
+		Serial.print(" R");
+		Serial.print(svid -64);
+	    }
+	}
+	else if ((svid >= 120) && (svid <= 158))
+	{
+	    Serial.print("    ");
+	    Serial.print("S");
+	    Serial.print(svid);
+	}
+	else if ((svid >= 173) && (svid <= 182))
+	{
+	    Serial.print("    ");
+	    Serial.print("  I");
+	    Serial.print(svid -172);
+	}
+	else if ((svid >= 193) && (svid <= 197))
+	{
+	    Serial.print("    ");
+	    Serial.print("  Q");
+	    Serial.print(svid -192);
+	}
+	else if ((svid >= 211) && (svid <= 246))
+	{
+	    Serial.print("    ");
+
+	    if ((svid - 210) <= 9)
+	    {
+		Serial.print("  E");
+		Serial.print(svid -210);
+	    }
+	    else
+	    {
+		Serial.print(" E");
+		Serial.print(svid -210);
+	    }
+	}
+	else if (svid == 255)
+	{
+	    Serial.print("    ");
+	    Serial.print("R???");
+	}
+	else
+	{
+	    continue;
+	}
+
+	Serial.print(": SNR=");
+	Serial.print(mySatellites.snr(index));
+	Serial.print(", ELEVATION=");
+	Serial.print(mySatellites.elevation(index));
+	Serial.print(", AZIMUTH=");
+	Serial.print(mySatellites.azimuth(index));
+
+	if (mySatellites.unhealthy(index)) {
+	    Serial.print(", UNHEALTHY");
+	}
+
+	if (mySatellites.almanac(index)) {
+	    Serial.print(", ALMANAC");
+	}
+
+	if (mySatellites.ephemeris(index)) {
+	    Serial.print(", EPHEMERIS");
+	}
+
+	if (mySatellites.autonomous(index)) {
+	    Serial.print(", AUTONOMOUS");
+	}
+
+	if (mySatellites.correction(index)) {
+	    Serial.print(", CORRECTION");
+	}
+
+	if (mySatellites.acquired(index)) {
+	    Serial.print(", ACQUIRED");
+	}
+
+	if (mySatellites.locked(index)) {
+	    Serial.print(", LOCKED");
+	}
+
+	if (mySatellites.navigating(index)) {
+	    Serial.print(", NAVIGATING");
+	}
+
+	Serial.println();
     }
 }

@@ -54,6 +54,7 @@ public:
     };
 
     GNSSLocation(const gnss_location_t *location);
+    GNSSLocation();
 
     operator bool() const;
 
@@ -64,14 +65,15 @@ public:
     uint16_t year(void) const;
     uint8_t month(void) const;
     uint8_t day(void) const;
-    uint8_t hour(void) const;
-    uint8_t minute(void) const;
-    uint8_t second(void) const;
+    uint8_t hours(void) const;
+    uint8_t minutes(void) const;
+    uint8_t seconds(void) const;
     uint16_t millis(void) const;
-    uint8_t correction(void) const;
+    uint8_t leapSeconds(void) const;
 
     double latitude(void) const;  // WGS84
     double longitude(void) const; // WGS84
+    float height(void) const;   // WGS84
     float altitude(void) const;   // MSL
     float separation(void) const; // WGS84 = MSL + separation
 
@@ -86,15 +88,19 @@ public:
     float hdop(void) const;
     float vdop(void) const;
 
-protected:
-    gnss_location_t _location;
+    void latitude(int32_t &latitude) const { latitude = _location.latitude; };
+    void longitude(int32_t &longitude) const { longitude = _location.longitude; };
+    void height(int32_t &height) const { height = _location.altitude + _location.separation; };
+    void altitude(int32_t &altitude) const { altitude =  _location.altitude; };
 
 private:
+    gnss_location_t _location;
 };
 
 class GNSSSatellites {
 public:
     GNSSSatellites(const gnss_satellites_t *satellites);
+    GNSSSatellites();
 
     unsigned int count() const;
 
@@ -111,17 +117,15 @@ public:
     bool locked(unsigned int index) const;
     bool navigating(unsigned int index) const;
 
-protected:
-    gnss_satellites_t _satellites;
-
 private:
+    gnss_satellites_t _satellites;
 };
 
 class GNSSClass {
 public:
-    enum GNSSprotocol {
-	PROTOCOL_NMEA = 0,
-	PROTOCOL_UBLOX,
+    enum GNSSmode {
+	MODE_NMEA = 0,
+	MODE_UBLOX,
     };
 
     enum GNSSrate {
@@ -140,28 +144,40 @@ public:
 	CONSTELLATION_GPS_AND_GLONASS = 3,
     };
 
+    enum GNSSplatform {
+	PLATFORM_PORTABLE = 0,
+	PLATFORM_STATIONARY,
+	PLATFORM_PEDESTRIAN,
+	PLATFORM_CAR,
+	PLATFORM_SEA,
+	PLATFORM_BALLON,
+	PLATFORM_AVIATION,
+    };
+
     GNSSClass();
 
-    void begin(Uart &uart, GNSSprotocol protocol, GNSSrate rate = RATE_1HZ);
+    void begin(Uart &uart, GNSSmode mode, GNSSrate rate = RATE_1HZ);
     void end();
 
     bool setAntenna(GNSSantenna antenna);
+    bool setPPS(unsigned int width);
     bool setConstellation(GNSSconstellation constellation);
     bool setSBAS(bool enable);
     bool setQZSS(bool enable);
+    bool setAutonomous(bool enable);
+    bool setPlatform(GNSSplatform platform);
     bool setPeriodic(unsigned int onTime, unsigned int period, bool force = false);
     bool sleep();
     bool wakeup();
     bool busy();
     
-    int available(void);
-    GNSSLocation location(void);
-    GNSSSatellites satellites(void);
+    bool location(GNSSLocation &location);
+    bool satellites(GNSSSatellites &satellites);
 
-    void onReceive(void(*callback)(void));
-    void onReceive(Notifier notifier);
-
-protected:
+    void onLocation(void(*callback)(void));
+    void onLocation(Callback callback);
+    void onSatellites(void(*callback)(void));
+    void onSatellites(Callback callback);
 
 private:
     Uart *_uart;
@@ -170,7 +186,9 @@ private:
     volatile uint32_t _location_pending;
     gnss_satellites_t _satellites_data;
     volatile uint32_t _satellites_pending;
-    Notifier _receiveNotifier;
+
+    Callback _locationCallback;
+    Callback _satellitesCallback;
 
     void receiveCallback(void);
     void completionCallback(void);
