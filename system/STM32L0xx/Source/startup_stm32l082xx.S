@@ -29,7 +29,7 @@
         .arch armv6-m
         .syntax unified
 
-        .section .stack, "a"
+        .section .stack, "aw"
         .align  3
 #ifdef __STACK_SIZE
         .space  __STACK_SIZE
@@ -41,7 +41,7 @@
         .align  2
         .globl  __isr_vector
 __isr_vector:
-        .long   0                     /* Top of Stack (needs to be 0) */
+        .long   0xbe00be00            /* Top of Stack (needs to be 0) */
         .long   Reset_Handler         /* Reset Handler */
         .long   NMI_Handler           /* NMI Handler */
         .long   HardFault_Handler     /* Hard Fault Handler */

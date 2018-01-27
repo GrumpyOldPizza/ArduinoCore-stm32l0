@@ -53,22 +53,14 @@ static __attribute__((naked, used)) void armv6m_event_notify(void)
 	"  ldr     r0, [r3, %[offset_CONTROL_NEXT]]    \n"
 	"  cmp     r0, #0                              \n"
 	"  beq     .Lreturn                            \n"
-	"  ldr     r1, [r3, %[offset_CONTROL_STACK]]   \n"
-	"  ldr     r2, [r3, %[offset_CONTROL_SELF]]    \n"
-	"  push    { r1, r2 }                          \n"
-	"  mov     r1, #0                              \n"
-	"  str     r1, [r3, %[offset_CONTROL_NEXT]]    \n"
-	"  mov     r1, sp                              \n"
-	"  str     r1, [r3, %[offset_CONTROL_STACK]]   \n"
-	"  str     r0, [r3, %[offset_CONTROL_SELF]]    \n"
-        "  ldrh    r1, [r0, %[offset_EVENT_COUNT]]     \n"
-        "  sub     r1, r1, #1                          \n"
-        "  strh    r1, [r0, %[offset_EVENT_COUNT]]     \n"
-	"  bne     .Lexec                              \n"
-        "  bl      armv6m_event_remove                 \n"
+	"  ldr     r0, [r3, %[offset_CONTROL_STACK]]   \n"
+	"  ldr     r1, [r3, %[offset_CONTROL_SELF]]    \n"
+	"  push    { r0, r1 }                          \n"
+	"  mov     r0, sp                              \n"
+	"  str     r0, [r3, %[offset_CONTROL_STACK]]   \n"
+        "  bl      armv6m_event_switch                 \n"
         "  ldr     r3, =armv6m_event_control           \n"
 	"  ldr     r0, [r3, %[offset_CONTROL_SELF]]    \n"
-	".Lexec:                                       \n"
         "  sub     sp, #0x20                           \n"
         "  ldr     r1, [r0, %[offset_EVENT_CONTEXT]]   \n"
         "  str     r1, [sp, #0x00]                     \n"
@@ -79,32 +71,33 @@ static __attribute__((naked, used)) void armv6m_event_notify(void)
         "  str     r1, [sp, #0x14]                     \n"
         "  str     r2, [sp, #0x18]                     \n"
         "  str     r3, [sp, #0x1c]                     \n"
-	".Lreturn:                                     \n"
         "  ldr     r0, =0xfffffff9                     \n"
-        "  bx      r0                                  \n"
+        "  mov     lr, r0                              \n"
+	".Lreturn:                                     \n"
+        "  bx      lr                                  \n"
+        "  bkpt                                        \n"
 	:
 	: [offset_CONTROL_STACK]    "I" (offsetof(armv6m_event_control_t, stack)),
 	  [offset_CONTROL_SELF]     "I" (offsetof(armv6m_event_control_t, self)),
 	  [offset_CONTROL_NEXT]     "I" (offsetof(armv6m_event_control_t, next)),
-	  [offset_EVENT_NEXT]       "I" (offsetof(armv6m_event_t, next)),
-	  [offset_EVENT_PREVIOUS]   "I" (offsetof(armv6m_event_t, previous)),
 	  [offset_EVENT_ROUTINE]    "I" (offsetof(armv6m_event_t, routine)),
-	  [offset_EVENT_CONTEXT]    "I" (offsetof(armv6m_event_t, context)),
-	  [offset_EVENT_COUNT]      "I" (offsetof(armv6m_event_t, count))
+	  [offset_EVENT_CONTEXT]    "I" (offsetof(armv6m_event_t, context))
 	);
 }
 
 static __attribute__((naked, used)) void armv6m_event_svcall(void)
 {
     __asm__(
-        "  add     sp, #0x20                           \n" // drop SVC stack frame
+        "  add     sp, #0x28                           \n" // drop SVC stack frame
 	"  pop     { r0, r1 }                          \n"
         "  ldr     r3, =armv6m_event_control           \n"
 	"  str     r0, [r3, %[offset_CONTROL_STACK]]   \n"
 	"  str     r1, [r3, %[offset_CONTROL_SELF]]    \n"
         "  bl      armv6m_event_schedule               \n"
         "  ldr     r0, =0xfffffff9                     \n"
-        "  bx      r0                                  \n"
+        "  mov     lr, r0                              \n"
+        "  bx      lr                                  \n"
+        "  bkpt                                        \n"
 	:
 	: [offset_CONTROL_STACK]    "I" (offsetof(armv6m_event_control_t, stack)),
 	  [offset_CONTROL_SELF]     "I" (offsetof(armv6m_event_control_t, self))
@@ -117,6 +110,7 @@ static __attribute__((naked, used)) void armv6m_event_return(void)
 	"  ldr     r0, =armv6m_event_svcall            \n"
 	"  mov     r12, r0                             \n"
 	"  svc     0                                   \n"
+        "  bkpt                                        \n"
 	:
 	:
 	);
@@ -246,6 +240,24 @@ static  __attribute__((used)) void armv6m_event_remove(armv6m_event_t *event)
     if (armv6m_event_control.next == event)
     {
 	armv6m_event_schedule();
+    }
+}
+
+static  __attribute__((used)) void armv6m_event_switch(void)
+{
+    if (armv6m_event_control.self == armv6m_event_control.next)
+    {
+	__BKPT();
+    }
+
+    armv6m_event_control.self = armv6m_event_control.next;
+    armv6m_event_control.next = NULL;
+
+    armv6m_event_remove(armv6m_event_control.self);
+
+    if (--armv6m_event_control.self->count != 0)
+    {
+	armv6m_event_insert(armv6m_event_control.self);
     }
 }
 

@@ -144,7 +144,7 @@ static void dosfs_sflash_ftl_swap(dosfs_sflash_t *sflash, uint32_t victim_offset
 
 static void dosfs_sflash_ftl_reclaim(dosfs_sflash_t *sflash, uint32_t victim_offset)
 {
-    uint32_t index, victim_sector, victim_delta, victim_erase_count, info_entry;
+    uint32_t index, victim_sector, victim_erase_count, info_entry;
     uint32_t *cache, *data, *head_info, *tail_info;
 
     // printf("RECLAIM %08x\n", victim_offset);
@@ -762,10 +762,8 @@ static void dosfs_sflash_ftl_check()
 
 static bool dosfs_sflash_ftl_collect(dosfs_sflash_t *sflash, const uint32_t *cache, uint32_t offset, uint32_t sector, uint32_t *p_data_written, uint32_t *p_data_deleted)
 {
-    unsigned int index, free_total;
+    unsigned int index;
     uint32_t info_logical, info_entry;
-
-    free_total = 0;
 
     dosfs_sflash_ftl_sector_assign(sflash, sector, (offset / DOSFS_SFLASH_ERASE_SIZE));
 
@@ -840,7 +838,7 @@ static bool dosfs_sflash_ftl_collect(dosfs_sflash_t *sflash, const uint32_t *cac
 
 static bool dosfs_sflash_ftl_mount(dosfs_sflash_t *sflash)
 {
-    uint32_t offset, erase_offset, reclaim_offset, victim_offset, victim_sector, victim_erase_count, victim_index, erase_count, erase_count_max;
+    uint32_t offset, erase_offset, reclaim_offset, victim_offset, victim_sector, victim_erase_count, erase_count, erase_count_max;
     uint32_t index, info_entry, xlate_segment, xlate2_logical, data_written[2], data_deleted[2];
     uint32_t *cache, *head_info, *tail_info;
 
@@ -1204,7 +1202,7 @@ static uint32_t dosfs_sflash_ftl_allocate(dosfs_sflash_t *sflash)
 
 static void dosfs_sflash_ftl_write(dosfs_sflash_t *sflash, uint32_t address, const uint8_t *data)
 {
-    uint32_t victim_offset, read_logical, write_logical, write_offset, xlate_segment, xlate_index, index;
+    uint32_t read_logical, write_logical, write_offset, xlate_segment, xlate_index, index;
     uint16_t *xlate_cache, *xlate2_cache;
 
     DOSFS_SFLASH_STATISTICS_COUNT_N(sflash_ftl_write, 512);

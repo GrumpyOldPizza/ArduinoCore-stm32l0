@@ -119,22 +119,23 @@ static __attribute__((used)) void armv6m_pendsv_dequeue(volatile armv6m_pendsv_e
 void __attribute__((naked)) PendSV_Handler(void)
 {
     __asm__(
-        "  ldr     r3, =armv6m_pendsv_control          \n"
-        "  ldr     r0, [r3, %[offset_QUEUE_READ]]      \n"
-        "  ldr     r1, [r3, %[offset_QUEUE_WRITE]]     \n"
+        "  ldr     r2, =armv6m_pendsv_control          \n"
+        "  ldr     r0, [r2, %[offset_QUEUE_READ]]      \n"
+        "  ldr     r1, [r2, %[offset_QUEUE_WRITE]]     \n"
 	"  cmp     r0, r1                              \n"
 	"  beq     .Lnotify                            \n"
+	"  push    { r2, lr }                          \n"
 	"  bl      armv6m_pendsv_dequeue               \n"
-        "  ldr     r3, =armv6m_pendsv_control          \n"
+	"  pop     { r2, r3 }                          \n"
+	"  mov     lr, r3                              \n"
 	".Lnotify:                                     \n"
-        "  ldr     r0, [r3, %[offset_NOTIFY_CALLBACK]] \n"
+        "  ldr     r0, [r2, %[offset_NOTIFY_CALLBACK]] \n"
 	"  cmp     r0, #0                              \n"
 	"  bne     .Lcall                              \n"
-        "  ldr     r0, =0xfffffff9                     \n"
-        "  bx      r0                                  \n"
+        "  bx      lr                                  \n"
 	".Lcall:                                       \n"
 	"  mov     r1, #0                              \n"
-        "  str     r1, [r3, %[offset_NOTIFY_CALLBACK]] \n"
+        "  str     r1, [r2, %[offset_NOTIFY_CALLBACK]] \n"
         "  bx      r0                                  \n"
 	:
 	: [offset_NOTIFY_CALLBACK] "I" (offsetof(armv6m_pendsv_control_t, notify_callback)),

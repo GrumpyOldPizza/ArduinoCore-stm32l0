@@ -229,11 +229,6 @@ void SX1276SetAntSw( uint8_t opMode )
     }
 }
 
-static void SX1276TCXOCallback()
-{
-    stm32l0_gpio_pin_configure(RADIO_TCXO_VCC, (GPIO_PARK_NONE | GPIO_MODE_ANALOG));
-}
-
 void SX1276SetTCXO( bool status )
 {
     if (IsTCXO != status)
