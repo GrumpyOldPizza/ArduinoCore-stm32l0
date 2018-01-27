@@ -65,28 +65,28 @@ void init( void )
     armv6m_core_initialize();
     stm32l0_system_initialize(_SYSTEM_CORE_CLOCK_, 0, 0, STM32L0_CONFIG_LSECLK, STM32L0_CONFIG_HSECLK, STM32L0_CONFIG_SYSOPT);
 
-    stm32l0_exti_configure(EXTI_IRQ_PRIORITY);
-    stm32l0_rtc_configure(RTC_IRQ_PRIORITY);
-    stm32l0_dma_configure(ADC_IRQ_PRIORITY, UART_IRQ_PRIORITY, UART_IRQ_PRIORITY);
-    stm32l0_lptim_configure(LPTIM_IRQ_PRIORITY);
+    stm32l0_exti_configure(STM32L0_EXTI_IRQ_PRIORITY);
+    stm32l0_rtc_configure(STM32L0_RTC_IRQ_PRIORITY);
+    stm32l0_dma_configure(STM32L0_ADC_IRQ_PRIORITY, STM32L0_UART_IRQ_PRIORITY, STM32L0_UART_IRQ_PRIORITY);
+    stm32l0_lptim_configure(STM32L0_LPTIM_IRQ_PRIORITY);
 
-    if (STM32L0_CONFIG_PIN_VBUS != GPIO_PIN_NONE) {
-	stm32l0_gpio_pin_configure(STM32L0_CONFIG_PIN_VBUS, (GPIO_PARK_HIZ | GPIO_PUPD_PULLDOWN | GPIO_OSPEED_LOW | GPIO_OTYPE_PUSHPULL | GPIO_MODE_INPUT));
+    if (STM32L0_CONFIG_PIN_VBUS != STM32L0_GPIO_PIN_NONE) {
+	stm32l0_gpio_pin_configure(STM32L0_CONFIG_PIN_VBUS, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
     }
 
 #if defined(STM32L0_CONFIG_PIN_VBAT)
-    stm32l0_gpio_pin_configure(STM32L0_CONFIG_PIN_VBAT, (GPIO_PARK_NONE | GPIO_MODE_ANALOG));
+    stm32l0_gpio_pin_configure(STM32L0_CONFIG_PIN_VBAT, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
 #endif
 
 #if (DOSFS_SDCARD >= 1)
-    if (g_SPI.state == SPI_STATE_NONE) {
+    if (g_SPI.state == STM32L0_SPI_STATE_NONE) {
 	stm32l0_spi_create(&g_SPI, &g_SPIParams);
     }
 
     stm32l0_sdspi_initialize(&g_SPI, &g_SDSPIParams);
 #endif
 #if (DOSFS_SFLASH >= 1)
-    if (g_SPI.state == SPI_STATE_NONE) {
+    if (g_SPI.state == STM32L0_SPI_STATE_NONE) {
 	stm32l0_spi_create(&g_SPI, &g_SPIParams);
     }
 

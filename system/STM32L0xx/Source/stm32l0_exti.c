@@ -28,6 +28,11 @@
 
 #include "stm32l0_exti.h"
 #include "stm32l0_gpio.h"
+#include "stm32l0_system.h"
+
+extern void EXTI0_1_IRQHandler(void);
+extern void EXTI2_3_IRQHandler(void);
+extern void EXTI4_15_IRQHandler(void);
 
 typedef struct _stm32l0_exti_device_t {
     uint32_t                events;
@@ -79,8 +84,8 @@ bool stm32l0_exti_attach(uint16_t pin, uint32_t control, stm32l0_exti_callback_t
 {
     unsigned int mask, index, group;
 
-    index = (pin & GPIO_PIN_INDEX_MASK) >> GPIO_PIN_INDEX_SHIFT;
-    group = (pin & GPIO_PIN_GROUP_MASK) >> GPIO_PIN_GROUP_SHIFT;
+    index = (pin & STM32L0_GPIO_PIN_INDEX_MASK) >> STM32L0_GPIO_PIN_INDEX_SHIFT;
+    group = (pin & STM32L0_GPIO_PIN_GROUP_MASK) >> STM32L0_GPIO_PIN_GROUP_SHIFT;
 
     mask = 1ul << index;
 
@@ -94,7 +99,7 @@ bool stm32l0_exti_attach(uint16_t pin, uint32_t control, stm32l0_exti_callback_t
 
     armv6m_atomic_modify(&SYSCFG->EXTICR[index >> 2], (0x0000000f << ((index & 3) << 2)), (group << ((index & 3) << 2)));
 
-    if (control & EXTI_CONTROL_EDGE_RISING)
+    if (control & STM32L0_EXTI_CONTROL_EDGE_RISING)
     {
 	armv6m_atomic_or(&EXTI->RTSR, mask);
     }
@@ -103,7 +108,7 @@ bool stm32l0_exti_attach(uint16_t pin, uint32_t control, stm32l0_exti_callback_t
 	armv6m_atomic_and(&EXTI->RTSR, ~mask);
     }
     
-    if (control & EXTI_CONTROL_EDGE_FALLING)
+    if (control & STM32L0_EXTI_CONTROL_EDGE_FALLING)
     {
 	armv6m_atomic_or(&EXTI->FTSR, mask);
     }
@@ -112,7 +117,7 @@ bool stm32l0_exti_attach(uint16_t pin, uint32_t control, stm32l0_exti_callback_t
 	armv6m_atomic_and(&EXTI->FTSR, ~mask);
     }
 
-    if (control & EXTI_CONTROL_WAKEUP)
+    if (control & STM32L0_EXTI_CONTROL_WAKEUP)
     {
         armv6m_atomic_or(&stm32l0_exti_device.wakeup, mask);
     }
@@ -127,7 +132,7 @@ void stm32l0_exti_detach(uint16_t pin)
 {
     unsigned int mask, index;
 
-    index = (pin & GPIO_PIN_INDEX_MASK) >> GPIO_PIN_INDEX_SHIFT;
+    index = (pin & STM32L0_GPIO_PIN_INDEX_MASK) >> STM32L0_GPIO_PIN_INDEX_SHIFT;
 
     mask = 1ul << index;
 

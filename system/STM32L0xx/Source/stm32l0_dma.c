@@ -30,6 +30,10 @@
 #include "stm32l0_dma.h"
 #include "stm32l0_system.h"
 
+extern void DMA1_Channel1_IRQHandler(void);
+extern void DMA1_Channel2_3_IRQHandler(void);
+extern void DMA1_Channel4_5_6_7__IRQHandler(void);
+
 static DMA_Channel_TypeDef * const  stm32l0_dma_xlate_DMA[7] = {
     DMA1_Channel1,
     DMA1_Channel2,
@@ -57,7 +61,7 @@ typedef struct _stm32l0_dma_device_t {
     volatile uint16_t      dma;
 } stm32l0_dma_device_t;
 
-#define DMA_CHANNEL_UNDEFINED 0xff
+#define STM32L0_DMA_CHANNEL_UNDEFINED 0xff
 
 static stm32l0_dma_device_t stm32l0_dma_device;
 
@@ -175,7 +179,7 @@ unsigned int stm32l0_dma_priority(unsigned int channel)
 
 unsigned int stm32l0_dma_channel(unsigned int channel)
 {
-    return ((channel == DMA_CHANNEL_NONE) ? DMA_CHANNEL_UNDEFINED : stm32l0_dma_device.channels[(channel & 7) -1].channel);
+    return ((channel == STM32L0_DMA_CHANNEL_NONE) ? STM32L0_DMA_CHANNEL_UNDEFINED : stm32l0_dma_device.channels[(channel & 7) -1].channel);
 }
 
 bool stm32l0_dma_enable(unsigned int channel, stm32l0_dma_callback_t callback, void *context)
@@ -226,7 +230,7 @@ void stm32l0_dma_disable(unsigned int channel)
 
     if (channel == dma->channel)
     {
-	dma->channel = DMA_CHANNEL_NONE;
+	dma->channel = STM32L0_DMA_CHANNEL_NONE;
 	
 	stm32l0_dma_device.dma &= ~mask;
 	
@@ -249,7 +253,7 @@ void stm32l0_dma_start(unsigned int channel, uint32_t tx_data, uint32_t rx_data,
 
     DMA1->IFCR = (15 << shift);
 
-    if (option & DMA_OPTION_MEMORY_TO_PERIPHERAL)
+    if (option & STM32L0_DMA_OPTION_MEMORY_TO_PERIPHERAL)
     {
 	DMA->CMAR = rx_data;
 	DMA->CPAR = tx_data;

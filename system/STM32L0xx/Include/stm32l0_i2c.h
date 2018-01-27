@@ -37,58 +37,58 @@ extern "C" {
 #endif
 
 enum {
-    I2C_INSTANCE_I2C1 = 0,
-    I2C_INSTANCE_I2C2,
-    I2C_INSTANCE_I2C3,
-    I2C_INSTANCE_COUNT
+    STM32L0_I2C_INSTANCE_I2C1 = 0,
+    STM32L0_I2C_INSTANCE_I2C2,
+    STM32L0_I2C_INSTANCE_I2C3,
+    STM32L0_I2C_INSTANCE_COUNT
 };
 
-#define I2C_OPTION_MODE_MASK            0x00000003
-#define I2C_OPTION_MODE_SHIFT           0
-#define I2C_OPTION_MODE_100K            0x00000000
-#define I2C_OPTION_MODE_400K            0x00000001
-#define I2C_OPTION_MODE_1000K           0x00000002
-#define I2C_OPTION_GENERAL_CALL         0x00000004
-#define I2C_OPTION_WAKEUP               0x00000008
-#define I2C_OPTION_NORESET              0x00000010
-#define I2C_OPTION_ADDRESS_MASK         0xffff0000
-#define I2C_OPTION_ADDRESS_SHIFT        16
+#define STM32L0_I2C_OPTION_MODE_MASK            0x00000003
+#define STM32L0_I2C_OPTION_MODE_SHIFT           0
+#define STM32L0_I2C_OPTION_MODE_100K            0x00000000
+#define STM32L0_I2C_OPTION_MODE_400K            0x00000001
+#define STM32L0_I2C_OPTION_MODE_1000K           0x00000002
+#define STM32L0_I2C_OPTION_GENERAL_CALL         0x00000004
+#define STM32L0_I2C_OPTION_WAKEUP               0x00000008
+#define STM32L0_I2C_OPTION_NORESET              0x00000010
+#define STM32L0_I2C_OPTION_ADDRESS_MASK         0xffff0000
+#define STM32L0_I2C_OPTION_ADDRESS_SHIFT        16
 
-#define I2C_EVENT_RECEIVE_REQUEST       0x00000001
-#define I2C_EVENT_RECEIVE_DONE          0x00000002
-#define I2C_EVENT_TRANSMIT_REQUEST      0x00000004
-#define I2C_EVENT_TRANSMIT_DONE         0x00000008
-#define I2C_EVENT_COUNT_MASK            0xffffff00
-#define I2C_EVENT_COUNT_SHIFT           8
+#define STM32L0_I2C_EVENT_RECEIVE_REQUEST       0x00000001
+#define STM32L0_I2C_EVENT_RECEIVE_DONE          0x00000002
+#define STM32L0_I2C_EVENT_TRANSMIT_REQUEST      0x00000004
+#define STM32L0_I2C_EVENT_TRANSMIT_DONE         0x00000008
+#define STM32L0_I2C_EVENT_COUNT_MASK            0xffffff00
+#define STM32L0_I2C_EVENT_COUNT_SHIFT           8
 
-#define I2C_STATUS_BUSY                 0
-#define I2C_STATUS_SUCCESS              1
-#define I2C_STATUS_ADDRESS_NACK         2
-#define I2C_STATUS_DATA_NACK            3
-#define I2C_STATUS_ARBITRATION_LOST     4
+#define STM32L0_I2C_STATUS_BUSY                 0
+#define STM32L0_I2C_STATUS_SUCCESS              1
+#define STM32L0_I2C_STATUS_ADDRESS_NACK         2
+#define STM32L0_I2C_STATUS_DATA_NACK            3
+#define STM32L0_I2C_STATUS_ARBITRATION_LOST     4
 
-#define I2C_CONTROL_RESTART             0x01
-#define I2C_CONTROL_TX                  0x02
-#define I2C_CONTROL_RX                  0x04
-#define I2C_CONTROL_TX_SECONDARY        0x08
-#define I2C_CONTROL_CONTINUE            0x10
+#define STM32L0_I2C_CONTROL_RESTART             0x01
+#define STM32L0_I2C_CONTROL_TX                  0x02
+#define STM32L0_I2C_CONTROL_RX                  0x04
+#define STM32L0_I2C_CONTROL_TX_SECONDARY        0x08
+#define STM32L0_I2C_CONTROL_CONTINUE            0x10
 
 typedef void (*stm32l0_i2c_event_callback_t)(void *context, uint32_t events);
 
 typedef void (*stm32l0_i2c_done_callback_t)(void *context);
 
-#define I2C_STATE_NONE                  0
-#define I2C_STATE_INIT                  1
-#define I2C_STATE_BUSY                  2
-#define I2C_STATE_READY                 3
-#define I2C_STATE_MASTER_STOP           4
-#define I2C_STATE_MASTER_RESTART        5
-#define I2C_STATE_MASTER_NACK           6
-#define I2C_STATE_MASTER_TRANSMIT       7
-#define I2C_STATE_MASTER_RECEIVE        8
-#define I2C_STATE_SLAVE_NACK            9
-#define I2C_STATE_SLAVE_TRANSMIT        10
-#define I2C_STATE_SLAVE_RECEIVE         11
+#define STM32L0_I2C_STATE_NONE                  0
+#define STM32L0_I2C_STATE_INIT                  1
+#define STM32L0_I2C_STATE_BUSY                  2
+#define STM32L0_I2C_STATE_READY                 3
+#define STM32L0_I2C_STATE_MASTER_STOP           4
+#define STM32L0_I2C_STATE_MASTER_RESTART        5
+#define STM32L0_I2C_STATE_MASTER_NACK           6
+#define STM32L0_I2C_STATE_MASTER_TRANSMIT       7
+#define STM32L0_I2C_STATE_MASTER_RECEIVE        8
+#define STM32L0_I2C_STATE_SLAVE_NACK            9
+#define STM32L0_I2C_STATE_SLAVE_TRANSMIT        10
+#define STM32L0_I2C_STATE_SLAVE_RECEIVE         11
 
 typedef struct _stm32l0_i2c_pins_t {
     uint16_t                            scl;
@@ -156,10 +156,6 @@ extern bool stm32l0_i2c_reset(stm32l0_i2c_t *i2c);
 extern bool stm32l0_i2c_receive(stm32l0_i2c_t *i2c, uint8_t *rx_data, uint16_t rx_count, bool nack);
 extern bool stm32l0_i2c_transmit(stm32l0_i2c_t *i2c, uint8_t *tx_data, uint16_t tx_count);
 extern bool stm32l0_i2c_enqueue(stm32l0_i2c_t *i2c, stm32l0_i2c_transaction_t *transaction);
-
-extern void I2C1_IRQHandler(void);
-extern void I2C2_IRQHandler(void);
-extern void I2C3_IRQHandler(void);
 
 #ifdef __cplusplus
 }

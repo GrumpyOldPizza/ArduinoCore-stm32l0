@@ -39,25 +39,25 @@ extern "C" {
 #endif
 
 enum {
-    SPI_INSTANCE_SPI1 = 0,
-    SPI_INSTANCE_SPI2,
-    SPI_INSTANCE_COUNT
+    STM32L0_SPI_INSTANCE_SPI1 = 0,
+    STM32L0_SPI_INSTANCE_SPI2,
+    STM32L0_SPI_INSTANCE_COUNT
 };
 
-#define SPI_OPTION_MODE_MASK           0x00000003
-#define SPI_OPTION_MODE_SHIFT          0
-#define SPI_OPTION_MODE_0              0x00000000
-#define SPI_OPTION_MODE_1              0x00000001
-#define SPI_OPTION_MODE_2              0x00000002
-#define SPI_OPTION_MODE_3              0x00000003
-#define SPI_OPTION_MSB_FIRST           0x00000000
-#define SPI_OPTION_LSB_FIRST           0x00000080
-#define SPI_OPTION_HALFDUPLEX          0x80000000
+#define STM32L0_SPI_OPTION_MODE_MASK           0x00000003
+#define STM32L0_SPI_OPTION_MODE_SHIFT          0
+#define STM32L0_SPI_OPTION_MODE_0              0x00000000
+#define STM32L0_SPI_OPTION_MODE_1              0x00000001
+#define STM32L0_SPI_OPTION_MODE_2              0x00000002
+#define STM32L0_SPI_OPTION_MODE_3              0x00000003
+#define STM32L0_SPI_OPTION_MSB_FIRST           0x00000000
+#define STM32L0_SPI_OPTION_LSB_FIRST           0x00000080
+#define STM32L0_SPI_OPTION_HALFDUPLEX          0x80000000
 
-#define SPI_STATE_NONE                 0
-#define SPI_STATE_INIT                 1
-#define SPI_STATE_READY                2
-#define SPI_STATE_DATA                 3
+#define STM32L0_SPI_STATE_NONE                 0
+#define STM32L0_SPI_STATE_INIT                 1
+#define STM32L0_SPI_STATE_READY                2
+#define STM32L0_SPI_STATE_DATA                 3
 
 typedef struct _stm32l0_spi_pins_t {
     uint16_t                    mosi;

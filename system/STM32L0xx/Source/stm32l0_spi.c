@@ -36,53 +36,53 @@
 #include "stm32l0_system.h"
 
 typedef struct _stm32l0_spi_device_t {
-    stm32l0_spi_t     *instances[SPI_INSTANCE_COUNT];
+    stm32l0_spi_t     *instances[STM32L0_SPI_INSTANCE_COUNT];
 } stm32l0_spi_device_t;
 
-#define SPI_RX_DMA_OPTION_RECEIVE_8	    \
-    (DMA_OPTION_PERIPHERAL_TO_MEMORY |	    \
-     DMA_OPTION_PERIPHERAL_DATA_SIZE_16 |   \
-     DMA_OPTION_MEMORY_DATA_SIZE_8 |	    \
-     DMA_OPTION_MEMORY_DATA_INCREMENT |	    \
-     DMA_OPTION_PRIORITY_MEDIUM)
+#define STM32L0_SPI_RX_DMA_OPTION_RECEIVE_8	    \
+    (STM32L0_DMA_OPTION_PERIPHERAL_TO_MEMORY |	    \
+     STM32L0_DMA_OPTION_PERIPHERAL_DATA_SIZE_16 |   \
+     STM32L0_DMA_OPTION_MEMORY_DATA_SIZE_8 |	    \
+     STM32L0_DMA_OPTION_MEMORY_DATA_INCREMENT |	    \
+     STM32L0_DMA_OPTION_PRIORITY_MEDIUM)
 
-#define SPI_TX_DMA_OPTION_RECEIVE_8	    \
-    (DMA_OPTION_MEMORY_TO_PERIPHERAL |	    \
-     DMA_OPTION_PERIPHERAL_DATA_SIZE_16 |   \
-     DMA_OPTION_MEMORY_DATA_SIZE_8 |	    \
-     DMA_OPTION_PRIORITY_MEDIUM)
+#define STM32L0_SPI_TX_DMA_OPTION_RECEIVE_8	    \
+    (STM32L0_DMA_OPTION_MEMORY_TO_PERIPHERAL |	    \
+     STM32L0_DMA_OPTION_PERIPHERAL_DATA_SIZE_16 |   \
+     STM32L0_DMA_OPTION_MEMORY_DATA_SIZE_8 |	    \
+     STM32L0_DMA_OPTION_PRIORITY_MEDIUM)
 
-#define SPI_TX_DMA_OPTION_TRANSMIT_8	    \
-    (DMA_OPTION_MEMORY_TO_PERIPHERAL |	    \
-     DMA_OPTION_PERIPHERAL_DATA_SIZE_16 |   \
-     DMA_OPTION_MEMORY_DATA_SIZE_8 |	    \
-     DMA_OPTION_MEMORY_DATA_INCREMENT |	    \
-     DMA_OPTION_PRIORITY_MEDIUM)
+#define STM32L0_SPI_TX_DMA_OPTION_TRANSMIT_8	    \
+    (STM32L0_DMA_OPTION_MEMORY_TO_PERIPHERAL |	    \
+     STM32L0_DMA_OPTION_PERIPHERAL_DATA_SIZE_16 |   \
+     STM32L0_DMA_OPTION_MEMORY_DATA_SIZE_8 |	    \
+     STM32L0_DMA_OPTION_MEMORY_DATA_INCREMENT |	    \
+     STM32L0_DMA_OPTION_PRIORITY_MEDIUM)
 
-#define SPI_RX_DMA_OPTION_TRANSFER_8	    \
-    (DMA_OPTION_PERIPHERAL_TO_MEMORY |	    \
-     DMA_OPTION_PERIPHERAL_DATA_SIZE_16 |   \
-     DMA_OPTION_MEMORY_DATA_SIZE_8 |	    \
-     DMA_OPTION_MEMORY_DATA_INCREMENT |	    \
-     DMA_OPTION_PRIORITY_MEDIUM)
+#define STM32L0_SPI_RX_DMA_OPTION_TRANSFER_8	    \
+    (STM32L0_DMA_OPTION_PERIPHERAL_TO_MEMORY |	    \
+     STM32L0_DMA_OPTION_PERIPHERAL_DATA_SIZE_16 |   \
+     STM32L0_DMA_OPTION_MEMORY_DATA_SIZE_8 |	    \
+     STM32L0_DMA_OPTION_MEMORY_DATA_INCREMENT |	    \
+     STM32L0_DMA_OPTION_PRIORITY_MEDIUM)
 
-#define SPI_TX_DMA_OPTION_TRANSFER_8	    \
-    (DMA_OPTION_MEMORY_TO_PERIPHERAL |	    \
-     DMA_OPTION_PERIPHERAL_DATA_SIZE_16 |   \
-     DMA_OPTION_MEMORY_DATA_SIZE_8 |	    \
-     DMA_OPTION_MEMORY_DATA_INCREMENT |	    \
-     DMA_OPTION_PRIORITY_MEDIUM)
+#define STM32L0_SPI_TX_DMA_OPTION_TRANSFER_8	    \
+    (STM32L0_DMA_OPTION_MEMORY_TO_PERIPHERAL |	    \
+     STM32L0_DMA_OPTION_PERIPHERAL_DATA_SIZE_16 |   \
+     STM32L0_DMA_OPTION_MEMORY_DATA_SIZE_8 |	    \
+     STM32L0_DMA_OPTION_MEMORY_DATA_INCREMENT |	    \
+     STM32L0_DMA_OPTION_PRIORITY_MEDIUM)
 
 static stm32l0_spi_device_t stm32l0_spi_device;
 
 bool stm32l0_spi_create(stm32l0_spi_t *spi, const stm32l0_spi_params_t *params)
 {
-    if (spi->state != SPI_STATE_NONE)
+    if (spi->state != STM32L0_SPI_STATE_NONE)
     {
 	return false;
     }
 
-    spi->SPI = (params->instance == SPI_INSTANCE_SPI1) ? SPI1 : SPI2;
+    spi->SPI = (params->instance == STM32L0_SPI_INSTANCE_SPI1) ? SPI1 : SPI2;
     spi->instance = params->instance;
     spi->priority = params->priority;
     spi->rx_dma = params->rx_dma;
@@ -91,19 +91,19 @@ bool stm32l0_spi_create(stm32l0_spi_t *spi, const stm32l0_spi_params_t *params)
 
     stm32l0_spi_device.instances[spi->instance] = spi;
 
-    spi->state = SPI_STATE_INIT;
+    spi->state = STM32L0_SPI_STATE_INIT;
 
     return true;
 }
 
 bool stm32l0_spi_destroy(stm32l0_spi_t *spi)
 {
-    if (spi->state != SPI_STATE_INIT)
+    if (spi->state != STM32L0_SPI_STATE_INIT)
     {
 	return false;
     }
 
-    spi->state = SPI_STATE_NONE;
+    spi->state = STM32L0_SPI_STATE_NONE;
 
     stm32l0_spi_device.instances[spi->instance] = NULL;
 
@@ -112,9 +112,9 @@ bool stm32l0_spi_destroy(stm32l0_spi_t *spi)
 
 bool stm32l0_spi_enable(stm32l0_spi_t *spi)
 {
-    if (spi->state != SPI_STATE_INIT)
+    if (spi->state != STM32L0_SPI_STATE_INIT)
     {
-        if (spi->state == SPI_STATE_READY)
+        if (spi->state == STM32L0_SPI_STATE_READY)
 	{
 	    spi->lock++;
 
@@ -133,18 +133,18 @@ bool stm32l0_spi_enable(stm32l0_spi_t *spi)
     spi->callback = NULL;
     spi->context = NULL;
     
-    stm32l0_gpio_pin_configure(spi->pins.mosi, (GPIO_PARK_HIZ | GPIO_PUPD_NONE | GPIO_OSPEED_VERY_HIGH | GPIO_OTYPE_PUSHPULL | GPIO_MODE_ALTERNATE));
-    stm32l0_gpio_pin_configure(spi->pins.miso, (GPIO_PARK_HIZ | GPIO_PUPD_NONE | GPIO_OSPEED_VERY_HIGH | GPIO_OTYPE_PUSHPULL | GPIO_MODE_ALTERNATE));
-    stm32l0_gpio_pin_configure(spi->pins.sck,  (GPIO_PARK_HIZ | GPIO_PUPD_NONE | GPIO_OSPEED_VERY_HIGH | GPIO_OTYPE_PUSHPULL | GPIO_MODE_ALTERNATE));
+    stm32l0_gpio_pin_configure(spi->pins.mosi, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_VERY_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_ALTERNATE));
+    stm32l0_gpio_pin_configure(spi->pins.miso, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_VERY_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_ALTERNATE));
+    stm32l0_gpio_pin_configure(spi->pins.sck,  (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_VERY_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_ALTERNATE));
 
-    spi->state = SPI_STATE_READY;
+    spi->state = STM32L0_SPI_STATE_READY;
 
     return true;
 }
 
 bool stm32l0_spi_disable(stm32l0_spi_t *spi)
 {
-    if (spi->state != SPI_STATE_READY)
+    if (spi->state != STM32L0_SPI_STATE_READY)
     {
 	return false;
     }
@@ -157,13 +157,13 @@ bool stm32l0_spi_disable(stm32l0_spi_t *spi)
     {
 	spi->lock = 0;
 
-	stm32l0_gpio_pin_configure(spi->pins.mosi, (GPIO_PARK_HIZ | GPIO_MODE_ANALOG));
-	stm32l0_gpio_pin_configure(spi->pins.miso, (GPIO_PARK_HIZ | GPIO_MODE_ANALOG));
-	stm32l0_gpio_pin_configure(spi->pins.sck,  (GPIO_PARK_HIZ | GPIO_MODE_ANALOG));
+	stm32l0_gpio_pin_configure(spi->pins.mosi, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_MODE_ANALOG));
+	stm32l0_gpio_pin_configure(spi->pins.miso, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_MODE_ANALOG));
+	stm32l0_gpio_pin_configure(spi->pins.sck,  (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_MODE_ANALOG));
 	
 	stm32l0_spi_device.instances[spi->instance] = NULL;
 	
-	spi->state = SPI_STATE_INIT;
+	spi->state = STM32L0_SPI_STATE_INIT;
     }
 
     return true;
@@ -171,7 +171,7 @@ bool stm32l0_spi_disable(stm32l0_spi_t *spi)
 
 bool stm32l0_spi_notify(stm32l0_spi_t *spi, stm32l0_spi_notify_callback_t callback, void *context)
 {
-    if (spi->state != SPI_STATE_READY)
+    if (spi->state != STM32L0_SPI_STATE_READY)
     {
 	return false;
     }
@@ -184,24 +184,24 @@ bool stm32l0_spi_notify(stm32l0_spi_t *spi, stm32l0_spi_notify_callback_t callba
 
 bool stm32l0_spi_block(stm32l0_spi_t *spi, uint16_t pin)
 {
-    if (spi->state != SPI_STATE_READY)
+    if (spi->state != STM32L0_SPI_STATE_READY)
     {
 	return false;
     }
 
-    spi->mask |= (1ul << ((pin & GPIO_PIN_INDEX_MASK) >> GPIO_PIN_INDEX_SHIFT));
+    spi->mask |= (1ul << ((pin & STM32L0_GPIO_PIN_INDEX_MASK) >> STM32L0_GPIO_PIN_INDEX_SHIFT));
 
     return true;
 }
 
 bool stm32l0_spi_unblock(stm32l0_spi_t *spi, uint16_t pin)
 {
-    if (spi->state != SPI_STATE_READY)
+    if (spi->state != STM32L0_SPI_STATE_READY)
     {
 	return false;
     }
 
-    spi->mask &= ~(1ul << ((pin & GPIO_PIN_INDEX_MASK) >> GPIO_PIN_INDEX_SHIFT));
+    spi->mask &= ~(1ul << ((pin & STM32L0_GPIO_PIN_INDEX_MASK) >> STM32L0_GPIO_PIN_INDEX_SHIFT));
 
     return true;
 }
@@ -211,7 +211,7 @@ bool stm32l0_spi_acquire(stm32l0_spi_t *spi, uint32_t clock, uint32_t option)
     SPI_TypeDef *SPI = spi->SPI;
     uint32_t pclk, spiclk, div;
 
-    if (spi->state != SPI_STATE_READY)
+    if (spi->state != STM32L0_SPI_STATE_READY)
     {
 	return false;
     }
@@ -226,22 +226,22 @@ bool stm32l0_spi_acquire(stm32l0_spi_t *spi, uint32_t clock, uint32_t option)
 	stm32l0_exti_block(spi->mask);
     }
 
-    stm32l0_system_lock(SYSTEM_LOCK_STOP);
-    stm32l0_system_lock(SYSTEM_LOCK_CLOCKS);
+    stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
+    stm32l0_system_lock(STM32L0_SYSTEM_LOCK_CLOCKS);
 
-    stm32l0_system_periph_enable(SYSTEM_PERIPH_SPI1 + spi->instance);
+    stm32l0_system_periph_enable(STM32L0_SYSTEM_PERIPH_SPI1 + spi->instance);
 
-    if (spi->rx_dma != DMA_CHANNEL_NONE)
+    if (spi->rx_dma != STM32L0_DMA_CHANNEL_NONE)
     {
 	stm32l0_dma_enable(spi->rx_dma, NULL, NULL);
     }
     
-    if (spi->tx_dma != DMA_CHANNEL_NONE)
+    if (spi->tx_dma != STM32L0_DMA_CHANNEL_NONE)
     {
 	stm32l0_dma_enable(spi->tx_dma, NULL, NULL);
     }
 
-    if (spi->instance == SPI_INSTANCE_SPI1)
+    if (spi->instance == STM32L0_SPI_INSTANCE_SPI1)
     {
 	pclk = stm32l0_system_pclk2();
     }
@@ -271,7 +271,7 @@ bool stm32l0_spi_acquire(stm32l0_spi_t *spi, uint32_t clock, uint32_t option)
 	SPI->CR1 &= ~SPI_CR1_SPE;
 	SPI->SR = 0;
 	SPI->CRCPR = 0x1021;
-	SPI->CR1 = SPI_CR1_MSTR | SPI_CR1_SSM | SPI_CR1_SSI | (option & (SPI_OPTION_MODE_MASK | SPI_OPTION_LSB_FIRST)) | (div << SPI_CR1_BR_Pos);
+	SPI->CR1 = SPI_CR1_MSTR | SPI_CR1_SSM | SPI_CR1_SSI | (option & (STM32L0_SPI_OPTION_MODE_MASK | STM32L0_SPI_OPTION_LSB_FIRST)) | (div << SPI_CR1_BR_Pos);
 	SPI->CR2 = 0;
 
 	spi->clock = clock;
@@ -281,7 +281,7 @@ bool stm32l0_spi_acquire(stm32l0_spi_t *spi, uint32_t clock, uint32_t option)
 
     SPI->CR1 |= SPI_CR1_SPE;
 
-    spi->state = SPI_STATE_DATA;
+    spi->state = STM32L0_SPI_STATE_DATA;
 
     return true;
 }
@@ -290,7 +290,7 @@ bool stm32l0_spi_release(stm32l0_spi_t *spi)
 {
     SPI_TypeDef *SPI = spi->SPI;
 
-    if (spi->state != SPI_STATE_DATA)
+    if (spi->state != STM32L0_SPI_STATE_DATA)
     {
 	return false;
     }
@@ -311,10 +311,10 @@ bool stm32l0_spi_release(stm32l0_spi_t *spi)
 	stm32l0_dma_disable(spi->tx_dma);
     }
 
-    stm32l0_system_periph_disable(SYSTEM_PERIPH_SPI1 + spi->instance);
+    stm32l0_system_periph_disable(STM32L0_SYSTEM_PERIPH_SPI1 + spi->instance);
 
-    stm32l0_system_unlock(SYSTEM_LOCK_CLOCKS);
-    stm32l0_system_unlock(SYSTEM_LOCK_STOP);
+    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_CLOCKS);
+    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
 
     if (spi->mask)
     {
@@ -326,7 +326,7 @@ bool stm32l0_spi_release(stm32l0_spi_t *spi)
 	(*spi->callback)(spi->context, false);
     }
 
-    spi->state = SPI_STATE_READY;
+    spi->state = STM32L0_SPI_STATE_READY;
 
     return true;
 }
@@ -351,7 +351,7 @@ __attribute__((optimize("O3"))) uint16_t stm32l0_spi_data16(stm32l0_spi_t *spi, 
     SPI_TypeDef *SPI = spi->SPI;
     uint8_t rx_temp, tx_temp;
 
-    if (spi->option & SPI_OPTION_LSB_FIRST)
+    if (spi->option & STM32L0_SPI_OPTION_LSB_FIRST)
     {
 	SPI->DR = ((const uint8_t*)&data)[0];
 
@@ -410,7 +410,7 @@ __attribute__((optimize("O3"))) uint32_t stm32l0_spi_data32(stm32l0_spi_t *spi, 
     SPI_TypeDef *SPI = spi->SPI;
     uint8_t rx_temp, tx_temp;
 
-    if (spi->option & SPI_OPTION_LSB_FIRST)
+    if (spi->option & STM32L0_SPI_OPTION_LSB_FIRST)
     {
 	SPI->DR = ((const uint8_t*)&data)[0];
 
@@ -527,12 +527,12 @@ __attribute__((optimize("O3"))) bool stm32l0_spi_receive(stm32l0_spi_t *spi, uin
     uint8_t *rx_data_e;
     uint8_t rx_temp, tx_default;
 
-    if (spi->state != SPI_STATE_DATA)
+    if (spi->state != STM32L0_SPI_STATE_DATA)
     {
 	return false;
     }
 
-    if (!(spi->option & SPI_OPTION_HALFDUPLEX))
+    if (!(spi->option & STM32L0_SPI_OPTION_HALFDUPLEX))
     {
 	tx_default = 0xff;
 
@@ -586,7 +586,7 @@ __attribute__((optimize("O3"))) bool stm32l0_spi_receive(stm32l0_spi_t *spi, uin
 		SPI->CR2 = SPI_CR2_RXDMAEN;
 		SPI->CR1 |= SPI_CR1_SPE;
 		
-		stm32l0_dma_start(spi->rx_dma, (uint32_t)rx_data, (uint32_t)&SPI->DR, count, SPI_RX_DMA_OPTION_RECEIVE_8);
+		stm32l0_dma_start(spi->rx_dma, (uint32_t)rx_data, (uint32_t)&SPI->DR, count, STM32L0_SPI_RX_DMA_OPTION_RECEIVE_8);
 
 		do
 		{
@@ -610,8 +610,8 @@ __attribute__((optimize("O3"))) bool stm32l0_spi_receive(stm32l0_spi_t *spi, uin
 		SPI->CR2 = SPI_CR2_RXDMAEN | SPI_CR2_TXDMAEN;
 		SPI->CR1 |= SPI_CR1_SPE;
 		
-		stm32l0_dma_start(spi->rx_dma, (uint32_t)rx_data, (uint32_t)&SPI->DR, count, SPI_RX_DMA_OPTION_RECEIVE_8);
-		stm32l0_dma_start(spi->tx_dma, (uint32_t)&SPI->DR, (uint32_t)&tx_default, count, SPI_TX_DMA_OPTION_RECEIVE_8);
+		stm32l0_dma_start(spi->rx_dma, (uint32_t)rx_data, (uint32_t)&SPI->DR, count, STM32L0_SPI_RX_DMA_OPTION_RECEIVE_8);
+		stm32l0_dma_start(spi->tx_dma, (uint32_t)&SPI->DR, (uint32_t)&tx_default, count, STM32L0_SPI_TX_DMA_OPTION_RECEIVE_8);
 		
 		while (!stm32l0_dma_done(spi->rx_dma))
 		{
@@ -679,7 +679,7 @@ __attribute__((optimize("O3"))) bool stm32l0_spi_transmit(stm32l0_spi_t *spi, co
     const uint8_t *tx_data_e;
     uint8_t tx_temp;
 
-    if (spi->state != SPI_STATE_DATA)
+    if (spi->state != STM32L0_SPI_STATE_DATA)
     {
 	return false;
     }
@@ -730,7 +730,7 @@ __attribute__((optimize("O3"))) bool stm32l0_spi_transmit(stm32l0_spi_t *spi, co
 	SPI->CR2 = SPI_CR2_TXDMAEN;
 	SPI->CR1 |= SPI_CR1_SPE;
 
-	stm32l0_dma_start(spi->tx_dma, (uint32_t)&SPI->DR, (uint32_t)tx_data, count, SPI_TX_DMA_OPTION_TRANSMIT_8);
+	stm32l0_dma_start(spi->tx_dma, (uint32_t)&SPI->DR, (uint32_t)tx_data, count, STM32L0_SPI_TX_DMA_OPTION_TRANSMIT_8);
 	    
 	while (!stm32l0_dma_done(spi->tx_dma))
 	{
@@ -763,7 +763,7 @@ __attribute__((optimize("O3"))) bool stm32l0_spi_transfer(stm32l0_spi_t *spi, co
     const uint8_t *tx_data_e;
     uint8_t rx_temp, tx_temp;
 
-    if (spi->state != SPI_STATE_DATA)
+    if (spi->state != STM32L0_SPI_STATE_DATA)
     {
 	return false;
     }
@@ -820,7 +820,7 @@ __attribute__((optimize("O3"))) bool stm32l0_spi_transfer(stm32l0_spi_t *spi, co
 	    SPI->CR2 = SPI_CR2_RXDMAEN;
 	    SPI->CR1 |= SPI_CR1_SPE;
 	    
-	    stm32l0_dma_start(spi->rx_dma, (uint32_t)rx_data, (uint32_t)&SPI->DR, count, SPI_RX_DMA_OPTION_TRANSFER_8);
+	    stm32l0_dma_start(spi->rx_dma, (uint32_t)rx_data, (uint32_t)&SPI->DR, count, STM32L0_SPI_RX_DMA_OPTION_TRANSFER_8);
 
 	    tx_data_e = tx_data + count;
 	    
@@ -854,8 +854,8 @@ __attribute__((optimize("O3"))) bool stm32l0_spi_transfer(stm32l0_spi_t *spi, co
 	    SPI->CR2 = SPI_CR2_RXDMAEN | SPI_CR2_TXDMAEN;
 	    SPI->CR1 |= SPI_CR1_SPE;
 	    
-	    stm32l0_dma_start(spi->rx_dma, (uint32_t)rx_data, (uint32_t)&SPI->DR, count, SPI_RX_DMA_OPTION_TRANSFER_8);
-	    stm32l0_dma_start(spi->tx_dma, (uint32_t)&SPI->DR, (uint32_t)tx_data, count, SPI_TX_DMA_OPTION_TRANSFER_8);
+	    stm32l0_dma_start(spi->rx_dma, (uint32_t)rx_data, (uint32_t)&SPI->DR, count, STM32L0_SPI_RX_DMA_OPTION_TRANSFER_8);
+	    stm32l0_dma_start(spi->tx_dma, (uint32_t)&SPI->DR, (uint32_t)tx_data, count, STM32L0_SPI_TX_DMA_OPTION_TRANSFER_8);
 	    
 	    while (!stm32l0_dma_done(spi->rx_dma))
 	    {

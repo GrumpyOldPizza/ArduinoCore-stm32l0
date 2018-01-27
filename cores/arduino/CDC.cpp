@@ -375,7 +375,7 @@ bool CDC::rts()
 
 void CDC::_eventCallback(class CDC *self, uint32_t events)
 {
-    if (events & USBD_CDC_EVENT_RECEIVE) {
+    if (events & STM32L0_USBD_CDC_EVENT_RECEIVE) {
 	self->_receiveCallback.queue();
     }
 }

@@ -20,6 +20,11 @@
 #include "Arduino.h"
 #include "wiring_private.h"
 
+#if defined(ARDUINO_MAKEFILE)
+void setup(void) { }
+void loop(void) { }
+#endif
+
 // Weak empty variant initialization function.
 // May be redefined by variant files.
 void initVariant() __attribute__((weak));

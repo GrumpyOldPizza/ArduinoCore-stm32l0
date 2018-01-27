@@ -36,23 +36,23 @@
 extern "C" {
 #endif
 
-#define DAC_CHANNEL_1                            0x00000001
-#define DAC_CHANNEL_2                            0x00000002
+#define STM32L0_DAC_CHANNEL_1                            0x00000001
+#define STM32L0_DAC_CHANNEL_2                            0x00000002
 
-#define DAC_CONTROL_MONO                         0x00000000
-#define DAC_CONTROL_STEREO                       0x00000001
-#define DAC_CONTROL_RIGHT_ALIGNED                0x00000000 /* 12 bit LSB */
-#define DAC_CONTROL_LEFT_ALIGNED                 0x00000002 /* 12 bit MSB */
-#define DAC_CONTROL_BYTE_PACKED                  0x00000004 /* 8 bit LSB */
-#define DAC_CONTROL_TRIG_MASK                    0x00000038
-#define DAC_CONTROL_TRIG_SHIFT                   3
-#define DAC_CONTROL_TRIG_TIM6                    0x00000000
-#define DAC_CONTROL_TRIG_TIM3                    0x00000008
-#define DAC_CONTROL_TRIG_TIM3_CH3                0x00000010
-#define DAC_CONTROL_TRIG_TIM21                   0x00000018
-#define DAC_CONTROL_TRIG_TIM2                    0x00000020
-#define DAC_CONTROL_TRIG_TIM7                    0x00000028
-#define DAC_CONTROL_TRIG_EXTI_9_RISING           0x00000030 /* EXTI_9 */
+#define STM32L0_DAC_CONTROL_MONO                         0x00000000
+#define STM32L0_DAC_CONTROL_STEREO                       0x00000001
+#define STM32L0_DAC_CONTROL_RIGHT_ALIGNED                0x00000000 /* 12 bit LSB */
+#define STM32L0_DAC_CONTROL_LEFT_ALIGNED                 0x00000002 /* 12 bit MSB */
+#define STM32L0_DAC_CONTROL_BYTE_PACKED                  0x00000004 /* 8 bit LSB */
+#define STM32L0_DAC_CONTROL_TRIG_MASK                    0x00000038
+#define STM32L0_DAC_CONTROL_TRIG_SHIFT                   3
+#define STM32L0_DAC_CONTROL_TRIG_TIM6                    0x00000000
+#define STM32L0_DAC_CONTROL_TRIG_TIM3                    0x00000008
+#define STM32L0_DAC_CONTROL_TRIG_TIM3_CH3                0x00000010
+#define STM32L0_DAC_CONTROL_TRIG_TIM21                   0x00000018
+#define STM32L0_DAC_CONTROL_TRIG_TIM2                    0x00000020
+#define STM32L0_DAC_CONTROL_TRIG_TIM7                    0x00000028
+#define STM32L0_DAC_CONTROL_TRIG_EXTI_9_RISING           0x00000030 /* EXTI_9 */
 
 typedef void (*stm32l0_dac_done_callback_t)(void *context, uint32_t count);
 

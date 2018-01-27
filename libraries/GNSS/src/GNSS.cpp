@@ -334,7 +334,7 @@ void GNSSClass::begin(Uart &uart, GNSSmode mode, GNSSrate rate)
     _uart->begin(9600);
 
 #if defined(STM32L0_CONFIG_PIN_GNSS_ENABLE)
-    stm32l0_gpio_pin_configure(STM32L0_CONFIG_PIN_GNSS_ENABLE, (GPIO_PARK_NONE | GPIO_PUPD_PULLDOWN | GPIO_OSPEED_LOW | GPIO_OTYPE_PUSHPULL | GPIO_MODE_OUTPUT));
+    stm32l0_gpio_pin_configure(STM32L0_CONFIG_PIN_GNSS_ENABLE, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
     stm32l0_gpio_pin_write(STM32L0_CONFIG_PIN_GNSS_ENABLE, 1);
 
     armv6m_core_udelay(125000);
@@ -517,7 +517,7 @@ void GNSSClass::enableCallback(class GNSSClass *self)
 #if defined(STM32L0_CONFIG_PIN_GNSS_ENABLE)
     self->_uart->begin(self->_baudrate);
 
-    stm32l0_gpio_pin_configure(STM32L0_CONFIG_PIN_GNSS_ENABLE, (GPIO_PARK_NONE | GPIO_PUPD_PULLDOWN | GPIO_OSPEED_LOW | GPIO_OTYPE_PUSHPULL | GPIO_MODE_OUTPUT));
+    stm32l0_gpio_pin_configure(STM32L0_CONFIG_PIN_GNSS_ENABLE, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
     stm32l0_gpio_pin_write(STM32L0_CONFIG_PIN_GNSS_ENABLE, 1);
 #endif /* defined(STM32L0_CONFIG_PIN_GNSS_ENABLE) */
 }
@@ -525,7 +525,7 @@ void GNSSClass::enableCallback(class GNSSClass *self)
 void GNSSClass::disableCallback(class GNSSClass *self)
 {
 #if defined(STM32L0_CONFIG_PIN_GNSS_ENABLE)
-    stm32l0_gpio_pin_configure(STM32L0_CONFIG_PIN_GNSS_ENABLE, (GPIO_PARK_NONE | GPIO_MODE_ANALOG));
+    stm32l0_gpio_pin_configure(STM32L0_CONFIG_PIN_GNSS_ENABLE, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
     
     self->_uart->end();
 #endif /* defined(STM32L0_CONFIG_PIN_GNSS_ENABLE) */

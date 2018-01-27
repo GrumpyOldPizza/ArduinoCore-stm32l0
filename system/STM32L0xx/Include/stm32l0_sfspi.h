@@ -55,11 +55,11 @@ typedef struct _stm32l0_sfspi_params_t {
     uint16_t                     pin_cs;
 } stm32l0_sfspi_params_t;
 
-#define SFSPI_STATE_NONE                   0
-#define SFSPI_STATE_INIT                   1
-#define SFSPI_STATE_READY                  2
-#define SFSPI_STATE_LOCKED                 3
-#define SFSPI_STATE_SLEEP                  4
+#define STM32L0_SFSPI_STATE_NONE                   0
+#define STM32L0_SFSPI_STATE_INIT                   1
+#define STM32L0_SFSPI_STATE_READY                  2
+#define STM32L0_SFSPI_STATE_LOCKED                 3
+#define STM32L0_SFSPI_STATE_SLEEP                  4
 
 typedef struct _stm32l0_sfspi_t {
     volatile uint8_t             state;

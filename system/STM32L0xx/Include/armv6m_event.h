@@ -45,7 +45,7 @@ typedef struct _armv6m_event_t {
     volatile uint16_t              count;
 } armv6m_event_t;
 
-#define EVENT_PRIORITY_COOPERATIVE 255
+#define ARMV6M_EVENT_PRIORITY_COOPERATIVE 255
 
 extern void armv6m_event_initialize(void);
 extern void armv6m_event_create(armv6m_event_t *event, armv6m_event_routine_t routine, void *context, uint8_t priority);

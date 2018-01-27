@@ -40,8 +40,6 @@ extern void armv6m_pendsv_initialize(void);
 extern void armv6m_pendsv_notify(armv6m_pendsv_callback_t callback);
 extern bool armv6m_pendsv_enqueue(armv6m_pendsv_routine_t routine, void *context, uint32_t data);
 
-extern void PendSV_Handler(void);
-
 #ifdef __cplusplus
 }
 #endif

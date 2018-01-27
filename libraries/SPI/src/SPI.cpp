@@ -30,7 +30,7 @@
 #include "SPI.h"
 #include "wiring_private.h"
 
-static SPIClass *_spi_class[SPI_INSTANCE_COUNT];
+static SPIClass *_spi_class[STM32L0_SPI_INSTANCE_COUNT];
 
 /* The code below deserves some explanation. The SPIClass has really 2 modes of operation.
  * One is the beginTransaction()/endTransaction() which locally braces every atomic transaction,
@@ -51,7 +51,7 @@ SPIClass::SPIClass(struct _stm32l0_spi_t *spi, const struct _stm32l0_spi_params_
     _active = false;
 
     _clock = 4000000;
-    _option = SPI_OPTION_MODE_0 | SPI_OPTION_MSB_FIRST;
+    _option = STM32L0_SPI_OPTION_MODE_0 | STM32L0_SPI_OPTION_MSB_FIRST;
 
     _transferRoutine = SPIClass::_transferSelect;
     _transfer16Routine = SPIClass::_transfer16Select;
@@ -136,7 +136,7 @@ void SPIClass::setBitOrder(BitOrder bitOrder)
 	_active = false;
     }
 
-    _option = (_option & ~(SPI_OPTION_LSB_FIRST | SPI_OPTION_MSB_FIRST)) | ((bitOrder == MSBFIRST) ? SPI_OPTION_MSB_FIRST : SPI_OPTION_LSB_FIRST);
+    _option = (_option & ~(STM32L0_SPI_OPTION_LSB_FIRST | STM32L0_SPI_OPTION_MSB_FIRST)) | ((bitOrder == MSBFIRST) ? STM32L0_SPI_OPTION_MSB_FIRST : STM32L0_SPI_OPTION_LSB_FIRST);
 }
 
 void SPIClass::setDataMode(uint8_t dataMode)
@@ -151,7 +151,7 @@ void SPIClass::setDataMode(uint8_t dataMode)
 	_active = false;
     }
 
-    _option = (_option & ~SPI_OPTION_MODE_MASK) | (dataMode & SPI_OPTION_MODE_MASK);
+    _option = (_option & ~STM32L0_SPI_OPTION_MODE_MASK) | (dataMode & STM32L0_SPI_OPTION_MODE_MASK);
 }
 
 void SPIClass::setClockDivider(uint8_t divider)
@@ -183,7 +183,7 @@ void SPIClass::setHalfDuplex(bool enable)
 	_active = false;
     }
 
-    _option = (_option & ~SPI_OPTION_HALFDUPLEX) | (enable ? SPI_OPTION_HALFDUPLEX : 0);
+    _option = (_option & ~STM32L0_SPI_OPTION_HALFDUPLEX) | (enable ? STM32L0_SPI_OPTION_HALFDUPLEX : 0);
 }
 
 void SPIClass::attachInterrupt()

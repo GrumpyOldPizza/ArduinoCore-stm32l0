@@ -100,7 +100,7 @@ static void USBD_VBUSTimeout(void)
 	{
 	    usbd_connected = true;
 
-	    stm32l0_system_lock(SYSTEM_LOCK_STOP);
+	    stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
 
 	    USBD_Init(&USBD_Device, &CDC_MSC_Desc, 0);
 	    
@@ -136,7 +136,7 @@ static void USBD_VBUSChanged(void)
 	    
 	    USBD_DeInit(&USBD_Device);
 
-	    stm32l0_system_unlock(SYSTEM_LOCK_STOP);
+	    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
 	    
 	    usbd_connected = false;
 	}
@@ -155,12 +155,12 @@ void USBD_Initialize(uint16_t vid, uint16_t pid, const uint8_t *manufacturer, co
 
     usbd_pin_vbus = pin_vbus;
 
-    if (usbd_pin_vbus != GPIO_PIN_NONE)
+    if (usbd_pin_vbus != STM32L0_GPIO_PIN_NONE)
     {
 	stm32l0_rtc_timer_create(&USBD_VBUSTimer, (stm32l0_rtc_callback_t)USBD_VBUSTimeout, NULL);
 
 	/* Configure USB FS GPIOs */
-	stm32l0_gpio_pin_configure(usbd_pin_vbus, (GPIO_PARK_HIZ | GPIO_PUPD_PULLDOWN | GPIO_OSPEED_LOW | GPIO_OTYPE_PUSHPULL | GPIO_MODE_INPUT));
+	stm32l0_gpio_pin_configure(usbd_pin_vbus, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
     }
 
     /* Set USB Interrupt priority */
@@ -171,20 +171,20 @@ void USBD_Attach(void)
 {
     if (!usbd_connected && (stm32l0_system_pclk1() >= 10000000))
     {
-	if (usbd_pin_vbus != GPIO_PIN_NONE)
+	if (usbd_pin_vbus != STM32L0_GPIO_PIN_NONE)
 	{
 	    if (stm32l0_gpio_pin_read(usbd_pin_vbus))
 	    {
 	      stm32l0_rtc_timer_start(&USBD_VBUSTimer, 0, 1311, false); /* 40ms */
 	    }
 
-	    stm32l0_exti_attach(usbd_pin_vbus, EXTI_CONTROL_EDGE_RISING | EXTI_CONTROL_EDGE_FALLING, (stm32l0_exti_callback_t)USBD_VBUSChanged, NULL);
+	    stm32l0_exti_attach(usbd_pin_vbus, STM32L0_EXTI_CONTROL_EDGE_RISING | STM32L0_EXTI_CONTROL_EDGE_FALLING, (stm32l0_exti_callback_t)USBD_VBUSChanged, NULL);
 	}
 	else
 	{
 	    usbd_connected = true;
 
-	    stm32l0_system_lock(SYSTEM_LOCK_STOP);
+	    stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
 
 	    USBD_Init(&USBD_Device, &CDC_MSC_Desc, 0);
 	    
@@ -197,7 +197,7 @@ void USBD_Attach(void)
 
 void USBD_Detach(void)
 {
-    if (usbd_pin_vbus != GPIO_PIN_NONE)
+    if (usbd_pin_vbus != STM32L0_GPIO_PIN_NONE)
     {
         stm32l0_exti_detach(usbd_pin_vbus);
 	stm32l0_rtc_timer_stop(&USBD_VBUSTimer);
@@ -209,7 +209,7 @@ void USBD_Detach(void)
 
 	USBD_DeInit(&USBD_Device);
 
-	stm32l0_system_unlock(SYSTEM_LOCK_STOP);
+	stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
 
 	usbd_connected = false;
     }
@@ -262,11 +262,11 @@ void USB_IRQHandler(void)
   */
 void HAL_PCD_MspInit(PCD_HandleTypeDef *hpcd)
 {
-  stm32l0_system_reference(SYSTEM_REFERENCE_USB);
+  stm32l0_system_reference(STM32L0_SYSTEM_REFERENCE_USB);
 
   stm32l0_system_hsi48_enable();
 
-  stm32l0_system_periph_enable(SYSTEM_PERIPH_USB);
+  stm32l0_system_periph_enable(STM32L0_SYSTEM_PERIPH_USB);
 
   NVIC_EnableIRQ(USB_IRQn);
 }
@@ -280,11 +280,11 @@ void HAL_PCD_MspDeInit(PCD_HandleTypeDef *hpcd)
 {  
   NVIC_DisableIRQ(USB_IRQn);
 
-  stm32l0_system_periph_disable(SYSTEM_PERIPH_USB);
+  stm32l0_system_periph_disable(STM32L0_SYSTEM_PERIPH_USB);
 
   stm32l0_system_hsi48_disable();
   
-  stm32l0_system_unreference(SYSTEM_REFERENCE_USB);
+  stm32l0_system_unreference(STM32L0_SYSTEM_REFERENCE_USB);
 }
 
 

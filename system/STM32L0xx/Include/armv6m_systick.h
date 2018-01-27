@@ -41,8 +41,6 @@ extern uint32_t armv6m_systick_micros(void);
 extern uint32_t armv6m_systick_millis(void);
 extern void armv6m_systick_delay(uint32_t delay);
 
-extern void SysTick_Handler(void);
-
 #ifdef __cplusplus
 }
 #endif

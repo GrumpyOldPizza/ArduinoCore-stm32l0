@@ -31,9 +31,9 @@
 #include "stm32l0_gpio.h"
 
 typedef struct _stm32l0_gpio_device_t {
-    uint16_t                enables[GPIO_PORT_COUNT];
-    uint32_t                mode[GPIO_PORT_COUNT];
-    uint32_t                pupd[GPIO_PORT_COUNT];
+    uint16_t                enables[STM32L0_GPIO_PORT_COUNT];
+    uint32_t                mode[STM32L0_GPIO_PORT_COUNT];
+    uint32_t                pupd[STM32L0_GPIO_PORT_COUNT];
 } stm32l0_gpio_device_t;
 
 static stm32l0_gpio_device_t stm32l0_gpio_device;
@@ -43,13 +43,13 @@ void __stm32l0_gpio_initialize(void)
     /* No JTAG GPIO overrides needed.
      */
 
-    stm32l0_gpio_pin_configure(GPIO_PIN_PA4, GPIO_MODE_ANALOG);
+    stm32l0_gpio_pin_configure(STM32L0_GPIO_PIN_PA4, STM32L0_GPIO_MODE_ANALOG);
 }
 
 void stm32l0_gpio_swd_enable(void)
 {
-    stm32l0_gpio_pin_configure(GPIO_PIN_PA13_SWDIO, (GPIO_PUPD_PULLUP   | GPIO_OSPEED_VERY_HIGH | GPIO_OTYPE_PUSHPULL | GPIO_MODE_ALTERNATE));
-    stm32l0_gpio_pin_configure(GPIO_PIN_PA14_SWCLK, (GPIO_PUPD_PULLDOWN | GPIO_OSPEED_VERY_HIGH | GPIO_OTYPE_PUSHPULL | GPIO_MODE_ALTERNATE));
+    stm32l0_gpio_pin_configure(STM32L0_GPIO_PIN_PA13_SWDIO, (STM32L0_GPIO_PUPD_PULLUP   | STM32L0_GPIO_OSPEED_VERY_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_ALTERNATE));
+    stm32l0_gpio_pin_configure(STM32L0_GPIO_PIN_PA14_SWCLK, (STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_VERY_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_ALTERNATE));
 }
 
 void stm32l0_gpio_swd_disable(void)
@@ -73,12 +73,12 @@ void stm32l0_gpio_swd_disable(void)
 
     if (swdio)
     {
-	stm32l0_gpio_pin_configure(GPIO_PIN_PA13, GPIO_MODE_ANALOG);
+	stm32l0_gpio_pin_configure(STM32L0_GPIO_PIN_PA13, STM32L0_GPIO_MODE_ANALOG);
     }
     
     if (swclk)
     {
-	stm32l0_gpio_pin_configure(GPIO_PIN_PA14, GPIO_MODE_ANALOG);
+	stm32l0_gpio_pin_configure(STM32L0_GPIO_PIN_PA14, STM32L0_GPIO_MODE_ANALOG);
     }
 
     __set_PRIMASK(primask);
@@ -92,7 +92,7 @@ void stm32l0_gpio_pin_configure(unsigned int pin, unsigned int mode)
     afsel = (pin >> 8) & 15;
     group = (pin >> 4) & 7;
     index = (pin >> 0) & 15;
-    port  = ((group >= GPIO_PORT_COUNT) ? (GPIO_PORT_COUNT -1) : group);
+    port  = ((group >= STM32L0_GPIO_PORT_COUNT) ? (STM32L0_GPIO_PORT_COUNT -1) : group);
 
     GPIO = (GPIO_TypeDef *)(GPIOA_BASE + (GPIOB_BASE - GPIOA_BASE) * group);
 
@@ -107,20 +107,20 @@ void stm32l0_gpio_pin_configure(unsigned int pin, unsigned int mode)
     GPIO->MODER |= (0x00000003 << (index << 1));
 
     /* Set OPTYPER */
-    GPIO->OTYPER = (GPIO->OTYPER & ~(0x00000001 << index)) | (((mode & GPIO_OTYPE_MASK) >> GPIO_OTYPE_SHIFT) << index);
+    GPIO->OTYPER = (GPIO->OTYPER & ~(0x00000001 << index)) | (((mode & STM32L0_GPIO_OTYPE_MASK) >> STM32L0_GPIO_OTYPE_SHIFT) << index);
 
     /* Set OPSPEEDR */
-    GPIO->OSPEEDR = (GPIO->OSPEEDR & ~(0x00000003 << (index << 1))) | (((mode & GPIO_OSPEED_MASK) >> GPIO_OSPEED_SHIFT) << (index << 1));
+    GPIO->OSPEEDR = (GPIO->OSPEEDR & ~(0x00000003 << (index << 1))) | (((mode & STM32L0_GPIO_OSPEED_MASK) >> STM32L0_GPIO_OSPEED_SHIFT) << (index << 1));
 
     /* Set PUPD */
-    GPIO->PUPDR = (GPIO->PUPDR & ~(0x00000003 << (index << 1))) | (((mode & GPIO_PUPD_MASK) >> GPIO_PUPD_SHIFT) << (index << 1));
+    GPIO->PUPDR = (GPIO->PUPDR & ~(0x00000003 << (index << 1))) | (((mode & STM32L0_GPIO_PUPD_MASK) >> STM32L0_GPIO_PUPD_SHIFT) << (index << 1));
 
     /* Set AFRL/AFRH */
     GPIO->AFR[index >> 3] = (GPIO->AFR[index >> 3] & ~(0x0000000f << ((index & 7) << 2))) | (afsel << ((index & 7) << 2));
 
-    GPIO->MODER = (GPIO->MODER & ~(0x00000003 << (index << 1))) | (((mode & GPIO_MODE_MASK) >> GPIO_MODE_SHIFT) << (index << 1));
+    GPIO->MODER = (GPIO->MODER & ~(0x00000003 << (index << 1))) | (((mode & STM32L0_GPIO_MODE_MASK) >> STM32L0_GPIO_MODE_SHIFT) << (index << 1));
 
-    if ((((mode & GPIO_MODE_MASK) >> GPIO_MODE_SHIFT) == GPIO_MODE_INPUT) || (((mode & GPIO_MODE_MASK) >> GPIO_MODE_SHIFT) == GPIO_MODE_OUTPUT))
+    if ((((mode & STM32L0_GPIO_MODE_MASK) >> STM32L0_GPIO_MODE_SHIFT) == STM32L0_GPIO_MODE_INPUT) || (((mode & STM32L0_GPIO_MODE_MASK) >> STM32L0_GPIO_MODE_SHIFT) == STM32L0_GPIO_MODE_OUTPUT))
     {
 	stm32l0_gpio_device.enables[port] |= (1 << index);
     }
@@ -137,21 +137,21 @@ void stm32l0_gpio_pin_configure(unsigned int pin, unsigned int mode)
     stm32l0_gpio_device.mode[port] &= ~(0x00000003 << (index << 1));
     stm32l0_gpio_device.pupd[port] &= ~(0x00000003 << (index << 1));
 
-    if ((mode & GPIO_PARK_MASK) != GPIO_PARK_NONE)
+    if ((mode & STM32L0_GPIO_PARK_MASK) != STM32L0_GPIO_PARK_NONE)
     {
-	if ((mode & GPIO_PARK_MASK) == GPIO_PARK_HIZ)
+	if ((mode & STM32L0_GPIO_PARK_MASK) == STM32L0_GPIO_PARK_HIZ)
 	{
-	    /* 11 means GPIO_MODE_ANLOG (MSB is MASK, LSB is DATA) 
+	    /* 11 means STM32L0_GPIO_MODE_ANLOG (MSB is MASK, LSB is DATA) 
 	     */
 	    stm32l0_gpio_device.mode[port] |= (0x00000003 << (index << 1));
 	}
 	else
 	{
-	    /* 10 means GPIO_MODE_INPUT (MSB is MASK, LSB is DATA).
+	    /* 10 means STM32L0_GPIO_MODE_INPUT (MSB is MASK, LSB is DATA).
 	     * PUPD mask is derived from either bit being non-zero.
 	     */
 	    stm32l0_gpio_device.mode[port] |= (0x00000002 << (index << 1));
-	    stm32l0_gpio_device.pupd[port] |= (((mode & GPIO_PARK_MASK) >> GPIO_PARK_SHIFT) << (index << 1));
+	    stm32l0_gpio_device.pupd[port] |= (((mode & STM32L0_GPIO_PARK_MASK) >> STM32L0_GPIO_PARK_SHIFT) << (index << 1));
 	}
     }
 	
@@ -165,7 +165,7 @@ void stm32l0_gpio_pin_input(unsigned int pin)
 
     group = (pin >> 4) & 7;
     index = (pin >> 0) & 15;
-    port  = ((group >= GPIO_PORT_COUNT) ? (GPIO_PORT_COUNT -1) : group);
+    port  = ((group >= STM32L0_GPIO_PORT_COUNT) ? (STM32L0_GPIO_PORT_COUNT -1) : group);
 
     GPIO = (GPIO_TypeDef *)(GPIOA_BASE + (GPIOB_BASE - GPIOA_BASE) * group);
 
@@ -176,7 +176,7 @@ void stm32l0_gpio_pin_input(unsigned int pin)
     RCC->IOPENR |= (RCC_IOPENR_IOPAEN << group);
     RCC->IOPENR;
 
-    GPIO->MODER = (GPIO->MODER & ~(0x00000003 << (index << 1))) | ((GPIO_MODE_INPUT >> GPIO_MODE_SHIFT) << (index << 1));
+    GPIO->MODER = (GPIO->MODER & ~(0x00000003 << (index << 1))) | ((STM32L0_GPIO_MODE_INPUT >> STM32L0_GPIO_MODE_SHIFT) << (index << 1));
 
     stm32l0_gpio_device.enables[port] |= (1 << index);
 
@@ -190,7 +190,7 @@ void stm32l0_gpio_pin_output(unsigned int pin)
 
     group = (pin >> 4) & 7;
     index = (pin >> 0) & 15;
-    port  = ((group >= GPIO_PORT_COUNT) ? (GPIO_PORT_COUNT -1) : group);
+    port  = ((group >= STM32L0_GPIO_PORT_COUNT) ? (STM32L0_GPIO_PORT_COUNT -1) : group);
 
     GPIO = (GPIO_TypeDef *)(GPIOA_BASE + (GPIOB_BASE - GPIOA_BASE) * group);
 
@@ -201,7 +201,7 @@ void stm32l0_gpio_pin_output(unsigned int pin)
     RCC->IOPENR |= (RCC_IOPENR_IOPAEN << group);
     RCC->IOPENR;
 
-    GPIO->MODER = (GPIO->MODER & ~(0x00000003 << (index << 1))) | ((GPIO_MODE_OUTPUT >> GPIO_MODE_SHIFT) << (index << 1));
+    GPIO->MODER = (GPIO->MODER & ~(0x00000003 << (index << 1))) | ((STM32L0_GPIO_MODE_OUTPUT >> STM32L0_GPIO_MODE_SHIFT) << (index << 1));
 
     stm32l0_gpio_device.enables[port] |= (1 << index);
 
@@ -215,7 +215,7 @@ void stm32l0_gpio_pin_alternate(unsigned int pin)
 
     group = (pin >> 4) & 7;
     index = (pin >> 0) & 15;
-    port  = ((group >= GPIO_PORT_COUNT) ? (GPIO_PORT_COUNT -1) : group);
+    port  = ((group >= STM32L0_GPIO_PORT_COUNT) ? (STM32L0_GPIO_PORT_COUNT -1) : group);
 
     GPIO = (GPIO_TypeDef *)(GPIOA_BASE + (GPIOB_BASE - GPIOA_BASE) * group);
 
@@ -226,7 +226,7 @@ void stm32l0_gpio_pin_alternate(unsigned int pin)
     RCC->IOPENR |= (RCC_IOPENR_IOPAEN << group);
     RCC->IOPENR;
 
-    GPIO->MODER = (GPIO->MODER & ~(0x00000003 << (index << 1))) | ((GPIO_MODE_ALTERNATE >> GPIO_MODE_SHIFT) << (index << 1));
+    GPIO->MODER = (GPIO->MODER & ~(0x00000003 << (index << 1))) | ((STM32L0_GPIO_MODE_ALTERNATE >> STM32L0_GPIO_MODE_SHIFT) << (index << 1));
 
     stm32l0_gpio_device.enables[port] &= ~(1 << index);
 
@@ -245,7 +245,7 @@ void stm32l0_gpio_pin_analog(unsigned int pin)
 
     group = (pin >> 4) & 7;
     index = (pin >> 0) & 15;
-    port  = ((group >= GPIO_PORT_COUNT) ? (GPIO_PORT_COUNT -1) : group);
+    port  = ((group >= STM32L0_GPIO_PORT_COUNT) ? (STM32L0_GPIO_PORT_COUNT -1) : group);
 
     GPIO = (GPIO_TypeDef *)(GPIOA_BASE + (GPIOB_BASE - GPIOA_BASE) * group);
 
@@ -256,7 +256,7 @@ void stm32l0_gpio_pin_analog(unsigned int pin)
     RCC->IOPENR |= (RCC_IOPENR_IOPAEN << group);
     RCC->IOPENR;
 
-    GPIO->MODER = (GPIO->MODER & ~(0x00000003 << (index << 1))) | ((GPIO_MODE_ANALOG >> GPIO_MODE_SHIFT) << (index << 1));
+    GPIO->MODER = (GPIO->MODER & ~(0x00000003 << (index << 1))) | ((STM32L0_GPIO_MODE_ANALOG >> STM32L0_GPIO_MODE_SHIFT) << (index << 1));
 
     stm32l0_gpio_device.enables[port] &= ~(1 << index);
 
@@ -273,9 +273,9 @@ void stm32l0_gpio_save(stm32l0_gpio_state_t *state)
     GPIO_TypeDef *GPIO;
     uint32_t group, port, mask, data;
 
-    for (port = 0; port < GPIO_PORT_COUNT; port++)
+    for (port = 0; port < STM32L0_GPIO_PORT_COUNT; port++)
     {
-	group = ((port == (GPIO_PORT_COUNT -1)) ? (GPIO_GROUP_COUNT -1) : port);
+	group = ((port == (STM32L0_GPIO_PORT_COUNT -1)) ? (STM32L0_GPIO_GROUP_COUNT -1) : port);
 
 	GPIO = (GPIO_TypeDef *)(GPIOA_BASE + (GPIOB_BASE - GPIOA_BASE) * group);
 
@@ -288,9 +288,9 @@ void stm32l0_gpio_save(stm32l0_gpio_state_t *state)
 	/*
 	 * 00 means to keep the current mode value.
 	 *
-	 * 10 means GPIO_MODE_INPUT (MSB is MASK, LSB is DATA, 00).
+	 * 10 means STM32L0_GPIO_MODE_INPUT (MSB is MASK, LSB is DATA, 00).
 	 *
-	 * 11 means GPIO_MODE_ANLOG (MSB is MASK, LSB is DATA, 11) 
+	 * 11 means STM32L0_GPIO_MODE_ANLOG (MSB is MASK, LSB is DATA, 11) 
 	 */
 
 	mask = stm32l0_gpio_device.mode[port] & 0xaaaaaaaa;
@@ -321,9 +321,9 @@ void stm32l0_gpio_restore(stm32l0_gpio_state_t *state)
     GPIO_TypeDef *GPIO;
     uint32_t group, port;
 
-    for (port = 0; port < GPIO_PORT_COUNT; port++)
+    for (port = 0; port < STM32L0_GPIO_PORT_COUNT; port++)
     {
-	group = ((port == (GPIO_PORT_COUNT -1)) ? (GPIO_GROUP_COUNT -1) : port);
+	group = ((port == (STM32L0_GPIO_PORT_COUNT -1)) ? (STM32L0_GPIO_GROUP_COUNT -1) : port);
 
 	GPIO = (GPIO_TypeDef *)(GPIOA_BASE + (GPIOB_BASE - GPIOA_BASE) * group);
 
@@ -345,8 +345,8 @@ void __stm32l0_gpio_pin_write(unsigned int pin, unsigned int data)
     GPIO_TypeDef *GPIO;
     uint32_t group, index;
 
-    group = (pin & GPIO_PIN_GROUP_MASK) >> GPIO_PIN_GROUP_SHIFT;
-    index = (pin & GPIO_PIN_INDEX_MASK) >> GPIO_PIN_INDEX_SHIFT;
+    group = (pin & STM32L0_GPIO_PIN_GROUP_MASK) >> STM32L0_GPIO_PIN_GROUP_SHIFT;
+    index = (pin & STM32L0_GPIO_PIN_INDEX_MASK) >> STM32L0_GPIO_PIN_INDEX_SHIFT;
 
     GPIO = (GPIO_TypeDef *)(GPIOA_BASE + (GPIOB_BASE - GPIOA_BASE) * group);
 
@@ -362,8 +362,8 @@ unsigned int __stm32l0_gpio_pin_read(unsigned int pin)
     GPIO_TypeDef *GPIO;
     uint32_t group, index;
 
-    group = (pin & GPIO_PIN_GROUP_MASK) >> GPIO_PIN_GROUP_SHIFT;
-    index = (pin & GPIO_PIN_INDEX_MASK) >> GPIO_PIN_INDEX_SHIFT;
+    group = (pin & STM32L0_GPIO_PIN_GROUP_MASK) >> STM32L0_GPIO_PIN_GROUP_SHIFT;
+    index = (pin & STM32L0_GPIO_PIN_INDEX_MASK) >> STM32L0_GPIO_PIN_INDEX_SHIFT;
 
     GPIO = (GPIO_TypeDef *)(GPIOA_BASE + (GPIOB_BASE - GPIOA_BASE) * group);
 

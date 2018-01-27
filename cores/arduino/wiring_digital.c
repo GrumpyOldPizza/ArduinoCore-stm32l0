@@ -54,27 +54,27 @@ void pinMode( uint32_t ulPin, uint32_t ulMode )
     {
     case INPUT:
 	// Set pin to input mode
-	stm32l0_gpio_pin_configure(g_APinDescription[ulPin].pin, (GPIO_PUPD_NONE | GPIO_OSPEED_MEDIUM | GPIO_OTYPE_PUSHPULL | GPIO_MODE_INPUT));
+	stm32l0_gpio_pin_configure(g_APinDescription[ulPin].pin, (STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_MEDIUM | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
 	break ;
 
     case INPUT_PULLUP:
 	// Set pin to input mode with pull-up resistor enabled
-	stm32l0_gpio_pin_configure(g_APinDescription[ulPin].pin, (GPIO_PUPD_PULLUP | GPIO_OSPEED_MEDIUM | GPIO_OTYPE_PUSHPULL | GPIO_MODE_INPUT));
+	stm32l0_gpio_pin_configure(g_APinDescription[ulPin].pin, (STM32L0_GPIO_PUPD_PULLUP | STM32L0_GPIO_OSPEED_MEDIUM | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
 	break ;
 
     case INPUT_PULLDOWN:
 	// Set pin to input mode with pull-down resistor enabled
-	stm32l0_gpio_pin_configure(g_APinDescription[ulPin].pin, (GPIO_PUPD_PULLDOWN | GPIO_OSPEED_MEDIUM | GPIO_OTYPE_PUSHPULL | GPIO_MODE_INPUT));
+	stm32l0_gpio_pin_configure(g_APinDescription[ulPin].pin, (STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_MEDIUM | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
 	break ;
 
     case OUTPUT:
 	// Set pin to output mode
-	stm32l0_gpio_pin_configure(g_APinDescription[ulPin].pin, (GPIO_PUPD_NONE | GPIO_OSPEED_MEDIUM | GPIO_OTYPE_PUSHPULL | GPIO_MODE_OUTPUT));
+	stm32l0_gpio_pin_configure(g_APinDescription[ulPin].pin, (STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_MEDIUM | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
 	break ;
 
     case HIGHZ:
 	// Set pin to analog mode
-	stm32l0_gpio_pin_configure(g_APinDescription[ulPin].pin, (GPIO_PUPD_NONE | GPIO_MODE_ANALOG));
+	stm32l0_gpio_pin_configure(g_APinDescription[ulPin].pin, (STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_MODE_ANALOG));
 	break ;
 
     default:

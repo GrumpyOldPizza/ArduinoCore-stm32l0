@@ -37,7 +37,7 @@ bool stm32l0_random(uint8_t *data, uint32_t count)
     uint32_t rng_data;
 
     stm32l0_system_hsi48_enable();
-    stm32l0_system_periph_enable(SYSTEM_PERIPH_RNG);
+    stm32l0_system_periph_enable(STM32L0_SYSTEM_PERIPH_RNG);
 
     RNG->CR |= RNG_CR_RNGEN;
 
@@ -87,7 +87,7 @@ bool stm32l0_random(uint8_t *data, uint32_t count)
 
     RNG->CR &= ~RNG_CR_RNGEN;
     
-    stm32l0_system_periph_disable(SYSTEM_PERIPH_RNG);
+    stm32l0_system_periph_disable(STM32L0_SYSTEM_PERIPH_RNG);
     stm32l0_system_hsi48_disable();
 
     return true;

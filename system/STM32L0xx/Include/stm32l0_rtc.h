@@ -35,12 +35,12 @@
 extern "C" {
 #endif
 
-#define RTC_CALENDAR_MASK_SECONDS       0x00000001
-#define RTC_CALENDAR_MASK_MINUTES       0x00000002
-#define RTC_CALENDAR_MASK_HOURS         0x00000004
-#define RTC_CALENDAR_MASK_DAY           0x00000008
-#define RTC_CALENDAR_MASK_MONTH         0x00000010
-#define RTC_CALENDAR_MASK_YEAR          0x00000020
+#define STM32L0_RTC_CALENDAR_MASK_SECONDS       0x00000001
+#define STM32L0_RTC_CALENDAR_MASK_MINUTES       0x00000002
+#define STM32L0_RTC_CALENDAR_MASK_HOURS         0x00000004
+#define STM32L0_RTC_CALENDAR_MASK_DAY           0x00000008
+#define STM32L0_RTC_CALENDAR_MASK_MONTH         0x00000010
+#define STM32L0_RTC_CALENDAR_MASK_YEAR          0x00000020
 
 typedef struct __attribute__((aligned(4))) _stm32l0_rtc_calendar_t {
     uint16_t                       subseconds;
@@ -52,10 +52,10 @@ typedef struct __attribute__((aligned(4))) _stm32l0_rtc_calendar_t {
     uint8_t                        year;
 } stm32l0_rtc_calendar_t;
 
-#define RTC_ALARM_MATCH_SECONDS         0x00000001
-#define RTC_ALARM_MATCH_MINUTES         0x00000002
-#define RTC_ALARM_MATCH_HOURS           0x00000004
-#define RTC_ALARM_MATCH_DAY             0x00000008
+#define STM32L0_RTC_ALARM_MATCH_SECONDS         0x00000001
+#define STM32L0_RTC_ALARM_MATCH_MINUTES         0x00000002
+#define STM32L0_RTC_ALARM_MATCH_HOURS           0x00000004
+#define STM32L0_RTC_ALARM_MATCH_DAY             0x00000008
 
 typedef struct __attribute__((aligned(4))) _stm32l0_rtc_alarm_t {
     uint8_t                         seconds;

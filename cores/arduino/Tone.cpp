@@ -73,8 +73,8 @@ void tone(uint32_t pin, uint32_t frequency, uint32_t duration)
 	return ;
     }
 
-    if (stm32l0_tone.state == TIMER_STATE_NONE) {
-	stm32l0_timer_create(&stm32l0_tone, TIMER_INSTANCE_TIM7, TONE_IRQ_PRIORITY, 0);
+    if (stm32l0_tone.state == STM32L0_TIMER_STATE_NONE) {
+	stm32l0_timer_create(&stm32l0_tone, STM32L0_TIMER_INSTANCE_TIM7, STM32L0_TONE_IRQ_PRIORITY, 0);
     }
 
     GPIO_TypeDef *GPIO = (GPIO_TypeDef *)g_APinDescription[pin].GPIO;
@@ -114,8 +114,8 @@ void tone(uint32_t pin, uint32_t frequency, uint32_t duration)
 	toneCount = 0xffffffff;
     }
 
-    if (stm32l0_tone.state == TIMER_STATE_INIT) {
-	stm32l0_timer_enable(&stm32l0_tone, (stm32l0_timer_clock(&stm32l0_tone) / 4000000) -1, TIMER_OPTION_COUNT_PRELOAD, tone_event_callback, NULL, TIMER_EVENT_PERIOD);
+    if (stm32l0_tone.state == STM32L0_TIMER_STATE_INIT) {
+	stm32l0_timer_enable(&stm32l0_tone, (stm32l0_timer_clock(&stm32l0_tone) / 4000000) -1, STM32L0_TIMER_OPTION_COUNT_PRELOAD, tone_event_callback, NULL, STM32L0_TIMER_EVENT_PERIOD);
 	stm32l0_timer_start(&stm32l0_tone, modulus -1, false);
     } else {
 	stm32l0_timer_period(&stm32l0_tone, modulus -1, false);

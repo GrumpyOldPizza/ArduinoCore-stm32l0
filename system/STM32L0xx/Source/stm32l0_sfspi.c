@@ -107,7 +107,7 @@ static uint32_t stm32l0_sfspi_capacity(void *context)
 {
     stm32l0_sfspi_t *sfspi = (stm32l0_sfspi_t*)context;
 
-    if ((sfspi->state != SFSPI_STATE_READY) && (sfspi->state != SFSPI_STATE_LOCKED))
+    if ((sfspi->state != STM32L0_SFSPI_STATE_READY) && (sfspi->state != STM32L0_SFSPI_STATE_LOCKED))
     {
 	return 0;
     }
@@ -128,7 +128,7 @@ static void stm32l0_sfspi_lock(void *context)
 
     stm32l0_spi_acquire(sfspi->spi, 32000000, 0);
 
-    if (sfspi->state == SFSPI_STATE_SLEEP)
+    if (sfspi->state == STM32L0_SFSPI_STATE_SLEEP)
     {
 	stm32l0_sfspi_select(sfspi);
 	stm32l0_spi_data(sfspi->spi, SFLASH_CMD_RDPD);
@@ -137,7 +137,7 @@ static void stm32l0_sfspi_lock(void *context)
 	armv6m_core_udelay(50);
     }
 
-    sfspi->state = SFSPI_STATE_LOCKED;
+    sfspi->state = STM32L0_SFSPI_STATE_LOCKED;
 }
 
 static void stm32l0_sfspi_unlock(void *context)
@@ -146,7 +146,7 @@ static void stm32l0_sfspi_unlock(void *context)
 
     stm32l0_spi_release(sfspi->spi);
 
-    sfspi->state = SFSPI_STATE_READY;
+    sfspi->state = STM32L0_SFSPI_STATE_READY;
 }
 
 static bool stm32l0_sfspi_erase(void *context, uint32_t address)
@@ -327,7 +327,7 @@ static void stm32l0_sfspi_callback(void *context, uint32_t events)
 {
     stm32l0_sfspi_t *sfspi = (stm32l0_sfspi_t*)context;
     
-    if (events & SYSTEM_EVENT_SLEEP)
+    if (events & STM32L0_SYSTEM_EVENT_SLEEP)
     {
 	if (sfspi->ID[0] == SFLASH_MID_MACRONIX)
 	{
@@ -336,13 +336,13 @@ static void stm32l0_sfspi_callback(void *context, uint32_t events)
 
 	    stm32l0_sfspi_lock(sfspi);
 	    
-	    if (sfspi->state == SFSPI_STATE_READY)
+	    if (sfspi->state == STM32L0_SFSPI_STATE_READY)
 	    {
 		stm32l0_sfspi_select(sfspi);
 		stm32l0_spi_data(sfspi->spi, SFLASH_CMD_DPD);
 		stm32l0_sfspi_unselect(sfspi);
 		
-		sfspi->state = SFSPI_STATE_SLEEP;
+		sfspi->state = STM32L0_SFSPI_STATE_SLEEP;
 	    }
 
 	    stm32l0_sfspi_unlock(sfspi);
@@ -364,9 +364,9 @@ bool stm32l0_sfspi_initialize(stm32l0_spi_t *spi, const stm32l0_sfspi_params_t *
 {
     stm32l0_sfspi_t *sfspi = &stm32l0_sfspi;
 
-    if (sfspi->state == SFSPI_STATE_NONE)
+    if (sfspi->state == STM32L0_SFSPI_STATE_NONE)
     {
-	if (spi->state == SPI_STATE_NONE)
+	if (spi->state == STM32L0_SPI_STATE_NONE)
 	{
 	    return false;
 	}
@@ -376,7 +376,7 @@ bool stm32l0_sfspi_initialize(stm32l0_spi_t *spi, const stm32l0_sfspi_params_t *
 
 	stm32l0_spi_enable(spi); // bump up refcount
 
-	stm32l0_gpio_pin_configure(sfspi->pin_cs, (GPIO_PARK_PULLUP | GPIO_PUPD_NONE | GPIO_OSPEED_VERY_HIGH | GPIO_OTYPE_PUSHPULL | GPIO_MODE_OUTPUT));
+	stm32l0_gpio_pin_configure(sfspi->pin_cs, (STM32L0_GPIO_PARK_PULLUP | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_VERY_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
 	stm32l0_gpio_pin_write(sfspi->pin_cs, 1);
 
 	stm32l0_sfspi_lock(sfspi);
@@ -403,18 +403,18 @@ bool stm32l0_sfspi_initialize(stm32l0_spi_t *spi, const stm32l0_sfspi_params_t *
 	    sfspi->ID[1] = 0x00;
 	    sfspi->ID[2] = 0x00;
 
-	    sfspi->state = SFSPI_STATE_INIT;
+	    sfspi->state = STM32L0_SFSPI_STATE_INIT;
 	}
 	else
 	{
-	    sfspi->state = SFSPI_STATE_READY;
+	    sfspi->state = STM32L0_SFSPI_STATE_READY;
 
-	    stm32l0_system_notify(&stm32l0_sfspi.notify, stm32l0_sfspi_callback, (void*)&stm32l0_sfspi, SYSTEM_EVENT_SLEEP);
+	    stm32l0_system_notify(&stm32l0_sfspi.notify, stm32l0_sfspi_callback, (void*)&stm32l0_sfspi, STM32L0_SYSTEM_EVENT_SLEEP);
 	}
     }
 
     dosfs_sflash_device.interface = &stm32l0_sfspi_interface;
     dosfs_sflash_device.context = sfspi;
 
-    return (sfspi->state == SFSPI_STATE_READY);
+    return (sfspi->state == STM32L0_SFSPI_STATE_READY);
 }

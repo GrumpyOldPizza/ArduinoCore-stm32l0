@@ -490,7 +490,7 @@ static void stm32l0_sdspi_select(stm32l0_sdspi_t *sdspi)
 
     SDSPI_STATISTICS_COUNT(sdcard_select);
 
-    stm32l0_spi_acquire(spi, sdspi->clock, SPI_OPTION_MODE_0);
+    stm32l0_spi_acquire(spi, sdspi->clock, STM32L0_SPI_OPTION_MODE_0);
 
     /* CS output, drive CS to L */
     stm32l0_gpio_pin_write(sdspi->pin_cs, 0);
@@ -529,15 +529,15 @@ static void stm32l0_sdspi_mode(stm32l0_sdspi_t *sdspi, uint32_t mode)
 
     stm32l0_spi_release(spi);
 
-    if (mode == SDSPI_MODE_NONE)
+    if (mode == STM32L0_SDSPI_MODE_NONE)
     {
 	sdspi->clock = 0;
 
-	stm32l0_gpio_pin_configure(sdspi->pin_cs, (GPIO_PARK_PULLUP | GPIO_PUPD_PULLUP | GPIO_OSPEED_VERY_HIGH | GPIO_OTYPE_PUSHPULL | GPIO_MODE_INPUT));
+	stm32l0_gpio_pin_configure(sdspi->pin_cs, (STM32L0_GPIO_PARK_PULLUP | STM32L0_GPIO_PUPD_PULLUP | STM32L0_GPIO_OSPEED_VERY_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
     }
     else
     {
-	if (mode == SDSPI_MODE_IDENTIFY)
+	if (mode == STM32L0_SDSPI_MODE_IDENTIFY)
 	{
 	    sdspi->clock = 400000;
 	}
@@ -546,12 +546,12 @@ static void stm32l0_sdspi_mode(stm32l0_sdspi_t *sdspi, uint32_t mode)
 	    sdspi->clock = 25000000;
 	}
 
-	stm32l0_gpio_pin_configure(sdspi->pin_cs, (GPIO_PARK_PULLUP | GPIO_PUPD_NONE | GPIO_OSPEED_VERY_HIGH | GPIO_OTYPE_PUSHPULL | GPIO_MODE_OUTPUT));
+	stm32l0_gpio_pin_configure(sdspi->pin_cs, (STM32L0_GPIO_PARK_PULLUP | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_VERY_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
 	stm32l0_gpio_pin_write(sdspi->pin_cs, 1);
 
-	stm32l0_spi_acquire(spi, sdspi->clock, SPI_OPTION_MODE_0);
+	stm32l0_spi_acquire(spi, sdspi->clock, STM32L0_SPI_OPTION_MODE_0);
 
-	if (mode == SDSPI_MODE_IDENTIFY)
+	if (mode == STM32L0_SDSPI_MODE_IDENTIFY)
 	{
   	    stm32l0_gpio_pin_output(spi->pins.mosi);
 	    stm32l0_gpio_pin_write(spi->pins.mosi, 1);
@@ -823,7 +823,7 @@ static int stm32l0_sdspi_receive(stm32l0_sdspi_t *sdspi, uint8_t *data, uint32_t
 		
 		if (status == F_NO_ERROR)
 		{
-		    sdspi->state = SDSPI_STATE_READY;
+		    sdspi->state = STM32L0_SDSPI_STATE_READY;
 		}
 
 		break;
@@ -840,7 +840,7 @@ static int stm32l0_sdspi_receive(stm32l0_sdspi_t *sdspi, uint8_t *data, uint32_t
 
 	else if ((token & SD_DATA_ERROR_TOKEN_VALID_MASK) == SD_DATA_ERROR_TOKEN_VALID_DATA)
 	{
-	    sdspi->state = SDSPI_STATE_READY;
+	    sdspi->state = STM32L0_SDSPI_STATE_READY;
 
 	    if (token & SD_DATA_ERROR_CARD_ECC_FAILED)
 	    {
@@ -927,7 +927,7 @@ static int stm32l0_sdspi_transmit(stm32l0_sdspi_t *sdspi, uint8_t start, const u
 		    
 		    if (status == F_NO_ERROR)
 		    {
-			sdspi->state = SDSPI_STATE_READY;
+			sdspi->state = STM32L0_SDSPI_STATE_READY;
 
 			if (response == SD_DATA_RESPONSE_CRC_ERROR)
 			{
@@ -999,7 +999,7 @@ static int stm32l0_sdspi_read_stop(stm32l0_sdspi_t *sdspi)
 
     if (status == F_NO_ERROR)
     {
-	sdspi->state = SDSPI_STATE_READY;
+	sdspi->state = STM32L0_SDSPI_STATE_READY;
 
 	if (sdspi->response[0] & SD_R1_ERROR_MASK)
 	{
@@ -1045,7 +1045,7 @@ static int stm32l0_sdspi_write_stop(stm32l0_sdspi_t *sdspi)
 	stm32l0_spi_data(spi, SD_STOP_TRANSMISSION_TOKEN);
 	stm32l0_spi_data(spi, 0xff);
 
-	sdspi->state = SDSPI_STATE_WRITE_STOP;
+	sdspi->state = STM32L0_SDSPI_STATE_WRITE_STOP;
     }
 
     return status;
@@ -1061,7 +1061,7 @@ static int stm32l0_sdspi_write_sync(stm32l0_sdspi_t *sdspi)
 
     if (status == F_NO_ERROR)
     {
-	sdspi->state = SDSPI_STATE_READY;
+	sdspi->state = STM32L0_SDSPI_STATE_READY;
 
 	status = stm32l0_sdspi_command(sdspi, SD_CMD_SEND_STATUS, 0, 1);
 	
@@ -1107,7 +1107,7 @@ static int stm32l0_sdspi_idle(stm32l0_sdspi_t *sdspi, uint32_t *p_media)
 
     media = DOSFS_MEDIA_NONE;
     
-    stm32l0_sdspi_mode(sdspi, SDSPI_MODE_IDENTIFY);
+    stm32l0_sdspi_mode(sdspi, STM32L0_SDSPI_MODE_IDENTIFY);
 
     /* Apply an initial CMD_GO_IDLE_STATE, so that the card is out of
      * data read/write mode, and can properly respond.
@@ -1202,7 +1202,7 @@ static int stm32l0_sdspi_idle(stm32l0_sdspi_t *sdspi, uint32_t *p_media)
 
     if ((p_media == NULL) || (status != F_NO_ERROR))
     {
-	stm32l0_sdspi_mode(sdspi, SDSPI_MODE_NONE);
+	stm32l0_sdspi_mode(sdspi, STM32L0_SDSPI_MODE_NONE);
     }
     
     if (p_media)
@@ -1300,7 +1300,7 @@ static int stm32l0_sdspi_reset(stm32l0_sdspi_t *sdspi, uint32_t media)
 
     if (status == F_NO_ERROR)
     {
-	stm32l0_sdspi_mode(sdspi, SDSPI_MODE_DATA_TRANSFER);
+	stm32l0_sdspi_mode(sdspi, STM32L0_SDSPI_MODE_DATA_TRANSFER);
 
 #if (DOSFS_CONFIG_SDCARD_CRC == 1)
 	if (status == F_NO_ERROR)
@@ -1384,7 +1384,7 @@ static int stm32l0_sdspi_reset(stm32l0_sdspi_t *sdspi, uint32_t media)
 
     if (status == F_NO_ERROR)
     {
-	sdspi->state = SDSPI_STATE_READY;
+	sdspi->state = STM32L0_SDSPI_STATE_READY;
 
 	sdspi->media = media;
 	sdspi->shift = 9;
@@ -1413,9 +1413,9 @@ static int stm32l0_sdspi_reset(stm32l0_sdspi_t *sdspi, uint32_t media)
     }
     else
     {
-	sdspi->state = SDSPI_STATE_RESET;
+	sdspi->state = STM32L0_SDSPI_STATE_RESET;
 	
-	stm32l0_sdspi_mode(sdspi, SDSPI_MODE_NONE);
+	stm32l0_sdspi_mode(sdspi, STM32L0_SDSPI_MODE_NONE);
 
 	status = F_ERR_CARDREMOVED;
     }
@@ -1434,14 +1434,14 @@ static int stm32l0_sdspi_lock(stm32l0_sdspi_t *sdspi, int state, uint32_t addres
     if (status == F_NO_ERROR)
 #endif /* DOSFS_PORT_SDCARD_LOCK */
     {
-	stm32l0_system_lock(SYSTEM_LOCK_STOP);
-	stm32l0_system_lock(SYSTEM_LOCK_CLOCKS);
+	stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
+	stm32l0_system_lock(STM32L0_SYSTEM_LOCK_CLOCKS);
 
-	if (sdspi->state == SDSPI_STATE_INIT)
+	if (sdspi->state == STM32L0_SDSPI_STATE_INIT)
 	{
 	    if (stm32l0_sdspi_detect(sdspi))
 	    {
-		sdspi->state = SDSPI_STATE_RESET;
+		sdspi->state = STM32L0_SDSPI_STATE_RESET;
 	    }
 	    else
 	    {
@@ -1451,7 +1451,7 @@ static int stm32l0_sdspi_lock(stm32l0_sdspi_t *sdspi, int state, uint32_t addres
 	
 	if (status == F_NO_ERROR)
 	{
-	    if (sdspi->state == SDSPI_STATE_RESET)
+	    if (sdspi->state == STM32L0_SDSPI_STATE_RESET)
 	    {
 		status = stm32l0_sdspi_idle(sdspi, &media);
 
@@ -1468,25 +1468,25 @@ static int stm32l0_sdspi_lock(stm32l0_sdspi_t *sdspi, int state, uint32_t addres
 	    {
 		stm32l0_sdspi_select(sdspi);
 
-		if (sdspi->state == SDSPI_STATE_READ_MULTIPLE)
+		if (sdspi->state == STM32L0_SDSPI_STATE_READ_MULTIPLE)
 		{
-		    if ((state != SDSPI_STATE_READ_MULTIPLE) || (sdspi->address != address))
+		    if ((state != STM32L0_SDSPI_STATE_READ_MULTIPLE) || (sdspi->address != address))
 		    {
 			status = stm32l0_sdspi_read_stop(sdspi);
 		    }
 		}
 
-		if (sdspi->state == SDSPI_STATE_WRITE_MULTIPLE)
+		if (sdspi->state == STM32L0_SDSPI_STATE_WRITE_MULTIPLE)
 		{
-		    if ((state != SDSPI_STATE_WRITE_MULTIPLE) || (sdspi->address != address))
+		    if ((state != STM32L0_SDSPI_STATE_WRITE_MULTIPLE) || (sdspi->address != address))
 		    {
 			status = stm32l0_sdspi_write_stop(sdspi);
 		    }
 		}
 
-		if (sdspi->state == SDSPI_STATE_WRITE_STOP)
+		if (sdspi->state == STM32L0_SDSPI_STATE_WRITE_STOP)
 		{
-		    if (state != SDSPI_STATE_WRITE_STOP)
+		    if (state != STM32L0_SDSPI_STATE_WRITE_STOP)
 		    {
 			status = stm32l0_sdspi_write_sync(sdspi);
 		    }
@@ -1505,7 +1505,7 @@ static int stm32l0_sdspi_lock(stm32l0_sdspi_t *sdspi, int state, uint32_t addres
 
 static int stm32l0_sdspi_unlock(stm32l0_sdspi_t *sdspi, int status)
 {
-    if ((sdspi->state != SDSPI_STATE_INIT) && (sdspi->state != SDSPI_STATE_RESET))
+    if ((sdspi->state != STM32L0_SDSPI_STATE_INIT) && (sdspi->state != STM32L0_SDSPI_STATE_RESET))
     {
 	stm32l0_sdspi_unselect(sdspi);
     }
@@ -1514,18 +1514,18 @@ static int stm32l0_sdspi_unlock(stm32l0_sdspi_t *sdspi, int status)
     {
 	if (stm32l0_sdspi_idle(sdspi, NULL) == F_NO_ERROR)
 	{
-	    sdspi->state = SDSPI_STATE_INIT;
+	    sdspi->state = STM32L0_SDSPI_STATE_INIT;
 	}
 	else
 	{
-	    sdspi->state = SDSPI_STATE_RESET;
+	    sdspi->state = STM32L0_SDSPI_STATE_RESET;
 
 	    status = F_ERR_CARDREMOVED;
 	}
     }
 
-    stm32l0_system_unlock(SYSTEM_LOCK_CLOCKS);
-    stm32l0_system_unlock(SYSTEM_LOCK_STOP);
+    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_CLOCKS);
+    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
 
 #if defined(DOSFS_PORT_SDCARD_UNLOCK)
     DOSFS_PORT_SDCARD_UNLOCK();
@@ -1539,19 +1539,19 @@ static int stm32l0_sdspi_release(void *context)
     stm32l0_sdspi_t *sdspi = (stm32l0_sdspi_t*)context;
     int status = F_NO_ERROR;
 
-    if ((sdspi->state != SDSPI_STATE_INIT) && (sdspi->state != SDSPI_STATE_RESET))
+    if ((sdspi->state != STM32L0_SDSPI_STATE_INIT) && (sdspi->state != STM32L0_SDSPI_STATE_RESET))
     {
-	status = stm32l0_sdspi_lock(sdspi, SDSPI_STATE_READY, 0);
+	status = stm32l0_sdspi_lock(sdspi, STM32L0_SDSPI_STATE_READY, 0);
 	
 	if (status == F_NO_ERROR)
 	{
 	    status = stm32l0_sdspi_unlock(sdspi, status);
 
-	    stm32l0_sdspi_mode(sdspi, SDSPI_MODE_NONE);
+	    stm32l0_sdspi_mode(sdspi, STM32L0_SDSPI_MODE_NONE);
 
 	    stm32l0_spi_notify(sdspi->spi, NULL, NULL);
 
-	    sdspi->state = SDSPI_STATE_INIT;
+	    sdspi->state = STM32L0_SDSPI_STATE_INIT;
 	}
     }
 
@@ -1564,7 +1564,7 @@ static int stm32l0_sdspi_info(void *context, uint8_t *p_media, uint8_t *p_write_
     int status = F_NO_ERROR;
     uint32_t c_size, c_size_mult, read_bl_len;
 
-    status = stm32l0_sdspi_lock(sdspi, SDSPI_STATE_READY, 0);
+    status = stm32l0_sdspi_lock(sdspi, STM32L0_SDSPI_STATE_READY, 0);
 
     if (status == F_NO_ERROR)
     {
@@ -1651,7 +1651,7 @@ static int stm32l0_sdspi_erase(void *context, uint32_t address, uint32_t length)
 	    timeout += 250;
 	}
 	
-	status = stm32l0_sdspi_lock(sdspi, SDSPI_STATE_READY, 0);
+	status = stm32l0_sdspi_lock(sdspi, STM32L0_SDSPI_STATE_READY, 0);
 
 	if (status == F_NO_ERROR)
 	{
@@ -1727,7 +1727,7 @@ static int stm32l0_sdspi_read(void *context, uint32_t address, uint8_t *data, ui
 
     if (!prefetch && (length == 1))
     {
-	status = stm32l0_sdspi_lock(sdspi, SDSPI_STATE_READY, 0);
+	status = stm32l0_sdspi_lock(sdspi, STM32L0_SDSPI_STATE_READY, 0);
 
 	if (status == F_NO_ERROR)
 	{
@@ -1779,24 +1779,24 @@ static int stm32l0_sdspi_read(void *context, uint32_t address, uint8_t *data, ui
     {
 	if (prefetch)
 	{
-	    status = stm32l0_sdspi_lock(sdspi, SDSPI_STATE_READ_MULTIPLE, address);
+	    status = stm32l0_sdspi_lock(sdspi, STM32L0_SDSPI_STATE_READ_MULTIPLE, address);
 	}
 	else
 	{
-	    status = stm32l0_sdspi_lock(sdspi, SDSPI_STATE_READY, 0);
+	    status = stm32l0_sdspi_lock(sdspi, STM32L0_SDSPI_STATE_READY, 0);
 	}
 
 	if (status == F_NO_ERROR)
 	{
 	    do
 	    {
-		if (sdspi->state != SDSPI_STATE_READ_MULTIPLE)
+		if (sdspi->state != STM32L0_SDSPI_STATE_READ_MULTIPLE)
 		{
 		    status = stm32l0_sdspi_command(sdspi, SD_CMD_READ_MULTIPLE_BLOCK, (address << sdspi->shift), 1);
 
 		    if (status == F_NO_ERROR)
 		    {
-			sdspi->state = SDSPI_STATE_READ_MULTIPLE;
+			sdspi->state = STM32L0_SDSPI_STATE_READ_MULTIPLE;
 			sdspi->address = address;
 			sdspi->count = 0;
 		    }
@@ -1880,7 +1880,7 @@ static int stm32l0_sdspi_write(void *context, uint32_t address, const uint8_t *d
 
     if (wait && (length == 1))
     {
-	status = stm32l0_sdspi_lock(sdspi, SDSPI_STATE_READY, 0);
+	status = stm32l0_sdspi_lock(sdspi, STM32L0_SDSPI_STATE_READY, 0);
 
 	if (status == F_NO_ERROR)
 	{
@@ -1894,7 +1894,7 @@ static int stm32l0_sdspi_write(void *context, uint32_t address, const uint8_t *d
 		
 		    if (status == F_NO_ERROR)
 		    {
-			sdspi->state = SDSPI_STATE_WRITE_STOP;
+			sdspi->state = STM32L0_SDSPI_STATE_WRITE_STOP;
 
 			if (check)
 			{
@@ -1932,19 +1932,19 @@ static int stm32l0_sdspi_write(void *context, uint32_t address, const uint8_t *d
     }
     else
     {
-	status = stm32l0_sdspi_lock(sdspi, SDSPI_STATE_WRITE_MULTIPLE, address);
+	status = stm32l0_sdspi_lock(sdspi, STM32L0_SDSPI_STATE_WRITE_MULTIPLE, address);
 
 	if (status == F_NO_ERROR)
 	{
 	    do
 	    {
-		if (sdspi->state != SDSPI_STATE_WRITE_MULTIPLE)
+		if (sdspi->state != STM32L0_SDSPI_STATE_WRITE_MULTIPLE)
 		{
 		    status = stm32l0_sdspi_command(sdspi, SD_CMD_WRITE_MULTIPLE_BLOCK, (address << sdspi->shift), 0);
 			
 		    if (status == F_NO_ERROR)
 		    {
-			sdspi->state = SDSPI_STATE_WRITE_MULTIPLE;
+			sdspi->state = STM32L0_SDSPI_STATE_WRITE_MULTIPLE;
 			sdspi->address = address;
 			sdspi->count = 0;
 		    }
@@ -2058,9 +2058,9 @@ static int stm32l0_sdspi_sync(void *context)
     stm32l0_sdspi_t *sdspi = (stm32l0_sdspi_t*)context;
     int status = F_NO_ERROR;
 
-    if (sdspi->state >= SDSPI_STATE_READ_MULTIPLE)
+    if (sdspi->state >= STM32L0_SDSPI_STATE_READ_MULTIPLE)
     {
-        status = stm32l0_sdspi_lock(sdspi, SDSPI_STATE_READY, 0);
+        status = stm32l0_sdspi_lock(sdspi, STM32L0_SDSPI_STATE_READY, 0);
 
 	if (status == F_NO_ERROR)
 	{
@@ -2094,9 +2094,9 @@ int stm32l0_sdspi_initialize(stm32l0_spi_t *spi, const stm32l0_sdspi_params_t *p
 
     sdspi->option = 0;
 
-    if (sdspi->state == SDSPI_STATE_NONE)
+    if (sdspi->state == STM32L0_SDSPI_STATE_NONE)
     {
-	if (spi->state == SPI_STATE_NONE)
+	if (spi->state == STM32L0_SPI_STATE_NONE)
 	{
 	    status = F_ERR_INITFUNC;
 	}
@@ -2112,7 +2112,7 @@ int stm32l0_sdspi_initialize(stm32l0_spi_t *spi, const stm32l0_sdspi_params_t *p
 	     */
 	    stm32l0_sdspi_idle(sdspi, NULL);
 	    
-	    sdspi->state = SDSPI_STATE_INIT;
+	    sdspi->state = STM32L0_SDSPI_STATE_INIT;
 	}
     }
     

@@ -15,23 +15,23 @@ Maintainer: Miguel Luis and Gregory Cristian
 #ifndef __SX1276_ARCH_H__
 #define __SX1276_ARCH_H__
 
-#define RADIO_RESET                          GPIO_PIN_PC0
+#define RADIO_RESET                          STM32L0_GPIO_PIN_PC0
 
-#define RADIO_MOSI                           GPIO_PIN_PA7_SPI1_MOSI
-#define RADIO_MISO                           GPIO_PIN_PA6_SPI1_MISO
-#define RADIO_SCLK                           GPIO_PIN_PB3_SPI1_SCK
-#define RADIO_NSS                            GPIO_PIN_PA15_SPI1_NSS
+#define RADIO_MOSI                           STM32L0_GPIO_PIN_PA7_SPI1_MOSI
+#define RADIO_MISO                           STM32L0_GPIO_PIN_PA6_SPI1_MISO
+#define RADIO_SCLK                           STM32L0_GPIO_PIN_PB3_SPI1_SCK
+#define RADIO_NSS                            STM32L0_GPIO_PIN_PA15_SPI1_NSS
 
-#define RADIO_DIO_0                          GPIO_PIN_PB4
-#define RADIO_DIO_1                          GPIO_PIN_PB1
-#define RADIO_DIO_2                          GPIO_PIN_PB0
-//#define RADIO_DIO_3                          GPIO_PIN_PC13
+#define RADIO_DIO_0                          STM32L0_GPIO_PIN_PB4
+#define RADIO_DIO_1                          STM32L0_GPIO_PIN_PB1
+#define RADIO_DIO_2                          STM32L0_GPIO_PIN_PB0
+//#define RADIO_DIO_3                          STM32L0_GPIO_PIN_PC13
 
-#define RADIO_TCXO_VCC                       GPIO_PIN_PH1
+#define RADIO_TCXO_VCC                       STM32L0_GPIO_PIN_PH1
 
-#define RADIO_ANT_SWITCH_RX                  GPIO_PIN_PA1
-#define RADIO_ANT_SWITCH_TX_BOOST            GPIO_PIN_PC1
-#define RADIO_ANT_SWITCH_TX_RFO              GPIO_PIN_PC2
+#define RADIO_ANT_SWITCH_RX                  STM32L0_GPIO_PIN_PA1
+#define RADIO_ANT_SWITCH_TX_BOOST            STM32L0_GPIO_PIN_PC1
+#define RADIO_ANT_SWITCH_TX_RFO              STM32L0_GPIO_PIN_PC2
 
 /*!
  * \brief Radio hardware registers initialization definition

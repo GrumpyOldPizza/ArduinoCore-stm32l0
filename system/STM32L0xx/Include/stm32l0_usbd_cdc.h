@@ -35,14 +35,10 @@
  extern "C" {
 #endif
 
-#define USBD_CDC_INSTANCE_COUNT          1
+#define STM32L0_USBD_CDC_INSTANCE_COUNT          1
 
-#define USBD_CDC_DATA_MAX_PACKET_SIZE    64
-#define USBD_CDC_FIFO_SIZE               128
-
-#define USBD_CDC_SET_LINE_CODING         0x20
-#define USBD_CDC_GET_LINE_CODING         0x21
-#define USBD_CDC_SET_CONTROL_LINE_STATE  0x22
+#define STM32L0_USBD_CDC_DATA_MAX_PACKET_SIZE    64
+#define STM32L0_USBD_CDC_FIFO_SIZE               128
 
 typedef struct _stm32l0_usbd_cdc_info_t {
     volatile int32_t               dwDTERate;
@@ -54,17 +50,17 @@ typedef struct _stm32l0_usbd_cdc_info_t {
 
 extern volatile stm32l0_usbd_cdc_info_t stm32l0_usbd_cdc_info;
 
-#define USBD_CDC_EVENT_RECEIVE           0x00000001
+#define STM32L0_USBD_CDC_EVENT_RECEIVE           0x00000001
 
 
 typedef void (*stm32l0_usbd_cdc_event_callback_t)(void *context, uint32_t events);
 typedef void (*stm32l0_usbd_cdc_done_callback_t)(void *context);
 
-#define USBD_CDC_STATE_NONE              0
-#define USBD_CDC_STATE_INIT              1
-#define USBD_CDC_STATE_READY             2
-#define USBD_CDC_STATE_SUSPENDED         3
-#define USBD_CDC_STATE_RESET             4
+#define STM32L0_USBD_CDC_STATE_NONE              0
+#define STM32L0_USBD_CDC_STATE_INIT              1
+#define STM32L0_USBD_CDC_STATE_READY             2
+#define STM32L0_USBD_CDC_STATE_SUSPENDED         3
+#define STM32L0_USBD_CDC_STATE_RESET             4
 
 typedef struct _stm32l0_usbd_cdc_t {
     volatile uint8_t                  state;
@@ -95,4 +91,4 @@ extern void stm32l0_usbd_cdc_poll(stm32l0_usbd_cdc_t *usbd_cdc);
 }
 #endif
 
-#endif /* _STM32L0_USBD_CDC_H */
+#endif /* _STM32L0_STM32L0_USBD_CDC_H */

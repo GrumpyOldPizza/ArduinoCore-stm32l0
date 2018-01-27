@@ -106,8 +106,6 @@ static inline uint32_t armv6m_svcall_4(uint32_t routine, uint32_t a0, uint32_t a
 
 extern void armv6m_svcall_initialize(void);
 
-extern void SVC_Handler(void);
-
 #ifdef __cplusplus
 }
 #endif

@@ -36,19 +36,19 @@
 extern "C" {
 #endif
 
-#define COMP_OPTION_REFERENCE_MASK           0x00000007
-#define COMP_OPTION_REFERENCE_SHIFT          0
-#define COMP_OPTION_REFERENCE_EXTERNAL       0x00000000
-#define COMP_OPTION_REFERENCE_DAC1           0x00000001
-#define COMP_OPTION_REFERENCE_DAC2           0x00000002
-#define COMP_OPTION_REFERENCE_VREFINT        0x00000003
-#define COMP_OPTION_REFERENCE_1_4_VREFINT    0x00000004
-#define COMP_OPTION_REFERENCE_1_2_VREFINT    0x00000005
-#define COMP_OPTION_REFERENCE_3_4_VREFINT    0x00000006
-#define COMP_OPTION_POLARITY                 0x00000008
+#define STM32L0_COMP_OPTION_REFERENCE_MASK           0x00000007
+#define STM32L0_COMP_OPTION_REFERENCE_SHIFT          0
+#define STM32L0_COMP_OPTION_REFERENCE_EXTERNAL       0x00000000
+#define STM32L0_COMP_OPTION_REFERENCE_DAC1           0x00000001
+#define STM32L0_COMP_OPTION_REFERENCE_DAC2           0x00000002
+#define STM32L0_COMP_OPTION_REFERENCE_VREFINT        0x00000003
+#define STM32L0_COMP_OPTION_REFERENCE_1_4_VREFINT    0x00000004
+#define STM32L0_COMP_OPTION_REFERENCE_1_2_VREFINT    0x00000005
+#define STM32L0_COMP_OPTION_REFERENCE_3_4_VREFINT    0x00000006
+#define STM32L0_COMP_OPTION_POLARITY                 0x00000008
 
-#define COMP_CONTROL_EDGE_FALLING            0x00000001
-#define COMP_CONTROL_EDGE_RISING             0x00000002
+#define STM32L0_COMP_CONTROL_EDGE_FALLING            0x00000001
+#define STM32L0_COMP_CONTROL_EDGE_RISING             0x00000002
 
 typedef void (*stm32l0_comp_callback_t)(void *context);
 
@@ -58,8 +58,6 @@ extern bool stm32l0_comp_disable(void);
 extern bool stm32l0_comp_attach(uint32_t control, stm32l0_comp_callback_t callback, void *context);
 extern bool stm32l0_comp_detach(void);
 extern bool stm32l0_comp_status(void);
-
-extern void ADC1_COMP_IRQHandler(void);
 
 #ifdef __cplusplus
 }

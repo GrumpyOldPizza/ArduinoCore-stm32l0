@@ -43,12 +43,7 @@ Callback::Callback(class EventHandler *event)
 
 bool Callback::queue() {
     if (_callback) {
-	if (_callback == reinterpret_cast<void (*)(void*)>(armv6m_event_enqueue)) {
-	    armv6m_event_enqueue((armv6m_event_t*)_context);
-	    return true;
-	} else {
-	    return armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)_callback, _context, 0);
-	}
+	return armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)_callback, _context, 0);
     } else {
 	stm32l0_system_wakeup();
 	return false;

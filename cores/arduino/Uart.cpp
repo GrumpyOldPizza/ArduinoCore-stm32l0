@@ -75,7 +75,7 @@ void Uart::begin(unsigned long baudrate, uint16_t config, uint8_t *buffer, size_
 {
     uint32_t option;
 
-    if (((_uart->pins.rx & GPIO_PIN_IO_MASK) == GPIO_PIN_PA13) || ((_uart->pins.tx & GPIO_PIN_IO_MASK) == GPIO_PIN_PA14)) {
+    if (((_uart->pins.rx & STM32L0_GPIO_PIN_IO_MASK) == STM32L0_GPIO_PIN_PA13) || ((_uart->pins.tx & STM32L0_GPIO_PIN_IO_MASK) == STM32L0_GPIO_PIN_PA14)) {
 	if (g_swdStatus != 3) {
 	    stm32l0_system_swd_disable();
 
@@ -88,7 +88,7 @@ void Uart::begin(unsigned long baudrate, uint16_t config, uint8_t *buffer, size_
 	stm32l0_uart_disable(_uart);
     }
 
-    option = (_option & (UART_OPTION_RTS | UART_OPTION_CTS | UART_OPTION_XONOFF | UART_OPTION_WAKEUP)) | config;
+    option = (_option & (STM32L0_UART_OPTION_RTS | STM32L0_UART_OPTION_CTS | STM32L0_UART_OPTION_XONOFF | STM32L0_UART_OPTION_WAKEUP)) | config;
 
     _enabled = stm32l0_uart_enable(_uart, buffer, size, baudrate, option, (stm32l0_uart_event_callback_t)Uart::_eventCallback, (void*)this);
 
@@ -341,16 +341,16 @@ void Uart::setNonBlocking(bool enable)
 
 void Uart::setWakeup(bool enable)
 {
-    _option = (_option & ~UART_OPTION_WAKEUP) | (enable ? UART_OPTION_WAKEUP : 0);
+    _option = (_option & ~STM32L0_UART_OPTION_WAKEUP) | (enable ? STM32L0_UART_OPTION_WAKEUP : 0);
 
     stm32l0_uart_configure(_uart, _baudrate, _option);
 }
 
 void Uart::setFlowControl(enum FlowControl mode)
 {
-    _option = ((_option & ~(UART_OPTION_RTS | UART_OPTION_CTS | UART_OPTION_XONOFF)) |
-	       ((mode == 3) ? (UART_OPTION_RTS | UART_OPTION_CTS)
-		: ((mode == 4) ? (UART_OPTION_XONOFF) : 0)));
+    _option = ((_option & ~(STM32L0_UART_OPTION_RTS | STM32L0_UART_OPTION_CTS | STM32L0_UART_OPTION_XONOFF)) |
+	       ((mode == 3) ? (STM32L0_UART_OPTION_RTS | STM32L0_UART_OPTION_CTS)
+		: ((mode == 4) ? (STM32L0_UART_OPTION_XONOFF) : 0)));
 
     stm32l0_uart_configure(_uart, _baudrate, _option);
 }
@@ -367,7 +367,7 @@ void Uart::onReceive(Callback callback)
 
 void Uart::_eventCallback(class Uart *self, uint32_t events)
 {
-    if (events & UART_EVENT_RECEIVE) {
+    if (events & STM32L0_UART_EVENT_RECEIVE) {
 	self->_receiveCallback.queue();
     }
 }

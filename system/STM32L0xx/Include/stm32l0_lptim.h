@@ -43,8 +43,6 @@ extern void stm32l0_lptim_start(uint32_t timeout, stm32l0_lptim_callback_t callb
 extern void stm32l0_lptim_stop(void);
 extern bool stm32l0_lptim_done(void);
 
-extern void LPTIM1_IRQHandler(void);
-
 #ifdef __cplusplus
 }
 #endif

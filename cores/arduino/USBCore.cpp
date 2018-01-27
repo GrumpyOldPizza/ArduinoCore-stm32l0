@@ -62,7 +62,7 @@
 void USBDeviceClass::init()
 {
 #if defined(USB_CLASS)
-    USBD_Initialize(USB_VID, USB_PID, (const uint8_t*)USB_MANUFACTURER, (const uint8_t*)USB_PRODUCT, USB_CLASS, STM32L0_CONFIG_PIN_VBUS, USB_IRQ_PRIORITY);
+    USBD_Initialize(USB_VID, USB_PID, (const uint8_t*)USB_MANUFACTURER, (const uint8_t*)USB_PRODUCT, USB_CLASS, STM32L0_CONFIG_PIN_VBUS, STM32L0_USB_IRQ_PRIORITY);
 #endif
 
     _initialized = true;

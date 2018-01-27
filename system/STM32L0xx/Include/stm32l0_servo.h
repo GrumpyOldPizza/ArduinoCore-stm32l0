@@ -38,28 +38,28 @@
 extern "C" {
 #endif
 
-#define SERVO_EVENT_SYNC                         0x00000001
+#define STM32L0_SERVO_EVENT_SYNC                         0x00000001
 
 typedef void (*stm32l0_servo_event_callback_t)(void *context, uint32_t events);
 
-#define SERVO_STATE_NONE                         0
-#define SERVO_STATE_INIT                         1
-#define SERVO_STATE_BUSY                         2
-#define SERVO_STATE_READY                        3
-#define SERVO_STATE_ACTIVE                       4
+#define STM32L0_SERVO_STATE_NONE                         0
+#define STM32L0_SERVO_STATE_INIT                         1
+#define STM32L0_SERVO_STATE_BUSY                         2
+#define STM32L0_SERVO_STATE_READY                        3
+#define STM32L0_SERVO_STATE_ACTIVE                       4
 
-#define SERVO_SLOT_COUNT                         10
+#define STM32L0_SERVO_SLOT_COUNT                         10
 
-#define SERVO_SYNC_WIDTH                         100     /* sync needs to be at least 100us after the last pulse    */
-#define SERVO_FRAME_WIDTH                        20000   /* the default RC servo frame is 20000us                    */
-#define SERVO_PULSE_WIDTH                        100     /* below a pulse is deemed illegal                          */
+#define STM32L0_SERVO_SYNC_WIDTH                         100     /* sync needs to be at least 100us after the last pulse    */
+#define STM32L0_SERVO_FRAME_WIDTH                        20000   /* the default RC servo frame is 20000us                    */
+#define STM32L0_SERVO_PULSE_WIDTH                        100     /* below a pulse is deemed illegal                          */
 
 typedef struct _stm32l0_servo_table_t {
     uint32_t                    entries;
     struct {
 	uint16_t                  pin;
 	uint16_t                  width;
-    }                           slot[SERVO_SLOT_COUNT];
+    }                           slot[STM32L0_SERVO_SLOT_COUNT];
 } stm32l0_servo_table_t;
 
 typedef struct _stm32l0_servo_schedule_t {
@@ -69,7 +69,7 @@ typedef struct _stm32l0_servo_schedule_t {
 	GPIO_TypeDef              *GPIO;
 	uint16_t                  mask;
 	uint16_t                  width;
-    }                           slot[SERVO_SLOT_COUNT];
+    }                           slot[STM32L0_SERVO_SLOT_COUNT];
 } stm32l0_servo_schedule_t;
 
 typedef struct _stm32l0_servo_t {

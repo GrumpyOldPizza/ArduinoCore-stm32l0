@@ -28,6 +28,8 @@
 
 #include "armv6m.h"
 
+extern void PendSV_Handler(void);
+
 #define ARMV6M_PENDSV_ENTRY_COUNT 32
 
 typedef struct _armv6m_pendsv_entry_t {

@@ -136,7 +136,7 @@ static  __attribute__((used)) void armv6m_event_insert(armv6m_event_t *event)
 {
     armv6m_event_t *element;
 
-    if (event->priority == EVENT_PRIORITY_COOPERATIVE)
+    if (event->priority == ARMV6M_EVENT_PRIORITY_COOPERATIVE)
     {
 	if (armv6m_event_control.cooperative == NULL)
 	{
@@ -199,7 +199,7 @@ static  __attribute__((used)) void armv6m_event_insert(armv6m_event_t *event)
 
 static  __attribute__((used)) void armv6m_event_remove(armv6m_event_t *event)
 {
-    if (event->priority == EVENT_PRIORITY_COOPERATIVE)
+    if (event->priority == ARMV6M_EVENT_PRIORITY_COOPERATIVE)
     {
 	if (event->next == event)
 	{

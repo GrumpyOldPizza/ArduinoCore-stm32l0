@@ -35,11 +35,11 @@
  extern "C" {
 #endif
 
-#define EXTI_CHANNEL_COUNT              16
+#define STM32L0_EXTI_CHANNEL_COUNT              16
 
-#define EXTI_CONTROL_EDGE_FALLING       0x00000001
-#define EXTI_CONTROL_EDGE_RISING        0x00000002
-#define EXTI_CONTROL_WAKEUP             0x00000004
+#define STM32L0_EXTI_CONTROL_EDGE_FALLING       0x00000001
+#define STM32L0_EXTI_CONTROL_EDGE_RISING        0x00000002
+#define STM32L0_EXTI_CONTROL_WAKEUP             0x00000004
 
 typedef void (*stm32l0_exti_callback_t)(void *context);
 
@@ -48,10 +48,6 @@ extern bool stm32l0_exti_attach(uint16_t pin, uint32_t control, stm32l0_exti_cal
 extern void stm32l0_exti_detach(uint16_t pin);
 extern void stm32l0_exti_block(uint32_t mask);
 extern void stm32l0_exti_unblock(uint32_t mask);
-
-extern void EXTI0_1_IRQHandler(void);
-extern void EXTI2_3_IRQHandler(void);
-extern void EXTI4_15_IRQHandler(void);
 
 #ifdef __cplusplus
 }

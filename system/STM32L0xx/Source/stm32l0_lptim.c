@@ -32,9 +32,11 @@
 #include "stm32l0_lptim.h"
 #include "stm32l0_system.h"
 
-#define LPTIM_STATE_NONE    0
-#define LPTIM_STATE_READY   1
-#define LPTIM_STATE_TIMEOUT 2
+extern void LPTIM1_IRQHandler(void);
+
+#define STM32L0_LPTIM_STATE_NONE    0
+#define STM32L0_LPTIM_STATE_READY   1
+#define STM32L0_LPTIM_STATE_TIMEOUT 2
 
 typedef struct _stm32l0_lptim_device_t {
     volatile uint32_t        state;
@@ -54,11 +56,11 @@ void stm32l0_lptim_start(uint32_t timeout, stm32l0_lptim_callback_t callback, vo
 {
     uint32_t period, presc;
 
-    if (stm32l0_lptim_device.state == LPTIM_STATE_NONE)
+    if (stm32l0_lptim_device.state == STM32L0_LPTIM_STATE_NONE)
     {
-	stm32l0_system_periph_enable(SYSTEM_PERIPH_LPTIM1);
+	stm32l0_system_periph_enable(STM32L0_SYSTEM_PERIPH_LPTIM1);
 
-	stm32l0_lptim_device.state = LPTIM_STATE_READY;
+	stm32l0_lptim_device.state = STM32L0_LPTIM_STATE_READY;
     }
     else
     {
@@ -85,7 +87,7 @@ void stm32l0_lptim_start(uint32_t timeout, stm32l0_lptim_callback_t callback, vo
 	}
     }
 
-    stm32l0_lptim_device.state = LPTIM_STATE_TIMEOUT;
+    stm32l0_lptim_device.state = STM32L0_LPTIM_STATE_TIMEOUT;
 
     LPTIM1->ICR = ~0ul;
     LPTIM1->IER = LPTIM_IER_ARRMIE;
@@ -100,28 +102,28 @@ void stm32l0_lptim_stop(void)
 {
     armv6m_atomic_and(&LPTIM1->CR, ~LPTIM_CR_ENABLE);
 
-    stm32l0_system_periph_enable(SYSTEM_PERIPH_LPTIM1);
+    stm32l0_system_periph_enable(STM32L0_SYSTEM_PERIPH_LPTIM1);
 
-    stm32l0_lptim_device.state = LPTIM_STATE_NONE;
+    stm32l0_lptim_device.state = STM32L0_LPTIM_STATE_NONE;
 }
 
 bool stm32l0_lptim_done(void)
 {
-    return (stm32l0_lptim_device.state != LPTIM_STATE_TIMEOUT);
+    return (stm32l0_lptim_device.state != STM32L0_LPTIM_STATE_TIMEOUT);
 }
 
 void LPTIM1_IRQHandler(void)
 {
     LPTIM1->ICR = LPTIM_ICR_ARRMCF;
 
-    stm32l0_lptim_device.state = LPTIM_STATE_READY;
+    stm32l0_lptim_device.state = STM32L0_LPTIM_STATE_READY;
 
     if (stm32l0_lptim_device.callback)
     {
 	(*stm32l0_lptim_device.callback)(stm32l0_lptim_device.context);
     }
 
-    if (stm32l0_lptim_device.state == LPTIM_STATE_READY)
+    if (stm32l0_lptim_device.state == STM32L0_LPTIM_STATE_READY)
     {
 	stm32l0_lptim_stop();
     }

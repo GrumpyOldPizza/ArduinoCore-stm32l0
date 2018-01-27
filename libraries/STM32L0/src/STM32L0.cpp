@@ -53,7 +53,7 @@ void STM32L0Class::getUID(uint32_t uid[3])
 
 bool STM32L0Class::getVBUS()
 {
-    if (STM32L0_CONFIG_PIN_VBUS == GPIO_PIN_NONE) {
+    if (STM32L0_CONFIG_PIN_VBUS == STM32L0_GPIO_PIN_NONE) {
 	return false;
     }
 
@@ -66,10 +66,10 @@ float STM32L0Class::getVBAT()
     int32_t vrefint_data, vbat_data;
     float vdda;
 
-    vrefint_data = __analogReadInternal(ADC_CHANNEL_VREFINT, ADC_VREFINT_SMP);
+    vrefint_data = __analogReadInternal(STM32L0_ADC_CHANNEL_VREFINT, STM32L0_ADC_VREFINT_SMP);
     vbat_data = __analogReadInternal(STM32L0_CONFIG_CHANNEL_VBAT, STM32L0_CONFIG_VBAT_SMP);
 
-    vdda = (3.0 * ADC_VREFINT_CAL) / vrefint_data;
+    vdda = (3.0 * STM32L0_ADC_VREFINT_CAL) / vrefint_data;
 
     return (STM32L0_CONFIG_VBAT_SCALE * vdda * vbat_data) / 4095.0;
 
@@ -84,22 +84,22 @@ float STM32L0Class::getVDDA()
 {
     int32_t vrefint_data;
 
-    vrefint_data = __analogReadInternal(ADC_CHANNEL_VREFINT, ADC_VREFINT_SMP);
+    vrefint_data = __analogReadInternal(STM32L0_ADC_CHANNEL_VREFINT, STM32L0_ADC_VREFINT_SMP);
 
-    return (3.0 * ADC_VREFINT_CAL) / vrefint_data;
+    return (3.0 * STM32L0_ADC_VREFINT_CAL) / vrefint_data;
 }
 
 float STM32L0Class::getTemperature()
 {
     int32_t vrefint_data, tsense_data;
 
-    vrefint_data = __analogReadInternal(ADC_CHANNEL_VREFINT, ADC_VREFINT_SMP);
-    tsense_data = __analogReadInternal(ADC_CHANNEL_TSENSE, ADC_TSENSE_SMP);
+    vrefint_data = __analogReadInternal(STM32L0_ADC_CHANNEL_VREFINT, STM32L0_ADC_VREFINT_SMP);
+    tsense_data = __analogReadInternal(STM32L0_ADC_CHANNEL_TSENSE, STM32L0_ADC_TSENSE_SMP);
 
     /* Compensate TSENSE_DATA for VDDA vs. 3.0 */
-    tsense_data = (tsense_data * ADC_VREFINT_CAL) / vrefint_data;
+    tsense_data = (tsense_data * STM32L0_ADC_VREFINT_CAL) / vrefint_data;
 
-    return (30.0 + (100.0 * (float)(tsense_data - ADC_TSENSE_CAL1)) / (float)(ADC_TSENSE_CAL2 - ADC_TSENSE_CAL1));
+    return (30.0 + (100.0 * (float)(tsense_data - STM32L0_ADC_TSENSE_CAL1)) / (float)(STM32L0_ADC_TSENSE_CAL2 - STM32L0_ADC_TSENSE_CAL1));
 }
 
 uint32_t STM32L0Class::resetCause()
@@ -114,7 +114,7 @@ void STM32L0Class::wakeup()
 
 void STM32L0Class::sleep(uint32_t timeout)
 {
-    stm32l0_system_sleep(SYSTEM_POLICY_SLEEP, timeout);
+    stm32l0_system_sleep(STM32L0_SYSTEM_POLICY_SLEEP, timeout);
 }
 
 void STM32L0Class::stop(uint32_t timeout)
@@ -125,7 +125,7 @@ void STM32L0Class::stop(uint32_t timeout)
 	g_swdStatus = 2;
     }
 
-    stm32l0_system_sleep(SYSTEM_POLICY_STOP, timeout);
+    stm32l0_system_sleep(STM32L0_SYSTEM_POLICY_STOP, timeout);
 }
 
 void STM32L0Class::standby()
@@ -142,11 +142,11 @@ void STM32L0Class::standby(uint32_t pin)
     }
     
     if (g_APinDescription[pin].attr & PIN_ATTR_WKUP1) {
-	config = SYSTEM_CONFIG_WKUP1;
+	config = STM32L0_SYSTEM_CONFIG_WKUP1;
     }
 
     if (g_APinDescription[pin].attr & PIN_ATTR_WKUP2) {
-	config = SYSTEM_CONFIG_WKUP2;
+	config = STM32L0_SYSTEM_CONFIG_WKUP2;
     }
 
     stm32l0_system_standby(config);

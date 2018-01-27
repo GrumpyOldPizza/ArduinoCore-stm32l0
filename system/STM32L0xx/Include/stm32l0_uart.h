@@ -39,55 +39,55 @@ extern "C" {
 #endif
 
 enum {
-    UART_INSTANCE_USART1 = 0,
-    UART_INSTANCE_USART2,
-    UART_INSTANCE_USART4,
-    UART_INSTANCE_USART5,
-    UART_INSTANCE_LPUART1,
-    UART_INSTANCE_COUNT
+    STM32L0_UART_INSTANCE_USART1 = 0,
+    STM32L0_UART_INSTANCE_USART2,
+    STM32L0_UART_INSTANCE_USART4,
+    STM32L0_UART_INSTANCE_USART5,
+    STM32L0_UART_INSTANCE_LPUART1,
+    STM32L0_UART_INSTANCE_COUNT
 };
 
-#define UART_OPTION_STOP_MASK        0x00000001
-#define UART_OPTION_STOP_SHIFT       0
-#define UART_OPTION_STOP_1           0x00000000
-#define UART_OPTION_STOP_2           0x00000001
-#define UART_OPTION_PARITY_MASK      0x00000006
-#define UART_OPTION_PARITY_SHIFT     1
-#define UART_OPTION_PARITY_NONE      0x00000000
-#define UART_OPTION_PARITY_EVEN      0x00000002
-#define UART_OPTION_PARITY_ODD       0x00000004
-#define UART_OPTION_DATA_SIZE_MASK   0x00000008
-#define UART_OPTION_DATA_SIZE_SHIFT  3
-#define UART_OPTION_DATA_SIZE_7      0x00000000
-#define UART_OPTION_DATA_SIZE_8      0x00000008
-#define UART_OPTION_RTS              0x00000010
-#define UART_OPTION_CTS              0x00000020
-#define UART_OPTION_XONOFF           0x00000040
-#define UART_OPTION_WAKEUP           0x00000080
-#define UART_OPTION_RX_INVERT        0x00000100
-#define UART_OPTION_TX_INVERT        0x00000200
+#define STM32L0_UART_OPTION_STOP_MASK        0x00000001
+#define STM32L0_UART_OPTION_STOP_SHIFT       0
+#define STM32L0_UART_OPTION_STOP_1           0x00000000
+#define STM32L0_UART_OPTION_STOP_2           0x00000001
+#define STM32L0_UART_OPTION_PARITY_MASK      0x00000006
+#define STM32L0_UART_OPTION_PARITY_SHIFT     1
+#define STM32L0_UART_OPTION_PARITY_NONE      0x00000000
+#define STM32L0_UART_OPTION_PARITY_EVEN      0x00000002
+#define STM32L0_UART_OPTION_PARITY_ODD       0x00000004
+#define STM32L0_UART_OPTION_DATA_SIZE_MASK   0x00000008
+#define STM32L0_UART_OPTION_DATA_SIZE_SHIFT  3
+#define STM32L0_UART_OPTION_DATA_SIZE_7      0x00000000
+#define STM32L0_UART_OPTION_DATA_SIZE_8      0x00000008
+#define STM32L0_UART_OPTION_RTS              0x00000010
+#define STM32L0_UART_OPTION_CTS              0x00000020
+#define STM32L0_UART_OPTION_XONOFF           0x00000040
+#define STM32L0_UART_OPTION_WAKEUP           0x00000080
+#define STM32L0_UART_OPTION_RX_INVERT        0x00000100
+#define STM32L0_UART_OPTION_TX_INVERT        0x00000200
 
-#define UART_EVENT_NOISE             0x00000001
-#define UART_EVENT_PARITY            0x00000002
-#define UART_EVENT_FRAMING           0x00000004
-#define UART_EVENT_BREAK             0x00000008
-#define UART_EVENT_OVERRUN           0x00000010
-#define UART_EVENT_WAKEUP            0x00000020
-#define UART_EVENT_RECEIVE           0x00000040
+#define STM32L0_UART_EVENT_NOISE             0x00000001
+#define STM32L0_UART_EVENT_PARITY            0x00000002
+#define STM32L0_UART_EVENT_FRAMING           0x00000004
+#define STM32L0_UART_EVENT_BREAK             0x00000008
+#define STM32L0_UART_EVENT_OVERRUN           0x00000010
+#define STM32L0_UART_EVENT_WAKEUP            0x00000020
+#define STM32L0_UART_EVENT_RECEIVE           0x00000040
 
 typedef void (*stm32l0_uart_event_callback_t)(void *context, uint32_t events);
 typedef void (*stm32l0_uart_done_callback_t)(void *context);
 
-#define UART_STATE_NONE              0
-#define UART_STATE_INIT              1
-#define UART_STATE_BUSY              2
-#define UART_STATE_READY             3
-#define UART_STATE_BREAK             4
-#define UART_STATE_SUSPENDED         5
-#define UART_STATE_SUSPENDED_BREAK   6
-#define UART_STATE_TRANSMIT          7
-#define UART_STATE_INJECT            8
-#define UART_STATE_WAIT              9
+#define STM32L0_UART_STATE_NONE              0
+#define STM32L0_UART_STATE_INIT              1
+#define STM32L0_UART_STATE_BUSY              2
+#define STM32L0_UART_STATE_READY             3
+#define STM32L0_UART_STATE_BREAK             4
+#define STM32L0_UART_STATE_SUSPENDED         5
+#define STM32L0_UART_STATE_SUSPENDED_BREAK   6
+#define STM32L0_UART_STATE_TRANSMIT          7
+#define STM32L0_UART_STATE_INJECT            8
+#define STM32L0_UART_STATE_WAIT              9
 
 typedef struct _stm32l0_uart_pins_t {
     uint16_t                      rx;
@@ -154,11 +154,6 @@ extern bool stm32l0_uart_break_state(stm32l0_uart_t *uart, bool onoff);
 extern uint32_t stm32l0_uart_count(stm32l0_uart_t *uart);
 extern uint32_t stm32l0_uart_receive(stm32l0_uart_t *uart, uint8_t *rx_data, uint32_t rx_count, bool peek);
 extern bool stm32l0_uart_transmit(stm32l0_uart_t *uart, const uint8_t *tx_data, uint32_t tx_count, stm32l0_uart_done_callback_t callback, void *context);
-
-extern void USART1_IRQHandler(void);
-extern void USART2_IRQHandler(void);
-extern void USART4_5_IRQHandler(void);
-extern void AES_RNG_LPUART1_IRQHandler(void);
 
 #ifdef __cplusplus
 }

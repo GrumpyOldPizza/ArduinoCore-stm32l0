@@ -174,7 +174,7 @@ void RTCClass::setSeconds(uint8_t seconds)
 
     calendar.seconds = seconds;
 
-    stm32l0_rtc_set_calendar(RTC_CALENDAR_MASK_SECONDS, &calendar);
+    stm32l0_rtc_set_calendar(STM32L0_RTC_CALENDAR_MASK_SECONDS, &calendar);
 }
 
 void RTCClass::setMinutes(uint8_t minutes)
@@ -183,7 +183,7 @@ void RTCClass::setMinutes(uint8_t minutes)
 
     calendar.minutes = minutes;
 
-    stm32l0_rtc_set_calendar(RTC_CALENDAR_MASK_MINUTES, &calendar);
+    stm32l0_rtc_set_calendar(STM32L0_RTC_CALENDAR_MASK_MINUTES, &calendar);
 }
 
 void RTCClass::setHours(uint8_t hours)
@@ -192,7 +192,7 @@ void RTCClass::setHours(uint8_t hours)
 
     calendar.hours = hours;
 
-    stm32l0_rtc_set_calendar(RTC_CALENDAR_MASK_HOURS, &calendar);
+    stm32l0_rtc_set_calendar(STM32L0_RTC_CALENDAR_MASK_HOURS, &calendar);
 }
 
 void RTCClass::setTime(uint8_t hours, uint8_t minutes, uint8_t seconds)
@@ -203,7 +203,7 @@ void RTCClass::setTime(uint8_t hours, uint8_t minutes, uint8_t seconds)
     calendar.minutes = minutes;
     calendar.seconds = seconds;
 
-    stm32l0_rtc_set_calendar((RTC_CALENDAR_MASK_SECONDS | RTC_CALENDAR_MASK_MINUTES | RTC_CALENDAR_MASK_HOURS), &calendar);
+    stm32l0_rtc_set_calendar((STM32L0_RTC_CALENDAR_MASK_SECONDS | STM32L0_RTC_CALENDAR_MASK_MINUTES | STM32L0_RTC_CALENDAR_MASK_HOURS), &calendar);
 }
 
 void RTCClass::setDay(uint8_t day)
@@ -212,7 +212,7 @@ void RTCClass::setDay(uint8_t day)
 
     calendar.day = day;
 
-    stm32l0_rtc_set_calendar(RTC_CALENDAR_MASK_DAY, &calendar);
+    stm32l0_rtc_set_calendar(STM32L0_RTC_CALENDAR_MASK_DAY, &calendar);
 }
 
 void RTCClass::setMonth(uint8_t month)
@@ -221,7 +221,7 @@ void RTCClass::setMonth(uint8_t month)
 
     calendar.month = month;
 
-    stm32l0_rtc_set_calendar(RTC_CALENDAR_MASK_MONTH, &calendar);
+    stm32l0_rtc_set_calendar(STM32L0_RTC_CALENDAR_MASK_MONTH, &calendar);
 }
 
 void RTCClass::setYear(uint8_t year)
@@ -230,7 +230,7 @@ void RTCClass::setYear(uint8_t year)
 
     calendar.year = year;
 
-    stm32l0_rtc_set_calendar(RTC_CALENDAR_MASK_YEAR, &calendar);
+    stm32l0_rtc_set_calendar(STM32L0_RTC_CALENDAR_MASK_YEAR, &calendar);
 }
 
 void RTCClass::setDate(uint8_t day, uint8_t month, uint8_t year)
@@ -241,7 +241,7 @@ void RTCClass::setDate(uint8_t day, uint8_t month, uint8_t year)
     calendar.month = month;
     calendar.year = year;
 
-    stm32l0_rtc_set_calendar((RTC_CALENDAR_MASK_DAY | RTC_CALENDAR_MASK_MONTH | RTC_CALENDAR_MASK_YEAR), &calendar);
+    stm32l0_rtc_set_calendar((STM32L0_RTC_CALENDAR_MASK_DAY | STM32L0_RTC_CALENDAR_MASK_MONTH | STM32L0_RTC_CALENDAR_MASK_YEAR), &calendar);
 }
 
 void RTCClass::setTimeDate(uint8_t hours, uint8_t minutes, uint8_t seconds, uint8_t day, uint8_t month, uint8_t year)
@@ -255,7 +255,7 @@ void RTCClass::setTimeDate(uint8_t hours, uint8_t minutes, uint8_t seconds, uint
     calendar.month = month;
     calendar.year = year;
 
-    stm32l0_rtc_set_calendar((RTC_CALENDAR_MASK_SECONDS | RTC_CALENDAR_MASK_MINUTES | RTC_CALENDAR_MASK_HOURS | RTC_CALENDAR_MASK_DAY | RTC_CALENDAR_MASK_MONTH | RTC_CALENDAR_MASK_YEAR), &calendar);
+    stm32l0_rtc_set_calendar((STM32L0_RTC_CALENDAR_MASK_SECONDS | STM32L0_RTC_CALENDAR_MASK_MINUTES | STM32L0_RTC_CALENDAR_MASK_HOURS | STM32L0_RTC_CALENDAR_MASK_DAY | STM32L0_RTC_CALENDAR_MASK_MONTH | STM32L0_RTC_CALENDAR_MASK_YEAR), &calendar);
 }
 
 void RTCClass::setAlarmSeconds(uint8_t seconds)
@@ -331,7 +331,7 @@ void RTCClass::setEpoch(uint32_t time)
 
     stm32l0_rtc_time_to_calendar(time - EPOCH2K_OFFSET, 0, &calendar);
     
-    stm32l0_rtc_set_calendar((RTC_CALENDAR_MASK_SECONDS | RTC_CALENDAR_MASK_MINUTES | RTC_CALENDAR_MASK_HOURS | RTC_CALENDAR_MASK_DAY | RTC_CALENDAR_MASK_MONTH | RTC_CALENDAR_MASK_YEAR), &calendar);
+    stm32l0_rtc_set_calendar((STM32L0_RTC_CALENDAR_MASK_SECONDS | STM32L0_RTC_CALENDAR_MASK_MINUTES | STM32L0_RTC_CALENDAR_MASK_HOURS | STM32L0_RTC_CALENDAR_MASK_DAY | STM32L0_RTC_CALENDAR_MASK_MONTH | STM32L0_RTC_CALENDAR_MASK_YEAR), &calendar);
 }
 
 void RTCClass::setY2kEpoch(uint32_t time)
@@ -340,7 +340,7 @@ void RTCClass::setY2kEpoch(uint32_t time)
 
     stm32l0_rtc_time_to_calendar(time, 0, &calendar);
     
-    stm32l0_rtc_set_calendar((RTC_CALENDAR_MASK_SECONDS | RTC_CALENDAR_MASK_MINUTES | RTC_CALENDAR_MASK_HOURS | RTC_CALENDAR_MASK_DAY | RTC_CALENDAR_MASK_MONTH | RTC_CALENDAR_MASK_YEAR), &calendar);
+    stm32l0_rtc_set_calendar((STM32L0_RTC_CALENDAR_MASK_SECONDS | STM32L0_RTC_CALENDAR_MASK_MINUTES | STM32L0_RTC_CALENDAR_MASK_HOURS | STM32L0_RTC_CALENDAR_MASK_DAY | STM32L0_RTC_CALENDAR_MASK_MONTH | STM32L0_RTC_CALENDAR_MASK_YEAR), &calendar);
 }
 
 uint16_t RTCClass::getSubSeconds()
@@ -375,7 +375,7 @@ void RTCClass::SyncAlarm()
 	alarm.minutes = _alarm_minutes;
 	alarm.seconds = _alarm_seconds;
 
-	match = (_alarm_match & (RTC_ALARM_MATCH_SECONDS | RTC_ALARM_MATCH_MINUTES | RTC_ALARM_MATCH_HOURS | RTC_ALARM_MATCH_DAY));
+	match = (_alarm_match & (STM32L0_RTC_ALARM_MATCH_SECONDS | STM32L0_RTC_ALARM_MATCH_MINUTES | STM32L0_RTC_ALARM_MATCH_HOURS | STM32L0_RTC_ALARM_MATCH_DAY));
 
 	stm32l0_rtc_alarm_attach(match, &alarm, (stm32l0_rtc_callback_t)_alarmCallback, (void*)this);
     }

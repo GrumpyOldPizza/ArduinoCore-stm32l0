@@ -61,15 +61,15 @@ static bool IsAntSwLowPower = true;
 static bool IsTCXO = false;
 
 static const stm32l0_spi_params_t RADIO_SPI_PARAMS = {
-    SPI_INSTANCE_SPI1,
+    STM32L0_SPI_INSTANCE_SPI1,
     0,
-    DMA_CHANNEL_NONE,
-    DMA_CHANNEL_NONE,
+    STM32L0_DMA_CHANNEL_NONE,
+    STM32L0_DMA_CHANNEL_NONE,
     {
 	RADIO_MOSI,
 	RADIO_MISO,
 	RADIO_SCLK,
-	GPIO_PIN_NONE,
+	STM32L0_GPIO_PIN_NONE,
     },
 };
 
@@ -77,8 +77,7 @@ static stm32l0_spi_t RADIO_SPI;
 
 void CMWX1ZZABZ_Initialize( void )
 {
-  //    stm32l0_gpio_pin_configure(RADIO_NSS,  (GPIO_PARK_PULLUP | GPIO_PUPD_NONE | GPIO_OSPEED_VERY_HIGH | GPIO_OTYPE_PUSHPULL | GPIO_MODE_OUTPUT));
-    stm32l0_gpio_pin_configure(RADIO_NSS, (GPIO_PARK_HIZ | GPIO_PUPD_NONE | GPIO_OSPEED_VERY_HIGH | GPIO_OTYPE_PUSHPULL | GPIO_MODE_OUTPUT));
+    stm32l0_gpio_pin_configure(RADIO_NSS, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_VERY_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
     stm32l0_gpio_pin_write(RADIO_NSS, 1);
 
     stm32l0_spi_create(&RADIO_SPI, &RADIO_SPI_PARAMS);
@@ -102,28 +101,28 @@ static void SX1276IoIrqCallback( void *context )
 
 void SX1276IoIrqInit( DioIrqHandler **irqHandlers )
 {
-    stm32l0_exti_attach(RADIO_DIO_0, EXTI_CONTROL_EDGE_RISING, SX1276IoIrqCallback, irqHandlers[0]);
-    stm32l0_exti_attach(RADIO_DIO_1, EXTI_CONTROL_EDGE_RISING, SX1276IoIrqCallback, irqHandlers[1]);
-    stm32l0_exti_attach(RADIO_DIO_2, EXTI_CONTROL_EDGE_RISING, SX1276IoIrqCallback, irqHandlers[2]);
+    stm32l0_exti_attach(RADIO_DIO_0, STM32L0_EXTI_CONTROL_EDGE_RISING, SX1276IoIrqCallback, irqHandlers[0]);
+    stm32l0_exti_attach(RADIO_DIO_1, STM32L0_EXTI_CONTROL_EDGE_RISING, SX1276IoIrqCallback, irqHandlers[1]);
+    stm32l0_exti_attach(RADIO_DIO_2, STM32L0_EXTI_CONTROL_EDGE_RISING, SX1276IoIrqCallback, irqHandlers[2]);
 #if defined(RADIO_DIO_3)
-    stm32l0_exti_attach(RADIO_DIO_3, EXTI_CONTROL_EDGE_RISING, SX1276IoIrqCallback, irqHandlers[3]);
+    stm32l0_exti_attach(RADIO_DIO_3, STM32L0_EXTI_CONTROL_EDGE_RISING, SX1276IoIrqCallback, irqHandlers[3]);
 #endif
 #if defined(RADIO_DIO_4)
-    stm32l0_exti_attach(RADIO_DIO_4, EXTI_CONTROL_EDGE_RISING, SX1276IoIrqCallback, irqHandlers[4]);
+    stm32l0_exti_attach(RADIO_DIO_4, STM32L0_EXTI_CONTROL_EDGE_RISING, SX1276IoIrqCallback, irqHandlers[4]);
 #endif
 }
 
 void SX1276Reset( void )
 {
     // Set RESET pin to 0
-    stm32l0_gpio_pin_configure(RADIO_RESET, (GPIO_PARK_NONE | GPIO_PUPD_NONE | GPIO_OSPEED_LOW | GPIO_OTYPE_PUSHPULL | GPIO_MODE_OUTPUT));
+    stm32l0_gpio_pin_configure(RADIO_RESET, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
     stm32l0_gpio_pin_write(RADIO_RESET, 0);
 
     // Wait 1 ms
     armv6m_core_udelay(1000);
 
     // Configure RESET as input
-    stm32l0_gpio_pin_configure(RADIO_RESET, (GPIO_PARK_NONE | GPIO_MODE_ANALOG));
+    stm32l0_gpio_pin_configure(RADIO_RESET, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
 
     // Wait 6 ms
     armv6m_core_udelay(6000);
@@ -168,34 +167,34 @@ void SX1276SetAntSwLowPower( bool status )
 	    stm32l0_gpio_pin_write(RADIO_ANT_SWITCH_TX_BOOST, 0);
 	    stm32l0_gpio_pin_write(RADIO_ANT_SWITCH_TX_RFO,   0);
 
-	    stm32l0_gpio_pin_configure(RADIO_ANT_SWITCH_RX,       (GPIO_PARK_NONE | GPIO_MODE_ANALOG));
-	    stm32l0_gpio_pin_configure(RADIO_ANT_SWITCH_TX_BOOST, (GPIO_PARK_NONE | GPIO_MODE_ANALOG));
-	    stm32l0_gpio_pin_configure(RADIO_ANT_SWITCH_TX_RFO,   (GPIO_PARK_NONE | GPIO_MODE_ANALOG));
+	    stm32l0_gpio_pin_configure(RADIO_ANT_SWITCH_RX,       (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
+	    stm32l0_gpio_pin_configure(RADIO_ANT_SWITCH_TX_BOOST, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
+	    stm32l0_gpio_pin_configure(RADIO_ANT_SWITCH_TX_RFO,   (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
 
-	    stm32l0_gpio_pin_configure(RADIO_DIO_0,               (GPIO_PARK_NONE | GPIO_MODE_ANALOG));
-	    stm32l0_gpio_pin_configure(RADIO_DIO_1,               (GPIO_PARK_NONE | GPIO_MODE_ANALOG));
-	    stm32l0_gpio_pin_configure(RADIO_DIO_2,               (GPIO_PARK_NONE | GPIO_MODE_ANALOG));
+	    stm32l0_gpio_pin_configure(RADIO_DIO_0,               (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
+	    stm32l0_gpio_pin_configure(RADIO_DIO_1,               (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
+	    stm32l0_gpio_pin_configure(RADIO_DIO_2,               (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
 #if defined(RADIO_DIO_3)
-	    stm32l0_gpio_pin_configure(RADIO_DIO_3,               (GPIO_PARK_NONE | GPIO_MODE_ANALOG));
+	    stm32l0_gpio_pin_configure(RADIO_DIO_3,               (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
 #endif /* defined(RADIO_DIO_3) */
 #if defined(RADIO_DIO_4)
-	    stm32l0_gpio_pin_configure(RADIO_DIO_4,               (GPIO_PARK_NONE | GPIO_MODE_ANALOG));
+	    stm32l0_gpio_pin_configure(RADIO_DIO_4,               (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
 #endif /* defined(RADIO_DIO_4) */
         }
         else
         {
-	    stm32l0_gpio_pin_configure(RADIO_ANT_SWITCH_RX,       (GPIO_PARK_NONE | GPIO_PUPD_NONE | GPIO_OSPEED_LOW | GPIO_OTYPE_PUSHPULL | GPIO_MODE_OUTPUT));
-	    stm32l0_gpio_pin_configure(RADIO_ANT_SWITCH_TX_BOOST, (GPIO_PARK_NONE | GPIO_PUPD_NONE | GPIO_OSPEED_LOW | GPIO_OTYPE_PUSHPULL | GPIO_MODE_OUTPUT));
-	    stm32l0_gpio_pin_configure(RADIO_ANT_SWITCH_TX_RFO,   (GPIO_PARK_NONE | GPIO_PUPD_NONE | GPIO_OSPEED_LOW | GPIO_OTYPE_PUSHPULL | GPIO_MODE_OUTPUT));
+	    stm32l0_gpio_pin_configure(RADIO_ANT_SWITCH_RX,       (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
+	    stm32l0_gpio_pin_configure(RADIO_ANT_SWITCH_TX_BOOST, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
+	    stm32l0_gpio_pin_configure(RADIO_ANT_SWITCH_TX_RFO,   (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
 
-	    stm32l0_gpio_pin_configure(RADIO_DIO_0,               (GPIO_PARK_NONE | GPIO_PUPD_PULLDOWN | GPIO_OSPEED_VERY_HIGH | GPIO_OTYPE_PUSHPULL | GPIO_MODE_INPUT));
-	    stm32l0_gpio_pin_configure(RADIO_DIO_1,               (GPIO_PARK_NONE | GPIO_PUPD_PULLDOWN | GPIO_OSPEED_VERY_HIGH | GPIO_OTYPE_PUSHPULL | GPIO_MODE_INPUT));
-	    stm32l0_gpio_pin_configure(RADIO_DIO_2,               (GPIO_PARK_NONE | GPIO_PUPD_PULLDOWN | GPIO_OSPEED_VERY_HIGH | GPIO_OTYPE_PUSHPULL | GPIO_MODE_INPUT));
+	    stm32l0_gpio_pin_configure(RADIO_DIO_0,               (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_VERY_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
+	    stm32l0_gpio_pin_configure(RADIO_DIO_1,               (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_VERY_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
+	    stm32l0_gpio_pin_configure(RADIO_DIO_2,               (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_VERY_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
 #if defined(RADIO_DIO_3)
-	    stm32l0_gpio_pin_configure(RADIO_DIO_3,               (GPIO_PARK_NONE | GPIO_PUPD_PULLDOWN | GPIO_OSPEED_VERY_HIGH | GPIO_OTYPE_PUSHPULL | GPIO_MODE_INPUT));
+	    stm32l0_gpio_pin_configure(RADIO_DIO_3,               (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_VERY_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
 #endif /* defined(RADIO_DIO_3) */
 #if defined(RADIO_DIO_4)
-	    stm32l0_gpio_pin_configure(RADIO_DIO_4,               (GPIO_PARK_NONE | GPIO_PUPD_PULLDOWN | GPIO_OSPEED_VERY_HIGH | GPIO_OTYPE_PUSHPULL | GPIO_MODE_INPUT));
+	    stm32l0_gpio_pin_configure(RADIO_DIO_4,               (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_VERY_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
 #endif /* defined(RADIO_DIO_4) */
         }
     }
@@ -239,7 +238,7 @@ void SX1276SetTCXO( bool status )
 	{
 	    stm32l0_lptim_stop();
 	    
-	    stm32l0_gpio_pin_configure(RADIO_TCXO_VCC, (GPIO_PARK_NONE | GPIO_PUPD_NONE | GPIO_OSPEED_VERY_HIGH | GPIO_OTYPE_PUSHPULL | GPIO_MODE_OUTPUT));
+	    stm32l0_gpio_pin_configure(RADIO_TCXO_VCC, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_VERY_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
 	    stm32l0_gpio_pin_write(RADIO_TCXO_VCC, 1);
 
 	    /* wait for 4ms till TCXO is stable
@@ -254,7 +253,7 @@ void SX1276SetTCXO( bool status )
 
 	    SX1276Delay( 2 );
 
-	    stm32l0_gpio_pin_configure(RADIO_TCXO_VCC, (GPIO_PARK_NONE | GPIO_MODE_ANALOG));
+	    stm32l0_gpio_pin_configure(RADIO_TCXO_VCC, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
 	}
     }
 }

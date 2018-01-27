@@ -28,6 +28,8 @@
 
 #include "armv6m.h"
 
+extern void SysTick_Handler(void);
+
 typedef struct _armv6m_systick_control_t {
     volatile uint32_t         micros;
     volatile uint32_t         millis;

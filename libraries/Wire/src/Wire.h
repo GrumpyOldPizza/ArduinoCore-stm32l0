@@ -22,6 +22,7 @@
 
 #include "Stream.h"
 #include "variant.h"
+#include "stm32l0_i2c.h"
 
 #define BUFFER_LENGTH 32
 
@@ -96,20 +97,19 @@ class TwoWire : public Stream
 
 class TwoWireTransaction {
 public:
-    TwoWireTransaction(class TwoWire &twowire);
+    TwoWireTransaction();
     ~TwoWireTransaction();
 
-    bool sendTransmission(uint8_t address, const uint8_t *buffer, size_t size, bool stopBit, void(*callback)(void) = NULL);
-    bool sendTransmission(uint8_t address, const uint8_t *buffer, size_t size, uint32_t iaddress, uint8_t isize, bool stopBit, void(*callback)(void) = NULL);
-    bool requestFrom(uint8_t address, uint8_t *buffer, size_t size, bool stopBit, void(*callback)(void) = NULL);
-    bool requestFrom(uint8_t address, uint8_t *buffer, size_t size, uint32_t iaddress, uint8_t isize, bool stopBit, void(*callback)(void) = NULL);
+    bool sendTransmission(class TwoWire &twowire, uint8_t address, const uint8_t *buffer, size_t size, bool stopBit, void(*callback)(void) = NULL);
+    bool sendTransmission(class TwoWire &twowire, uint8_t address, const uint8_t *buffer, size_t size, uint32_t iaddress, uint8_t isize, bool stopBit, void(*callback)(void) = NULL);
+    bool requestFrom(class TwoWire &twowire, uint8_t address, uint8_t *buffer, size_t size, bool stopBit, void(*callback)(void) = NULL);
+    bool requestFrom(class TwoWire &twowire, uint8_t address, uint8_t *buffer, size_t size, uint32_t iaddress, uint8_t isize, bool stopBit, void(*callback)(void) = NULL);
     bool busy();
     int status();
 
 private:
-    class TwoWire *_twowire;
-    struct _stm32l0_i2c_transaction_t *_transaction;
-    void (*_callback)(void);
+    stm32l0_i2c_transaction_t _transaction;
+    Callback _callback;
     uint8_t _xf_address;
     uint8_t _xf_status;
     static void doneCallback(class TwoWireTransaction *self);

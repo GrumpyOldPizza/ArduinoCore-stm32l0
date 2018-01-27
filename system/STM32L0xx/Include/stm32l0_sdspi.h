@@ -46,17 +46,17 @@ typedef struct _stm32l0_sdspi_params_t {
     uint16_t                     pin_cs;
 } stm32l0_sdspi_params_t;
 
-#define SDSPI_STATE_NONE                   0
-#define SDSPI_STATE_INIT                   1
-#define SDSPI_STATE_RESET                  2
-#define SDSPI_STATE_READY                  3
-#define SDSPI_STATE_READ_MULTIPLE          4
-#define SDSPI_STATE_WRITE_MULTIPLE         5
-#define SDSPI_STATE_WRITE_STOP             6
+#define STM32L0_SDSPI_STATE_NONE                   0
+#define STM32L0_SDSPI_STATE_INIT                   1
+#define STM32L0_SDSPI_STATE_RESET                  2
+#define STM32L0_SDSPI_STATE_READY                  3
+#define STM32L0_SDSPI_STATE_READ_MULTIPLE          4
+#define STM32L0_SDSPI_STATE_WRITE_MULTIPLE         5
+#define STM32L0_SDSPI_STATE_WRITE_STOP             6
 
-#define SDSPI_MODE_NONE                    0
-#define SDSPI_MODE_IDENTIFY                1
-#define SDSPI_MODE_DATA_TRANSFER           2
+#define STM32L0_SDSPI_MODE_NONE                    0
+#define STM32L0_SDSPI_MODE_IDENTIFY                1
+#define STM32L0_SDSPI_MODE_DATA_TRANSFER           2
 
 typedef struct _stm32l0_sdspi_t {
     volatile uint8_t             state;
