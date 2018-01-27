@@ -100,7 +100,7 @@ Cricket-L082CZ.build.usb_manufacturer="Tlera Corporation"
 Cricket-L082CZ.build.usb_product="Cricket"
 Cricket-L082CZ.build.extra_flags=-DSTM32L082xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags} {build.dosfs_flags}
 Cricket-L082CZ.build.ldscript=linker_scripts/STM32L082CZ_FLASH.ld
-Cricket-L082CZ.build.openocdscript=openocd_scripts/stm32l082cz_grasshopper.cfg
+Cricket-L082CZ.build.openocdscript=openocd_scripts/stm32l082cz_cricket.cfg
 Cricket-L082CZ.build.variant=STM32L082CZ-Cricket
 Cricket-L082CZ.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l082 -larm_cortexM0l_math
 Cricket-L082CZ.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
