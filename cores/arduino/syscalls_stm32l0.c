@@ -29,7 +29,9 @@
 #include <errno.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <stdio.h>
+#include <malloc.h>
 #include <sys/stat.h>
 #include <sys/times.h>
 #include <sys/unistd.h>
@@ -74,17 +76,24 @@ int _getpid(void)
 
 int _kill(int pid, int sig)
 {
+    (void)pid;
+    (void)sig;
+
     errno = EINVAL;
 
     return -1;
 }
 
 int _close(int file) {
+    (void)file;
+
     return -1;
 }
 
 int _isatty(int file) 
 {
+    (void)file;
+
     switch (file) {
     case STDOUT_FILENO:
     case STDERR_FILENO:
@@ -99,6 +108,8 @@ int _isatty(int file)
 
 int _fstat(int file, struct stat *st)
 {
+    (void)file;
+
     st->st_mode = S_IFCHR;
 
     return 0;
@@ -106,6 +117,10 @@ int _fstat(int file, struct stat *st)
 
 int _lseek(int file, int offset, int whence)
 {
+    (void)file;
+    (void)offset;
+    (void)whence;
+
     return 0;
 }
 
@@ -180,5 +195,78 @@ int _write(int file, const char *buf, int nbytes)
 
 void _exit(int status) 
 {
+    (void)status;
+
     while (1) { };
+}
+
+void *malloc(size_t nbytes)
+{
+    if (__get_IPSR() == 0)
+    {
+        return (void*)armv6m_svcall_2((uint32_t)&_malloc_r, (uint32_t)_REENT, (uint32_t)nbytes);
+    }
+    else
+    {
+	return _malloc_r (_REENT, nbytes);
+    }
+}
+
+void free(void *aptr)
+{
+    if (__get_IPSR() == 0)
+    {
+        armv6m_svcall_2((uint32_t)&_free_r, (uint32_t)_REENT, (uint32_t)aptr);
+    }
+    else
+    {
+	return _free_r (_REENT, aptr);
+    }
+}
+
+void *realloc(void *aptr, size_t nbytes)
+{
+    if (__get_IPSR() == 0)
+    {
+	return (void*)armv6m_svcall_3((uint32_t)&_realloc_r, (uint32_t)_REENT, (uint32_t)aptr, (uint32_t)nbytes);
+    }
+    else
+    {
+	return _realloc_r (_REENT, aptr, nbytes);
+    }
+}
+
+void *reallocf(void *aptr, size_t nbytes)
+{
+    void *nptr;
+
+    nptr = realloc(aptr, nbytes);
+    if (!nptr && aptr) {
+	free(aptr);
+    }
+    return (nptr);
+}
+
+void *memalign(size_t align, size_t nbytes)
+{
+    if (__get_IPSR() == 0)
+    {
+        return (void*)armv6m_svcall_3((uint32_t)&_memalign_r, (uint32_t)_REENT, (uint32_t)align, (uint32_t)nbytes);
+    }
+    else
+    {
+	return _memalign_r (_REENT, align, nbytes);
+    }
+}
+
+size_t malloc_usable_size(void *aptr)
+{
+    if (__get_IPSR() == 0)
+    {
+        return armv6m_svcall_2((uint32_t)&_malloc_usable_size_r, (uint32_t)_REENT, (uint32_t)aptr);
+    }
+    else
+    {
+	return _malloc_usable_size_r (_REENT, aptr);
+    }
 }

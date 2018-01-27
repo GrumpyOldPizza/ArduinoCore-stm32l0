@@ -36,18 +36,20 @@ public:
     TimerMillis();
     ~TimerMillis();
 
-    int start(void(*callback)(void), uint32_t delay, uint32_t period = 0);
+    int start(void(*callback)(void), uint32_t delay, uint32_t period = 0) { return start(Callback(callback), delay, period); }
+    int start(Callback callback, uint32_t delay, uint32_t period = 0);
+    int restart(uint32_t delay, uint32_t period = 0);
     int stop();
     bool active();
 
 private:
     struct _stm32l0_rtc_timer_t *_timer;
-    void                        (*_callback)(void);
     uint32_t                    _period;
     uint32_t                    _seconds;
     uint16_t                    _subseconds;
     volatile uint16_t           _adjust;
-    static void                 _timeout(class TimerMillis*);
+    Callback                    _callback;
+    static void                 timeout(class TimerMillis*, struct _stm32l0_rtc_timer_t *);
 };
 
 #endif // _TIMERMILLIS_H

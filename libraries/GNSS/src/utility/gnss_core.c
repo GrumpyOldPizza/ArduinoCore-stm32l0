@@ -3380,8 +3380,8 @@ void gnss_initialize(unsigned int mode, unsigned int rate, unsigned int speed, g
 	
 	uart_count = strlen(uart_data);
 
-	stm32l0_rtc_timer_create(&device->ubx.sleep, (stm32l0_rtc_callback_t)&ubx_sleep, device);
-	stm32l0_rtc_timer_create(&device->ubx.timeout, (stm32l0_rtc_callback_t)&ubx_timeout, device);
+	stm32l0_rtc_timer_create(&device->ubx.sleep, (stm32l0_rtc_timer_callback_t)&ubx_sleep, device);
+	stm32l0_rtc_timer_create(&device->ubx.timeout, (stm32l0_rtc_timer_callback_t)&ubx_timeout, device);
     }
     else
     {

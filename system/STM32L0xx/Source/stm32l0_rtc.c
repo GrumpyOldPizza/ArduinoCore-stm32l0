@@ -441,7 +441,7 @@ static void stm32l0_rtc_timer_routine(void)
     uint32_t seconds;
     uint16_t subseconds;
     stm32l0_rtc_timer_t *timer;
-    stm32l0_rtc_callback_t callback;
+    stm32l0_rtc_timer_callback_t callback;
 
     seconds = stm32l0_rtc_device.timer_seconds;
     subseconds = stm32l0_rtc_device.timer_subseconds;
@@ -497,7 +497,7 @@ static void stm32l0_rtc_timer_routine(void)
 	
 	if ((uint32_t)callback & 1)
 	{
-	    (*callback)(timer->context);
+	    (*callback)(timer->context, NULL);
 	}
     }
 
@@ -637,7 +637,7 @@ static void stm32l0_rtc_timer_insert(stm32l0_rtc_timer_t *timer, uint32_t second
 
     timer->seconds = seconds;
     timer->subseconds = subseconds;
-    timer->callback = (stm32l0_rtc_callback_t)((uint32_t)timer->callback | 1);
+    timer->callback = (stm32l0_rtc_timer_callback_t)((uint32_t)timer->callback | 1);
 
     timer->next->previous = timer;
     timer->previous->next = timer;
@@ -713,6 +713,17 @@ static void stm32l0_rtc_timer_remove(stm32l0_rtc_timer_t *timer)
     }
 }
 
+static void stm32l0_rtc_timer_release(stm32l0_rtc_timer_t *timer)
+{
+    stm32l0_rtc_timer_callback_t callback;
+
+    stm32l0_rtc_timer_remove(timer);
+
+    callback = (stm32l0_rtc_timer_callback_t)((uint32_t)timer->callback | 1);
+
+    (*callback)(timer->context, timer);
+}
+
 void stm32l0_rtc_timer_reference(uint32_t *p_seconds, uint16_t *p_subseconds)
 {
     stm32l0_rtc_calendar_t calendar;
@@ -721,7 +732,7 @@ void stm32l0_rtc_timer_reference(uint32_t *p_seconds, uint16_t *p_subseconds)
     stm32l0_rtc_calendar_subtract(&calendar, &stm32l0_rtc_device.timer_reference, (int32_t*)p_seconds, p_subseconds);
 }
 
-void stm32l0_rtc_timer_create(stm32l0_rtc_timer_t *timer, stm32l0_rtc_callback_t callback, void *context)
+void stm32l0_rtc_timer_create(stm32l0_rtc_timer_t *timer, stm32l0_rtc_timer_callback_t callback, void *context)
 {
     timer->next = NULL;
     timer->previous = NULL;
@@ -731,8 +742,20 @@ void stm32l0_rtc_timer_create(stm32l0_rtc_timer_t *timer, stm32l0_rtc_callback_t
     timer->subseconds = 0;
 }
 
-void stm32l0_rtc_timer_destroy(stm32l0_rtc_timer_t *timer)
+bool stm32l0_rtc_timer_destroy(stm32l0_rtc_timer_t *timer)
 {
+    bool success = true;
+
+    if (__get_IPSR() == 0)
+    {
+	armv6m_svcall_1((uint32_t)&stm32l0_rtc_timer_release, (uint32_t)timer);
+    }
+    else
+    {
+	success = armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)stm32l0_rtc_timer_release, (void*)timer, 0);
+    }
+
+    return success;
 }
 
 bool stm32l0_rtc_timer_start(stm32l0_rtc_timer_t *timer, uint32_t seconds, uint16_t subseconds, bool absolute)

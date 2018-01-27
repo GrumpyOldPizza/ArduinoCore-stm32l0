@@ -64,17 +64,20 @@ typedef struct __attribute__((aligned(4))) _stm32l0_rtc_alarm_t {
     uint8_t                         day;
 } stm32l0_rtc_alarm_t;
 
-typedef void (*stm32l0_rtc_callback_t)(void *context);
+typedef struct _stm32l0_rtc_timer_t stm32l0_rtc_timer_t;
 
-typedef struct _stm32l0_rtc_timer_t {
-    struct _stm32l0_rtc_timer_t     *next;
-    struct _stm32l0_rtc_timer_t     *previous;
-    volatile stm32l0_rtc_callback_t callback;
-    void                            *context;
-    uint32_t                        seconds;
-    uint16_t                        subseconds;
-    volatile uint16_t               adjust;
-} stm32l0_rtc_timer_t;
+typedef void (*stm32l0_rtc_callback_t)(void *context);
+typedef void (*stm32l0_rtc_timer_callback_t)(void *context, stm32l0_rtc_timer_t *timer);
+
+struct _stm32l0_rtc_timer_t {
+    struct _stm32l0_rtc_timer_t           *next;
+    struct _stm32l0_rtc_timer_t           *previous;
+    volatile stm32l0_rtc_timer_callback_t callback;
+    void                                  *context;
+    uint32_t                              seconds;
+    uint16_t                              subseconds;
+    volatile uint16_t                     adjust;
+};
 
 extern void __stm32l0_rtc_initialize(void);
 
@@ -90,8 +93,8 @@ extern void stm32l0_rtc_alarm_attach(unsigned int match, const stm32l0_rtc_alarm
 extern void stm32l0_rtc_alarm_detach(void);
 
 extern void stm32l0_rtc_timer_reference(uint32_t *p_seconds, uint16_t *p_subseconds);
-extern void stm32l0_rtc_timer_create(stm32l0_rtc_timer_t *timer, stm32l0_rtc_callback_t callback, void *context);
-extern void stm32l0_rtc_timer_destroy(stm32l0_rtc_timer_t *timer);
+extern void stm32l0_rtc_timer_create(stm32l0_rtc_timer_t *timer, stm32l0_rtc_timer_callback_t callback, void *context);
+extern bool stm32l0_rtc_timer_destroy(stm32l0_rtc_timer_t *timer);
 extern bool stm32l0_rtc_timer_start(stm32l0_rtc_timer_t *timer, uint32_t seconds, uint16_t subseconds, bool absolute);
 extern bool stm32l0_rtc_timer_stop(stm32l0_rtc_timer_t *timer);
 

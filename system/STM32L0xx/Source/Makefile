@@ -71,7 +71,6 @@ SRCS = \
 	dosfs_storage.c \
 	stm32l0_adc.c \
 	stm32l0_aes.c \
-	stm32l0_clib.c \
 	stm32l0_comp.c \
 	stm32l0_dac.c \
 	stm32l0_dma.c \

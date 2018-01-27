@@ -66,6 +66,7 @@ SRCS = \
 	itoa.c \
 	main.c \
 	new.cpp \
+	syscalls_stm32l0.c \
 	wiring.c \
 	wiring_analog.c \
 	wiring_digital.c \
@@ -110,6 +111,7 @@ OBJS = \
 	itoa.o \
 	main.o \
 	new.o \
+	syscalls_stm32l0.o \
 	wiring.o \
 	wiring_analog.o \
 	wiring_digital.o \

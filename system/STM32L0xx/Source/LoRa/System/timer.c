@@ -22,7 +22,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 
 void TimerInit( TimerEvent_t *obj, void ( *callback )( void ) )
 {
-    stm32l0_rtc_timer_create(&obj->rtc_timer, (stm32l0_rtc_callback_t)callback, NULL);
+    stm32l0_rtc_timer_create(&obj->rtc_timer, (stm32l0_rtc_timer_callback_t)callback, NULL);
 
     obj->ReloadValue = 0;
 }
