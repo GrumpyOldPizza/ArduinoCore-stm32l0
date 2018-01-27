@@ -110,11 +110,11 @@ public:
     int linkGateways();
 
     void onJoin(void(*callback)(void));
-    void onJoin(Notifier notify);
+    void onJoin(Callback callback);
     void onReceive(void(*callback)(void));
-    void onReceive(Notifier notify);
+    void onReceive(Callback callback);
     void onTransmit(void(*callback)(void));
-    void onTransmit(Notifier notify);
+    void onTransmit(Callback callback);
 
     int getDevEui(char *buffer, size_t size);
     int getMaxPayloadSize();
@@ -181,9 +181,9 @@ private:
 
     LoRaWANSession    _session;
 
-    Notifier          _joinNotify;
-    Notifier          _receiveNotify;
-    Notifier          _transmitNotify;
+    Callback          _joinCallback;
+    Callback          _receiveCallback;
+    Callback          _transmitCallback;
 
     static void __McpsConfirm(struct sMcpsConfirm*);
     static void __McpsIndication(struct sMcpsIndication*);

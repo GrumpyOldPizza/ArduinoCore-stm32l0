@@ -357,9 +357,6 @@ LoRaWANClass::LoRaWANClass()
     _session.Joined = LORAWAN_JOINED_NONE;
 }
 
-LoRaMacPrimitives_t LoRaWANPrimitives;
-LoRaMacCallback_t LoRaWANCallbacks;
-
 static const LoRaMacRegion_t *LoRaWANRegions[] = {
     &LoRaMacRegionAS923,
     &LoRaMacRegionAU915,
@@ -389,16 +386,22 @@ int LoRaWANClass::begin(LoRaWANBand band)
 {
     MibRequestConfirm_t mibReq;
 
+    static const LoRaMacPrimitives_t LoRaWANPrimitives = {
+	LoRaWANClass::__McpsConfirm,
+	LoRaWANClass::__McpsIndication,
+	LoRaWANClass::__MlmeConfirm,
+    };
+
+    static const LoRaMacCallback_t LoRaWANCallbacks = {
+	LoRaWANGetBatteryLevel,
+    };
+
     if (__get_IPSR() != 0) {
 	return 0;
     }
 
     _Band = band;
 
-    LoRaWANPrimitives.MacMcpsConfirm = __McpsConfirm;
-    LoRaWANPrimitives.MacMcpsIndication = __McpsIndication;
-    LoRaWANPrimitives.MacMlmeConfirm = __MlmeConfirm;
-    LoRaWANCallbacks.GetBatteryLevel = LoRaWANGetBatteryLevel;
     LoRaMacInitialization(&LoRaWANPrimitives, &LoRaWANCallbacks, LoRaWANRegions[band]);
 
     mibReq.Type = MIB_PUBLIC_NETWORK;
@@ -967,32 +970,32 @@ int LoRaWANClass::linkGateways()
 
 void LoRaWANClass::onJoin(void(*callback)(void))
 {
-    _joinNotify = Notifier(callback);
+    _joinCallback = Callback(callback);
 }
 
-void LoRaWANClass::onJoin(Notifier notify)
+void LoRaWANClass::onJoin(Callback callback)
 {
-    _joinNotify = notify;
+    _joinCallback = callback;
 }
 
 void LoRaWANClass::onReceive(void(*callback)(void))
 {
-    _receiveNotify = Notifier(callback);
+    _receiveCallback = Callback(callback);
 }
 
-void LoRaWANClass::onReceive(Notifier notify)
+void LoRaWANClass::onReceive(Callback callback)
 {
-    _receiveNotify = notify;
+    _receiveCallback = callback;
 }
 
 void LoRaWANClass::onTransmit(void(*callback)(void))
 {
-    _transmitNotify = Notifier(callback);
+    _transmitCallback = Callback(callback);
 }
 
-void LoRaWANClass::onTransmit(Notifier notify)
+void LoRaWANClass::onTransmit(Callback callback)
 {
-    _transmitNotify = notify;
+    _transmitCallback = callback;
 }
 
 int LoRaWANClass::getDevEui(char *buffer, size_t size)
@@ -1670,7 +1673,7 @@ void LoRaWANClass::__McpsConfirm( McpsConfirm_t *mcpsConfirm )
 	    LoRaMacMibSetRequestConfirm(&mibReq);
 	}
 
-	LoRaWAN._transmitNotify.queue();
+	LoRaWAN._transmitCallback.queue();
     }
 }
 
@@ -1760,7 +1763,7 @@ void LoRaWANClass::__McpsIndication( McpsIndication_t *mcpsIndication )
 	}
     }
 
-    LoRaWAN._receiveNotify.queue();
+    LoRaWAN._receiveCallback.queue();
 }
 
 void LoRaWANClass::__MlmeConfirm( MlmeConfirm_t *mlmeConfirm )
@@ -1792,7 +1795,7 @@ void LoRaWANClass::__MlmeConfirm( MlmeConfirm_t *mlmeConfirm )
 	    LoRaWAN._tx_busy = false;
 	}
 
-	LoRaWAN._joinNotify.queue();
+	LoRaWAN._joinCallback.queue();
 	break;
 
     case MLME_LINK_CHECK:

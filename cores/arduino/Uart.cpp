@@ -284,10 +284,10 @@ size_t Uart::write(const uint8_t *buffer, size_t size)
 
 bool Uart::write(const uint8_t *buffer, size_t size, void(*callback)(void))
 {
-    return write(buffer, size, Notifier(callback));
+    return write(buffer, size, Callback(callback));
 }
 
-bool Uart::write(const uint8_t *buffer, size_t size, Notifier notify)
+bool Uart::write(const uint8_t *buffer, size_t size, Callback callback)
 {
     if (!_enabled) {
 	return false;
@@ -301,7 +301,7 @@ bool Uart::write(const uint8_t *buffer, size_t size, Notifier notify)
 	return false;
     }
 
-    _completionNotify = notify;
+    _completionCallback = callback;
 
     _tx_data2 = buffer;
     _tx_size2 = size;
@@ -312,7 +312,7 @@ bool Uart::write(const uint8_t *buffer, size_t size, Notifier notify)
 	if (!stm32l0_uart_transmit(_uart, _tx_data2, _tx_size2, (stm32l0_uart_done_callback_t)Uart::_doneCallback, (void*)this)) {
 	    _tx_busy = false;
 
-	    _completionNotify = Notifier();
+	    _completionCallback = Callback();
 
 	    _tx_data2 = NULL;
 	    _tx_size2 = 0;
@@ -357,18 +357,18 @@ void Uart::setFlowControl(enum FlowControl mode)
 
 void Uart::onReceive(void(*callback)(void))
 {
-    _receiveNotify = Notifier(callback);
+    _receiveCallback = Callback(callback);
 }
 
-void Uart::onReceive(Notifier notify)
+void Uart::onReceive(Callback callback)
 {
-    _receiveNotify = notify;
+    _receiveCallback = callback;
 }
 
 void Uart::_eventCallback(class Uart *self, uint32_t events)
 {
     if (events & UART_EVENT_RECEIVE) {
-	self->_receiveNotify.queue();
+	self->_receiveCallback.queue();
     }
 }
 
@@ -413,8 +413,8 @@ void Uart::_doneCallback(class Uart *self)
 		    self->_tx_size2 = 0;
 		    self->_tx_data2 = NULL;
 
-                    self->_completionNotify.queue();
-		    self->_completionNotify = Notifier();
+                    self->_completionCallback.queue();
+		    self->_completionCallback = Callback();
 		}
 	    }
 	} else {
@@ -427,8 +427,8 @@ void Uart::_doneCallback(class Uart *self)
 		    self->_tx_size2 = 0;
 		    self->_tx_data2 = NULL;
 
-                    self->_completionNotify.queue();
-		    self->_completionNotify = Notifier();
+                    self->_completionCallback.queue();
+		    self->_completionCallback = Callback();
 		}
 	    }
 	}
@@ -436,7 +436,7 @@ void Uart::_doneCallback(class Uart *self)
 	self->_tx_size2 = 0;
 	self->_tx_data2 = NULL;
 
-	self->_completionNotify.queue();
-	self->_completionNotify = Notifier();
+	self->_completionCallback.queue();
+	self->_completionCallback = Callback();
     }
 }

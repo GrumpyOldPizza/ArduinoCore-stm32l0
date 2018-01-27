@@ -29,21 +29,33 @@
 #include "Arduino.h"
 #include "wiring_private.h"
 
+Callback::Callback(class EventHandler *event)
+{
+    _callback = reinterpret_cast<void (*)(void*)>(armv6m_event_enqueue);
+    _context = reinterpret_cast<void*>(event);
+}
+
+
 /* The format of a member pointer is defined in the C++ ABI.
  * For ARM that document is IHI0041D, which describes the differences
  * to the Itanium C++ ABI.
  */
 
-bool Notifier::queue() {
+bool Callback::queue() {
     if (_callback) {
-	return armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)_callback, _context, 0);
+	if (_callback == reinterpret_cast<void (*)(void*)>(armv6m_event_enqueue)) {
+	    armv6m_event_enqueue((armv6m_event_t*)_context);
+	    return true;
+	} else {
+	    return armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)_callback, _context, 0);
+	}
     } else {
 	stm32l0_system_wakeup();
 	return false;
     }
 }
 
-void Notifier::call() {
+void Callback::call() {
     if (_callback) {
 	(*_callback)(_context);
     } else {
@@ -51,7 +63,7 @@ void Notifier::call() {
     }
 }
 
-void Notifier::bind(const void *method, const void *object) {
+void Callback::bind(const void *method, const void *object) {
     void *ptr = (void*)(((const uint32_t*)method)[0]);
     ptrdiff_t adj = ((ptrdiff_t)(((const uint32_t*)method)[1]) >> 1);
     

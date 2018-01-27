@@ -8,15 +8,15 @@ LD       = $(TOOLS)/bin/arm-none-eabi-ld
 CFLAGS   = -mcpu=cortex-m0plus -mthumb -c -g -Os $(WARNINGS) -std=gnu11 -ffunction-sections -fdata-sections -nostdlib -MMD $(EXTRAS) $(DEFINES) $(INCLUDES)
 CXXFLAGS = -mcpu=cortex-m0plus -mthumb -c -g -Os $(WARNINGS) -std=gnu++11 -ffunction-sections -fdata-sections -fno-threadsafe-statics -nostdlib -fno-rtti -fno-exceptions -MMD $(EXTRAS) $(DEFINES) $(INCLUDES)
 ASFLAGS  = -c -g -x assembler-with-cpp $(EXTRAS) $(DEFINES) $(INCLUDES)
-LDFLAGS = -g -Os -mcpu=cortex-m0plus -mthumb -mabi=aapcs -mfloat-abi=soft -Wl,--gc-sections,--no-undefined -T../../variants/STM32L082CZ-Grasshopper/linker_scripts/STM32L082CZ_FLASH.ld --specs=nano.specs
+LDFLAGS = -g -Os -mcpu=cortex-m0plus -mthumb -mabi=aapcs -mfloat-abi=soft -Wl,--gc-sections,--no-undefined -T../../variants/STM32L082CZ-Cricket/linker_scripts/STM32L082CZ_FLASH.ld --specs=nano.specs
 WARNINGS = -Wall -Wextra -Wno-unused-parameter
 EXTRAS   = -DSTM32L082xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft
-DEFINES  = -D_SYSTEM_CORE_CLOCK_=32000000 -DDOSFS_SDCARD=0 -DDOSFS_SFLASH=0
+DEFINES  = -D_SYSTEM_CORE_CLOCK_=32000000 -DDOSFS_SDCARD=0 -DDOSFS_SFLASH=1
 INCLUDES = \
 	-I../../system/CMSIS/Include \
 	-I../../system/CMSIS/Device/ST/STM32L0xx/Include \
 	-I../../system/STM32L0xx/Include \
-	-I../../variants/STM32L082CZ-Grasshopper \
+	-I../../variants/STM32L082CZ-Cricket \
 	-I../../libraries/DOSFS/src \
 	-I../../libraries/EEPROM/src \
 	-I../../libraries/GNSS/src \
@@ -38,18 +38,19 @@ SRCS = \
 	../../libraries/STM32L0/src/STM32L0.cpp \
 	../../libraries/TimerMillis/src/TimerMillis.cpp \
 	../../libraries/Wire/src/Wire.cpp \
-	../../variants/STM32L082CZ-Grasshopper/variant.cpp \
+	../../variants/STM32L082CZ-Cricket/variant.cpp \
 	avr/dtostrf.c \
 	avr/eeprom.c \
 	avr/fdevopen.c \
+	Callback.cpp \
 	CDC.cpp \
+	FS.cpp \
 	HardwareSerial.cpp \
 	HardwareSerial1.cpp \
 	HardwareSerial2.cpp \
 	HardwareSerial3.cpp \
 	HID.cpp \
 	IPAddress.cpp \
-	Notifier.cpp \
 	Print.cpp \
 	RingBuffer.cpp \
 	Stream.cpp \
@@ -81,18 +82,19 @@ OBJS = \
 	../../libraries/STM32L0/src/STM32L0.o \
 	../../libraries/TimerMillis/src/TimerMillis.o \
 	../../libraries/Wire/src/Wire.o \
-	../../variants/STM32L082CZ-Grasshopper/variant.o \
+	../../variants/STM32L082CZ-Cricket/variant.o \
 	avr/dtostrf.o \
 	avr/eeprom.o \
 	avr/fdevopen.o \
+	Callback.o \
 	CDC.o \
+	FS.o \
 	HardwareSerial.o \
 	HardwareSerial1.o \
 	HardwareSerial2.o \
 	HardwareSerial3.o \
 	HID.o \
 	IPAddress.o \
-	Notifier.o \
 	Print.o \
 	RingBuffer.o \
 	Stream.o \

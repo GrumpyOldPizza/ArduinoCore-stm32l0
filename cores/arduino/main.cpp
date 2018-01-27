@@ -36,10 +36,9 @@ void (*g_serialEventRun)(void) = NULL;
 int main( void )
 {
   init();
+  initVariant();
 
   __libc_init_array();
-
-  initVariant();
 
   delay(1);
 #if defined(USBCON)

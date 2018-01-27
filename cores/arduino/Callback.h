@@ -28,35 +28,37 @@
 
 #pragma once
 
-class Notifier {
+class Callback {
 public:
-    Notifier() : _callback(NULL), _context(NULL) {  }
+    Callback() : _callback(NULL), _context(NULL) {  }
 
-    Notifier(void (*function)(void)) : _callback((void (*)(void*))function), _context(NULL) { }
-
-    template<typename T>
-    Notifier(void (T::*method)(), T *object) { bind(&method, object); }
+    Callback(void (*function)(void)) : _callback((void (*)(void*))function), _context(NULL) { }
 
     template<typename T>
-    Notifier(void (T::*method)() const, const T *object) { bind(&method, object); }
+    Callback(void (T::*method)(), T *object) { bind(&method, object); }
 
     template<typename T>
-    Notifier(void (T::*method)() volatile, volatile T *object) { bind(&method, object); }
+    Callback(void (T::*method)() const, const T *object) { bind(&method, object); }
 
     template<typename T>
-    Notifier(void (T::*method)() const volatile, const volatile T *object) { bind(&method, object); }
+    Callback(void (T::*method)() volatile, volatile T *object) { bind(&method, object); }
 
     template<typename T>
-    Notifier(void (T::*method)(), T &object) { bind(&method, &object); }
+    Callback(void (T::*method)() const volatile, const volatile T *object) { bind(&method, object); }
 
     template<typename T>
-    Notifier(void (T::*method)() const, const T &object) { bind(&method, &object); }
+    Callback(void (T::*method)(), T &object) { bind(&method, &object); }
 
     template<typename T>
-    Notifier(void (T::*method)() volatile, volatile T &object) { bind(&method, &object); }
+    Callback(void (T::*method)() const, const T &object) { bind(&method, &object); }
 
     template<typename T>
-    Notifier(void (T::*method)() const volatile, const volatile T &object) { bind(&method, &object); }
+    Callback(void (T::*method)() volatile, volatile T &object) { bind(&method, &object); }
+
+    template<typename T>
+    Callback(void (T::*method)() const volatile, const volatile T &object) { bind(&method, &object); }
+
+    Callback(class EventHandler *event);
 
     bool queue();
     void call();
