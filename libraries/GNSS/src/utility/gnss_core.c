@@ -31,6 +31,7 @@
 
 #include "gnss_api.h"
 #include "stm32l0_rtc.h"
+#include "stm32l0_gpio.h"
 
 /*
  * NOTES:
@@ -1704,14 +1705,9 @@ static void ubx_parse_message(gnss_device_t *device, unsigned int message, uint8
 	    {
 		device->satellites.info[device->satellites.count].state = 0;
 
-		if (ubx_data_uint8(data, 10) & 0x04)
+		if ((ubx_data_uint8(data, 10) & 0x0c) == 0x0c)
 		{
-		    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_ALMANAC;
-
-		    if (ubx_data_uint8(data, 10) & 0x08)
-		    {
-			device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_EPHEMERIS;
-		    }
+		    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_EPHEMERIS;
 		}
 
 		if (ubx_data_uint8(data, 10) & 0x02)
@@ -3026,6 +3022,7 @@ static void ubx_configure(gnss_device_t *device, unsigned int response, uint32_t
 		}
 
 		data = device->table[0];
+		device->table = device->table + 1;
 	    }
 	    else
 	    {

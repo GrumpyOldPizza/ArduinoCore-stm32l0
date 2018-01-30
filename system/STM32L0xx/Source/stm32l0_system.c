@@ -1589,10 +1589,6 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t timeout)
 		    RCC->APB1ENR &= ~RCC_APB1ENR_PWREN;
 		    
 		    stm32l0_gpio_restore(&gpio_state);
-
-		    stm32l0_rtc_timer_reference(&seconds, &subseconds);
-
-		    armv6m_systick_sync(seconds, subseconds);
 		    
 		    for (entry = stm32l0_system_device.notify; entry; entry = entry->next)
 		    {
@@ -1601,6 +1597,10 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t timeout)
 			    (*entry->callback)(entry->context, STM32L0_SYSTEM_EVENT_STOP_LEAVE);
 			}
 		    }
+
+		    stm32l0_rtc_timer_reference(&seconds, &subseconds);
+
+		    armv6m_systick_sync(seconds, subseconds);
 		}
 		else 
 		{

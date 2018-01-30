@@ -1203,7 +1203,7 @@ bool stm32l0_uart_configure(stm32l0_uart_t *uart, uint32_t baudrate, uint32_t op
 	usart_cr2 |= USART_CR2_TXINV;
     }
 
-    if ((uart->instance == STM32L0_UART_INSTANCE_USART2) || (uart->instance == STM32L0_UART_INSTANCE_USART2))
+    if ((uart->instance == STM32L0_UART_INSTANCE_USART1) || (uart->instance == STM32L0_UART_INSTANCE_USART2))
     {
 	usart_brr = ((16000000u + (baudrate >> 1)) / baudrate);              /* HSI16 */
 

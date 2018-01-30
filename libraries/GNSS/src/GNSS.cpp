@@ -516,6 +516,7 @@ void GNSSClass::enableCallback(class GNSSClass *self)
 {
 #if defined(STM32L0_CONFIG_PIN_GNSS_ENABLE)
     self->_uart->begin(self->_baudrate);
+    self->_uart->setWakeup((self->_baudrate <= 38400));
 
     stm32l0_gpio_pin_configure(STM32L0_CONFIG_PIN_GNSS_ENABLE, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
     stm32l0_gpio_pin_write(STM32L0_CONFIG_PIN_GNSS_ENABLE, 1);

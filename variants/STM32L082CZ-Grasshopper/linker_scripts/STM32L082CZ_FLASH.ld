@@ -58,6 +58,8 @@
  *   __stack
  *   __FlashBase
  *   __FlashLimit
+ *
+ * STM32L0 likes to see .text/.data to be 64 byte aligned.
  */
 
 MEMORY
@@ -70,7 +72,7 @@ ENTRY(Reset_Handler)
 
 SECTIONS
 {
-   .text :
+   .text : ALIGN(64)
    {
        KEEP(*(.isr_vector));
 
@@ -124,13 +126,12 @@ SECTIONS
        LONG (__bss_start__)
        LONG (__bss_end__ - __bss_start__)
      __zero_table_end__ = .;
-       . = ALIGN(8);
+       . = ALIGN(64);
    } > FLASH
 
    .ARM.extab :
    {
        *(.ARM.extab* .gnu.linkonce.armextab.*)
-       . = ALIGN(8);
    } > FLASH
 
    .ARM.exidx :
@@ -138,7 +139,6 @@ SECTIONS
        PROVIDE_HIDDEN(__exidx_start = .);
        *(.ARM.exidx* .gnu.linkonce.armexidx.*)
        PROVIDE_HIDDEN(__exidx_end = .);
-       . = ALIGN(8);
    } > FLASH
 
    __etext = . ;
@@ -152,7 +152,7 @@ SECTIONS
      PROVIDE(__stack = __StackTop);
    } > SRAM
 
-   .data :
+   .data : ALIGN(64)
    {
      __data_start__ = .;
        *(.ramfunc .ramfunc.*)
@@ -162,6 +162,7 @@ SECTIONS
        *(.data .data.* .gnu.linkonce.d.*)
      . = ALIGN(8);
      __data_end__ = .;
+     . = ALIGN(64);
    } > SRAM AT > FLASH
 
    .bss (NOLOAD) :
