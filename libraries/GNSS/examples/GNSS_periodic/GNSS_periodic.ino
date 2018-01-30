@@ -23,7 +23,7 @@ void setup( void )
 
     while (GNSS.busy()) { }
 
-    GNSS.setPeriodic(30, 120);
+    GNSS.setPeriodic(30, 120, true);
 }
 
 void loop( void )

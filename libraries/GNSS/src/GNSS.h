@@ -166,7 +166,7 @@ public:
     bool setQZSS(bool enable);
     bool setAutonomous(bool enable);
     bool setPlatform(GNSSplatform platform);
-    bool setPeriodic(unsigned int onTime, unsigned int period, bool force = true);
+    bool setPeriodic(unsigned int onTime, unsigned int period, bool force = false);
     bool sleep();
     bool wakeup();
     bool busy();
