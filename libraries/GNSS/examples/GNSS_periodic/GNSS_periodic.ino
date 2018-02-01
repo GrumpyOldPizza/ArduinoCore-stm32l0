@@ -1,6 +1,12 @@
 #include "GNSS.h"
 #include "STM32L0.h"
 
+bool isPeriodic = false;
+
+unsigned int myAcqTime =  45;
+unsigned int myOnTime  =   5;
+unsigned int myPeriod  = 120;
+
 GNSSLocation myLocation;
 GNSSSatellites mySatellites;
 
@@ -19,11 +25,9 @@ void setup( void )
 
     while (GNSS.busy()) { }
 
-    GNSS.setAntenna(GNSS.ANTENNA_EXTERNAL);
+    GNSS.setAntenna(GNSS.ANTENNA_INTERNAL);
 
     while (GNSS.busy()) { }
-
-    GNSS.setPeriodic(30, 120, true);
 }
 
 void loop( void )
@@ -50,6 +54,16 @@ void loop( void )
             "/MANUAL",
             "/SIMULATION",
         };
+
+        if (!isPeriodic)
+        {
+            if (myLocation.fixType() == GNSSLocation::TYPE_3D)
+            {
+                isPeriodic = true;
+                
+                GNSS.setPeriodic(myAcqTime, myOnTime, myPeriod);
+            }
+        }
 
         Serial.print("LOCATION: ");
         Serial.print(fixTypeString[myLocation.fixType()]);

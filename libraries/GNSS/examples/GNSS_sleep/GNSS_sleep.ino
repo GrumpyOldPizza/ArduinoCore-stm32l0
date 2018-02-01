@@ -1,14 +1,22 @@
-#include "GNSS.h"
+ #include "GNSS.h"
 #include "STM32L0.h"
 #include "TimerMillis.h"
+
+bool isPeriodic = false;
+
+unsigned int myAcqTime =  45;
+unsigned int myOnTime  =   5;
+unsigned int myPeriod  = 120;
 
 GNSSLocation myLocation;
 GNSSSatellites mySatellites;
 
+volatile bool isTracking = false;
+
 TimerMillis myTimerSleep;
 TimerMillis myTimerWakeup;
 
-//#undef
+//#undef Serial
 //#define Serial Serial2
 
 void callbackSleep(void)
@@ -20,7 +28,9 @@ void callbackWakeup(void)
 {
     GNSS.wakeup();
 
-    myTimerSleep.start(callbackSleep, 30000);
+    isTracking = false;
+
+    myTimerSleep.start(callbackSleep, myAcqTime * 1000);
 }
 
 void setup( void )
@@ -35,13 +45,9 @@ void setup( void )
 
     while (GNSS.busy()) { }
 
-    GNSS.setAntenna(GNSS.ANTENNA_EXTERNAL);
+    GNSS.setAntenna(GNSS.ANTENNA_INTERNAL);
 
     while (GNSS.busy()) { }
-
-    myTimerWakeup.start(callbackWakeup, 0, 600000);
-
-    myTimerSleep.start(callbackSleep, 180000);
 }
 
 void loop( void )
@@ -68,6 +74,32 @@ void loop( void )
             "/MANUAL",
             "/SIMULATION",
         };
+
+        if (!isPeriodic)
+        {
+            if (myLocation.fixType() == GNSSLocation::TYPE_3D)
+            {
+                isPeriodic = true;
+                
+                myTimerSleep.start(callbackWakeup, 0, myPeriod * 1000);
+
+                isTracking = true;
+                
+                myTimerSleep.start(callbackSleep, myOnTime * 1000);
+            }
+        }
+        else
+        {
+            if (myLocation.fixType() >= GNSSLocation::TYPE_2D)
+            {
+                if (!isTracking)
+                {
+                    isTracking = true;
+                    
+                    myTimerSleep.restart(myOnTime * 1000);
+                }
+            }
+        }
 
         Serial.print("LOCATION: ");
         Serial.print(fixTypeString[myLocation.fixType()]);

@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -35,22 +35,22 @@
 class GNSSLocation {
 public:
     enum GNSSfixType {
-	TYPE_NONE = 0,
-	TYPE_TIME,
-	TYPE_2D,
-	TYPE_3D,
+        TYPE_NONE = 0,
+        TYPE_TIME,
+        TYPE_2D,
+        TYPE_3D,
     };
 
     enum GNSSfixQuality {
-	QUALITY_NONE = 0,
-	QUALITY_AUTONOMOUS,
-	QUALITY_DIFFERENTIAL,
-	QUALITY_PRECISE,
-	QUALITY_RTK_FIXED,
-	QUALITY_RTK_FLOAT,
-	QUALITY_ESTIMATED,
-	QUALITY_MANUAL,
-	QUALITY_SIMULATION,
+        QUALITY_NONE = 0,
+        QUALITY_AUTONOMOUS,
+        QUALITY_DIFFERENTIAL,
+        QUALITY_PRECISE,
+        QUALITY_RTK_FIXED,
+        QUALITY_RTK_FLOAT,
+        QUALITY_ESTIMATED,
+        QUALITY_MANUAL,
+        QUALITY_SIMULATION,
     };
 
     GNSSLocation(const gnss_location_t *location);
@@ -124,34 +124,34 @@ private:
 class GNSSClass {
 public:
     enum GNSSmode {
-	MODE_NMEA = 0,
-	MODE_UBLOX,
+        MODE_NMEA = 0,
+        MODE_UBLOX,
     };
 
     enum GNSSrate {
-	RATE_1HZ = 1,
-	RATE_5HZ = 5,
-	RATE_10HZ = 10,
+        RATE_1HZ = 1,
+        RATE_5HZ = 5,
+        RATE_10HZ = 10,
     };
 
     enum GNSSantenna {
-	ANTENNA_INTERNAL = 0,
-	ANTENNA_EXTERNAL,
+        ANTENNA_INTERNAL = 0,
+        ANTENNA_EXTERNAL,
     };
 
     enum GNSSconstellation {
-	CONSTELLATION_GPS = 1,
-	CONSTELLATION_GPS_AND_GLONASS = 3,
+        CONSTELLATION_GPS = 1,
+        CONSTELLATION_GPS_AND_GLONASS = 3,
     };
 
     enum GNSSplatform {
-	PLATFORM_PORTABLE = 0,
-	PLATFORM_STATIONARY,
-	PLATFORM_PEDESTRIAN,
-	PLATFORM_CAR,
-	PLATFORM_SEA,
-	PLATFORM_BALLON,
-	PLATFORM_AVIATION,
+        PLATFORM_PORTABLE = 0,
+        PLATFORM_STATIONARY,
+        PLATFORM_PEDESTRIAN,
+        PLATFORM_CAR,
+        PLATFORM_SEA,
+        PLATFORM_BALLON,
+        PLATFORM_AVIATION,
     };
 
     GNSSClass();
@@ -166,7 +166,7 @@ public:
     bool setQZSS(bool enable);
     bool setAutonomous(bool enable);
     bool setPlatform(GNSSplatform platform);
-    bool setPeriodic(unsigned int onTime, unsigned int period, bool force = false);
+    bool setPeriodic(unsigned int acqTime, unsigned int onTime, unsigned int period);
     bool sleep();
     bool wakeup();
     bool busy();

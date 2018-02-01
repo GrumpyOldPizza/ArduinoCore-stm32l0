@@ -186,9 +186,9 @@ typedef struct _ubx_context_t {
     uint32_t            itow;
     uint8_t             generation;
     struct {
-	uint8_t         supported;
-	uint8_t         enabled;
-	uint8_t         simultaneous;
+        uint8_t         supported;
+        uint8_t         enabled;
+        uint8_t         simultaneous;
     } gnss;
     stm32l0_rtc_timer_t sleep;
     stm32l0_rtc_timer_t timeout;
@@ -270,17 +270,17 @@ static int utc_diff_time(const utc_time_t *t0, uint32_t offset0, const utc_time_
     /* The difference between t0 and t1 in seconds.
      */
   return (((((((((t0->year * 365 + (1 + ((t0->year -1) / 4))) +
-		 utc_days_since_month[(t0->year & 3) == 0][t0->month -1] +
-		 (t0->day -1)) -
-		((t1->year * 365 + (1 + ((t1->year -1) / 4))) +
-		   utc_days_since_month[(t1->year & 3) == 0][t1->month -1] +
-		 (t1->day -1))) * 24) +
-	      t0->hours -
-	      t1->hours) * 60) +
-	    t0->minutes -
-	    t1->minutes) * 60) +
-	  (t0->seconds + offset0) -
-	  (t1->seconds + offset1));
+                 utc_days_since_month[(t0->year & 3) == 0][t0->month -1] +
+                 (t0->day -1)) -
+                ((t1->year * 365 + (1 + ((t1->year -1) / 4))) +
+                   utc_days_since_month[(t1->year & 3) == 0][t1->month -1] +
+                 (t1->day -1))) * 24) +
+              t0->hours -
+              t1->hours) * 60) +
+            t0->minutes -
+            t1->minutes) * 60) +
+          (t0->seconds + offset0) -
+          (t1->seconds + offset1));
 }
 
 /* utc_offset_time:
@@ -293,13 +293,13 @@ static int utc_diff_time(const utc_time_t *t0, uint32_t offset0, const utc_time_
 static int utc_offset_time(const utc_time_t *time, uint16_t week, uint32_t tow)
 {
     return ((((uint32_t)week * 604800) + ((tow + 500) / 1000)) -
-	    ((((((((time->year * 365 + (1 + ((time->year -1) / 4))) +
-		   utc_days_since_month[(time->year & 3) == 0][time->month -1] +
-		   (time->day -1)) -
-		  (6 -1) * 24) +
-		 time->hours) * 60) +
-	       time->minutes) * 60) +
-	     time->seconds));
+            ((((((((time->year * 365 + (1 + ((time->year -1) / 4))) +
+                   utc_days_since_month[(time->year & 3) == 0][time->month -1] +
+                   (time->day -1)) -
+                  (6 -1) * 24) +
+                 time->hours) * 60) +
+               time->minutes) * 60) +
+             time->seconds));
 }
 
 /************************************************************************************/
@@ -308,112 +308,112 @@ static void gnss_location(gnss_device_t *device)
 {
     switch (device->location.type) {
     case GNSS_LOCATION_TYPE_NONE:
-	device->location.mask = 0;
-	device->location.numsv = 0;
-	device->location.quality = GNSS_LOCATION_QUALITY_NONE;
-	break;
+        device->location.mask = 0;
+        device->location.numsv = 0;
+        device->location.quality = GNSS_LOCATION_QUALITY_NONE;
+        break;
 
     case GNSS_LOCATION_TYPE_TIME:
-	device->location.mask &= (GNSS_LOCATION_MASK_TIME |
-				  GNSS_LOCATION_MASK_CORRECTION);
+        device->location.mask &= (GNSS_LOCATION_MASK_TIME |
+                                  GNSS_LOCATION_MASK_CORRECTION);
 
-	device->location.quality = GNSS_LOCATION_QUALITY_NONE;
-	break;
+        device->location.quality = GNSS_LOCATION_QUALITY_NONE;
+        break;
 
     case GNSS_LOCATION_TYPE_2D:
-	device->location.mask &= (GNSS_LOCATION_MASK_TIME |
-				  GNSS_LOCATION_MASK_CORRECTION |
-				  GNSS_LOCATION_MASK_POSITION |
-				  GNSS_LOCATION_MASK_SPEED |
-				  GNSS_LOCATION_MASK_COURSE |
-				  GNSS_LOCATION_MASK_EHPE |
-				  GNSS_LOCATION_MASK_HDOP);
-	break;
+        device->location.mask &= (GNSS_LOCATION_MASK_TIME |
+                                  GNSS_LOCATION_MASK_CORRECTION |
+                                  GNSS_LOCATION_MASK_POSITION |
+                                  GNSS_LOCATION_MASK_SPEED |
+                                  GNSS_LOCATION_MASK_COURSE |
+                                  GNSS_LOCATION_MASK_EHPE |
+                                  GNSS_LOCATION_MASK_HDOP);
+        break;
 
     case GNSS_LOCATION_TYPE_3D:
-	break;
+        break;
 
     default:
-	break;
+        break;
     }
 
     if (device->location.mask & GNSS_LOCATION_MASK_TIME)
     {
-	if (!(device->location.mask & GNSS_LOCATION_MASK_CORRECTION))
-	{
-	    device->location.correction = 0;
-	}
+        if (!(device->location.mask & GNSS_LOCATION_MASK_CORRECTION))
+        {
+            device->location.correction = 0;
+        }
     }
     else
     {
-	device->location.time.year    = 1980 - 1980;
-	device->location.time.month   = 1;
-	device->location.time.day     = 6;
-	device->location.time.hours   = 0;
-	device->location.time.minutes = 0;
-	device->location.time.seconds = 0;
-	device->location.time.millis  = 0;
-	device->location.correction   = 0;
+        device->location.time.year    = 1980 - 1980;
+        device->location.time.month   = 1;
+        device->location.time.day     = 6;
+        device->location.time.hours   = 0;
+        device->location.time.minutes = 0;
+        device->location.time.seconds = 0;
+        device->location.time.millis  = 0;
+        device->location.correction   = 0;
 
-	device->location.mask = 0;
-	device->location.numsv = 0;
+        device->location.mask = 0;
+        device->location.numsv = 0;
     }
 
     if (!(device->location.mask & GNSS_LOCATION_MASK_POSITION))
     {
-	device->location.latitude = 0;
-	device->location.longitude = 0;
+        device->location.latitude = 0;
+        device->location.longitude = 0;
     }
 
     if (!(device->location.mask & GNSS_LOCATION_MASK_ALTITUDE))
     {
-	device->location.altitude = 0;
-	device->location.separation = 0;
+        device->location.altitude = 0;
+        device->location.separation = 0;
     }
 
     if (!(device->location.mask & GNSS_LOCATION_MASK_SPEED))
     {
-	device->location.speed = 0;
+        device->location.speed = 0;
     }
 
     if (!(device->location.mask & GNSS_LOCATION_MASK_COURSE))
     {
-	device->location.course = 0;
+        device->location.course = 0;
     }
 
     if (!(device->location.mask & GNSS_LOCATION_MASK_CLIMB))
     {
-	device->location.climb = 0;
+        device->location.climb = 0;
     }
 
     if (!(device->location.mask & GNSS_LOCATION_MASK_EHPE))
     {
-	device->location.ehpe = 0;
+        device->location.ehpe = 0;
     }
 
     if (!(device->location.mask & GNSS_LOCATION_MASK_EVPE))
     {
-	device->location.evpe = 0;
+        device->location.evpe = 0;
     }
 
     if (!(device->location.mask & GNSS_LOCATION_MASK_PDOP))
     {
-	device->location.pdop = 9999;
+        device->location.pdop = 9999;
     }
 
     if (!(device->location.mask & GNSS_LOCATION_MASK_HDOP))
     {
-	device->location.hdop = 9999;
+        device->location.hdop = 9999;
     }
 
     if (!(device->location.mask & GNSS_LOCATION_MASK_VDOP))
     {
-	device->location.vdop = 9999;
+        device->location.vdop = 9999;
     }
 
     if (device->callbacks->location_callback)
     {
-	(*device->callbacks->location_callback)(device->context, &device->location);
+        (*device->callbacks->location_callback)(device->context, &device->location);
     }
 
     device->location.type = 0;
@@ -424,12 +424,12 @@ static void gnss_satellites(gnss_device_t *device)
 {
     if (device->satellites.count > GNSS_SATELLITES_COUNT_MAX)
     {
-	device->satellites.count = GNSS_SATELLITES_COUNT_MAX;
+        device->satellites.count = GNSS_SATELLITES_COUNT_MAX;
     }
 
     if (device->callbacks->satellites_callback)
     {
-	(*device->callbacks->satellites_callback)(device->context, &device->satellites);
+        (*device->callbacks->satellites_callback)(device->context, &device->satellites);
     }
 }
 
@@ -444,20 +444,20 @@ static uint32_t nmea_isqrt(uint32_t n)
   
     while (1)
     {  
-	if((g*g) > n) 
-	{
-	    g ^= c;  
-	}
+        if((g*g) > n) 
+        {
+            g ^= c;  
+        }
 
 
-	c >>= 1;  
-	
-	if(c == 0)  
-	{
-	    return g;  
-	}
+        c >>= 1;  
+        
+        if(c == 0)  
+        {
+            return g;  
+        }
 
-	g |= c;  
+        g |= c;  
     }  
 }  
 
@@ -477,9 +477,9 @@ static const uint32_t nmea_scale[10] = {
 static int nmea_same_time(const utc_time_t *t0, const utc_time_t *t1)
 {
     return ((t0->hours   == t1->hours) &&
-	    (t0->minutes == t1->minutes) &&
-	    (t0->seconds == t1->seconds) &&
-	    (t0->millis  == t1->millis));
+            (t0->minutes == t1->minutes) &&
+            (t0->seconds == t1->seconds) &&
+            (t0->millis  == t1->millis));
 }
 
 static int nmea_parse_time(const uint8_t *data, utc_time_t *p_time)
@@ -488,61 +488,61 @@ static int nmea_parse_time(const uint8_t *data, utc_time_t *p_time)
 
     if ((data[0] >= '0') && (data[0] <= '9') && (data[1] >= '0') && (data[1] <= '9'))
     {
-	hours = (data[0] - '0') * 10 + (data[1] - '0');
-	data += 2;
-	
-	if ((hours < 24) && (data[0] >= '0') && (data[0] <= '9') && (data[1] >= '0') && (data[1] <= '9'))
-	{
-	    minutes = (data[0] - '0') * 10 + (data[1] - '0');
-	    data += 2;
-	    
-	    if ((minutes < 60) && (data[0] >= '0') && (data[0] <= '9') && (data[1] >= '0') && (data[1] <= '9'))
-	    {
-		seconds = (data[0] - '0') * 10 + (data[1] - '0');
-		data += 2;
-		
-		/* A 60 is legal here for leap seconds.
-		 */
-		if (seconds <= 60)
-		{
-		    millis = 0;
-		    
-		    if (data[0] == '.')
-		    {
-			digits = 0;
-			data++;
-			
-			while ((data[0] >= '0') && (data[0] <= '9'))
-			{
-			    if (digits < 3)
-			    {
-				millis = millis * 10 + (data[0] - '0');
-				digits++;
-			    }
-			    data++;
-			}
-			
-			if (data[0] == '\0')
-			{
-			    if (digits < 3)
-			    {
-				millis = millis * nmea_scale[3 - digits];
-			    }
-			}
-		    }
-		    
-		    if (data[0] == '\0')
-		    {
-			p_time->hours   = hours;
-			p_time->minutes = minutes;
-			p_time->seconds = seconds;
-			p_time->millis  = millis;
+        hours = (data[0] - '0') * 10 + (data[1] - '0');
+        data += 2;
+        
+        if ((hours < 24) && (data[0] >= '0') && (data[0] <= '9') && (data[1] >= '0') && (data[1] <= '9'))
+        {
+            minutes = (data[0] - '0') * 10 + (data[1] - '0');
+            data += 2;
+            
+            if ((minutes < 60) && (data[0] >= '0') && (data[0] <= '9') && (data[1] >= '0') && (data[1] <= '9'))
+            {
+                seconds = (data[0] - '0') * 10 + (data[1] - '0');
+                data += 2;
+                
+                /* A 60 is legal here for leap seconds.
+                 */
+                if (seconds <= 60)
+                {
+                    millis = 0;
+                    
+                    if (data[0] == '.')
+                    {
+                        digits = 0;
+                        data++;
+                        
+                        while ((data[0] >= '0') && (data[0] <= '9'))
+                        {
+                            if (digits < 3)
+                            {
+                                millis = millis * 10 + (data[0] - '0');
+                                digits++;
+                            }
+                            data++;
+                        }
+                        
+                        if (data[0] == '\0')
+                        {
+                            if (digits < 3)
+                            {
+                                millis = millis * nmea_scale[3 - digits];
+                            }
+                        }
+                    }
+                    
+                    if (data[0] == '\0')
+                    {
+                        p_time->hours   = hours;
+                        p_time->minutes = minutes;
+                        p_time->seconds = seconds;
+                        p_time->millis  = millis;
 
-			return 1;
-		    }
-		}
-	    }
-	}
+                        return 1;
+                    }
+                }
+            }
+        }
     }
 
     return 0;
@@ -556,15 +556,15 @@ static int nmea_parse_unsigned(const uint8_t *data, uint32_t *p_unsigned)
                     
     while ((data[0] >= '0') && (data[0] <= '9'))
     {
-	integer = integer * 10 + (data[0] - '0');
-	data++;
+        integer = integer * 10 + (data[0] - '0');
+        data++;
     }
 
     if (data[0] == '\0')
     {
-	*p_unsigned = integer;
+        *p_unsigned = integer;
         
-	return 1;
+        return 1;
     }
 
     return 0;
@@ -578,8 +578,8 @@ static int nmea_parse_fixed(const uint8_t *data, uint32_t *p_fixed, uint32_t sca
     
     while ((data[0] >= '0') && (data[0] <= '9'))
     {
-	integer = integer * 10 + (data[0] - '0');
-	data++;
+        integer = integer * 10 + (data[0] - '0');
+        data++;
     }
     
     
@@ -587,33 +587,33 @@ static int nmea_parse_fixed(const uint8_t *data, uint32_t *p_fixed, uint32_t sca
     
     if (data[0] == '.')
     {
-	digits = 0;
-	data++;
+        digits = 0;
+        data++;
         
-	while ((data[0] >= '0') && (data[0] <= '9'))
-	{
-	    if (digits < scale)
-	    {
-		fraction = fraction * 10 + (data[0] - '0');
-		digits++;
-	    }
-	    data++;
-	}
+        while ((data[0] >= '0') && (data[0] <= '9'))
+        {
+            if (digits < scale)
+            {
+                fraction = fraction * 10 + (data[0] - '0');
+                digits++;
+            }
+            data++;
+        }
         
-	if (data[0] == '\0')
-	{
-	    if (digits < scale)
-	    {
-		fraction = fraction * nmea_scale[scale - digits];
-	    }
-	}
+        if (data[0] == '\0')
+        {
+            if (digits < scale)
+            {
+                fraction = fraction * nmea_scale[scale - digits];
+            }
+        }
     }
     
     if (data[0] == '\0')
     {
-	*p_fixed = integer * nmea_scale[scale] + fraction;
+        *p_fixed = integer * nmea_scale[scale] + fraction;
         
-	return 1;
+        return 1;
     }
     
     return 0;
@@ -625,18 +625,18 @@ static int nmea_parse_latitude(const uint8_t *data, uint32_t *p_latitude)
     
     if ((data[0] >= '0') && (data[0] <= '9') && (data[1] >= '0') && (data[1] <= '9'))
     {
-	degrees = (data[0] - '0') * 10 + (data[1] - '0');
-	data += 2;
+        degrees = (data[0] - '0') * 10 + (data[1] - '0');
+        data += 2;
         
-	if ((degrees < 90) && (data[0] != '\0') && nmea_parse_fixed(data, &minutes, 7))
-	{
-	    if (minutes < 600000000)
-	    {
-		*p_latitude = (uint32_t)(degrees * 10000000u) + (uint32_t)((minutes + 30) / 60);
-		
-		return 1;
-	    }
-	}
+        if ((degrees < 90) && (data[0] != '\0') && nmea_parse_fixed(data, &minutes, 7))
+        {
+            if (minutes < 600000000)
+            {
+                *p_latitude = (uint32_t)(degrees * 10000000u) + (uint32_t)((minutes + 30) / 60);
+                
+                return 1;
+            }
+        }
     }
 
     return 0;
@@ -648,18 +648,18 @@ static int nmea_parse_longitude(const uint8_t *data, uint32_t *p_longitude)
 
     if ((data[0] >= '0') && (data[0] <= '9') && (data[1] >= '0') && (data[1] <= '9') && (data[2] >= '0') && (data[2] <= '9'))
     {
-	degrees = (data[0] - '0') * 100 + (data[1] - '0') * 10 + (data[2] - '0');
-	data += 3;
+        degrees = (data[0] - '0') * 100 + (data[1] - '0') * 10 + (data[2] - '0');
+        data += 3;
         
-	if ((degrees < 180) && (data[0] != '\0') && nmea_parse_fixed(data, &minutes, 7))
-	{
-	    if (minutes < 600000000)
-	    {
-		*p_longitude = (uint32_t)(degrees * 10000000u) + (uint32_t)((minutes + 30) / 60);
-		
-		return 1;
-	    }
-	}
+        if ((degrees < 180) && (data[0] != '\0') && nmea_parse_fixed(data, &minutes, 7))
+        {
+            if (minutes < 600000000)
+            {
+                *p_longitude = (uint32_t)(degrees * 10000000u) + (uint32_t)((minutes + 30) / 60);
+                
+                return 1;
+            }
+        }
     }
     
     return 0;
@@ -672,27 +672,27 @@ static void nmea_start_sentence(gnss_device_t *device)
     switch (context->sequence) {
 
     case NMEA_FIELD_SEQUENCE_GGA_END:
-	break;
+        break;
 
     case NMEA_FIELD_SEQUENCE_GSA_END:
-	context->sv_used_count = 0;
-	context->sv_used_mask[0] = 0;
-	context->sv_used_mask[1] = 0;
-	context->sv_used_mask[2] = 0;
-	break;
+        context->sv_used_count = 0;
+        context->sv_used_mask[0] = 0;
+        context->sv_used_mask[1] = 0;
+        context->sv_used_mask[2] = 0;
+        break;
 
     case NMEA_FIELD_SEQUENCE_GST_END:
-	break;
+        break;
 
     case NMEA_FIELD_SEQUENCE_GSV_END:
-	context->sv_in_view_sentences = 0;
-	break;
+        context->sv_in_view_sentences = 0;
+        break;
 
     case NMEA_FIELD_SEQUENCE_RMC_END:
-	break;
+        break;
 
     default:
-	break;
+        break;
     }
 
     context->sequence = NMEA_FIELD_SEQUENCE_START;
@@ -713,281 +713,281 @@ static void nmea_parse_sentence(gnss_device_t *device, const uint8_t *data, unsi
     switch (sequence) {
 
     case NMEA_FIELD_SEQUENCE_START:
-	sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
 
-	if ((data[0] == 'G') && ((data[1] == 'P') || (data[1] == 'L') || (data[1] == 'N')))
-	{
-	    context ->prefix = data[1];
+        if ((data[0] == 'G') && ((data[1] == 'P') || (data[1] == 'L') || (data[1] == 'N')))
+        {
+            context ->prefix = data[1];
 
-	    /* --GSA is the switch detector in NMEA 0183. If it's GPGSA or GLGSA, then the system
-	     * is set up as single GPS/GLONASS system, and we'd see only either a GPGSV or GLGSV
-	     * later on. If it's a GNGSA, then another GNGSA will follow, one for GPS and one for 
-	     * GLONASS. The constellation will be reported as GPGSV and GLGSV.
-	     */
-	    if (!strcmp((const char*)(data+2), "GSA"))
-	    {
-		if (device->seen & NMEA_SENTENCE_MASK_GPGGA)
-		{
-		    sequence_next = NMEA_FIELD_SEQUENCE_GSA_OPERATION;
-			
-		    context->mask = (NMEA_FIELD_MASK_PDOP | NMEA_FIELD_MASK_VDOP);
-		}
-	    }
+            /* --GSA is the switch detector in NMEA 0183. If it's GPGSA or GLGSA, then the system
+             * is set up as single GPS/GLONASS system, and we'd see only either a GPGSV or GLGSV
+             * later on. If it's a GNGSA, then another GNGSA will follow, one for GPS and one for 
+             * GLONASS. The constellation will be reported as GPGSV and GLGSV.
+             */
+            if (!strcmp((const char*)(data+2), "GSA"))
+            {
+                if (device->seen & NMEA_SENTENCE_MASK_GPGGA)
+                {
+                    sequence_next = NMEA_FIELD_SEQUENCE_GSA_OPERATION;
+                        
+                    context->mask = (NMEA_FIELD_MASK_PDOP | NMEA_FIELD_MASK_VDOP);
+                }
+            }
 
-	    /* -- GSV is used to report the satellite constellation with either GPGSV or GLGSV.
-	     * GNGSV is not legal.
-	     */
-	    else if (!strcmp((const char*)(data+2), "GSV"))
-	    {
-		if (device->seen & (NMEA_SENTENCE_MASK_GPGGA | NMEA_SENTENCE_MASK_SOLUTION))
-		{
-		    sequence_next = NMEA_FIELD_SEQUENCE_GSV_SENTENCES;
-		}
-	    }
+            /* -- GSV is used to report the satellite constellation with either GPGSV or GLGSV.
+             * GNGSV is not legal.
+             */
+            else if (!strcmp((const char*)(data+2), "GSV"))
+            {
+                if (device->seen & (NMEA_SENTENCE_MASK_GPGGA | NMEA_SENTENCE_MASK_SOLUTION))
+                {
+                    sequence_next = NMEA_FIELD_SEQUENCE_GSV_SENTENCES;
+                }
+            }
 
-	    /* According to the standard, if a receiver is supporting GPS only, the prefix would 
-	     * be "GP". If it's a GLONASS only system, or a combined GPS+GLONASS system, then
-	     * the prefix should be "GN". However some GLONASS only systems use a "GL" prefix,
-	     * and quite a few GNSS_GLONASS systems mix "GP" and "GN" randomly. The system detection
-	     * is done via --GSA anyway.
-	     */
-	    else if (!strcmp((const char*)(data+2), "GGA"))
-	    {
-		sequence_next = NMEA_FIELD_SEQUENCE_GGA_TIME;
-		    
-		/* GSA/GSV are subsequent to a GGA */
-		device->seen &= ~(NMEA_SENTENCE_MASK_GPGGA |
-				  NMEA_SENTENCE_MASK_GPGSA |
-				  NMEA_SENTENCE_MASK_GPGSV |
-				  NMEA_SENTENCE_MASK_GLGSA |
-				  NMEA_SENTENCE_MASK_GLGSV |
-				  NMEA_SENTENCE_MASK_SOLUTION); 
-		    
-		context->mask = (NMEA_FIELD_MASK_POSITION |
-				 NMEA_FIELD_MASK_ALTITUDE |
-				 NMEA_FIELD_MASK_HDOP);
-		    
-		context->sv_in_view_sentences = 0;
-			
-		context->sv_used_count = 0;
-		context->sv_used_mask[0] = 0;
-		context->sv_used_mask[1] = 0;
-		context->sv_used_mask[2] = 0;
-			
-		device->satellites.count = 0;
-	    }
+            /* According to the standard, if a receiver is supporting GPS only, the prefix would 
+             * be "GP". If it's a GLONASS only system, or a combined GPS+GLONASS system, then
+             * the prefix should be "GN". However some GLONASS only systems use a "GL" prefix,
+             * and quite a few GNSS_GLONASS systems mix "GP" and "GN" randomly. The system detection
+             * is done via --GSA anyway.
+             */
+            else if (!strcmp((const char*)(data+2), "GGA"))
+            {
+                sequence_next = NMEA_FIELD_SEQUENCE_GGA_TIME;
+                    
+                /* GSA/GSV are subsequent to a GGA */
+                device->seen &= ~(NMEA_SENTENCE_MASK_GPGGA |
+                                  NMEA_SENTENCE_MASK_GPGSA |
+                                  NMEA_SENTENCE_MASK_GPGSV |
+                                  NMEA_SENTENCE_MASK_GLGSA |
+                                  NMEA_SENTENCE_MASK_GLGSV |
+                                  NMEA_SENTENCE_MASK_SOLUTION); 
+                    
+                context->mask = (NMEA_FIELD_MASK_POSITION |
+                                 NMEA_FIELD_MASK_ALTITUDE |
+                                 NMEA_FIELD_MASK_HDOP);
+                    
+                context->sv_in_view_sentences = 0;
+                        
+                context->sv_used_count = 0;
+                context->sv_used_mask[0] = 0;
+                context->sv_used_mask[1] = 0;
+                context->sv_used_mask[2] = 0;
+                        
+                device->satellites.count = 0;
+            }
 
-	    else if (!strcmp((const char*)(data+2), "GST"))
-	    {
-		sequence_next = NMEA_FIELD_SEQUENCE_GST_TIME;
-			
-		device->seen &= ~(NMEA_SENTENCE_MASK_GPGST | NMEA_SENTENCE_MASK_SOLUTION);
-			
-		context->mask = (NMEA_FIELD_MASK_EHPE |
-				 NMEA_FIELD_MASK_EVPE);
-	    }
+            else if (!strcmp((const char*)(data+2), "GST"))
+            {
+                sequence_next = NMEA_FIELD_SEQUENCE_GST_TIME;
+                        
+                device->seen &= ~(NMEA_SENTENCE_MASK_GPGST | NMEA_SENTENCE_MASK_SOLUTION);
+                        
+                context->mask = (NMEA_FIELD_MASK_EHPE |
+                                 NMEA_FIELD_MASK_EVPE);
+            }
 
-	    else if (!strcmp((const char*)(data+2), "RMC"))
-	    {
-		sequence_next = NMEA_FIELD_SEQUENCE_RMC_TIME;
-			
-		device->seen &= ~(NMEA_SENTENCE_MASK_GPRMC | NMEA_SENTENCE_MASK_SOLUTION);
-			
-		context->mask = (NMEA_FIELD_MASK_TIME |
-				 NMEA_FIELD_MASK_SPEED |
-				 NMEA_FIELD_MASK_COURSE);
-	    }
-	}
-	break;
+            else if (!strcmp((const char*)(data+2), "RMC"))
+            {
+                sequence_next = NMEA_FIELD_SEQUENCE_RMC_TIME;
+                        
+                device->seen &= ~(NMEA_SENTENCE_MASK_GPRMC | NMEA_SENTENCE_MASK_SOLUTION);
+                        
+                context->mask = (NMEA_FIELD_MASK_TIME |
+                                 NMEA_FIELD_MASK_SPEED |
+                                 NMEA_FIELD_MASK_COURSE);
+            }
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_SKIP:
-	sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	break;
+        sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        break;
 
     case NMEA_FIELD_SEQUENCE_GGA_TIME:
     case NMEA_FIELD_SEQUENCE_GST_TIME:
     case NMEA_FIELD_SEQUENCE_RMC_TIME:
-	if (data[0] == '\0')
-	{
-	    context->mask &= ~NMEA_FIELD_MASK_TIME;
-	}
-	else if (nmea_parse_time(data, &time))
-	{
-	    /* If there is a valid time stamp, and another sentence with a time stamp already been seen,
-	     * make sure they have the same time. If not nuke the accumulated sentences.
-	     */
+        if (data[0] == '\0')
+        {
+            context->mask &= ~NMEA_FIELD_MASK_TIME;
+        }
+        else if (nmea_parse_time(data, &time))
+        {
+            /* If there is a valid time stamp, and another sentence with a time stamp already been seen,
+             * make sure they have the same time. If not nuke the accumulated sentences.
+             */
 
-	    if (device->seen & (NMEA_SENTENCE_MASK_GPGGA | NMEA_SENTENCE_MASK_GPGST | NMEA_SENTENCE_MASK_GPRMC))
-	    {
-		if (!nmea_same_time(&device->location.time, &time))
-		{
-		    device->seen = 0;
-		    device->location.type = 0;
-		    device->location.mask = 0;
-		}
-	    }
+            if (device->seen & (NMEA_SENTENCE_MASK_GPGGA | NMEA_SENTENCE_MASK_GPGST | NMEA_SENTENCE_MASK_GPRMC))
+            {
+                if (!nmea_same_time(&device->location.time, &time))
+                {
+                    device->seen = 0;
+                    device->location.type = 0;
+                    device->location.mask = 0;
+                }
+            }
 
-	    device->location.time.hours   = time.hours;
-	    device->location.time.minutes = time.minutes;
-	    device->location.time.seconds = time.seconds;
-	    device->location.time.millis  = time.millis;
-	}
-	else
-	{
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	break;
+            device->location.time.hours   = time.hours;
+            device->location.time.minutes = time.minutes;
+            device->location.time.seconds = time.seconds;
+            device->location.time.millis  = time.millis;
+        }
+        else
+        {
+            sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GGA_LATITUDE:
-	if (data[0] == '\0')
-	{
-	    context->mask &= ~NMEA_FIELD_MASK_POSITION;
-	}
-	else if (nmea_parse_latitude(data, &latitude))
-	{
-	    device->location.latitude = latitude;
-	}
-	else
-	{
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	break;
+        if (data[0] == '\0')
+        {
+            context->mask &= ~NMEA_FIELD_MASK_POSITION;
+        }
+        else if (nmea_parse_latitude(data, &latitude))
+        {
+            device->location.latitude = latitude;
+        }
+        else
+        {
+            sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GGA_LATITUDE_NS:
-	if (context->mask & NMEA_FIELD_MASK_POSITION)
-	{
-	    if (data[0] == 'S')
-	    {
-		device->location.latitude = - device->location.latitude;
-	    }
-	    else if (data[0] != 'N')
-	    {
-		sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	    }
-	}
-	break;
+        if (context->mask & NMEA_FIELD_MASK_POSITION)
+        {
+            if (data[0] == 'S')
+            {
+                device->location.latitude = - device->location.latitude;
+            }
+            else if (data[0] != 'N')
+            {
+                sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+            }
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GGA_LONGITUDE:
-	if (data[0] == '\0')
-	{
-	    context->mask &= ~NMEA_FIELD_MASK_POSITION;
-	}
-	else if (nmea_parse_longitude(data, &longitude))
-	{
-	    device->location.longitude = longitude;
-	}
-	else
-	{
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	break;
+        if (data[0] == '\0')
+        {
+            context->mask &= ~NMEA_FIELD_MASK_POSITION;
+        }
+        else if (nmea_parse_longitude(data, &longitude))
+        {
+            device->location.longitude = longitude;
+        }
+        else
+        {
+            sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GGA_LONGITUDE_EW:
-	if (context->mask & NMEA_FIELD_MASK_POSITION)
-	{
-	    if (data[0] == 'W')
-	    {
-		device->location.longitude = - device->location.longitude;
-	    }
-	    else if (data[0] != 'E')
-	    {
-		sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	    }
-	}
-	break;
+        if (context->mask & NMEA_FIELD_MASK_POSITION)
+        {
+            if (data[0] == 'W')
+            {
+                device->location.longitude = - device->location.longitude;
+            }
+            else if (data[0] != 'E')
+            {
+                sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+            }
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GGA_QUALITY:
-	if ((data[0] == '\0') || !nmea_parse_unsigned(data, &quality))
-	{
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	else
-	{
-	    device->location.quality = quality;
-	}
-	break;
+        if ((data[0] == '\0') || !nmea_parse_unsigned(data, &quality))
+        {
+            sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        }
+        else
+        {
+            device->location.quality = quality;
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GGA_HDOP:
-	if (data[0] == '\0')
-	{
-	    context->mask &= ~NMEA_FIELD_MASK_HDOP;
-	}
-	else if (nmea_parse_fixed(data, &hdop, 2))
-	{
-	    device->location.hdop = hdop;
-	}
-	else
-	{
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	break;
+        if (data[0] == '\0')
+        {
+            context->mask &= ~NMEA_FIELD_MASK_HDOP;
+        }
+        else if (nmea_parse_fixed(data, &hdop, 2))
+        {
+            device->location.hdop = hdop;
+        }
+        else
+        {
+            sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GGA_ALTITUDE:
-	if (data[0] == '\0')
-	{
-	    context->mask &= ~NMEA_FIELD_MASK_ALTITUDE;
-	}
-	else if (nmea_parse_fixed(((data[0] == '-') ? data+1 : data), &altitude, 3))
-	{
-	    if (data[0] == '-')
-	    {
-		device->location.altitude = -altitude;
-	    }
-	    else
-	    {
-		device->location.altitude = altitude;
-	    }
-	}
-	else
-	{
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	break;
+        if (data[0] == '\0')
+        {
+            context->mask &= ~NMEA_FIELD_MASK_ALTITUDE;
+        }
+        else if (nmea_parse_fixed(((data[0] == '-') ? data+1 : data), &altitude, 3))
+        {
+            if (data[0] == '-')
+            {
+                device->location.altitude = -altitude;
+            }
+            else
+            {
+                device->location.altitude = altitude;
+            }
+        }
+        else
+        {
+            sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GGA_ALTITUDE_UNIT:
-	if (context->mask & NMEA_FIELD_MASK_ALTITUDE)
-	{
-	    if (data[0] != 'M')
-	    {
-		sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	    }
-	}
-	break;
+        if (context->mask & NMEA_FIELD_MASK_ALTITUDE)
+        {
+            if (data[0] != 'M')
+            {
+                sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+            }
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GGA_SEPARATION:
-	if (data[0] == '\0')
-	{
-	    context->mask &= ~NMEA_FIELD_MASK_ALTITUDE;
-	}
-	else if (nmea_parse_fixed(((data[0] == '-') ? data+1 : data), &separation, 3))
-	{
-	    if (context->mask & NMEA_FIELD_MASK_ALTITUDE)
-	    {
-		if (data[0] == '-')
-		{
-		    device->location.separation = -separation;
-		}
-		else
-		{
-		    device->location.separation = separation;
-		}
-	    }
-	}
-	else
-	{
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	break;
+        if (data[0] == '\0')
+        {
+            context->mask &= ~NMEA_FIELD_MASK_ALTITUDE;
+        }
+        else if (nmea_parse_fixed(((data[0] == '-') ? data+1 : data), &separation, 3))
+        {
+            if (context->mask & NMEA_FIELD_MASK_ALTITUDE)
+            {
+                if (data[0] == '-')
+                {
+                    device->location.separation = -separation;
+                }
+                else
+                {
+                    device->location.separation = separation;
+                }
+            }
+        }
+        else
+        {
+            sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GGA_SEPARATION_UNIT:
-	if (context->mask & NMEA_FIELD_MASK_ALTITUDE)
-	{
-	    if (data[0] != 'M')
-	    {
-		sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	    }
-	}
-	break;
+        if (context->mask & NMEA_FIELD_MASK_ALTITUDE)
+        {
+            if (data[0] != 'M')
+            {
+                sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+            }
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GGA_NUMSV:
     case NMEA_FIELD_SEQUENCE_GGA_DIFFERENTIAL_AGE:
@@ -1003,32 +1003,32 @@ static void nmea_parse_sentence(gnss_device_t *device, const uint8_t *data, unsi
     case NMEA_FIELD_SEQUENCE_RMC_LONGITUDE_EW:
     case NMEA_FIELD_SEQUENCE_RMC_VARIATION:
     case NMEA_FIELD_SEQUENCE_RMC_VARIATION_UNIT:
-	/* SKIP FIELD */
-	break;
+        /* SKIP FIELD */
+        break;
 
     case NMEA_FIELD_SEQUENCE_GGA_DIFFERENTIAL_STATION:
-	/* SKIP FIELD */
-	sequence_next = NMEA_FIELD_SEQUENCE_GGA_END;
-	break;
+        /* SKIP FIELD */
+        sequence_next = NMEA_FIELD_SEQUENCE_GGA_END;
+        break;
 
     case NMEA_FIELD_SEQUENCE_GSA_NAVIGATION:
-	if (data[0] == '1')
-	{
-	    context->navigation = NMEA_NAVIGATION_NONE;
-	}
-	else if (data[0] == '2')
-	{
-	    context->navigation = NMEA_NAVIGATION_2D;
-	}
-	else if (data[0] == '3')
-	{
-	    context->navigation = NMEA_NAVIGATION_3D;
-	}
-	else
-	{
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	break;
+        if (data[0] == '1')
+        {
+            context->navigation = NMEA_NAVIGATION_NONE;
+        }
+        else if (data[0] == '2')
+        {
+            context->navigation = NMEA_NAVIGATION_2D;
+        }
+        else if (data[0] == '3')
+        {
+            context->navigation = NMEA_NAVIGATION_3D;
+        }
+        else
+        {
+            sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GSA_SV_USED_PRN_1:
     case NMEA_FIELD_SEQUENCE_GSA_SV_USED_PRN_2:
@@ -1042,338 +1042,338 @@ static void nmea_parse_sentence(gnss_device_t *device, const uint8_t *data, unsi
     case NMEA_FIELD_SEQUENCE_GSA_SV_USED_PRN_10:
     case NMEA_FIELD_SEQUENCE_GSA_SV_USED_PRN_11:
     case NMEA_FIELD_SEQUENCE_GSA_SV_USED_PRN_12:
-	if (data[0] != '\0')
-	{
-	    if (nmea_parse_unsigned(data, &svid))
-	    {
-		if ((svid >= 1) && (svid <= 96))
-		{
-		    context->sv_used_mask[(svid -1) >> 5] |= (1ul << ((svid -1) & 31));
-		}
-	    }
-	    else
-	    {
-		context->sv_used_count = 0;
-		context->sv_used_mask[0] = 0;
-		context->sv_used_mask[1] = 0;
-		context->sv_used_mask[2] = 0;
+        if (data[0] != '\0')
+        {
+            if (nmea_parse_unsigned(data, &svid))
+            {
+                if ((svid >= 1) && (svid <= 96))
+                {
+                    context->sv_used_mask[(svid -1) >> 5] |= (1ul << ((svid -1) & 31));
+                }
+            }
+            else
+            {
+                context->sv_used_count = 0;
+                context->sv_used_mask[0] = 0;
+                context->sv_used_mask[1] = 0;
+                context->sv_used_mask[2] = 0;
 
-		sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	    }
-	}
-	break;
+                sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+            }
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GSA_PDOP:
-	if (data[0] == '\0')
-	{
-	    context->mask &= ~NMEA_FIELD_MASK_PDOP;
-	}
-	else if (nmea_parse_fixed(data, &pdop, 2))
-	{
-	    device->location.pdop = pdop;
-	}
-	else
-	{
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	break;
+        if (data[0] == '\0')
+        {
+            context->mask &= ~NMEA_FIELD_MASK_PDOP;
+        }
+        else if (nmea_parse_fixed(data, &pdop, 2))
+        {
+            device->location.pdop = pdop;
+        }
+        else
+        {
+            sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GSA_VDOP:
-	if (data[0] == '\0')
-	{
-	    context->mask &= ~NMEA_FIELD_MASK_VDOP;
+        if (data[0] == '\0')
+        {
+            context->mask &= ~NMEA_FIELD_MASK_VDOP;
 
-	    sequence_next = NMEA_FIELD_SEQUENCE_GSA_END;
-	}
-	else if (nmea_parse_fixed(data, &vdop, 2))
-	{
-	    device->location.vdop = vdop;
-	    
-	    sequence_next = NMEA_FIELD_SEQUENCE_GSA_END;
-	}
-	else
-	{
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	break;
+            sequence_next = NMEA_FIELD_SEQUENCE_GSA_END;
+        }
+        else if (nmea_parse_fixed(data, &vdop, 2))
+        {
+            device->location.vdop = vdop;
+            
+            sequence_next = NMEA_FIELD_SEQUENCE_GSA_END;
+        }
+        else
+        {
+            sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GST_STDDEV_LATITUDE:
-	if (data[0] == '\0')
-	{
-	    context->mask &= ~NMEA_FIELD_MASK_EHPE;
-	}
-	else if (nmea_parse_fixed(data, &stddev, 3))
-	{
-	    device->location.ehpe = stddev;
-	}
-	else
-	{
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	break;
+        if (data[0] == '\0')
+        {
+            context->mask &= ~NMEA_FIELD_MASK_EHPE;
+        }
+        else if (nmea_parse_fixed(data, &stddev, 3))
+        {
+            device->location.ehpe = stddev;
+        }
+        else
+        {
+            sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GST_STDDEV_LONGITUDE:
-	if (data[0] == '\0')
-	{
-	    context->mask &= ~NMEA_FIELD_MASK_EHPE;
-	}
-	else if (nmea_parse_fixed(data, &stddev, 3))
-	{
-	    device->location.ehpe = nmea_isqrt((device->location.ehpe * device->location.ehpe) + (stddev * stddev));
-	}
-	else
-	{
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	break;
+        if (data[0] == '\0')
+        {
+            context->mask &= ~NMEA_FIELD_MASK_EHPE;
+        }
+        else if (nmea_parse_fixed(data, &stddev, 3))
+        {
+            device->location.ehpe = nmea_isqrt((device->location.ehpe * device->location.ehpe) + (stddev * stddev));
+        }
+        else
+        {
+            sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GST_STDDEV_ALTITUDE:
-	if (data[0] == '\0')
-	{
-	    context->mask &= ~NMEA_FIELD_MASK_EVPE;
+        if (data[0] == '\0')
+        {
+            context->mask &= ~NMEA_FIELD_MASK_EVPE;
 
-	    sequence_next = NMEA_FIELD_SEQUENCE_GST_END;
-	}
-	else if (nmea_parse_fixed(data, &stddev, 3))
-	{
-	    device->location.evpe = stddev;
-	    
-	    sequence_next = NMEA_FIELD_SEQUENCE_GST_END;
-	}
-	else
-	{
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	break;
+            sequence_next = NMEA_FIELD_SEQUENCE_GST_END;
+        }
+        else if (nmea_parse_fixed(data, &stddev, 3))
+        {
+            device->location.evpe = stddev;
+            
+            sequence_next = NMEA_FIELD_SEQUENCE_GST_END;
+        }
+        else
+        {
+            sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GSV_SENTENCES:
-	if ((data[0] == '\0') || !nmea_parse_unsigned(data, &sentences))
-	{
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	else
-	{
-	    if (context->sv_in_view_sentences == 0)
-	    {
-		context->sv_in_view_sentences = sentences;
-		context->sv_in_view_count = 0;
-		context->sv_in_view_index = 0;
-	    }
-	    else
-	    {
-		if (context->sv_in_view_sentences != sentences)
-		{
-		    context->sv_in_view_sentences = 0;
+        if ((data[0] == '\0') || !nmea_parse_unsigned(data, &sentences))
+        {
+            sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        }
+        else
+        {
+            if (context->sv_in_view_sentences == 0)
+            {
+                context->sv_in_view_sentences = sentences;
+                context->sv_in_view_count = 0;
+                context->sv_in_view_index = 0;
+            }
+            else
+            {
+                if (context->sv_in_view_sentences != sentences)
+                {
+                    context->sv_in_view_sentences = 0;
 
-		    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-		}
-	    }
-	}
-	break;
+                    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+                }
+            }
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GSV_CURRENT:
-	if ((data[0] == '\0') || !nmea_parse_unsigned(data, &current))
-	{
-	    context->sv_in_view_sentences = 0;
+        if ((data[0] == '\0') || !nmea_parse_unsigned(data, &current))
+        {
+            context->sv_in_view_sentences = 0;
 
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	else
-	{
-	    if (context->sv_in_view_index != ((current -1) << 2))
-	    {
-		context->sv_in_view_sentences = 0;
+            sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        }
+        else
+        {
+            if (context->sv_in_view_index != ((current -1) << 2))
+            {
+                context->sv_in_view_sentences = 0;
 
-		sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	    }
-	}
-	break;
+                sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+            }
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GSV_SV_IN_VIEW_COUNT:
-	if ((data[0] == '\0') || !nmea_parse_unsigned(data, &count))
-	{
-	    context->sv_in_view_sentences = 0;
+        if ((data[0] == '\0') || !nmea_parse_unsigned(data, &count))
+        {
+            context->sv_in_view_sentences = 0;
 
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	else
-	{
-	    context->sv_in_view_count = count;
+            sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        }
+        else
+        {
+            context->sv_in_view_count = count;
 
-	    if (count == 0)
-	    {
-		sequence_next = NMEA_FIELD_SEQUENCE_GSV_END;
-	    }
-	}
-	break;
+            if (count == 0)
+            {
+                sequence_next = NMEA_FIELD_SEQUENCE_GSV_END;
+            }
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GSV_SV_IN_VIEW_ID:
-	svid = 255;
+        svid = 255;
 
-	if ((data[0] == '\0') || nmea_parse_unsigned(data, &svid))
-	{
-	    if (device->satellites.count < GNSS_SATELLITES_COUNT_MAX)
-	    {
-		device->satellites.info[device->satellites.count].svid = svid;
-		device->satellites.info[device->satellites.count].state = 0;
-		device->satellites.info[device->satellites.count].snr = 0;
-		device->satellites.info[device->satellites.count].elevation = 0;
-		device->satellites.info[device->satellites.count].azimuth = 0;
-	    }
-	}
-	else
-	{
-	    context->sv_in_view_sentences = 0;
+        if ((data[0] == '\0') || nmea_parse_unsigned(data, &svid))
+        {
+            if (device->satellites.count < GNSS_SATELLITES_COUNT_MAX)
+            {
+                device->satellites.info[device->satellites.count].svid = svid;
+                device->satellites.info[device->satellites.count].state = 0;
+                device->satellites.info[device->satellites.count].snr = 0;
+                device->satellites.info[device->satellites.count].elevation = 0;
+                device->satellites.info[device->satellites.count].azimuth = 0;
+            }
+        }
+        else
+        {
+            context->sv_in_view_sentences = 0;
 
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	break;
+            sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GSV_SV_IN_VIEW_ELEV:
-	elevation = 0;
+        elevation = 0;
 
-	if ((data[0] == '\0') || nmea_parse_unsigned(data, &elevation))
-	{
-	    if (device->satellites.count < GNSS_SATELLITES_COUNT_MAX)
-	    {
-		device->satellites.info[device->satellites.count].elevation = elevation;
-	    }
-	}
-	else
-	{
-	    context->sv_in_view_sentences = 0;
+        if ((data[0] == '\0') || nmea_parse_unsigned(data, &elevation))
+        {
+            if (device->satellites.count < GNSS_SATELLITES_COUNT_MAX)
+            {
+                device->satellites.info[device->satellites.count].elevation = elevation;
+            }
+        }
+        else
+        {
+            context->sv_in_view_sentences = 0;
 
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	break;
+            sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GSV_SV_IN_VIEW_AZIM:
-	azimuth = 0;
+        azimuth = 0;
 
-	if ((data[0] == '\0') || nmea_parse_unsigned(data, &azimuth))
-	{
-	    if (device->satellites.count < GNSS_SATELLITES_COUNT_MAX)
-	    {
-		device->satellites.info[device->satellites.count].azimuth = azimuth;
-	    }
-	}
-	else
-	{
-	    context->sv_in_view_sentences = 0;
+        if ((data[0] == '\0') || nmea_parse_unsigned(data, &azimuth))
+        {
+            if (device->satellites.count < GNSS_SATELLITES_COUNT_MAX)
+            {
+                device->satellites.info[device->satellites.count].azimuth = azimuth;
+            }
+        }
+        else
+        {
+            context->sv_in_view_sentences = 0;
 
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	break;
+            sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GSV_SV_IN_VIEW_SNR:
-	if ((data[0] == '\0') || nmea_parse_unsigned(data, &snr))
-	{
-	    if (device->satellites.count < GNSS_SATELLITES_COUNT_MAX)
-	    {
-		if (data[0] != '\0')
-		{
-		    device->satellites.info[device->satellites.count].snr = snr;
-		}
-	    }
+        if ((data[0] == '\0') || nmea_parse_unsigned(data, &snr))
+        {
+            if (device->satellites.count < GNSS_SATELLITES_COUNT_MAX)
+            {
+                if (data[0] != '\0')
+                {
+                    device->satellites.info[device->satellites.count].snr = snr;
+                }
+            }
 
-	    device->satellites.count++;
+            device->satellites.count++;
 
-	    context->sv_in_view_index++;
+            context->sv_in_view_index++;
 
-	    if ((context->sv_in_view_index == context->sv_in_view_count) || !(context->sv_in_view_index & 3))
-	    {
-		sequence_next = NMEA_FIELD_SEQUENCE_GSV_END;
-	    }
-	    else
-	    {
-		sequence_next = NMEA_FIELD_SEQUENCE_GSV_SV_IN_VIEW_ID;
-	    }
-	}
-	else
-	{
-	    context->sv_in_view_sentences = 0;
+            if ((context->sv_in_view_index == context->sv_in_view_count) || !(context->sv_in_view_index & 3))
+            {
+                sequence_next = NMEA_FIELD_SEQUENCE_GSV_END;
+            }
+            else
+            {
+                sequence_next = NMEA_FIELD_SEQUENCE_GSV_SV_IN_VIEW_ID;
+            }
+        }
+        else
+        {
+            context->sv_in_view_sentences = 0;
 
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	break;
+            sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_RMC_STATUS:
-	if (data[0] == 'A')
-	{
-	    context->status = NMEA_STATUS_DATA_VALID;
-	}
-	else if (data[0] == 'V')
-	{
-	    context->status = NMEA_STATUS_RECEIVER_WARNING;
-	}
-	else
-	{
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	break;
+        if (data[0] == 'A')
+        {
+            context->status = NMEA_STATUS_DATA_VALID;
+        }
+        else if (data[0] == 'V')
+        {
+            context->status = NMEA_STATUS_RECEIVER_WARNING;
+        }
+        else
+        {
+            sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_RMC_SPEED:
-	if (data[0] == '\0')
-	{
-	    context->mask &= ~NMEA_FIELD_MASK_SPEED;
-	}
-	else if (nmea_parse_fixed(data, &speed, 3))
-	{
-	    /* Conversion factor from knots to m/s is 1852 / 3600.
-	     */
-	    device->location.speed  = (speed * 1852 + 1800) / 3600;
-	}
-	else
-	{
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	break;
+        if (data[0] == '\0')
+        {
+            context->mask &= ~NMEA_FIELD_MASK_SPEED;
+        }
+        else if (nmea_parse_fixed(data, &speed, 3))
+        {
+            /* Conversion factor from knots to m/s is 1852 / 3600.
+             */
+            device->location.speed  = (speed * 1852 + 1800) / 3600;
+        }
+        else
+        {
+            sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_RMC_COURSE:
-	if (data[0] == '\0')
-	{
-	    context->mask &= ~NMEA_FIELD_MASK_COURSE;
-	}
-	else if (nmea_parse_fixed(data, &course, 5))
-	{
-	    device->location.course = course;
-	}
-	else
-	{
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	break;
+        if (data[0] == '\0')
+        {
+            context->mask &= ~NMEA_FIELD_MASK_COURSE;
+        }
+        else if (nmea_parse_fixed(data, &course, 5))
+        {
+            device->location.course = course;
+        }
+        else
+        {
+            sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_RMC_DATE:
-	if (data[0] == '\0')
-	{
-	    context->mask &= ~NMEA_FIELD_MASK_TIME;
-	}
-	else if (nmea_parse_unsigned(data, &date))
-	{
-	    device->location.time.day   = date / 10000;
-	    device->location.time.month = (date - device->location.time.day * 10000) / 100;
-	    device->location.time.year  = (date - device->location.time.day * 10000 - device->location.time.month * 100);
-	    
-	    if (device->location.time.year < 80)
-	    {
-		device->location.time.year = (2000 + device->location.time.year) - 1980;
-	    }
-	    else
-	    {
-		device->location.time.year = (1900 + device->location.time.year) - 1980;
-	    }
-	}
-	else
-	{
-	    sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
-	}
-	break;
+        if (data[0] == '\0')
+        {
+            context->mask &= ~NMEA_FIELD_MASK_TIME;
+        }
+        else if (nmea_parse_unsigned(data, &date))
+        {
+            device->location.time.day   = date / 10000;
+            device->location.time.month = (date - device->location.time.day * 10000) / 100;
+            device->location.time.year  = (date - device->location.time.day * 10000 - device->location.time.month * 100);
+            
+            if (device->location.time.year < 80)
+            {
+                device->location.time.year = (2000 + device->location.time.year) - 1980;
+            }
+            else
+            {
+                device->location.time.year = (1900 + device->location.time.year) - 1980;
+            }
+        }
+        else
+        {
+            sequence_next = NMEA_FIELD_SEQUENCE_SKIP;
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_RMC_MODE:
-	/* SKIP FIELD */
-	sequence_next = NMEA_FIELD_SEQUENCE_RMC_END;
-	break;
+        /* SKIP FIELD */
+        sequence_next = NMEA_FIELD_SEQUENCE_RMC_END;
+        break;
     }
 
     context->sequence = sequence_next;
@@ -1389,186 +1389,186 @@ static void nmea_end_sentence(gnss_device_t *device)
 
     case NMEA_FIELD_SEQUENCE_GGA_END:
       if (context->mask & NMEA_FIELD_MASK_POSITION)
-	{
-	    device->location.mask |= GNSS_LOCATION_MASK_POSITION;
-	}
+        {
+            device->location.mask |= GNSS_LOCATION_MASK_POSITION;
+        }
 
-	if (context->mask & NMEA_FIELD_MASK_ALTITUDE)
-	{
-	    device->location.mask |= GNSS_LOCATION_MASK_ALTITUDE;
-	}
+        if (context->mask & NMEA_FIELD_MASK_ALTITUDE)
+        {
+            device->location.mask |= GNSS_LOCATION_MASK_ALTITUDE;
+        }
 
-	if (context->mask & NMEA_FIELD_MASK_HDOP)
-	{
-	    device->location.mask |= GNSS_LOCATION_MASK_HDOP;
-	}
-	
-	device->seen |= NMEA_SENTENCE_MASK_GPGGA;
-	device->seen &= ~NMEA_SENTENCE_MASK_SOLUTION;
-	break;
+        if (context->mask & NMEA_FIELD_MASK_HDOP)
+        {
+            device->location.mask |= GNSS_LOCATION_MASK_HDOP;
+        }
+        
+        device->seen |= NMEA_SENTENCE_MASK_GPGGA;
+        device->seen &= ~NMEA_SENTENCE_MASK_SOLUTION;
+        break;
 
     case NMEA_FIELD_SEQUENCE_GSA_END:
-	if (context->mask & NMEA_FIELD_MASK_PDOP)
-	{
-	    device->location.mask |= GNSS_LOCATION_MASK_PDOP;
-	}
+        if (context->mask & NMEA_FIELD_MASK_PDOP)
+        {
+            device->location.mask |= GNSS_LOCATION_MASK_PDOP;
+        }
 
-	if (context->mask & NMEA_FIELD_MASK_VDOP)
-	{
-	    device->location.mask |= GNSS_LOCATION_MASK_VDOP;
-	}
+        if (context->mask & NMEA_FIELD_MASK_VDOP)
+        {
+            device->location.mask |= GNSS_LOCATION_MASK_VDOP;
+        }
 
-	/* If the talkes is "GN", then it's a composite fix, which will consist out
-	 * of GNGSA, GNGSA, GPGSV & GLGSV. Otherwise only a GPGSA & GPGSV is to be
-	 * expected.
-	 */
+        /* If the talkes is "GN", then it's a composite fix, which will consist out
+         * of GNGSA, GNGSA, GPGSV & GLGSV. Otherwise only a GPGSA & GPGSV is to be
+         * expected.
+         */
 
-	if (context->prefix == 'N')
-	{
-	    device->expected |= (NMEA_SENTENCE_MASK_GPGSA | NMEA_SENTENCE_MASK_GPGSV | NMEA_SENTENCE_MASK_GLGSA | NMEA_SENTENCE_MASK_GLGSV);
-	    
-	    if (!(device->seen & NMEA_SENTENCE_MASK_GPGSA))
-	    {
-		device->seen |= NMEA_SENTENCE_MASK_GPGSA;
-	    }
-	    else
-	    {
-		device->seen |= NMEA_SENTENCE_MASK_GLGSA;
-		device->seen &= ~NMEA_SENTENCE_MASK_SOLUTION;
-	    }
-	}
-	else if (context->prefix == 'L')
-	{
-	    device->expected = (device->expected & ~(NMEA_SENTENCE_MASK_GPGSA | NMEA_SENTENCE_MASK_GPGSV)) | (NMEA_SENTENCE_MASK_GLGSA | NMEA_SENTENCE_MASK_GLGSV);
+        if (context->prefix == 'N')
+        {
+            device->expected |= (NMEA_SENTENCE_MASK_GPGSA | NMEA_SENTENCE_MASK_GPGSV | NMEA_SENTENCE_MASK_GLGSA | NMEA_SENTENCE_MASK_GLGSV);
+            
+            if (!(device->seen & NMEA_SENTENCE_MASK_GPGSA))
+            {
+                device->seen |= NMEA_SENTENCE_MASK_GPGSA;
+            }
+            else
+            {
+                device->seen |= NMEA_SENTENCE_MASK_GLGSA;
+                device->seen &= ~NMEA_SENTENCE_MASK_SOLUTION;
+            }
+        }
+        else if (context->prefix == 'L')
+        {
+            device->expected = (device->expected & ~(NMEA_SENTENCE_MASK_GPGSA | NMEA_SENTENCE_MASK_GPGSV)) | (NMEA_SENTENCE_MASK_GLGSA | NMEA_SENTENCE_MASK_GLGSV);
 
-	    device->seen |= NMEA_SENTENCE_MASK_GLGSA;
-	    device->seen &= ~NMEA_SENTENCE_MASK_SOLUTION;
-	}
-	else
-	{
-	    device->expected = (device->expected & ~(NMEA_SENTENCE_MASK_GLGSA | NMEA_SENTENCE_MASK_GLGSV)) | (NMEA_SENTENCE_MASK_GPGSA | NMEA_SENTENCE_MASK_GPGSV);
+            device->seen |= NMEA_SENTENCE_MASK_GLGSA;
+            device->seen &= ~NMEA_SENTENCE_MASK_SOLUTION;
+        }
+        else
+        {
+            device->expected = (device->expected & ~(NMEA_SENTENCE_MASK_GLGSA | NMEA_SENTENCE_MASK_GLGSV)) | (NMEA_SENTENCE_MASK_GPGSA | NMEA_SENTENCE_MASK_GPGSV);
 
-	    device->seen |= NMEA_SENTENCE_MASK_GPGSA;
-	    device->seen &= ~NMEA_SENTENCE_MASK_SOLUTION;
-	}
-	break;
+            device->seen |= NMEA_SENTENCE_MASK_GPGSA;
+            device->seen &= ~NMEA_SENTENCE_MASK_SOLUTION;
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_GST_END:
-	device->expected |= NMEA_SENTENCE_MASK_GPGST;
+        device->expected |= NMEA_SENTENCE_MASK_GPGST;
 
-	if (context->mask & NMEA_FIELD_MASK_EHPE)
-	{
-	    device->location.mask |= GNSS_LOCATION_MASK_EHPE;
-	}
+        if (context->mask & NMEA_FIELD_MASK_EHPE)
+        {
+            device->location.mask |= GNSS_LOCATION_MASK_EHPE;
+        }
 
-	if (context->mask & NMEA_FIELD_MASK_EVPE)
-	{
-	    device->location.mask |= GNSS_LOCATION_MASK_EVPE;
-	}
+        if (context->mask & NMEA_FIELD_MASK_EVPE)
+        {
+            device->location.mask |= GNSS_LOCATION_MASK_EVPE;
+        }
 
-	device->seen |= NMEA_SENTENCE_MASK_GPGST;
-	device->seen &= ~NMEA_SENTENCE_MASK_SOLUTION;
-	break;
+        device->seen |= NMEA_SENTENCE_MASK_GPGST;
+        device->seen &= ~NMEA_SENTENCE_MASK_SOLUTION;
+        break;
 
     case NMEA_FIELD_SEQUENCE_GSV_END:
-	if (context->sv_in_view_count == context->sv_in_view_index)
-	{
-	    context->sv_in_view_sentences = 0;
+        if (context->sv_in_view_count == context->sv_in_view_index)
+        {
+            context->sv_in_view_sentences = 0;
 
-	    if (context->prefix == 'P')
-	    {
-		device->seen |= NMEA_SENTENCE_MASK_GPGSV;
-	    }
+            if (context->prefix == 'P')
+            {
+                device->seen |= NMEA_SENTENCE_MASK_GPGSV;
+            }
 
-	    if (context->prefix == 'L')
-	    {
-		device->seen |= NMEA_SENTENCE_MASK_GLGSV;
-	    }
-	}
-	break;
+            if (context->prefix == 'L')
+            {
+                device->seen |= NMEA_SENTENCE_MASK_GLGSV;
+            }
+        }
+        break;
 
     case NMEA_FIELD_SEQUENCE_RMC_END:
-	if (context->mask & NMEA_FIELD_MASK_TIME)
-	{
-	    device->location.mask |= GNSS_LOCATION_MASK_TIME;
-	}
+        if (context->mask & NMEA_FIELD_MASK_TIME)
+        {
+            device->location.mask |= GNSS_LOCATION_MASK_TIME;
+        }
 
-	if (context->mask & NMEA_FIELD_MASK_SPEED)
-	{
-	    device->location.mask |= GNSS_LOCATION_MASK_SPEED;
-	}
+        if (context->mask & NMEA_FIELD_MASK_SPEED)
+        {
+            device->location.mask |= GNSS_LOCATION_MASK_SPEED;
+        }
 
-	if (context->mask & NMEA_FIELD_MASK_COURSE)
-	{
-	    device->location.mask |= GNSS_LOCATION_MASK_COURSE;
-	}
+        if (context->mask & NMEA_FIELD_MASK_COURSE)
+        {
+            device->location.mask |= GNSS_LOCATION_MASK_COURSE;
+        }
 
-	device->seen |= NMEA_SENTENCE_MASK_GPRMC;
-	device->seen &= ~NMEA_SENTENCE_MASK_SOLUTION;
-	break;
+        device->seen |= NMEA_SENTENCE_MASK_GPRMC;
+        device->seen &= ~NMEA_SENTENCE_MASK_SOLUTION;
+        break;
 
     default:
-	break;
+        break;
     }
 
     context->sequence = NMEA_FIELD_SEQUENCE_START;
 
     if (device->init == GNSS_INIT_DONE)
     {
-	expected = device->expected & (NMEA_SENTENCE_MASK_GPGGA |
-				       NMEA_SENTENCE_MASK_GPGSA |
-				       NMEA_SENTENCE_MASK_GPGST |
-				       NMEA_SENTENCE_MASK_GPRMC |
-				       NMEA_SENTENCE_MASK_GLGSA);
-	
-	if ((device->seen & expected) == expected)
-	{
-	    if ((context->status == NMEA_STATUS_DATA_VALID) && (context->navigation != NMEA_NAVIGATION_NONE))
-	    {
-		device->location.type = (context->navigation == NMEA_NAVIGATION_2D) ? GNSS_LOCATION_TYPE_2D : GNSS_LOCATION_TYPE_3D;
-		device->location.numsv = context->sv_used_count;
-	    }
-	    else
-	    {
-		device->location.type = GNSS_LOCATION_TYPE_NONE;
-		device->location.numsv = 0;
+        expected = device->expected & (NMEA_SENTENCE_MASK_GPGGA |
+                                       NMEA_SENTENCE_MASK_GPGSA |
+                                       NMEA_SENTENCE_MASK_GPGST |
+                                       NMEA_SENTENCE_MASK_GPRMC |
+                                       NMEA_SENTENCE_MASK_GLGSA);
+        
+        if ((device->seen & expected) == expected)
+        {
+            if ((context->status == NMEA_STATUS_DATA_VALID) && (context->navigation != NMEA_NAVIGATION_NONE))
+            {
+                device->location.type = (context->navigation == NMEA_NAVIGATION_2D) ? GNSS_LOCATION_TYPE_2D : GNSS_LOCATION_TYPE_3D;
+                device->location.numsv = context->sv_used_count;
+            }
+            else
+            {
+                device->location.type = GNSS_LOCATION_TYPE_NONE;
+                device->location.numsv = 0;
 
-		context->sv_used_count   = 0;
-		context->sv_used_mask[0] = 0;
-		context->sv_used_mask[1] = 0;
-		context->sv_used_mask[2] = 0;
-	    }
+                context->sv_used_count   = 0;
+                context->sv_used_mask[0] = 0;
+                context->sv_used_mask[1] = 0;
+                context->sv_used_mask[2] = 0;
+            }
 
-	    gnss_location(device);
-	    
-	    device->seen &= ~(NMEA_SENTENCE_MASK_GPGGA |
-			      NMEA_SENTENCE_MASK_GPGSA |
-			      NMEA_SENTENCE_MASK_GPGST |
-			      NMEA_SENTENCE_MASK_GPRMC |
-			      NMEA_SENTENCE_MASK_GLGSA);
+            gnss_location(device);
+            
+            device->seen &= ~(NMEA_SENTENCE_MASK_GPGGA |
+                              NMEA_SENTENCE_MASK_GPGSA |
+                              NMEA_SENTENCE_MASK_GPGST |
+                              NMEA_SENTENCE_MASK_GPRMC |
+                              NMEA_SENTENCE_MASK_GLGSA);
 
-	    device->seen |= NMEA_SENTENCE_MASK_SOLUTION;
-	}
-	
-	
-	expected = device->expected & (NMEA_SENTENCE_MASK_GPGSV | NMEA_SENTENCE_MASK_GLGSV);
-	
-	if ((device->seen & NMEA_SENTENCE_MASK_SOLUTION) && ((device->seen & expected) == expected))
-	{
-	    for (n = 0; n < device->satellites.count; n++)
-	    {
-		svid = device->satellites.info[n].svid;
+            device->seen |= NMEA_SENTENCE_MASK_SOLUTION;
+        }
+        
+        
+        expected = device->expected & (NMEA_SENTENCE_MASK_GPGSV | NMEA_SENTENCE_MASK_GLGSV);
+        
+        if ((device->seen & NMEA_SENTENCE_MASK_SOLUTION) && ((device->seen & expected) == expected))
+        {
+            for (n = 0; n < device->satellites.count; n++)
+            {
+                svid = device->satellites.info[n].svid;
 
-		if ((svid >= 1) && (svid <= 96) && (context->sv_used_mask[(svid -1) >> 5] & (1ul << ((svid -1) & 31))))
-		{
-		    device->satellites.info[n].state |= GNSS_SATELLITES_STATE_NAVIGATING;
-		}
-	    }
+                if ((svid >= 1) && (svid <= 96) && (context->sv_used_mask[(svid -1) >> 5] & (1ul << ((svid -1) & 31))))
+                {
+                    device->satellites.info[n].state |= GNSS_SATELLITES_STATE_NAVIGATING;
+                }
+            }
 
-	    gnss_satellites(device);
-	    
-	    device->seen &= ~(NMEA_SENTENCE_MASK_GPGSV | NMEA_SENTENCE_MASK_GLGSV);
-	}
+            gnss_satellites(device);
+            
+            device->seen &= ~(NMEA_SENTENCE_MASK_GPGSV | NMEA_SENTENCE_MASK_GLGSV);
+        }
     }
 }
 
@@ -1584,15 +1584,15 @@ static inline int8_t ubx_data_int8(const uint8_t *data, unsigned int offset)
 static inline int16_t ubx_data_int16(const uint8_t *data, unsigned int offset)
 {
     return (int16_t)(((uint16_t)data[offset+0] << 0) |
-		     ((uint16_t)data[offset+1] << 8));
+                     ((uint16_t)data[offset+1] << 8));
 }
 
 static inline int32_t ubx_data_int32(const uint8_t *data, unsigned int offset)
 {
     return (int32_t)(((uint32_t)data[offset+0] <<  0) |
-		     ((uint32_t)data[offset+1] <<  8) |
-		     ((uint32_t)data[offset+2] << 16) |
-		     ((uint32_t)data[offset+3] << 24));
+                     ((uint32_t)data[offset+1] <<  8) |
+                     ((uint32_t)data[offset+2] << 16) |
+                     ((uint32_t)data[offset+3] << 24));
 }
 
 static inline uint8_t ubx_data_uint8(const uint8_t *data, unsigned int offset)
@@ -1603,15 +1603,15 @@ static inline uint8_t ubx_data_uint8(const uint8_t *data, unsigned int offset)
 static inline uint16_t ubx_data_uint16(const uint8_t *data, unsigned int offset)
 {
     return (uint16_t)(((uint16_t)data[offset+0] << 0) |
-		      ((uint16_t)data[offset+1] << 8));
+                      ((uint16_t)data[offset+1] << 8));
 }
 
 static inline uint32_t ubx_data_uint32(const uint8_t *data, unsigned int offset)
 {
     return (uint32_t)(((uint32_t)data[offset+0] <<  0) |
-		      ((uint32_t)data[offset+1] <<  8) |
-		      ((uint32_t)data[offset+2] << 16) |
-		      ((uint32_t)data[offset+3] << 24));
+                      ((uint32_t)data[offset+1] <<  8) |
+                      ((uint32_t)data[offset+2] << 16) |
+                      ((uint32_t)data[offset+3] << 24));
 }
 
 #endif
@@ -1651,22 +1651,22 @@ static void ubx_start_message(gnss_device_t *device, unsigned int message, unsig
 {
     if (message == 0x0130)
     {
-	/* UBX-NAV-SVINFO */
-	    
-	device->rx_chunk = 20;
-	device->satellites.count = 0;
-	
-	device->seen &= ~UBX_MESSAGE_MASK_NAV_SVINFO;
+        /* UBX-NAV-SVINFO */
+            
+        device->rx_chunk = 20;
+        device->satellites.count = 0;
+        
+        device->seen &= ~UBX_MESSAGE_MASK_NAV_SVINFO;
     }
 
     if (message == 0x0135)
     {
-	/* UBX-NAV-SAT */
-	    
-	device->rx_chunk = 20;
-	device->satellites.count = 0;
-	
-	device->seen &= ~UBX_MESSAGE_MASK_NAV_SAT;
+        /* UBX-NAV-SAT */
+            
+        device->rx_chunk = 20;
+        device->satellites.count = 0;
+        
+        device->seen &= ~UBX_MESSAGE_MASK_NAV_SAT;
     }
 }
 
@@ -1676,196 +1676,196 @@ static void ubx_parse_message(gnss_device_t *device, unsigned int message, uint8
 
     if (message == 0x0130)
     {
-	/* UBX-NAV-SVINFO */
+        /* UBX-NAV-SVINFO */
 
-	svid = ubx_data_uint8(data, 9);
+        svid = ubx_data_uint8(data, 9);
 
-	if (svid && (device->satellites.count < GNSS_SATELLITES_COUNT_MAX))
-	{
-	    device->satellites.info[device->satellites.count].svid = svid;
+        if (svid && (device->satellites.count < GNSS_SATELLITES_COUNT_MAX))
+        {
+            device->satellites.info[device->satellites.count].svid = svid;
 
-	    if (ubx_data_int8(data, 13) > 0)
-	    {
-		device->satellites.info[device->satellites.count].elevation = ubx_data_int8(data, 13);
-		device->satellites.info[device->satellites.count].azimuth = ubx_data_int16(data, 14);
-	    }
-	    else
-	    {
-		device->satellites.info[device->satellites.count].elevation = 0;
-		device->satellites.info[device->satellites.count].azimuth = 0;
-	    }
+            if (ubx_data_int8(data, 13) > 0)
+            {
+                device->satellites.info[device->satellites.count].elevation = ubx_data_int8(data, 13);
+                device->satellites.info[device->satellites.count].azimuth = ubx_data_int16(data, 14);
+            }
+            else
+            {
+                device->satellites.info[device->satellites.count].elevation = 0;
+                device->satellites.info[device->satellites.count].azimuth = 0;
+            }
 
-	    device->satellites.info[device->satellites.count].snr = ubx_data_uint8(data, 12);
+            device->satellites.info[device->satellites.count].snr = ubx_data_uint8(data, 12);
 
-	    if (ubx_data_uint8(data, 10) & 0x10)
-	    {
- 	        device->satellites.info[device->satellites.count].state = GNSS_SATELLITES_STATE_UNHEALTHY;
-	    }
-	    else
-	    {
-		device->satellites.info[device->satellites.count].state = 0;
+            if (ubx_data_uint8(data, 10) & 0x10)
+            {
+                device->satellites.info[device->satellites.count].state = GNSS_SATELLITES_STATE_UNHEALTHY;
+            }
+            else
+            {
+                device->satellites.info[device->satellites.count].state = 0;
 
-		if ((ubx_data_uint8(data, 10) & 0x0c) == 0x0c)
-		{
-		    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_EPHEMERIS;
-		}
+                if ((ubx_data_uint8(data, 10) & 0x0c) == 0x0c)
+                {
+                    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_EPHEMERIS;
+                }
 
-		if (ubx_data_uint8(data, 10) & 0x02)
-		{
-		    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_CORRECTION;
-		}
+                if (ubx_data_uint8(data, 10) & 0x02)
+                {
+                    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_CORRECTION;
+                }
 
-		switch (ubx_data_uint8(data, 11) & 0x0f) {
-		case 0x00: /* NO SIGNAL */
-		case 0x01: /* SEARCHING */ 
-		    break;
-		case 0x02: /* SIGNAL ACQUIRED */
-		case 0x03: /* SIGNAL ACQUIRED, BUT UNUSABLE */
-		    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_ACQUIRED;
-		    break;
-		    
-		case 0x04: /* SIGNAL ACQUIRED, CODE LOCKED */
-		case 0x05: /* SIGNAL ACQUIRED, CODE LOCKED, CARRIER LOCKED */
-		case 0x06: /* SIGNAL ACQUIRED, CODE LOCKED, CARRIER LOCKED */
-		case 0x07: /* SIGNAL ACQUIRED, CODE LOCKED, CARRIER LOCKED */
-		    device->satellites.info[device->satellites.count].state |= (GNSS_SATELLITES_STATE_ACQUIRED | GNSS_SATELLITES_STATE_LOCKED);
+                switch (ubx_data_uint8(data, 11) & 0x0f) {
+                case 0x00: /* NO SIGNAL */
+                case 0x01: /* SEARCHING */ 
+                    break;
+                case 0x02: /* SIGNAL ACQUIRED */
+                case 0x03: /* SIGNAL ACQUIRED, BUT UNUSABLE */
+                    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_ACQUIRED;
+                    break;
+                    
+                case 0x04: /* SIGNAL ACQUIRED, CODE LOCKED */
+                case 0x05: /* SIGNAL ACQUIRED, CODE LOCKED, CARRIER LOCKED */
+                case 0x06: /* SIGNAL ACQUIRED, CODE LOCKED, CARRIER LOCKED */
+                case 0x07: /* SIGNAL ACQUIRED, CODE LOCKED, CARRIER LOCKED */
+                    device->satellites.info[device->satellites.count].state |= (GNSS_SATELLITES_STATE_ACQUIRED | GNSS_SATELLITES_STATE_LOCKED);
 
-		    if (ubx_data_uint8(data, 10) & 0x01)
-		    {
-			device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_NAVIGATING;
-		    }
-		    break;
-		    
-		default:
-		    break;
-		}
-	    }
+                    if (ubx_data_uint8(data, 10) & 0x01)
+                    {
+                        device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_NAVIGATING;
+                    }
+                    break;
+                    
+                default:
+                    break;
+                }
+            }
 
-	    device->satellites.count++;
-	}
-	
-	device->rx_offset += 12;
-	device->rx_chunk += 12;
+            device->satellites.count++;
+        }
+        
+        device->rx_offset += 12;
+        device->rx_chunk += 12;
     }
 
     if (message == 0x0135)
     {
-	/* UBX-NAV-SVAT */
+        /* UBX-NAV-SVAT */
 
-	gnss = ubx_data_uint8(data, 8);
-	svid = ubx_data_uint8(data, 9);
+        gnss = ubx_data_uint8(data, 8);
+        svid = ubx_data_uint8(data, 9);
 
-	if (gnss == 0)
-	{
-	    /* GPS */
-	}
-	else if (gnss == 1)
-	{
-	    /* SBAS */
-	}
-	else if (gnss == 2)
-	{
-	    /* GALILEO */
-	    svid += 210;
-	}
-	else if (gnss == 4)
-	{
-	    /* IMES */
-	    svid += 172;
-	}
-	else if (gnss == 5)
-	{
-	    /* QZSS */
-	    svid += 192;
-	}
-	else if (gnss == 6)
-	{
-	    if (svid != 255)
-	    {
-		svid += 64;
-	    }
-	}
-	else
-	{
-	    svid = 0;
-	}
+        if (gnss == 0)
+        {
+            /* GPS */
+        }
+        else if (gnss == 1)
+        {
+            /* SBAS */
+        }
+        else if (gnss == 2)
+        {
+            /* GALILEO */
+            svid += 210;
+        }
+        else if (gnss == 4)
+        {
+            /* IMES */
+            svid += 172;
+        }
+        else if (gnss == 5)
+        {
+            /* QZSS */
+            svid += 192;
+        }
+        else if (gnss == 6)
+        {
+            if (svid != 255)
+            {
+                svid += 64;
+            }
+        }
+        else
+        {
+            svid = 0;
+        }
 
-	if (svid && (device->satellites.count < GNSS_SATELLITES_COUNT_MAX))
-	{
-	    device->satellites.info[device->satellites.count].svid = svid;
+        if (svid && (device->satellites.count < GNSS_SATELLITES_COUNT_MAX))
+        {
+            device->satellites.info[device->satellites.count].svid = svid;
 
-	    device->satellites.info[device->satellites.count].snr = ubx_data_uint8(data, 10);
+            device->satellites.info[device->satellites.count].snr = ubx_data_uint8(data, 10);
 
-	    if (ubx_data_int8(data, 11) > 0)
-	    {
-		device->satellites.info[device->satellites.count].elevation = ubx_data_int8(data, 11);
- 		device->satellites.info[device->satellites.count].azimuth = ubx_data_int16(data, 12);
-	    }
-	    else
-	    {
-		device->satellites.info[device->satellites.count].elevation = 0;
-		device->satellites.info[device->satellites.count].azimuth = 0;
-	    }
+            if (ubx_data_int8(data, 11) > 0)
+            {
+                device->satellites.info[device->satellites.count].elevation = ubx_data_int8(data, 11);
+                device->satellites.info[device->satellites.count].azimuth = ubx_data_int16(data, 12);
+            }
+            else
+            {
+                device->satellites.info[device->satellites.count].elevation = 0;
+                device->satellites.info[device->satellites.count].azimuth = 0;
+            }
 
-	    if (ubx_data_uint8(data, 16) & 0x20)
-	    {
- 	        device->satellites.info[device->satellites.count].state = GNSS_SATELLITES_STATE_UNHEALTHY;
-	    }
-	    else
-	    {
-		device->satellites.info[device->satellites.count].state = 0;
+            if (ubx_data_uint8(data, 16) & 0x20)
+            {
+                device->satellites.info[device->satellites.count].state = GNSS_SATELLITES_STATE_UNHEALTHY;
+            }
+            else
+            {
+                device->satellites.info[device->satellites.count].state = 0;
 
-		if (ubx_data_uint8(data, 17) & 0x10)
-		{
-		    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_ALMANAC;
-		}
-		
-		if (ubx_data_uint8(data, 17) & 0x08)
-		{
-		    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_EPHEMERIS;
-		}
+                if (ubx_data_uint8(data, 17) & 0x10)
+                {
+                    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_ALMANAC;
+                }
+                
+                if (ubx_data_uint8(data, 17) & 0x08)
+                {
+                    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_EPHEMERIS;
+                }
 
-		if (ubx_data_uint8(data, 16) & 0x40)
-		{
-		    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_CORRECTION;
-		}
-		
-		if (ubx_data_uint8(data, 17) & 0x40)
-		{
-		    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_AUTONOMOUS;
-		}
+                if (ubx_data_uint8(data, 16) & 0x40)
+                {
+                    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_CORRECTION;
+                }
+                
+                if (ubx_data_uint8(data, 17) & 0x40)
+                {
+                    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_AUTONOMOUS;
+                }
 
-		switch (ubx_data_uint8(data, 16) & 0x07) {
-		case 0x00: /* NO SIGNAL */
-		case 0x01: /* SEARCHING */ 
-		    break;
-		case 0x02: /* SIGNAL ACQUIRED */
-		case 0x03: /* SIGNAL ACQUIRED, BUT UNUSABLE */
-		    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_ACQUIRED;
-		    break;
-		    
-		case 0x04: /* SIGNAL ACQUIRED, CODE LOCKED */
-		case 0x05: /* SIGNAL ACQUIRED, CODE LOCKED, CARRIER LOCKED */
-		case 0x06: /* SIGNAL ACQUIRED, CODE LOCKED, CARRIER LOCKED */
-		case 0x07: /* SIGNAL ACQUIRED, CODE LOCKED, CARRIER LOCKED */
-		    device->satellites.info[device->satellites.count].state |= (GNSS_SATELLITES_STATE_ACQUIRED | GNSS_SATELLITES_STATE_LOCKED);
+                switch (ubx_data_uint8(data, 16) & 0x07) {
+                case 0x00: /* NO SIGNAL */
+                case 0x01: /* SEARCHING */ 
+                    break;
+                case 0x02: /* SIGNAL ACQUIRED */
+                case 0x03: /* SIGNAL ACQUIRED, BUT UNUSABLE */
+                    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_ACQUIRED;
+                    break;
+                    
+                case 0x04: /* SIGNAL ACQUIRED, CODE LOCKED */
+                case 0x05: /* SIGNAL ACQUIRED, CODE LOCKED, CARRIER LOCKED */
+                case 0x06: /* SIGNAL ACQUIRED, CODE LOCKED, CARRIER LOCKED */
+                case 0x07: /* SIGNAL ACQUIRED, CODE LOCKED, CARRIER LOCKED */
+                    device->satellites.info[device->satellites.count].state |= (GNSS_SATELLITES_STATE_ACQUIRED | GNSS_SATELLITES_STATE_LOCKED);
 
-		    if (ubx_data_uint8(data, 16) & 0x08)
-		    {
-			device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_NAVIGATING;
-		    }
-		    break;
-		    
-		default:
-		    break;
-		}
-	    }
+                    if (ubx_data_uint8(data, 16) & 0x08)
+                    {
+                        device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_NAVIGATING;
+                    }
+                    break;
+                    
+                default:
+                    break;
+                }
+            }
 
-	    device->satellites.count++;
-	}
-	
-	device->rx_offset += 12;
-	device->rx_chunk += 12;
+            device->satellites.count++;
+        }
+        
+        device->rx_offset += 12;
+        device->rx_chunk += 12;
     }
 }
 
@@ -1880,297 +1880,297 @@ static void ubx_end_message(gnss_device_t *device, unsigned int message, uint8_t
 
     if ((message >> 8) == 0x01)
     {
-	if (device->seen & (UBX_MESSAGE_MASK_NAV_DOP |
-			    UBX_MESSAGE_MASK_NAV_PVT |
-			    UBX_MESSAGE_MASK_NAV_SVINFO |
-			    UBX_MESSAGE_MASK_NAV_TIMEGPS |
-			    UBX_MESSAGE_MASK_SOLUTION))
-	{
-	    if (context->itow != ubx_data_uint32(data, 0))
-	    {
-		device->seen = 0;
-		device->location.type = 0;
-		device->location.mask = 0;
-	    }
-	}
-	
-	context->itow = ubx_data_uint32(data, 0);
+        if (device->seen & (UBX_MESSAGE_MASK_NAV_DOP |
+                            UBX_MESSAGE_MASK_NAV_PVT |
+                            UBX_MESSAGE_MASK_NAV_SVINFO |
+                            UBX_MESSAGE_MASK_NAV_TIMEGPS |
+                            UBX_MESSAGE_MASK_SOLUTION))
+        {
+            if (context->itow != ubx_data_uint32(data, 0))
+            {
+                device->seen = 0;
+                device->location.type = 0;
+                device->location.mask = 0;
+            }
+        }
+        
+        context->itow = ubx_data_uint32(data, 0);
 
-	switch (message & 0xff) {
+        switch (message & 0xff) {
 
-	case 0x04:
-	    /* UBX-NAV-DOP */
+        case 0x04:
+            /* UBX-NAV-DOP */
 
-	    device->location.pdop = ubx_data_uint16(data, 6);
-	    device->location.hdop = ubx_data_uint16(data, 12);
-	    device->location.vdop = ubx_data_uint16(data, 10);
+            device->location.pdop = ubx_data_uint16(data, 6);
+            device->location.hdop = ubx_data_uint16(data, 12);
+            device->location.vdop = ubx_data_uint16(data, 10);
 
-	    device->location.mask |= (GNSS_LOCATION_MASK_PDOP |
-				      GNSS_LOCATION_MASK_HDOP |
-				      GNSS_LOCATION_MASK_VDOP);
+            device->location.mask |= (GNSS_LOCATION_MASK_PDOP |
+                                      GNSS_LOCATION_MASK_HDOP |
+                                      GNSS_LOCATION_MASK_VDOP);
 
-	    device->seen |= UBX_MESSAGE_MASK_NAV_DOP;
-	    break;
+            device->seen |= UBX_MESSAGE_MASK_NAV_DOP;
+            break;
 
-	case 0x07:
-	    /* UBX-NAV-PVT */
+        case 0x07:
+            /* UBX-NAV-PVT */
 
-	    if ((ubx_data_uint8(data, 11) & 0x03) == 0x03)
-	    {
-		device->location.time.year = ubx_data_uint16(data, 4) - 1980;
-		device->location.time.month = ubx_data_uint8(data, 6);
-		device->location.time.day = ubx_data_uint8(data, 7);
-		device->location.time.hours = ubx_data_uint8(data, 8);
-		device->location.time.minutes = ubx_data_uint8(data, 9);
-		device->location.time.seconds = ubx_data_uint8(data, 10);
+            if ((ubx_data_uint8(data, 11) & 0x03) == 0x03)
+            {
+                device->location.time.year = ubx_data_uint16(data, 4) - 1980;
+                device->location.time.month = ubx_data_uint8(data, 6);
+                device->location.time.day = ubx_data_uint8(data, 7);
+                device->location.time.hours = ubx_data_uint8(data, 8);
+                device->location.time.minutes = ubx_data_uint8(data, 9);
+                device->location.time.seconds = ubx_data_uint8(data, 10);
 
-		if (ubx_data_int32(data, 16) > 0)
-		{
-		    device->location.time.millis = ((ubx_data_int32(data, 16) + 500000) / 1000000);
-		}
-		else
-		{
-		    device->location.time.millis = 0;
-		}
-	    }
-	    else
-	    {
-		device->location.time.year = 1980 - 1980;
-		device->location.time.month = 1;
-		device->location.time.day = 6;
-		device->location.time.hours = 0;
-		device->location.time.minutes = 0;
-		device->location.time.seconds = 0;
-		device->location.time.millis = 0;
-	    }
+                if (ubx_data_int32(data, 16) > 0)
+                {
+                    device->location.time.millis = ((ubx_data_int32(data, 16) + 500000) / 1000000);
+                }
+                else
+                {
+                    device->location.time.millis = 0;
+                }
+            }
+            else
+            {
+                device->location.time.year = 1980 - 1980;
+                device->location.time.month = 1;
+                device->location.time.day = 6;
+                device->location.time.hours = 0;
+                device->location.time.minutes = 0;
+                device->location.time.seconds = 0;
+                device->location.time.millis = 0;
+            }
 
-	    device->location.latitude = ubx_data_int32(data, 28);
-	    device->location.longitude = ubx_data_int32(data, 24);
-	    device->location.altitude = ubx_data_int32(data, 36);
-	    device->location.separation = ubx_data_int32(data, 32) - ubx_data_int32(data, 36);
-	    device->location.speed = ubx_data_int32(data, 60);
-	    device->location.course = ubx_data_int32(data, 64);
-	    device->location.climb = - ubx_data_int32(data, 56);
-	    device->location.ehpe = ubx_data_uint32(data, 40);
-	    device->location.evpe = ubx_data_uint32(data, 44);
+            device->location.latitude = ubx_data_int32(data, 28);
+            device->location.longitude = ubx_data_int32(data, 24);
+            device->location.altitude = ubx_data_int32(data, 36);
+            device->location.separation = ubx_data_int32(data, 32) - ubx_data_int32(data, 36);
+            device->location.speed = ubx_data_int32(data, 60);
+            device->location.course = ubx_data_int32(data, 64);
+            device->location.climb = - ubx_data_int32(data, 56);
+            device->location.ehpe = ubx_data_uint32(data, 40);
+            device->location.evpe = ubx_data_uint32(data, 44);
 
-	    switch (ubx_data_uint8(data, 20)) {
-	    case 0x00:
-		device->location.type = GNSS_LOCATION_TYPE_NONE;
-		device->location.quality = GNSS_LOCATION_QUALITY_NONE;
-		break;
+            switch (ubx_data_uint8(data, 20)) {
+            case 0x00:
+                device->location.type = GNSS_LOCATION_TYPE_NONE;
+                device->location.quality = GNSS_LOCATION_QUALITY_NONE;
+                break;
 
-	    case 0x01:
-		device->location.type = GNSS_LOCATION_TYPE_NONE;
-		device->location.quality = GNSS_LOCATION_QUALITY_ESTIMATED;
-		break;
+            case 0x01:
+                device->location.type = GNSS_LOCATION_TYPE_NONE;
+                device->location.quality = GNSS_LOCATION_QUALITY_ESTIMATED;
+                break;
 
-	    case 0x02:
-		device->location.type = GNSS_LOCATION_TYPE_2D;
+            case 0x02:
+                device->location.type = GNSS_LOCATION_TYPE_2D;
 
-		if (ubx_data_uint8(data, 21) & 0xc0)
-		{
-		    device->location.quality = ((ubx_data_uint8(data, 21) & 0x80) ? GNSS_LOCATION_QUALITY_RTK_FIXED : GNSS_LOCATION_QUALITY_RTK_FLOAT);
-		}
-		else if (ubx_data_uint8(data, 21) & 0x01)
-		{
-		    device->location.quality = ((ubx_data_uint8(data, 21) & 0x02) ? GNSS_LOCATION_QUALITY_DIFFERENTIAL : GNSS_LOCATION_QUALITY_AUTONOMOUS);
-		}
-		else
-		{
-		    device->location.quality = GNSS_LOCATION_QUALITY_NONE;
-		}
-		break;
+                if (ubx_data_uint8(data, 21) & 0xc0)
+                {
+                    device->location.quality = ((ubx_data_uint8(data, 21) & 0x80) ? GNSS_LOCATION_QUALITY_RTK_FIXED : GNSS_LOCATION_QUALITY_RTK_FLOAT);
+                }
+                else if (ubx_data_uint8(data, 21) & 0x01)
+                {
+                    device->location.quality = ((ubx_data_uint8(data, 21) & 0x02) ? GNSS_LOCATION_QUALITY_DIFFERENTIAL : GNSS_LOCATION_QUALITY_AUTONOMOUS);
+                }
+                else
+                {
+                    device->location.quality = GNSS_LOCATION_QUALITY_NONE;
+                }
+                break;
 
-	    case 0x03:
-		device->location.type = GNSS_LOCATION_TYPE_3D;
+            case 0x03:
+                device->location.type = GNSS_LOCATION_TYPE_3D;
 
-		if (ubx_data_uint8(data, 21) & 0xc0)
-		{
-		    device->location.quality = ((ubx_data_uint8(data, 21) & 0x80) ? GNSS_LOCATION_QUALITY_RTK_FIXED : GNSS_LOCATION_QUALITY_RTK_FLOAT);
-		}
-		else if (ubx_data_uint8(data, 21) & 0x01)
-		{
-		    device->location.quality = ((ubx_data_uint8(data, 21) & 0x02) ? GNSS_LOCATION_QUALITY_DIFFERENTIAL : GNSS_LOCATION_QUALITY_AUTONOMOUS);
-		}
-		else
-		{
-		    device->location.quality = GNSS_LOCATION_QUALITY_NONE;
-		}
-		break;
+                if (ubx_data_uint8(data, 21) & 0xc0)
+                {
+                    device->location.quality = ((ubx_data_uint8(data, 21) & 0x80) ? GNSS_LOCATION_QUALITY_RTK_FIXED : GNSS_LOCATION_QUALITY_RTK_FLOAT);
+                }
+                else if (ubx_data_uint8(data, 21) & 0x01)
+                {
+                    device->location.quality = ((ubx_data_uint8(data, 21) & 0x02) ? GNSS_LOCATION_QUALITY_DIFFERENTIAL : GNSS_LOCATION_QUALITY_AUTONOMOUS);
+                }
+                else
+                {
+                    device->location.quality = GNSS_LOCATION_QUALITY_NONE;
+                }
+                break;
 
-	    case 0x04:
-		device->location.type = GNSS_LOCATION_TYPE_2D;
-		device->location.quality = GNSS_LOCATION_QUALITY_ESTIMATED;
-		break;
+            case 0x04:
+                device->location.type = GNSS_LOCATION_TYPE_2D;
+                device->location.quality = GNSS_LOCATION_QUALITY_ESTIMATED;
+                break;
 
-	    case 0x05:
-		device->location.type = GNSS_LOCATION_TYPE_TIME;
-		device->location.quality = GNSS_LOCATION_QUALITY_NONE;
-		break;
-	    }
+            case 0x05:
+                device->location.type = GNSS_LOCATION_TYPE_TIME;
+                device->location.quality = GNSS_LOCATION_QUALITY_NONE;
+                break;
+            }
 
-	    device->location.numsv = ubx_data_uint8(data, 23);
+            device->location.numsv = ubx_data_uint8(data, 23);
 
-	    device->location.mask |= (GNSS_LOCATION_MASK_POSITION |
-				      GNSS_LOCATION_MASK_ALTITUDE |
-				      GNSS_LOCATION_MASK_SPEED |
-				      GNSS_LOCATION_MASK_COURSE |
-				      GNSS_LOCATION_MASK_CLIMB |
-				      GNSS_LOCATION_MASK_EHPE |
-				      GNSS_LOCATION_MASK_EVPE);
+            device->location.mask |= (GNSS_LOCATION_MASK_POSITION |
+                                      GNSS_LOCATION_MASK_ALTITUDE |
+                                      GNSS_LOCATION_MASK_SPEED |
+                                      GNSS_LOCATION_MASK_COURSE |
+                                      GNSS_LOCATION_MASK_CLIMB |
+                                      GNSS_LOCATION_MASK_EHPE |
+                                      GNSS_LOCATION_MASK_EVPE);
 
-	    device->seen |= UBX_MESSAGE_MASK_NAV_PVT;
-	    device->seen &= ~UBX_MESSAGE_MASK_SOLUTION;
-	    break;
+            device->seen |= UBX_MESSAGE_MASK_NAV_PVT;
+            device->seen &= ~UBX_MESSAGE_MASK_SOLUTION;
+            break;
 
-	case 0x20:
-	    /* UBX-NAV-TIMEGPS */
+        case 0x20:
+            /* UBX-NAV-TIMEGPS */
 
-	    if ((ubx_data_uint8(data, 11) & 0x03) == 0x03)
-	    {
-		tow  = ubx_data_uint32(data, 0) + (ubx_data_int32(data, 4) + 500000) / 1000000;
-		week = ubx_data_uint16(data, 8);
+            if ((ubx_data_uint8(data, 11) & 0x03) == 0x03)
+            {
+                tow  = ubx_data_uint32(data, 0) + (ubx_data_int32(data, 4) + 500000) / 1000000;
+                week = ubx_data_uint16(data, 8);
 
-		if (tow < 0)
-		{
-		    tow += 604800000;
-		    week -= 1;
-		}
-		
-		if (tow >= 604800000)
-		{
-		    tow -= 604800000;
-		    week += 1;
-		}
+                if (tow < 0)
+                {
+                    tow += 604800000;
+                    week -= 1;
+                }
+                
+                if (tow >= 604800000)
+                {
+                    tow -= 604800000;
+                    week += 1;
+                }
 
-		context->week = week;
-		context->tow = tow;
-		
-		device->location.correction = ubx_data_uint8(data, 10);
-	    }
-	    else
-	    {
-		context->week = 0;
-		context->tow = 0;
+                context->week = week;
+                context->tow = tow;
+                
+                device->location.correction = ubx_data_uint8(data, 10);
+            }
+            else
+            {
+                context->week = 0;
+                context->tow = 0;
 
-		device->location.correction = 0;
-	    }
+                device->location.correction = 0;
+            }
 
-	    device->seen |= UBX_MESSAGE_MASK_NAV_TIMEGPS;
-	    device->seen &= ~UBX_MESSAGE_MASK_SOLUTION;
-	    break;
+            device->seen |= UBX_MESSAGE_MASK_NAV_TIMEGPS;
+            device->seen &= ~UBX_MESSAGE_MASK_SOLUTION;
+            break;
 
-	case 0x30:
-	    /* UBX-NAV-SVINFO */
+        case 0x30:
+            /* UBX-NAV-SVINFO */
 
-	    device->ubx.generation = ubx_data_uint8(data, 5) & 7;
+            device->ubx.generation = ubx_data_uint8(data, 5) & 7;
 
-	    if (message == device->command)
-	    {
-		device->command = ~0l;
-		
-		ubx_configure(device, GNSS_RESPONSE_ACK, message);
-	    }
-	    else
-	    {
-		device->seen |= UBX_MESSAGE_MASK_NAV_SVINFO;
-	    }
-	    break;
+            if (message == device->command)
+            {
+                device->command = ~0l;
+                
+                ubx_configure(device, GNSS_RESPONSE_ACK, message);
+            }
+            else
+            {
+                device->seen |= UBX_MESSAGE_MASK_NAV_SVINFO;
+            }
+            break;
 
-	case 0x35:
-	    /* UBX-NAV-SAT */
+        case 0x35:
+            /* UBX-NAV-SAT */
 
-	    device->seen |= UBX_MESSAGE_MASK_NAV_SAT;
-	    break;
+            device->seen |= UBX_MESSAGE_MASK_NAV_SAT;
+            break;
 
-	default:
-	    break;
-	}
+        default:
+            break;
+        }
     }
 
     else if (message == 0x0500)
     {
-	/* UBX-ACK-NACK */
-	command = ((ubx_data_uint8(data, 0) << 8) | ubx_data_uint8(data, 1));
+        /* UBX-ACK-NACK */
+        command = ((ubx_data_uint8(data, 0) << 8) | ubx_data_uint8(data, 1));
 
-	// printf("NACK %04x\r\n", command);
+        // printf("NACK %04x\r\n", command);
 
-	if (command == device->command)
-	{
-	    device->command = ~0l;
-	    
-	    ubx_configure(device, GNSS_RESPONSE_NACK, command);
-	}
+        if (command == device->command)
+        {
+            device->command = ~0l;
+            
+            ubx_configure(device, GNSS_RESPONSE_NACK, command);
+        }
     }
 
     else if (message == 0x0501)
     {
-	/* UBX-ACK-ACK */
-	command = ((ubx_data_uint8(data, 0) << 8) | ubx_data_uint8(data, 1));
+        /* UBX-ACK-ACK */
+        command = ((ubx_data_uint8(data, 0) << 8) | ubx_data_uint8(data, 1));
 
-	// printf("ACK %04x\r\n", command);
+        // printf("ACK %04x\r\n", command);
 
-	if (command == device->command)
-	{
-	    device->command = ~0l;
-	    
-	    ubx_configure(device, GNSS_RESPONSE_ACK, command);
-	}
+        if (command == device->command)
+        {
+            device->command = ~0l;
+            
+            ubx_configure(device, GNSS_RESPONSE_ACK, command);
+        }
     }
 
     else if (message == 0x0a28)
     {
-	// printf("RESPONSE %04x\r\n", message);
+        // printf("RESPONSE %04x\r\n", message);
 
-	/* UBX-NON-GNSS */
-	device->ubx.gnss.supported = ubx_data_uint8(data, 1);
-	device->ubx.gnss.enabled = ubx_data_uint8(data, 3);
-	device->ubx.gnss.simultaneous = ubx_data_uint8(data, 4);
+        /* UBX-NON-GNSS */
+        device->ubx.gnss.supported = ubx_data_uint8(data, 1);
+        device->ubx.gnss.enabled = ubx_data_uint8(data, 3);
+        device->ubx.gnss.simultaneous = ubx_data_uint8(data, 4);
 
-	if (message == device->command)
-	{
-	    device->command = ~0l;
-	    
-	    ubx_configure(device, GNSS_RESPONSE_ACK, message);
-	}
+        if (message == device->command)
+        {
+            device->command = ~0l;
+            
+            ubx_configure(device, GNSS_RESPONSE_ACK, message);
+        }
     }
 
     if (device->init == GNSS_INIT_DONE)
     {
-	expected = device->expected & (UBX_MESSAGE_MASK_NAV_DOP |
-				       UBX_MESSAGE_MASK_NAV_PVT |
-				       UBX_MESSAGE_MASK_NAV_TIMEGPS);
-	
-	if ((device->seen & expected) == expected)
-	{
-	    if (context->week && device->location.time.year)
-	    {
-		if (!(device->seen & UBX_MESSAGE_MASK_NAV_TIMEGPS))
-		{
-		    device->location.correction = utc_offset_time(&device->location.time, context->week, context->tow);
-		}
+        expected = device->expected & (UBX_MESSAGE_MASK_NAV_DOP |
+                                       UBX_MESSAGE_MASK_NAV_PVT |
+                                       UBX_MESSAGE_MASK_NAV_TIMEGPS);
+        
+        if ((device->seen & expected) == expected)
+        {
+            if (context->week && device->location.time.year)
+            {
+                if (!(device->seen & UBX_MESSAGE_MASK_NAV_TIMEGPS))
+                {
+                    device->location.correction = utc_offset_time(&device->location.time, context->week, context->tow);
+                }
 
-		device->location.mask |= (GNSS_LOCATION_MASK_TIME | GNSS_LOCATION_MASK_CORRECTION);
-	    }
-	    
-	    gnss_location(device);
-	    
-	    device->seen &= ~(UBX_MESSAGE_MASK_NAV_DOP |
-			      UBX_MESSAGE_MASK_NAV_PVT |
-			      UBX_MESSAGE_MASK_NAV_TIMEGPS);
-	    
-	    device->seen |= UBX_MESSAGE_MASK_SOLUTION;
-	}
-	
-	expected = device->expected & (UBX_MESSAGE_MASK_NAV_SAT | UBX_MESSAGE_MASK_NAV_SVINFO);
-	
-	if ((device->seen & UBX_MESSAGE_MASK_SOLUTION) && ((device->seen & expected) == expected))
-	{
-	    gnss_satellites(device);
-	    
-	    device->seen &= ~(UBX_MESSAGE_MASK_NAV_SAT | UBX_MESSAGE_MASK_NAV_SVINFO);
-	}
+                device->location.mask |= (GNSS_LOCATION_MASK_TIME | GNSS_LOCATION_MASK_CORRECTION);
+            }
+            
+            gnss_location(device);
+            
+            device->seen &= ~(UBX_MESSAGE_MASK_NAV_DOP |
+                              UBX_MESSAGE_MASK_NAV_PVT |
+                              UBX_MESSAGE_MASK_NAV_TIMEGPS);
+            
+            device->seen |= UBX_MESSAGE_MASK_SOLUTION;
+        }
+        
+        expected = device->expected & (UBX_MESSAGE_MASK_NAV_SAT | UBX_MESSAGE_MASK_NAV_SVINFO);
+        
+        if ((device->seen & UBX_MESSAGE_MASK_SOLUTION) && ((device->seen & expected) == expected))
+        {
+            gnss_satellites(device);
+            
+            device->seen &= ~(UBX_MESSAGE_MASK_NAV_SAT | UBX_MESSAGE_MASK_NAV_SVINFO);
+        }
     }
 }
 
@@ -2940,10 +2940,10 @@ static void ubx_checksum(gnss_device_t *device, uint8_t *data)
     
     for (i = 2; i < (count -2); i++)
     {
-	ck_a += data[i];
-	ck_b += ck_a;
+        ck_a += data[i];
+        ck_b += ck_a;
     }
-	
+        
     data[count -2] = ck_a;
     data[count -1] = ck_b;
 }
@@ -2955,13 +2955,13 @@ static void ubx_send(gnss_device_t *device, const uint8_t *data)
 
     if (data == ubx_cfg_rxm_continuous)
     {
-	command = 0x0611;
-	count   = sizeof(ubx_cfg_rxm_continuous);
+        command = 0x0611;
+        count   = sizeof(ubx_cfg_rxm_continuous);
     }
     else
     {
-	command = (data[2] << 8) | data[3];
-	count  = (data[4] | (data[5] << 8)) + 8;
+        command = (data[2] << 8) | data[3];
+        count  = (data[4] | (data[5] << 8)) + 8;
     }
 
     device->command = command;
@@ -2992,84 +2992,84 @@ static void ubx_configure(gnss_device_t *device, unsigned int response, uint32_t
 
     if (device->table)
     {
-	if (device->init == GNSS_INIT_UBX_BAUD_RATE)
-	{
-	    device->init = GNSS_INIT_UBX_INIT_TABLE;
+        if (device->init == GNSS_INIT_UBX_BAUD_RATE)
+        {
+            device->init = GNSS_INIT_UBX_INIT_TABLE;
 
-	    device->ubx.generation = 0;
-	    device->ubx.gnss.supported = 0;
-	    device->ubx.gnss.enabled = 0;
-	    device->ubx.gnss.simultaneous = 0;
+            device->ubx.generation = 0;
+            device->ubx.gnss.supported = 0;
+            device->ubx.gnss.enabled = 0;
+            device->ubx.gnss.simultaneous = 0;
 
-	    data = device->table[0];
-	    device->table = device->table + 1;
-	}
-	else
-	{
-	    if (command == 0x0130)
-	    {
-		if (device->ubx.generation <= 3)
-		{
-		    if      (device->rate >= 10) { device->table = ubx_init_ublox7_10hz_table; }
-		    else if (device->rate >=  5) { device->table = ubx_init_ublox7_5hz_table;  }
-		    else                         { device->table = ubx_init_ublox7_1hz_table;  }
-		}
-		else
-		{
-		    if      (device->rate >= 10) { device->table = ubx_init_ublox8_10hz_table; }
-		    else if (device->rate >=  5) { device->table = ubx_init_ublox8_5hz_table;  }
-		    else                         { device->table = ubx_init_ublox8_1hz_table;  }
-		}
+            data = device->table[0];
+            device->table = device->table + 1;
+        }
+        else
+        {
+            if (command == 0x0130)
+            {
+                if (device->ubx.generation <= 3)
+                {
+                    if      (device->rate >= 10) { device->table = ubx_init_ublox7_10hz_table; }
+                    else if (device->rate >=  5) { device->table = ubx_init_ublox7_5hz_table;  }
+                    else                         { device->table = ubx_init_ublox7_1hz_table;  }
+                }
+                else
+                {
+                    if      (device->rate >= 10) { device->table = ubx_init_ublox8_10hz_table; }
+                    else if (device->rate >=  5) { device->table = ubx_init_ublox8_5hz_table;  }
+                    else                         { device->table = ubx_init_ublox8_1hz_table;  }
+                }
 
-		data = device->table[0];
-		device->table = device->table + 1;
-	    }
-	    else
-	    {
-		if (device->table[0] != NULL)
-		{
-		    data = device->table[0];
-		    device->table = device->table + 1;
-		}
-		else
-		{
-		    device->table = NULL;
+                data = device->table[0];
+                device->table = device->table + 1;
+            }
+            else
+            {
+                if (device->table[0] != NULL)
+                {
+                    data = device->table[0];
+                    device->table = device->table + 1;
+                }
+                else
+                {
+                    device->table = NULL;
 
-		    if (device->init == GNSS_INIT_UBX_INIT_TABLE)
-		    {
-			device->init = GNSS_INIT_DONE;
-		
-			if (device->ubx.gnss.simultaneous == 0)
-			{
-			    device->expected = (UBX_MESSAGE_MASK_NAV_DOP |
-						UBX_MESSAGE_MASK_NAV_PVT |
-						UBX_MESSAGE_MASK_NAV_SVINFO |
-						UBX_MESSAGE_MASK_NAV_TIMEGPS);
-			}
-			else
-			{
-			    device->ubx.gnss.enabled = GNSS_CONSTELLATION_GPS;
+                    if (device->init == GNSS_INIT_UBX_INIT_TABLE)
+                    {
+                        device->init = GNSS_INIT_DONE;
+                
+                        if (device->ubx.gnss.simultaneous == 0)
+                        {
+                            device->expected = (UBX_MESSAGE_MASK_NAV_DOP |
+                                                UBX_MESSAGE_MASK_NAV_PVT |
+                                                UBX_MESSAGE_MASK_NAV_SVINFO |
+                                                UBX_MESSAGE_MASK_NAV_TIMEGPS);
+                        }
+                        else
+                        {
+                            device->ubx.gnss.enabled = GNSS_CONSTELLATION_GPS;
 
-			    device->expected = (UBX_MESSAGE_MASK_NAV_DOP |
-						UBX_MESSAGE_MASK_NAV_PVT |
-						UBX_MESSAGE_MASK_NAV_SAT |
-						UBX_MESSAGE_MASK_NAV_TIMEGPS);
-			}
-			
-			device->seen = 0;
-			device->location.type = 0;
-			device->location.mask = 0;
-		    }
-		}
-	    }
-	}
+                            device->expected = (UBX_MESSAGE_MASK_NAV_DOP |
+                                                UBX_MESSAGE_MASK_NAV_PVT |
+                                                UBX_MESSAGE_MASK_NAV_SAT |
+                                                UBX_MESSAGE_MASK_NAV_TIMEGPS);
+                        }
+                        
+                        device->seen = 0;
+                        device->location.type = 0;
+                        device->location.mask = 0;
+                    }
+                }
+            }
+        }
     }
     
     if (data)
     {
-	ubx_send(device, data);
+        ubx_send(device, data);
 
-	stm32l0_rtc_timer_start(&device->ubx.timeout, 0, 4096, false); // 125ms
+        stm32l0_rtc_timer_start(&device->ubx.timeout, 0, 4096, false); // 125ms
     }
 }
 
@@ -3077,7 +3077,7 @@ static void ubx_sleep(gnss_device_t *device)
 {
     if (device->callbacks->disable_callback)
     {
-	(*device->callbacks->disable_callback)(device->context);
+        (*device->callbacks->disable_callback)(device->context);
     }
 
     device->busy = 0;
@@ -3089,11 +3089,11 @@ static void ubx_timeout(gnss_device_t *device)
 
     if (device->table)
     {
-	data = *(device->table -1);
+        data = *(device->table -1);
 
-	ubx_send(device, data);
+        ubx_send(device, data);
 
-	stm32l0_rtc_timer_start(&device->ubx.timeout, 0, 4096, false); // 125ms
+        stm32l0_rtc_timer_start(&device->ubx.timeout, 0, 4096, false); // 125ms
     }
 }
 
@@ -3105,13 +3105,13 @@ static void gnss_send_callback(void)
 
     if ((device->mode == GNSS_MODE_UBLOX) && (device->command == 0x0604))
     {
-	device->command = ~0l;
-	
-	stm32l0_rtc_timer_start(&device->ubx.sleep, 0, 4096, false); // 125ms
+        device->command = ~0l;
+        
+        stm32l0_rtc_timer_start(&device->ubx.sleep, 0, 4096, false); // 125ms
     }
     else
     {
-	device->busy = 0;
+        device->busy = 0;
     }
 }
 
@@ -3122,245 +3122,245 @@ void gnss_receive(const uint8_t *data, uint32_t count)
 
     if (device->wakeup)
     {
-	device->busy = 0;
-	device->wakeup = 0;
+        device->busy = 0;
+        device->wakeup = 0;
     }
 
     while (count > 0)
     {
-	count--;
+        count--;
 
-	c = *data++;
+        c = *data++;
 
-	if ((device->state <= GNSS_STATE_NMEA_END_LF) && (c == '$'))
-	{
-	    /* Whenever we see a '$', it's the start of a new sentence,
-	     * which can discard a partially read one.
-	     */
-	    
-	    device->state = GNSS_STATE_NMEA_PAYLOAD;
-	    device->checksum = 0x00;
-	    device->rx_count = 0;
+        if ((device->state <= GNSS_STATE_NMEA_END_LF) && (c == '$'))
+        {
+            /* Whenever we see a '$', it's the start of a new sentence,
+             * which can discard a partially read one.
+             */
+            
+            device->state = GNSS_STATE_NMEA_PAYLOAD;
+            device->checksum = 0x00;
+            device->rx_count = 0;
 
-	    nmea_start_sentence(device);
-	}
-	else
-	{
-	    switch (device->state) {
-	    case GNSS_STATE_START:
-		if ((device->mode == GNSS_MODE_UBLOX) && (c == 0xb5))
-		{
-		    device->state = GNSS_STATE_UBX_SYNC_2;
-		}
-		break;
+            nmea_start_sentence(device);
+        }
+        else
+        {
+            switch (device->state) {
+            case GNSS_STATE_START:
+                if ((device->mode == GNSS_MODE_UBLOX) && (c == 0xb5))
+                {
+                    device->state = GNSS_STATE_UBX_SYNC_2;
+                }
+                break;
 
-	    case GNSS_STATE_NMEA_PAYLOAD:
-		if (c == '*')
-		{
-		    device->rx_data[device->rx_count] = '\0';
+            case GNSS_STATE_NMEA_PAYLOAD:
+                if (c == '*')
+                {
+                    device->rx_data[device->rx_count] = '\0';
 
-		    nmea_parse_sentence(device, &device->rx_data[0], device->rx_count);
+                    nmea_parse_sentence(device, &device->rx_data[0], device->rx_count);
 
-		    device->state = GNSS_STATE_NMEA_CHECKSUM_1;
-		}
-		else if ((c >= 0x20) && (c <= 0x7f))
-		{
-		    if (device->rx_count >= GNSS_RX_DATA_SIZE)
-		    {
-			/* Reject a too long sentence.
-			 */
-			device->state = GNSS_STATE_START;
-		    }
-		    else
-		    {
-			device->checksum ^= c;
+                    device->state = GNSS_STATE_NMEA_CHECKSUM_1;
+                }
+                else if ((c >= 0x20) && (c <= 0x7f))
+                {
+                    if (device->rx_count >= GNSS_RX_DATA_SIZE)
+                    {
+                        /* Reject a too long sentence.
+                         */
+                        device->state = GNSS_STATE_START;
+                    }
+                    else
+                    {
+                        device->checksum ^= c;
 
-			if (c == ',')
-			{
-			    device->rx_data[device->rx_count] = '\0';
-			    
-			    nmea_parse_sentence(device, &device->rx_data[0], device->rx_count);
+                        if (c == ',')
+                        {
+                            device->rx_data[device->rx_count] = '\0';
+                            
+                            nmea_parse_sentence(device, &device->rx_data[0], device->rx_count);
 
-			    device->rx_count = 0;
-			}
-			else
-			{
-			    device->rx_data[device->rx_count++] = c;
-			}
-		    }
-		}
-		else
-		{
-		    /* If there is an illegal char, then scan again for a new start.
-		     */
-		    device->state = GNSS_STATE_START;
-		}
-		break;
+                            device->rx_count = 0;
+                        }
+                        else
+                        {
+                            device->rx_data[device->rx_count++] = c;
+                        }
+                    }
+                }
+                else
+                {
+                    /* If there is an illegal char, then scan again for a new start.
+                     */
+                    device->state = GNSS_STATE_START;
+                }
+                break;
 
-	    case GNSS_STATE_NMEA_CHECKSUM_1:
-		if (c == nmea_hex_ascii[device->checksum >> 4])
-		{
-		    device->state = GNSS_STATE_NMEA_CHECKSUM_2;
-		}
-		else
-		{
-		    /* If there is a checksum error, then scan again for a new start.
-		     */
+            case GNSS_STATE_NMEA_CHECKSUM_1:
+                if (c == nmea_hex_ascii[device->checksum >> 4])
+                {
+                    device->state = GNSS_STATE_NMEA_CHECKSUM_2;
+                }
+                else
+                {
+                    /* If there is a checksum error, then scan again for a new start.
+                     */
 
-		    device->state = GNSS_STATE_START;
-		}
-		break;
+                    device->state = GNSS_STATE_START;
+                }
+                break;
 
-	    case GNSS_STATE_NMEA_CHECKSUM_2:
-		if (c == nmea_hex_ascii[device->checksum & 0x0f])
-		{
-		    device->state = GNSS_STATE_NMEA_END_CR;
-		}
-		else
-		{
-		    /* If there is a checksum error, then scan again for a new start.
-		     */
+            case GNSS_STATE_NMEA_CHECKSUM_2:
+                if (c == nmea_hex_ascii[device->checksum & 0x0f])
+                {
+                    device->state = GNSS_STATE_NMEA_END_CR;
+                }
+                else
+                {
+                    /* If there is a checksum error, then scan again for a new start.
+                     */
 
-		    device->state = GNSS_STATE_START;
-		}
-		break;
+                    device->state = GNSS_STATE_START;
+                }
+                break;
 
-	    case GNSS_STATE_NMEA_END_CR:
-		if (c == '\r')
-		{
-		    device->state = GNSS_STATE_NMEA_END_LF;
-		}
-		else
-		{
-		    /* If there is an illegal char, then scan again for a new start.
-		     */
+            case GNSS_STATE_NMEA_END_CR:
+                if (c == '\r')
+                {
+                    device->state = GNSS_STATE_NMEA_END_LF;
+                }
+                else
+                {
+                    /* If there is an illegal char, then scan again for a new start.
+                     */
 
-		    device->state = GNSS_STATE_START;
-		}
-		break;
+                    device->state = GNSS_STATE_START;
+                }
+                break;
 
-	    case GNSS_STATE_NMEA_END_LF:
-		if (c == '\n')
-		{
-		    if (device->init != GNSS_INIT_DONE)
-		    {
-			if (device->init == GNSS_INIT_UBX_BAUD_RATE)
-			{
-			    ubx_configure(device, GNSS_RESPONSE_NMEA_SENTENCE, ~0l);
-			}
-		    }
+            case GNSS_STATE_NMEA_END_LF:
+                if (c == '\n')
+                {
+                    if (device->init != GNSS_INIT_DONE)
+                    {
+                        if (device->init == GNSS_INIT_UBX_BAUD_RATE)
+                        {
+                            ubx_configure(device, GNSS_RESPONSE_NMEA_SENTENCE, ~0l);
+                        }
+                    }
 
-		    nmea_end_sentence(device);
-		}
-		 
-		device->state = GNSS_STATE_START;
-		break;
+                    nmea_end_sentence(device);
+                }
+                 
+                device->state = GNSS_STATE_START;
+                break;
 
-	    case GNSS_STATE_UBX_SYNC_2:
-		if (c != 0x62)
-		{
-		    device->state = GNSS_STATE_START;
-		}		
-		else
-		{
-		    device->state = GNSS_STATE_UBX_MESSAGE_1;
-		}
-		break;
-		
-	    case GNSS_STATE_UBX_MESSAGE_1:
-		device->ubx.ck_a = c;
-		device->ubx.ck_b = c;
-		device->ubx.message = (c << 8);
-		device->state = GNSS_STATE_UBX_MESSAGE_2;
-		break;
-		
-	    case GNSS_STATE_UBX_MESSAGE_2:
-		device->ubx.ck_a += c;
-		device->ubx.ck_b += device->ubx.ck_a;
-		device->ubx.message |= c;
-		device->state = GNSS_STATE_UBX_LENGTH_1;
-		break;
+            case GNSS_STATE_UBX_SYNC_2:
+                if (c != 0x62)
+                {
+                    device->state = GNSS_STATE_START;
+                }               
+                else
+                {
+                    device->state = GNSS_STATE_UBX_MESSAGE_1;
+                }
+                break;
+                
+            case GNSS_STATE_UBX_MESSAGE_1:
+                device->ubx.ck_a = c;
+                device->ubx.ck_b = c;
+                device->ubx.message = (c << 8);
+                device->state = GNSS_STATE_UBX_MESSAGE_2;
+                break;
+                
+            case GNSS_STATE_UBX_MESSAGE_2:
+                device->ubx.ck_a += c;
+                device->ubx.ck_b += device->ubx.ck_a;
+                device->ubx.message |= c;
+                device->state = GNSS_STATE_UBX_LENGTH_1;
+                break;
 
-	    case GNSS_STATE_UBX_LENGTH_1:
-		device->ubx.ck_a += c;
-		device->ubx.ck_b += device->ubx.ck_a;
-		device->ubx.length = c;
-		device->state = GNSS_STATE_UBX_LENGTH_2;
-		break;
-		
-	    case GNSS_STATE_UBX_LENGTH_2:
-		device->ubx.ck_a += c;
-		device->ubx.ck_b += device->ubx.ck_a;
-		device->rx_count = 0;
-		device->rx_offset = 0;
-		device->rx_chunk = ~0l;
-		device->ubx.length |= (c << 8);
+            case GNSS_STATE_UBX_LENGTH_1:
+                device->ubx.ck_a += c;
+                device->ubx.ck_b += device->ubx.ck_a;
+                device->ubx.length = c;
+                device->state = GNSS_STATE_UBX_LENGTH_2;
+                break;
+                
+            case GNSS_STATE_UBX_LENGTH_2:
+                device->ubx.ck_a += c;
+                device->ubx.ck_b += device->ubx.ck_a;
+                device->rx_count = 0;
+                device->rx_offset = 0;
+                device->rx_chunk = ~0l;
+                device->ubx.length |= (c << 8);
 
-		ubx_start_message(device, device->ubx.message, device->ubx.length);
+                ubx_start_message(device, device->ubx.message, device->ubx.length);
 
-		if (device->rx_count == device->ubx.length)
-		{
-		    device->state = GNSS_STATE_UBX_CK_A;
-		}
-		else
-		{
-		    device->state = GNSS_STATE_UBX_PAYLOAD;
-		}
-		break;
-	    
-	    case GNSS_STATE_UBX_PAYLOAD:
-		device->ubx.ck_a += c;
-		device->ubx.ck_b += device->ubx.ck_a;
+                if (device->rx_count == device->ubx.length)
+                {
+                    device->state = GNSS_STATE_UBX_CK_A;
+                }
+                else
+                {
+                    device->state = GNSS_STATE_UBX_PAYLOAD;
+                }
+                break;
+            
+            case GNSS_STATE_UBX_PAYLOAD:
+                device->ubx.ck_a += c;
+                device->ubx.ck_b += device->ubx.ck_a;
 
-		if ((device->rx_count - device->rx_offset) < GNSS_RX_DATA_SIZE)
-		{
-		    device->rx_data[device->rx_count - device->rx_offset] = c;
-		}
-		
-		device->rx_count++;
-		
-		if (device->rx_count == device->rx_chunk)
-		{
-		    ubx_parse_message(device, device->ubx.message, &device->rx_data[0], device->rx_count);
-		}
+                if ((device->rx_count - device->rx_offset) < GNSS_RX_DATA_SIZE)
+                {
+                    device->rx_data[device->rx_count - device->rx_offset] = c;
+                }
+                
+                device->rx_count++;
+                
+                if (device->rx_count == device->rx_chunk)
+                {
+                    ubx_parse_message(device, device->ubx.message, &device->rx_data[0], device->rx_count);
+                }
 
-		if (device->rx_count == device->ubx.length)
-		{
-		    device->state = GNSS_STATE_UBX_CK_A;
-		}
-		break;
+                if (device->rx_count == device->ubx.length)
+                {
+                    device->state = GNSS_STATE_UBX_CK_A;
+                }
+                break;
 
-	    case GNSS_STATE_UBX_CK_A:
-		device->ubx.ck_a ^= c;
-		device->state = GNSS_STATE_UBX_CK_B;
-		break;
-		
-	    case GNSS_STATE_UBX_CK_B:
-		device->ubx.ck_b ^= c;
+            case GNSS_STATE_UBX_CK_A:
+                device->ubx.ck_a ^= c;
+                device->state = GNSS_STATE_UBX_CK_B;
+                break;
+                
+            case GNSS_STATE_UBX_CK_B:
+                device->ubx.ck_b ^= c;
 
-		if ((device->ubx.ck_a == 0x00) &&  (device->ubx.ck_b == 0x00))
-		{
-		    if (device->init != GNSS_INIT_DONE)
-		    {
-			if (device->init == GNSS_INIT_UBX_BAUD_RATE)
-			{
-			    ubx_configure(device, GNSS_RESPONSE_UBX_MESSAGE, ~0l);
-			}
-		    }
+                if ((device->ubx.ck_a == 0x00) &&  (device->ubx.ck_b == 0x00))
+                {
+                    if (device->init != GNSS_INIT_DONE)
+                    {
+                        if (device->init == GNSS_INIT_UBX_BAUD_RATE)
+                        {
+                            ubx_configure(device, GNSS_RESPONSE_UBX_MESSAGE, ~0l);
+                        }
+                    }
 
-		    if ((device->rx_count - device->rx_offset) <= GNSS_RX_DATA_SIZE)
-		    {
-			ubx_end_message(device, device->ubx.message, &device->rx_data[0], device->rx_count);
-		    }
-		}
+                    if ((device->rx_count - device->rx_offset) <= GNSS_RX_DATA_SIZE)
+                    {
+                        ubx_end_message(device, device->ubx.message, &device->rx_data[0], device->rx_count);
+                    }
+                }
 
-		device->state = GNSS_STATE_START;
-		break;
+                device->state = GNSS_STATE_START;
+                break;
 
-	    default:
-		break;
-	    }
-	}
+            default:
+                break;
+            }
+        }
     }
 }
 
@@ -3388,46 +3388,46 @@ void gnss_initialize(unsigned int mode, unsigned int rate, unsigned int speed, g
 
     if (mode == GNSS_MODE_UBLOX)
     {
-	device->init = GNSS_INIT_UBX_BAUD_RATE;
+        device->init = GNSS_INIT_UBX_BAUD_RATE;
 
-	device->table = ubx_init_table;
+        device->table = ubx_init_table;
 
-	if (speed >= 115200)
-	{
-	    uart_data = "$PUBX,41,1,0007,0003,115200,0*18\r\n";
-	}
-	else if (speed >= 57600)
-	{
-	    uart_data = "$PUBX,41,1,0007,0003,57600,0*2B\r\n";
-	}
-	else if (speed >= 38400)
-	{
-	    uart_data = "$PUBX,41,1,0007,0003,38400,0*20\r\n";
-	}
-	else if (speed >= 19200)
-	{
-	    uart_data = "$PUBX,41,1,0007,0003,19200,0*25\r\n";
-	}
-	else
-	{
-	    uart_data = "$PUBX,41,1,0007,0003,9600,0*10\r\n";
-	}
-	
-	uart_count = strlen(uart_data);
+        if (speed >= 115200)
+        {
+            uart_data = "$PUBX,41,1,0007,0003,115200,0*18\r\n";
+        }
+        else if (speed >= 57600)
+        {
+            uart_data = "$PUBX,41,1,0007,0003,57600,0*2B\r\n";
+        }
+        else if (speed >= 38400)
+        {
+            uart_data = "$PUBX,41,1,0007,0003,38400,0*20\r\n";
+        }
+        else if (speed >= 19200)
+        {
+            uart_data = "$PUBX,41,1,0007,0003,19200,0*25\r\n";
+        }
+        else
+        {
+            uart_data = "$PUBX,41,1,0007,0003,9600,0*10\r\n";
+        }
+        
+        uart_count = strlen(uart_data);
 
-	stm32l0_rtc_timer_create(&device->ubx.sleep, (stm32l0_rtc_timer_callback_t)&ubx_sleep, device);
-	stm32l0_rtc_timer_create(&device->ubx.timeout, (stm32l0_rtc_timer_callback_t)&ubx_timeout, device);
+        stm32l0_rtc_timer_create(&device->ubx.sleep, (stm32l0_rtc_timer_callback_t)&ubx_sleep, device);
+        stm32l0_rtc_timer_create(&device->ubx.timeout, (stm32l0_rtc_timer_callback_t)&ubx_timeout, device);
     }
     else
     {
-	device->init = GNSS_INIT_DONE;
-	device->table = NULL;
-	device->expected = NMEA_SENTENCE_MASK_GPGGA | NMEA_SENTENCE_MASK_GPGSA | NMEA_SENTENCE_MASK_GPGSV | NMEA_SENTENCE_MASK_GPRMC;
+        device->init = GNSS_INIT_DONE;
+        device->table = NULL;
+        device->expected = NMEA_SENTENCE_MASK_GPGGA | NMEA_SENTENCE_MASK_GPGSA | NMEA_SENTENCE_MASK_GPGSV | NMEA_SENTENCE_MASK_GPRMC;
     }
 
     if (uart_data)
     {
-	(device->send_routine)(device->context, (const uint8_t*)uart_data, uart_count, NULL);
+        (device->send_routine)(device->context, (const uint8_t*)uart_data, uart_count, NULL);
     }
 }
 
@@ -3437,15 +3437,15 @@ bool gnss_set_antenna(unsigned int antenna)
 
     if (gnss_busy())
     {
-	return false;
+        return false;
     }
 
     switch (device->mode) {
     case GNSS_MODE_NMEA:
-	break;
+        break;
     case GNSS_MODE_UBLOX:
-	ubx_table(device, ((antenna == GNSS_ANTENNA_EXTERNAL) ? ubx_ant_external_table : ubx_ant_internal_table));
-	break;
+        ubx_table(device, ((antenna == GNSS_ANTENNA_EXTERNAL) ? ubx_ant_external_table : ubx_ant_internal_table));
+        break;
     }
 
     return true;
@@ -3459,72 +3459,72 @@ bool gnss_set_pps(unsigned int width)
 
     if (gnss_busy())
     {
-	return false;
+        return false;
     }
 
     switch (device->mode) {
     case GNSS_MODE_NMEA:
-	break;
+        break;
     case GNSS_MODE_UBLOX:
-	if (width > 999) {
-	    width = 0;
-	} else {
-	    width = 1000000 - width * 1000;
-	}
+        if (width > 999) {
+            width = 0;
+        } else {
+            width = 1000000 - width * 1000;
+        }
 
-	data = &device->tx_data[0];
-	table = &device->tx_table[0];
+        data = &device->tx_data[0];
+        table = &device->tx_table[0];
 
-	memset(&data[0], 0, sizeof(GNSS_TX_DATA_SIZE));
-	
-	data[ 0] = 0xb5;
-	data[ 1] = 0x62;
-	data[ 2] = 0x06;
-	data[ 3] = 0x31;
-	data[ 4] = 0x20;
-	data[ 5] = 0x00;
-	data[ 6] = 0x00;
-	data[ 7] = 0x00;
-	data[ 8] = 0x00;
-	data[ 9] = 0x00;
-	data[10] = 0x32;
-	data[11] = 0x00;
-	data[12] = 0x00;
-	data[13] = 0x00;
-	data[14] = (uint8_t)(1000000 >> 0);
-	data[15] = (uint8_t)(1000000 >> 8);
-	data[16] = (uint8_t)(1000000 >> 16);
-	data[17] = (uint8_t)(1000000 >> 24);
-	data[18] = (uint8_t)(1000000 >> 0);
-	data[19] = (uint8_t)(1000000 >> 8);
-	data[20] = (uint8_t)(1000000 >> 16);
-	data[21] = (uint8_t)(1000000 >> 24);
-	data[22] = (uint8_t)(1000000 >> 0);
-	data[23] = (uint8_t)(1000000 >> 8);
-	data[24] = (uint8_t)(1000000 >> 16);
-	data[25] = (uint8_t)(1000000 >> 24);
-	data[26] = (uint8_t)(width >> 0);
-	data[27] = (uint8_t)(width >> 8);
-	data[28] = (uint8_t)(width >> 16);
-	data[29] = (uint8_t)(width >> 24);
-	data[30] = 0x00;
-	data[31] = 0x00;
-	data[32] = 0x00;
-	data[33] = 0x00;
-	data[34] = width ? 0x37 : 0x00;
-	data[35] = 0x00;
-	data[36] = 0x00;
-	data[37] = 0x00;
-	
-	ubx_checksum(device, data);
+        memset(&data[0], 0, sizeof(GNSS_TX_DATA_SIZE));
+        
+        data[ 0] = 0xb5;
+        data[ 1] = 0x62;
+        data[ 2] = 0x06;
+        data[ 3] = 0x31;
+        data[ 4] = 0x20;
+        data[ 5] = 0x00;
+        data[ 6] = 0x00;
+        data[ 7] = 0x00;
+        data[ 8] = 0x00;
+        data[ 9] = 0x00;
+        data[10] = 0x32;
+        data[11] = 0x00;
+        data[12] = 0x00;
+        data[13] = 0x00;
+        data[14] = (uint8_t)(1000000 >> 0);
+        data[15] = (uint8_t)(1000000 >> 8);
+        data[16] = (uint8_t)(1000000 >> 16);
+        data[17] = (uint8_t)(1000000 >> 24);
+        data[18] = (uint8_t)(1000000 >> 0);
+        data[19] = (uint8_t)(1000000 >> 8);
+        data[20] = (uint8_t)(1000000 >> 16);
+        data[21] = (uint8_t)(1000000 >> 24);
+        data[22] = (uint8_t)(1000000 >> 0);
+        data[23] = (uint8_t)(1000000 >> 8);
+        data[24] = (uint8_t)(1000000 >> 16);
+        data[25] = (uint8_t)(1000000 >> 24);
+        data[26] = (uint8_t)(width >> 0);
+        data[27] = (uint8_t)(width >> 8);
+        data[28] = (uint8_t)(width >> 16);
+        data[29] = (uint8_t)(width >> 24);
+        data[30] = 0x00;
+        data[31] = 0x00;
+        data[32] = 0x00;
+        data[33] = 0x00;
+        data[34] = width ? 0x37 : 0x00;
+        data[35] = 0x00;
+        data[36] = 0x00;
+        data[37] = 0x00;
+        
+        ubx_checksum(device, data);
 
-	table[0] = ubx_cfg_rxm_continuous;
-	table[1] = ubx_cfg_pm2,
-	table[2] = &data[0];
-	table[3] = ubx_cfg_save;
-	table[4] = NULL;
+        table[0] = ubx_cfg_rxm_continuous;
+        table[1] = ubx_cfg_pm2,
+        table[2] = &data[0];
+        table[3] = ubx_cfg_save;
+        table[4] = NULL;
 
-	ubx_table(device, table);
+        ubx_table(device, table);
     }
 
     return true;
@@ -3536,23 +3536,23 @@ bool gnss_set_constellation(unsigned int mask)
 
     if (gnss_busy())
     {
-	return false;
+        return false;
     }
 
     switch (device->mode) {
     case GNSS_MODE_NMEA:
-	break;
+        break;
     case GNSS_MODE_UBLOX:
-	if (device->ubx.gnss.simultaneous) {
-	    mask = (mask & device->ubx.gnss.supported) | GNSS_CONSTELLATION_GPS;
+        if (device->ubx.gnss.simultaneous) {
+            mask = (mask & device->ubx.gnss.supported) | GNSS_CONSTELLATION_GPS;
 
-	    if (device->ubx.gnss.enabled != mask) {
-		device->ubx.gnss.enabled = mask;
+            if (device->ubx.gnss.enabled != mask) {
+                device->ubx.gnss.enabled = mask;
 
-		ubx_table(device, ((mask & GNSS_CONSTELLATION_GLONASS) ? ubx_constellation_gps_glonass_table : ubx_constellation_gps_table));
-	    }
-	}
-	break;
+                ubx_table(device, ((mask & GNSS_CONSTELLATION_GLONASS) ? ubx_constellation_gps_glonass_table : ubx_constellation_gps_table));
+            }
+        }
+        break;
     }
 
     return true;
@@ -3564,15 +3564,15 @@ bool gnss_set_sbas(bool enable)
 
     if (gnss_busy())
     {
-	return false;
+        return false;
     }
 
     switch (device->mode) {
     case GNSS_MODE_NMEA:
-	break;
+        break;
     case GNSS_MODE_UBLOX:
-	ubx_table(device, (enable ? ubx_sbas_enable_table :  ubx_sbas_disable_table));
-	break;
+        ubx_table(device, (enable ? ubx_sbas_enable_table :  ubx_sbas_disable_table));
+        break;
     }
 
     return true;
@@ -3584,15 +3584,15 @@ bool gnss_set_qzss(bool enable)
 
     if (gnss_busy())
     {
-	return false;
+        return false;
     }
 
     switch (device->mode) {
     case GNSS_MODE_NMEA:
-	break;
+        break;
     case GNSS_MODE_UBLOX:
-	ubx_table(device, (enable ? ubx_qzss_enable_table :  ubx_qzss_disable_table));
-	break;
+        ubx_table(device, (enable ? ubx_qzss_enable_table :  ubx_qzss_disable_table));
+        break;
     }
 
     return true;
@@ -3604,17 +3604,17 @@ bool gnss_set_autonomous(bool enable)
 
     if (gnss_busy())
     {
-	return false;
+        return false;
     }
 
     switch (device->mode) {
     case GNSS_MODE_NMEA:
-	break;
+        break;
     case GNSS_MODE_UBLOX:
-	if (device->ubx.generation >= 4) {
-	    ubx_table(device, (enable ? ubx_aop_enable_table :  ubx_aop_disable_table));
-	}
-	break;
+        if (device->ubx.generation >= 4) {
+            ubx_table(device, (enable ? ubx_aop_enable_table :  ubx_aop_disable_table));
+        }
+        break;
     }
 
     return true;
@@ -3627,130 +3627,149 @@ bool gnss_set_platform(unsigned int platform)
     uint8_t *data;
 
     static const uint8_t ubx_platform_table[GNSS_PLATFORM_COUNT] = {
-	0x00, /* PORTABLE   */
-	0x02, /* STATIONARY */
-	0x03, /* PEDESTRIAN */
-	0x04, /* CAR        */
-	0x05, /* SEA        */
-	0x06, /* BALLON     */
-	0x07, /* AVIATION   */
+        0x00, /* PORTABLE   */
+        0x02, /* STATIONARY */
+        0x03, /* PEDESTRIAN */
+        0x04, /* CAR        */
+        0x05, /* SEA        */
+        0x06, /* BALLON     */
+        0x07, /* AVIATION   */
     };
 
     if (gnss_busy())
     {
-	return false;
+        return false;
     }
 
     if (platform >= GNSS_PLATFORM_COUNT)
     {
-	return false;
+        return false;
     }
 
     switch (device->mode) {
     case GNSS_MODE_NMEA:
-	break;
+        break;
     case GNSS_MODE_UBLOX:
-	data = &device->tx_data[0];
-	table = &device->tx_table[0];
+        data = &device->tx_data[0];
+        table = &device->tx_table[0];
 
-	memset(&data[0], 0, sizeof(GNSS_TX_DATA_SIZE));
-	
-	data[ 0] = 0xb5;
-	data[ 1] = 0x62;
-	data[ 2] = 0x06;
-	data[ 3] = 0x24;
-	data[ 4] = 0x24;
-	data[ 5] = 0x00;
-	data[ 6] = 0x01;
-	data[ 7] = 0x00;
-	data[ 8] = ubx_platform_table[platform];
-	
-	ubx_checksum(device, data);
+        memset(&data[0], 0, sizeof(GNSS_TX_DATA_SIZE));
+        
+        data[ 0] = 0xb5;
+        data[ 1] = 0x62;
+        data[ 2] = 0x06;
+        data[ 3] = 0x24;
+        data[ 4] = 0x24;
+        data[ 5] = 0x00;
+        data[ 6] = 0x01;
+        data[ 7] = 0x00;
+        data[ 8] = ubx_platform_table[platform];
+        
+        ubx_checksum(device, data);
 
-	table[0] = ubx_cfg_rxm_continuous;
-	table[1] = ubx_cfg_pm2,
-	table[2] = &data[0];
-	table[3] = ubx_cfg_save;
-	table[4] = NULL;
+        table[0] = ubx_cfg_rxm_continuous;
+        table[1] = ubx_cfg_pm2,
+        table[2] = &data[0];
+        table[3] = ubx_cfg_save;
+        table[4] = NULL;
 
-	ubx_table(device, table);
+        ubx_table(device, table);
     }
 
     return true;
 }
 
-bool gnss_set_periodic(unsigned int onTime, unsigned int period, bool force)
+bool gnss_set_periodic(unsigned int acqTime, unsigned int onTime, unsigned int period)
 {
     gnss_device_t *device = &gnss_device;
     const uint8_t **table;
     uint8_t *data;
-    unsigned int updatePeriod, searchPeriod;
+    unsigned int minAcqTime, updatePeriod, searchPeriod, gridOffset;
 
     if (gnss_busy())
     {
-	return false;
+        return false;
     }
 
     switch (device->mode) {
     case GNSS_MODE_NMEA:
-	break;
+        break;
     case GNSS_MODE_UBLOX:
-	if (onTime == 0)
-	{
-	    updatePeriod = 1000;
-	    searchPeriod = 10000;
-	}
-	else
-	{
-	    updatePeriod = period * 1000;
-	    searchPeriod = period * 1000;
-	}
+        if (onTime == 0)
+        {
+            acqTime      = 0;
+            minAcqTime   = 0;
+            updatePeriod = 1000;
+            searchPeriod = 10000;
+            gridOffset   = 0;
+        }
+        else
+        {
+            if (acqTime > 255)
+            {
+                acqTime = 255;
+            }
 
-	data = &device->tx_data[0];
-	table = &device->tx_table[0];
+            minAcqTime   = 0;
+            updatePeriod = period * 1000;
+            searchPeriod = period * 1000;
+            gridOffset   = 0;
+        }
 
-	memset(&data[0], 0, sizeof(GNSS_TX_DATA_SIZE));
-	
-	data[ 0] = 0xb5;
-	data[ 1] = 0x62;
-	data[ 2] = 0x06;
-	data[ 3] = 0x3b;
-	data[ 4] = 0x2c;
-	data[ 5] = 0x00;
-	data[ 6] = 0x01;
-	data[10] = 0x00;
-	data[11] = 0x01;
-	data[12] = ((onTime && (updatePeriod >= 10000)) ? (force ? 0x01 : 0x00) : 0x02);
-	data[13] = 0x00;
-	data[14] = updatePeriod >>  0;
-	data[15] = updatePeriod >>  8;
-	data[16] = updatePeriod >> 16;
-	data[17] = updatePeriod >> 24;
-	data[18] = searchPeriod >>  0;
-	data[19] = searchPeriod >>  8;
-	data[20] = searchPeriod >> 16;
-	data[21] = searchPeriod >> 24;
-	data[26] = onTime >> 0;
-	data[27] = onTime >> 8;
-	
-	ubx_checksum(device, data);
+        data = &device->tx_data[0];
+        table = &device->tx_table[0];
 
-	table[0] = ubx_cfg_rxm_continuous;
-	table[1] = &data[0];
+        memset(&data[0], 0, sizeof(GNSS_TX_DATA_SIZE));
+        
+        data[ 0] = 0xb5;
+        data[ 1] = 0x62;
+        data[ 2] = 0x06;
+        data[ 3] = 0x3b;
+        data[ 4] = 0x2c;
+        data[ 5] = 0x00;
+        data[ 6] = 0x01;
+        data[ 7] = 0x00;
+        data[ 8] = acqTime;
+        data[ 9] = 0x00;
+        data[10] = 0x00;
+        data[11] = 0x01;
+        data[12] = ((onTime && (updatePeriod > 10000)) ? 0x00 : 0x02);
+        data[13] = 0x00;
+        data[14] = updatePeriod >> 0;
+        data[15] = updatePeriod >> 8;
+        data[16] = updatePeriod >> 16;
+        data[17] = updatePeriod >> 24;
+        data[18] = searchPeriod >> 0;
+        data[19] = searchPeriod >> 8;
+        data[20] = searchPeriod >> 16;
+        data[21] = searchPeriod >> 24;
+        data[22] = gridOffset >> 0;
+        data[23] = gridOffset >> 8;
+        data[24] = gridOffset >> 16;
+        data[25] = gridOffset >> 24;
+        data[26] = onTime >> 0;
+        data[27] = onTime >> 8;
+        data[28] = minAcqTime >> 0;
+        data[29] = minAcqTime >> 8;
+        
+        ubx_checksum(device, data);
 
-	if (onTime)
-	{
-	    table[2] = ubx_cfg_rxm_powersave;
-	    table[3] = ubx_cfg_save;
-	    table[4] = NULL;
-	}
-	else
-	{
-	    table[2] = ubx_cfg_save;
-	    table[3] = NULL;
-	}
+        table[0] = ubx_cfg_rxm_continuous;
+        table[1] = &data[0];
 
-	ubx_table(device, table);
+        if (onTime)
+        {
+            table[2] = ubx_cfg_rxm_powersave;
+            table[3] = ubx_cfg_save;
+            table[4] = NULL;
+        }
+        else
+        {
+            table[2] = ubx_cfg_save;
+            table[3] = NULL;
+        }
+
+        ubx_table(device, table);
     }
 
     return true;
@@ -3762,15 +3781,15 @@ bool gnss_sleep(void)
 
     if (gnss_busy())
     {
-	return false;
+        return false;
     }
 
     switch (device->mode) {
     case GNSS_MODE_NMEA:
-	break;
+        break;
     case GNSS_MODE_UBLOX:
-	ubx_send(device, (device->callbacks->disable_callback ? ubx_gnss_stop : ubx_rxm_pmreq));
-	break;
+        ubx_send(device, (device->callbacks->disable_callback ? ubx_gnss_stop : ubx_rxm_pmreq));
+        break;
     }
 
     return true;
@@ -3782,25 +3801,25 @@ bool gnss_wakeup(void)
 
     if (gnss_busy())
     {
-	return false;
+        return false;
     }
 
     switch (device->mode) {
     case GNSS_MODE_NMEA:
-	break;
+        break;
     case GNSS_MODE_UBLOX:
         if (device->callbacks->enable_callback)
-	{
-	    (*device->callbacks->enable_callback)(device->context);
+        {
+            (*device->callbacks->enable_callback)(device->context);
 
-	    device->busy = 1;
-	    device->wakeup = 1;
-	}
-	else
-	{
-	    ubx_table(device, ubx_gnss_wakeup_table);
-	}
-	break;
+            device->busy = 1;
+            device->wakeup = 1;
+        }
+        else
+        {
+            ubx_table(device, ubx_gnss_wakeup_table);
+        }
+        break;
     }
 
     return true;
@@ -3812,12 +3831,12 @@ bool gnss_busy(void)
 
     if (device->table != NULL)
     {
-	return true;
+        return true;
     }
 
     if (device->busy)
     {
-	return true;
+        return true;
     }
 
     return false;

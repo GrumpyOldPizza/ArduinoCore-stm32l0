@@ -141,7 +141,7 @@ typedef struct _gnss_location_t {
 typedef struct _gnss_satellites_t {
     uint32_t       count;
     struct {
-	uint8_t    svid;
+        uint8_t    svid;
         uint8_t    state;
         uint8_t    snr;
         uint8_t    elevation;
@@ -172,7 +172,7 @@ extern bool gnss_set_sbas(bool enable);
 extern bool gnss_set_qzss(bool enable);
 extern bool gnss_set_autonomous(bool enable);
 extern bool gnss_set_platform(unsigned int platform);
-extern bool gnss_set_periodic(unsigned int onTime, unsigned int period, bool force);
+extern bool gnss_set_periodic(unsigned int acqTime, unsigned int onTime, unsigned int period);
 extern bool gnss_sleep(void);
 extern bool gnss_wakeup(void);
 extern bool gnss_busy(void);
