@@ -332,19 +332,19 @@ static inline unsigned int stm32l0_gpio_pin_read(unsigned int pin)
 {
     if (__builtin_constant_p(pin))
     {
-	GPIO_TypeDef *GPIO;
-	uint32_t group, index;
-	
-	group = (pin & STM32L0_GPIO_PIN_GROUP_MASK) >> STM32L0_GPIO_PIN_GROUP_SHIFT;
-	index = (pin & STM32L0_GPIO_PIN_INDEX_MASK) >> STM32L0_GPIO_PIN_INDEX_SHIFT;
-	
-	GPIO = (GPIO_TypeDef *)(GPIOA_BASE + (GPIOB_BASE - GPIOA_BASE) * group);
-	
-	return ((GPIO->IDR >> index) & 1);
+        GPIO_TypeDef *GPIO;
+        uint32_t group, index;
+        
+        group = (pin & STM32L0_GPIO_PIN_GROUP_MASK) >> STM32L0_GPIO_PIN_GROUP_SHIFT;
+        index = (pin & STM32L0_GPIO_PIN_INDEX_MASK) >> STM32L0_GPIO_PIN_INDEX_SHIFT;
+        
+        GPIO = (GPIO_TypeDef *)(GPIOA_BASE + (GPIOB_BASE - GPIOA_BASE) * group);
+        
+        return ((GPIO->IDR >> index) & 1);
     }
     else
     {
-	return __stm32l0_gpio_pin_read(pin);
+        return __stm32l0_gpio_pin_read(pin);
     }
 }
 
@@ -352,23 +352,23 @@ static inline void stm32l0_gpio_pin_write(unsigned int pin, unsigned int data)
 {
     if (__builtin_constant_p(pin))
     {
-	GPIO_TypeDef *GPIO;
-	uint32_t group, index;
-	
-	group = (pin & STM32L0_GPIO_PIN_GROUP_MASK) >> STM32L0_GPIO_PIN_GROUP_SHIFT;
-	index = (pin & STM32L0_GPIO_PIN_INDEX_MASK) >> STM32L0_GPIO_PIN_INDEX_SHIFT;
-	
-	GPIO = (GPIO_TypeDef *)(GPIOA_BASE + (GPIOB_BASE - GPIOA_BASE) * group);
+        GPIO_TypeDef *GPIO;
+        uint32_t group, index;
+        
+        group = (pin & STM32L0_GPIO_PIN_GROUP_MASK) >> STM32L0_GPIO_PIN_GROUP_SHIFT;
+        index = (pin & STM32L0_GPIO_PIN_INDEX_MASK) >> STM32L0_GPIO_PIN_INDEX_SHIFT;
+        
+        GPIO = (GPIO_TypeDef *)(GPIOA_BASE + (GPIOB_BASE - GPIOA_BASE) * group);
 
-	if (data) {
-	    GPIO->BSRR = (1ul << index);
-	} else {
-	    GPIO->BRR = (1ul << index);
-	}
+        if (data) {
+            GPIO->BSRR = (1ul << index);
+        } else {
+            GPIO->BRR = (1ul << index);
+        }
     }
     else
     {
-	__stm32l0_gpio_pin_write(pin, data);
+        __stm32l0_gpio_pin_write(pin, data);
     }
 }
 

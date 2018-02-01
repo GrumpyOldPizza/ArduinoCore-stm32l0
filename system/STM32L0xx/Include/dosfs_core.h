@@ -75,8 +75,8 @@ typedef uint16_t dosfs_unicode_t;
 #define DOSFS_CT_ASSERT(_c)                  ((void)sizeof(char[1-(2*!(_c))]))
 
 
-#define DOSFS_CLSNO_NONE	             0x00000000u
-#define DOSFS_CLSNO_FREE	             0x00000000u
+#define DOSFS_CLSNO_NONE                     0x00000000u
+#define DOSFS_CLSNO_FREE                     0x00000000u
 #define DOSFS_CLSNO_FREE_RESERVED            0x00000001u
 #define DOSFS_CLSNO_LAST                     0x0ffffff8u
 #define DOSFS_CLSNO_END_OF_CHAIN             0x0fffffffu
@@ -161,100 +161,100 @@ struct _dosfs_ldir_t {
 union _dosfs_boot_t {
     struct __attribute__((packed)) {
         uint8_t             bs_reserved_1[510];
-	uint16_t            bs_trail_sig;            /* 0xaa55 */
+        uint16_t            bs_trail_sig;            /* 0xaa55 */
     } bs;
 
     struct __attribute__((packed)) {
         uint8_t             bs_reserved_1[446];
-	struct __attribute__((packed)) {
-	    uint8_t             mbr_boot_ind;
-	    uint8_t             mbr_start_chs[3];
-	    uint8_t             mbr_sys_id;
-	    uint8_t             mbr_end_chs[3];
-	    uint32_t            mbr_rel_sec;
-	    uint32_t            mbr_tot_sec;
-	}                   mbr_par_table[4];
-	uint16_t            bs_trail_sig;            /* 0xaa55 */
+        struct __attribute__((packed)) {
+            uint8_t             mbr_boot_ind;
+            uint8_t             mbr_start_chs[3];
+            uint8_t             mbr_sys_id;
+            uint8_t             mbr_end_chs[3];
+            uint32_t            mbr_rel_sec;
+            uint32_t            mbr_tot_sec;
+        }                   mbr_par_table[4];
+        uint16_t            bs_trail_sig;            /* 0xaa55 */
     } mbr;
 
     struct __attribute__((packed)) {
-	uint8_t             bs_jmp_boot[3];
-	uint8_t             bs_oem_name[8];
-	uint16_t            bpb_byts_per_sec;
-	uint8_t             bpb_sec_per_clus;
-	uint16_t            bpb_rsvd_sec_cnt;
-	uint8_t             bpb_num_fats;
-	uint16_t            bpb_root_ent_cnt;
-	uint16_t            bpb_tot_sec_16;
-	uint8_t             bpb_media;
-	uint16_t            bpb_fat_sz_16;
-	uint16_t            bpb_sec_per_trk;
-	uint16_t            bpb_num_heads;
-	uint32_t            bpb_hidd_sec_16;
+        uint8_t             bs_jmp_boot[3];
+        uint8_t             bs_oem_name[8];
+        uint16_t            bpb_byts_per_sec;
+        uint8_t             bpb_sec_per_clus;
+        uint16_t            bpb_rsvd_sec_cnt;
+        uint8_t             bpb_num_fats;
+        uint16_t            bpb_root_ent_cnt;
+        uint16_t            bpb_tot_sec_16;
+        uint8_t             bpb_media;
+        uint16_t            bpb_fat_sz_16;
+        uint16_t            bpb_sec_per_trk;
+        uint16_t            bpb_num_heads;
+        uint32_t            bpb_hidd_sec_16;
         uint8_t             bs_reserved_1[478];
-	uint16_t            bs_trail_sig;            /* 0xaa55 */
+        uint16_t            bs_trail_sig;            /* 0xaa55 */
     } bpb;
 
     struct __attribute__((packed)) {
-	uint8_t             bs_jmp_boot[3];
-	uint8_t             bs_oem_name[8];
-	uint16_t            bpb_byts_per_sec;
-	uint8_t             bpb_sec_per_clus;
-	uint16_t            bpb_rsvd_sec_cnt;
-	uint8_t             bpb_num_fats;
-	uint16_t            bpb_root_ent_cnt;
-	uint16_t            bpb_tot_sec_16;
-	uint8_t             bpb_media;
-	uint16_t            bpb_fat_sz_16;
-	uint16_t            bpb_sec_per_trk;
-	uint16_t            bpb_num_heads;
-	uint32_t            bpb_hidd_sec_32;
-	uint32_t            bpb_tot_sec_32;
-	uint8_t             bs_drv_num;
-	uint8_t             bs_nt_reserved;
-	uint8_t             bs_boot_sig;
-	uint32_t            bs_vol_id;
-	uint8_t             bs_vol_lab[11];
-	uint8_t             bs_fil_sys_type[8];
+        uint8_t             bs_jmp_boot[3];
+        uint8_t             bs_oem_name[8];
+        uint16_t            bpb_byts_per_sec;
+        uint8_t             bpb_sec_per_clus;
+        uint16_t            bpb_rsvd_sec_cnt;
+        uint8_t             bpb_num_fats;
+        uint16_t            bpb_root_ent_cnt;
+        uint16_t            bpb_tot_sec_16;
+        uint8_t             bpb_media;
+        uint16_t            bpb_fat_sz_16;
+        uint16_t            bpb_sec_per_trk;
+        uint16_t            bpb_num_heads;
+        uint32_t            bpb_hidd_sec_32;
+        uint32_t            bpb_tot_sec_32;
+        uint8_t             bs_drv_num;
+        uint8_t             bs_nt_reserved;
+        uint8_t             bs_boot_sig;
+        uint32_t            bs_vol_id;
+        uint8_t             bs_vol_lab[11];
+        uint8_t             bs_fil_sys_type[8];
         uint8_t             bs_reserved_1[448];
-	uint16_t            bs_trail_sig;            /* 0xaa55 */
+        uint16_t            bs_trail_sig;            /* 0xaa55 */
     } bpb40;
 
     struct __attribute__((packed)) {
-	uint8_t             bs_jmp_boot[3];
-	uint8_t             bs_oem_name[8];
-	uint16_t            bpb_byts_per_sec;
-	uint8_t             bpb_sec_per_clus;
-	uint16_t            bpb_rsvd_sec_cnt;
-	uint8_t             bpb_num_fats;
-	uint16_t            bpb_root_ent_cnt;
-	uint16_t            bpb_tot_sec_16;
-	uint8_t             bpb_media;
-	uint16_t            bpb_fat_sz_16;
-	uint16_t            bpb_sec_per_trk;
-	uint16_t            bpb_num_heads;
-	uint32_t            bpb_hidd_sec_32;
-	uint32_t            bpb_tot_sec_32;
-	uint32_t            bpb_fat_sz_32;
-	uint16_t            bpb_ext_flags;
-	uint16_t            bpb_fs_ver;
-	uint32_t            bpb_root_clus;
-	uint16_t            bpb_fsinfo;
-	uint16_t            bpb_bkboot;
+        uint8_t             bs_jmp_boot[3];
+        uint8_t             bs_oem_name[8];
+        uint16_t            bpb_byts_per_sec;
+        uint8_t             bpb_sec_per_clus;
+        uint16_t            bpb_rsvd_sec_cnt;
+        uint8_t             bpb_num_fats;
+        uint16_t            bpb_root_ent_cnt;
+        uint16_t            bpb_tot_sec_16;
+        uint8_t             bpb_media;
+        uint16_t            bpb_fat_sz_16;
+        uint16_t            bpb_sec_per_trk;
+        uint16_t            bpb_num_heads;
+        uint32_t            bpb_hidd_sec_32;
+        uint32_t            bpb_tot_sec_32;
+        uint32_t            bpb_fat_sz_32;
+        uint16_t            bpb_ext_flags;
+        uint16_t            bpb_fs_ver;
+        uint32_t            bpb_root_clus;
+        uint16_t            bpb_fsinfo;
+        uint16_t            bpb_bkboot;
         uint8_t             bs_reserved_1[12];
-	uint8_t             bs_drv_num;
-	uint8_t             bs_nt_reserved;
-	uint8_t             bs_boot_sig;
-	uint32_t            bs_vol_id;
-	uint8_t             bs_vol_lab[11];
-	uint8_t             bs_fil_sys_type[8];
+        uint8_t             bs_drv_num;
+        uint8_t             bs_nt_reserved;
+        uint8_t             bs_boot_sig;
+        uint32_t            bs_vol_id;
+        uint8_t             bs_vol_lab[11];
+        uint8_t             bs_fil_sys_type[8];
         uint8_t             bs_reserved_2[420];
-	uint16_t            bs_trail_sig;            /* 0xaa55 */
+        uint16_t            bs_trail_sig;            /* 0xaa55 */
     } bpb71;
 
     struct __attribute__((packed)) {
-	uint8_t             bs_jmp_boot[3];
-	uint8_t             bs_oem_name[8];
+        uint8_t             bs_jmp_boot[3];
+        uint8_t             bs_oem_name[8];
         uint8_t             bs_reserved_1[79];
         uint8_t             log_map_flags;
         uint8_t             log_map_entries;
@@ -277,7 +277,7 @@ union _dosfs_boot_t {
         uint32_t            log_lfn_blkno;
         uint8_t             log_lfn_name[256];
         uint8_t             bs_reserved_2[22];
-	uint16_t            bs_trail_sig;            /* 0xaa55 */
+        uint16_t            bs_trail_sig;            /* 0xaa55 */
     } bpblog;
 
     uint32_t                __align__[128];
@@ -525,25 +525,25 @@ struct _dosfs_volume_t {
 
 #if (DOSFS_CONFIG_STATISTICS == 1)
     struct {
-	uint32_t                fat_cache_hit;
-	uint32_t                fat_cache_miss;
-	uint32_t                fat_cache_read;
-	uint32_t                fat_cache_write;
-	uint32_t                fat_cache_flush;
-	uint32_t                dir_cache_hit;
-	uint32_t                dir_cache_miss;
-	uint32_t                dir_cache_zero;
+        uint32_t                fat_cache_hit;
+        uint32_t                fat_cache_miss;
+        uint32_t                fat_cache_read;
+        uint32_t                fat_cache_write;
+        uint32_t                fat_cache_flush;
+        uint32_t                dir_cache_hit;
+        uint32_t                dir_cache_miss;
+        uint32_t                dir_cache_zero;
         uint32_t                dir_cache_read;
-	uint32_t                dir_cache_write;
-	uint32_t                data_cache_hit;
-	uint32_t                data_cache_miss;
-	uint32_t                data_cache_zero;
-	uint32_t                data_cache_read;
-	uint32_t                data_cache_write;
-	uint32_t                data_cache_flush;
-	uint32_t                data_cache_invalidate;
-	uint32_t                cluster_cache_hit;
-	uint32_t                cluster_cache_miss;
+        uint32_t                dir_cache_write;
+        uint32_t                data_cache_hit;
+        uint32_t                data_cache_miss;
+        uint32_t                data_cache_zero;
+        uint32_t                data_cache_read;
+        uint32_t                data_cache_write;
+        uint32_t                data_cache_flush;
+        uint32_t                data_cache_invalidate;
+        uint32_t                cluster_cache_hit;
+        uint32_t                cluster_cache_miss;
     }                       statistics;
 #endif /* (DOSFS_CONFIG_STATISTICS == 1) */
 };

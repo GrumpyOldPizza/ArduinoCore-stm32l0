@@ -99,12 +99,12 @@ typedef struct _stm32l0_sdspi_t {
         uint32_t                   sdcard_receive_timeout;
         uint32_t                   sdcard_receive_retry;
         uint32_t                   sdcard_receive_fail;
-	uint32_t                   sdcard_erase;
-	uint32_t                   sdcard_erase_timeout;
-	uint32_t                   sdcard_read_single;
-	uint32_t                   sdcard_read_multiple;
-	uint32_t                   sdcard_write_single;
-	uint32_t                   sdcard_write_multiple;
+        uint32_t                   sdcard_erase;
+        uint32_t                   sdcard_erase_timeout;
+        uint32_t                   sdcard_read_single;
+        uint32_t                   sdcard_read_multiple;
+        uint32_t                   sdcard_write_single;
+        uint32_t                   sdcard_write_multiple;
         uint32_t                   sdcard_read_stop;
         uint32_t                   sdcard_write_stop;
         uint32_t                   sdcard_write_sync;

@@ -46,10 +46,10 @@ static __attribute__((optimize("O3"), section(".ramfunc.stm32l0_flash_do_program
 {
     do
     {
-	*((volatile uint32_t*)address) = ((data[3] << 24) | (data[2] << 16) | (data[1] << 8) | data[0]);
+        *((volatile uint32_t*)address) = ((data[3] << 24) | (data[2] << 16) | (data[1] << 8) | data[0]);
 
-	address += 4;
-	data += 4;
+        address += 4;
+        data += 4;
     }
     while (data != data_e);
 
@@ -85,7 +85,7 @@ bool stm32l0_flash_unlock(void)
 
     if (!(FLASH->PECR & FLASH_PECR_PRGLOCK))
     {
-	return true;
+        return true;
     }
 
     primask = __get_PRIMASK();
@@ -97,8 +97,8 @@ bool stm32l0_flash_unlock(void)
 
     if (!(FLASH->PECR & FLASH_PECR_PELOCK))
     {
-	FLASH->PRGKEYR = 0x8c9daebf;
-	FLASH->PRGKEYR = 0x13141516;
+        FLASH->PRGKEYR = 0x8c9daebf;
+        FLASH->PRGKEYR = 0x13141516;
     }
 
     __set_PRIMASK(primask);
@@ -113,41 +113,41 @@ bool stm32l0_flash_erase(uint32_t address, uint32_t count)
 
     if ((address & 127) || (count & 127) || (address < FLASH_BASE) || ((address + count) > (FLASH_BASE + stm32l0_flash_size())))
     {
-	return false;
+        return false;
     }
 
     if (FLASH->PECR & FLASH_PECR_PRGLOCK)
     {
-	return false;
+        return false;
     }
     
     do
     {
-	primask = __get_PRIMASK();
+        primask = __get_PRIMASK();
 
-	__disable_irq();
+        __disable_irq();
 
-	FLASH->PECR |= (FLASH_PECR_PROG | FLASH_PECR_ERASE);
+        FLASH->PECR |= (FLASH_PECR_PROG | FLASH_PECR_ERASE);
 
-	stm32l0_flash_do_erase(address);
+        stm32l0_flash_do_erase(address);
 
-	if (FLASH->SR & FLASH_SR_EOP)
-	{
-	    FLASH->SR = FLASH_SR_EOP;
-	}
-	else
-	{
-	    FLASH->SR = (FLASH_SR_WRPERR | FLASH_SR_PGAERR | FLASH_SR_SIZERR | FLASH_SR_RDERR | FLASH_SR_NOTZEROERR | FLASH_SR_FWWERR);
+        if (FLASH->SR & FLASH_SR_EOP)
+        {
+            FLASH->SR = FLASH_SR_EOP;
+        }
+        else
+        {
+            FLASH->SR = (FLASH_SR_WRPERR | FLASH_SR_PGAERR | FLASH_SR_SIZERR | FLASH_SR_RDERR | FLASH_SR_NOTZEROERR | FLASH_SR_FWWERR);
 
-	    success = false;
-	}
+            success = false;
+        }
 
-	FLASH->PECR &= ~(FLASH_PECR_PROG | FLASH_PECR_ERASE);
+        FLASH->PECR &= ~(FLASH_PECR_PROG | FLASH_PECR_ERASE);
 
-	__set_PRIMASK(primask);
+        __set_PRIMASK(primask);
 
-	address += 128;
-	count   -= 128;
+        address += 128;
+        count   -= 128;
     }
     while (success && count);
 
@@ -162,86 +162,86 @@ bool stm32l0_flash_program(uint32_t address, const uint8_t *data, uint32_t count
 
     if ((address & 3) || (count & 3) || (address < FLASH_BASE) || ((address + count) > (FLASH_BASE + stm32l0_flash_size())))
     {
-	return false;
+        return false;
     }
 
     if (FLASH->PECR & FLASH_PECR_PRGLOCK)
     {
-	return false;
+        return false;
     }
 
     do
     {
-	size = count;
+        size = count;
 
-	if (size > 64)
-	{
-	    size = 64;
-	}
+        if (size > 64)
+        {
+            size = 64;
+        }
 
-	if (size > (((address + 64) & ~63) - address))
-	{
-	    size = ((address + 64) & ~63) - address;
-	}
+        if (size > (((address + 64) & ~63) - address))
+        {
+            size = ((address + 64) & ~63) - address;
+        }
 
-	primask = __get_PRIMASK();
+        primask = __get_PRIMASK();
 
-	__disable_irq();
+        __disable_irq();
 
-	if (size == 64)
-	{
-	    FLASH->PECR |= (FLASH_PECR_PROG | FLASH_PECR_FPRG);
+        if (size == 64)
+        {
+            FLASH->PECR |= (FLASH_PECR_PROG | FLASH_PECR_FPRG);
 
-	    stm32l0_flash_do_program(address, data, data + 64);
+            stm32l0_flash_do_program(address, data, data + 64);
 
-	    if (FLASH->SR & FLASH_SR_EOP)
-	    {
-		FLASH->SR = FLASH_SR_EOP;
-	    }
-	    else
-	    {
-		FLASH->SR = (FLASH_SR_WRPERR | FLASH_SR_PGAERR | FLASH_SR_SIZERR | FLASH_SR_RDERR | FLASH_SR_NOTZEROERR | FLASH_SR_FWWERR);
+            if (FLASH->SR & FLASH_SR_EOP)
+            {
+                FLASH->SR = FLASH_SR_EOP;
+            }
+            else
+            {
+                FLASH->SR = (FLASH_SR_WRPERR | FLASH_SR_PGAERR | FLASH_SR_SIZERR | FLASH_SR_RDERR | FLASH_SR_NOTZEROERR | FLASH_SR_FWWERR);
 
-		success = false;
-	    }
+                success = false;
+            }
 
-	    data    += 64;
-	    address += 64;
-	
-	    FLASH->PECR &= ~(FLASH_PECR_PROG | FLASH_PECR_FPRG);
-	}
-	else
-	{
-	    FLASH->PECR |= FLASH_PECR_PROG;
+            data    += 64;
+            address += 64;
+        
+            FLASH->PECR &= ~(FLASH_PECR_PROG | FLASH_PECR_FPRG);
+        }
+        else
+        {
+            FLASH->PECR |= FLASH_PECR_PROG;
 
-	    data_e = data + size;
+            data_e = data + size;
 
-	    do 
-	    {
-		stm32l0_flash_do_program(address, data, data + 4);
+            do 
+            {
+                stm32l0_flash_do_program(address, data, data + 4);
 
-		if (FLASH->SR & FLASH_SR_EOP)
-		{
-		    FLASH->SR = FLASH_SR_EOP;
-		}
-		else
-		{
-		    FLASH->SR = (FLASH_SR_WRPERR | FLASH_SR_PGAERR | FLASH_SR_SIZERR | FLASH_SR_RDERR | FLASH_SR_NOTZEROERR | FLASH_SR_FWWERR);
-		    
-		    success = false;
-		}
+                if (FLASH->SR & FLASH_SR_EOP)
+                {
+                    FLASH->SR = FLASH_SR_EOP;
+                }
+                else
+                {
+                    FLASH->SR = (FLASH_SR_WRPERR | FLASH_SR_PGAERR | FLASH_SR_SIZERR | FLASH_SR_RDERR | FLASH_SR_NOTZEROERR | FLASH_SR_FWWERR);
+                    
+                    success = false;
+                }
 
-		address += 4;
-		data += 4;
-	    }
-	    while (success && (data != data_e));
+                address += 4;
+                data += 4;
+            }
+            while (success && (data != data_e));
 
-	    FLASH->PECR &= ~FLASH_PECR_PROG;
-	}
+            FLASH->PECR &= ~FLASH_PECR_PROG;
+        }
     
-	__set_PRIMASK(primask);
+        __set_PRIMASK(primask);
 
-	count -= size;
+        count -= size;
     }
     while (success && count);
 

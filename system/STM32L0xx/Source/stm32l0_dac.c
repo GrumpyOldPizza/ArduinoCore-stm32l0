@@ -33,28 +33,28 @@
 #include "stm32l0_dma.h"
 #include "stm32l0_system.h"
 
-#define STM32L0_DAC_DMA_OPTION_TRANSMIT_8	  \
+#define STM32L0_DAC_DMA_OPTION_TRANSMIT_8         \
     (STM32L0_DMA_OPTION_EVENT_TRANSFER_DONE |     \
-     STM32L0_DMA_OPTION_MEMORY_TO_PERIPHERAL |	  \
+     STM32L0_DMA_OPTION_MEMORY_TO_PERIPHERAL |    \
      STM32L0_DMA_OPTION_PERIPHERAL_DATA_SIZE_32 | \
-     STM32L0_DMA_OPTION_MEMORY_DATA_SIZE_8 |	  \
-     STM32L0_DMA_OPTION_MEMORY_DATA_INCREMENT |	  \
+     STM32L0_DMA_OPTION_MEMORY_DATA_SIZE_8 |      \
+     STM32L0_DMA_OPTION_MEMORY_DATA_INCREMENT |   \
      STM32L0_DMA_OPTION_PRIORITY_LOW)
 
-#define STM32L0_DAC_DMA_OPTION_TRANSMIT_16	  \
+#define STM32L0_DAC_DMA_OPTION_TRANSMIT_16        \
     (STM32L0_DMA_OPTION_EVENT_TRANSFER_DONE |     \
-     STM32L0_DMA_OPTION_MEMORY_TO_PERIPHERAL |	  \
+     STM32L0_DMA_OPTION_MEMORY_TO_PERIPHERAL |    \
      STM32L0_DMA_OPTION_PERIPHERAL_DATA_SIZE_32 | \
-     STM32L0_DMA_OPTION_MEMORY_DATA_SIZE_16 |	  \
-     STM32L0_DMA_OPTION_MEMORY_DATA_INCREMENT |	  \
+     STM32L0_DMA_OPTION_MEMORY_DATA_SIZE_16 |     \
+     STM32L0_DMA_OPTION_MEMORY_DATA_INCREMENT |   \
      STM32L0_DMA_OPTION_PRIORITY_LOW)
 
-#define STM32L0_DAC_DMA_OPTION_TRANSMIT_32	  \
+#define STM32L0_DAC_DMA_OPTION_TRANSMIT_32        \
     (STM32L0_DMA_OPTION_EVENT_TRANSFER_DONE |     \
-     STM32L0_DMA_OPTION_MEMORY_TO_PERIPHERAL |	  \
+     STM32L0_DMA_OPTION_MEMORY_TO_PERIPHERAL |    \
      STM32L0_DMA_OPTION_PERIPHERAL_DATA_SIZE_32 | \
-     STM32L0_DMA_OPTION_MEMORY_DATA_SIZE_32 |	  \
-     STM32L0_DMA_OPTION_MEMORY_DATA_INCREMENT |	  \
+     STM32L0_DMA_OPTION_MEMORY_DATA_SIZE_32 |     \
+     STM32L0_DMA_OPTION_MEMORY_DATA_INCREMENT |   \
      STM32L0_DMA_OPTION_PRIORITY_LOW)
 
 static volatile uint32_t * const stm32l0_dac_xlate_address[] = {
@@ -87,31 +87,31 @@ bool stm32l0_dac_enable(uint32_t channels)
 
     if (!channels)
     {
-	return false;
+        return false;
     }
 
     primask = __get_PRIMASK();
-	
+        
     __disable_irq();
     
     if (!stm32l0_dac_device.channels)
     {
-	RCC->APB1ENR |= RCC_APB1ENR_DACEN;
-	RCC->APB1ENR;
+        RCC->APB1ENR |= RCC_APB1ENR_DACEN;
+        RCC->APB1ENR;
 
-	stm32l0_dac_device.state = STM32L0_DAC_STATE_READY;
+        stm32l0_dac_device.state = STM32L0_DAC_STATE_READY;
     }
 
     stm32l0_dac_device.channels |= channels;
 
     if (channels & STM32L0_DAC_CHANNEL_1)
     {
-	DAC->CR |= DAC_CR_EN1;
+        DAC->CR |= DAC_CR_EN1;
     }
 
     if (channels & STM32L0_DAC_CHANNEL_2)
     {
-	DAC->CR |= DAC_CR_EN2;
+        DAC->CR |= DAC_CR_EN2;
     }
 
     __set_PRIMASK(primask);
@@ -125,30 +125,30 @@ bool stm32l0_dac_disable(uint32_t channels)
 
     if (!channels)
     {
-	return false;
+        return false;
     }
 
     primask = __get_PRIMASK();
-	
+        
     __disable_irq();
     
     if (channels & STM32L0_DAC_CHANNEL_1)
     {
-	DAC->CR &= ~DAC_CR_EN1;
+        DAC->CR &= ~DAC_CR_EN1;
     }
 
     if (channels & STM32L0_DAC_CHANNEL_2)
     {
-	DAC->CR &= ~DAC_CR_EN2;
+        DAC->CR &= ~DAC_CR_EN2;
     }
 
     stm32l0_dac_device.channels &= ~channels;
 
     if (!stm32l0_dac_device.channels)
     {
-	RCC->APB1ENR &= ~RCC_APB1ENR_DACEN;
+        RCC->APB1ENR &= ~RCC_APB1ENR_DACEN;
 
-	stm32l0_dac_device.state = STM32L0_DAC_STATE_NONE;
+        stm32l0_dac_device.state = STM32L0_DAC_STATE_NONE;
     }
 
     __set_PRIMASK(primask);
@@ -160,12 +160,12 @@ void stm32l0_dac_write(uint32_t channels, uint32_t output)
 {
     if (channels & STM32L0_DAC_CHANNEL_1)
     {
-	DAC->DHR12R1 = output;
+        DAC->DHR12R1 = output;
     }
 
     if (channels & STM32L0_DAC_CHANNEL_2)
     {
-	DAC->DHR12R2 = output;
+        DAC->DHR12R2 = output;
     }
 }
 
@@ -175,64 +175,64 @@ bool stm32l0_dac_convert(const void *data, uint32_t count, uint32_t control, stm
 
     if ((stm32l0_dac_device.state != STM32L0_DAC_STATE_READY) && (stm32l0_dac_device.state != STM32L0_DAC_STATE_DONE))
     {
-	return false;
+        return false;
     }
 
     if ((stm32l0_dac_device.state == STM32L0_DAC_STATE_READY) || (stm32l0_dac_device.control != control))
     {
-	if (stm32l0_dac_device.state == STM32L0_DAC_STATE_READY)
-	{
-	    if (!stm32l0_dma_enable(STM32L0_DMA_CHANNEL_DMA1_CH2_DAC1, (stm32l0_dma_callback_t)stm32l0_dac_cancel, NULL))
-	    {
-		return false;
-	    }
+        if (stm32l0_dac_device.state == STM32L0_DAC_STATE_READY)
+        {
+            if (!stm32l0_dma_enable(STM32L0_DMA_CHANNEL_DMA1_CH2_DAC1, (stm32l0_dma_callback_t)stm32l0_dac_cancel, NULL))
+            {
+                return false;
+            }
 
-	    stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
-	}
-	else
-	{
-	    DAC->CR &= ~(DAC_CR_DMAEN1 | DAC_CR_TEN1 | DAC_CR_TSEL1 | DAC_CR_TEN2 | DAC_CR_TSEL2);
-	}
+            stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
+        }
+        else
+        {
+            DAC->CR &= ~(DAC_CR_DMAEN1 | DAC_CR_TEN1 | DAC_CR_TSEL1 | DAC_CR_TEN2 | DAC_CR_TSEL2);
+        }
 
-	if (control & STM32L0_DAC_CONTROL_STEREO)
-	{
-	    DAC->CR |= (DAC_CR_DMAEN1 | DAC_CR_TEN1 | DAC_CR_TEN2 |
-			(((control & STM32L0_DAC_CONTROL_TRIG_MASK) >> STM32L0_DAC_CONTROL_TRIG_SHIFT) << DAC_CR_TSEL1_Pos) |
-			(((control & STM32L0_DAC_CONTROL_TRIG_MASK) >> STM32L0_DAC_CONTROL_TRIG_SHIFT) << DAC_CR_TSEL2_Pos));
-	}
-	else
-	{
-	    DAC->CR |= (DAC_CR_DMAEN1 | DAC_CR_TEN1 |
-			(((control & STM32L0_DAC_CONTROL_TRIG_MASK) >> STM32L0_DAC_CONTROL_TRIG_SHIFT) << DAC_CR_TSEL1_Pos));
-	}
-	
-	stm32l0_dac_device.control = control;
+        if (control & STM32L0_DAC_CONTROL_STEREO)
+        {
+            DAC->CR |= (DAC_CR_DMAEN1 | DAC_CR_TEN1 | DAC_CR_TEN2 |
+                        (((control & STM32L0_DAC_CONTROL_TRIG_MASK) >> STM32L0_DAC_CONTROL_TRIG_SHIFT) << DAC_CR_TSEL1_Pos) |
+                        (((control & STM32L0_DAC_CONTROL_TRIG_MASK) >> STM32L0_DAC_CONTROL_TRIG_SHIFT) << DAC_CR_TSEL2_Pos));
+        }
+        else
+        {
+            DAC->CR |= (DAC_CR_DMAEN1 | DAC_CR_TEN1 |
+                        (((control & STM32L0_DAC_CONTROL_TRIG_MASK) >> STM32L0_DAC_CONTROL_TRIG_SHIFT) << DAC_CR_TSEL1_Pos));
+        }
+        
+        stm32l0_dac_device.control = control;
     }
 
     if (control & STM32L0_DAC_CONTROL_STEREO)
     {
-	if (control & STM32L0_DAC_CONTROL_BYTE_PACKED)
-	{
-	    count = count / 2;
-	    option = STM32L0_DAC_DMA_OPTION_TRANSMIT_16;
-	}
-	else
-	{
-	    count = count / 4;
-	    option = STM32L0_DAC_DMA_OPTION_TRANSMIT_32;
-	}
+        if (control & STM32L0_DAC_CONTROL_BYTE_PACKED)
+        {
+            count = count / 2;
+            option = STM32L0_DAC_DMA_OPTION_TRANSMIT_16;
+        }
+        else
+        {
+            count = count / 4;
+            option = STM32L0_DAC_DMA_OPTION_TRANSMIT_32;
+        }
     }
     else
     {
-	if (control & STM32L0_DAC_CONTROL_BYTE_PACKED)
-	{
-	    option = STM32L0_DAC_DMA_OPTION_TRANSMIT_8;
-	}
-	else
-	{
-	    count = count / 2;
-	    option = STM32L0_DAC_DMA_OPTION_TRANSMIT_16;
-	}
+        if (control & STM32L0_DAC_CONTROL_BYTE_PACKED)
+        {
+            option = STM32L0_DAC_DMA_OPTION_TRANSMIT_8;
+        }
+        else
+        {
+            count = count / 2;
+            option = STM32L0_DAC_DMA_OPTION_TRANSMIT_16;
+        }
     }
 
     stm32l0_dac_device.xf_callback = callback;
@@ -250,40 +250,40 @@ void stm32l0_dac_cancel(void)
 
     if (stm32l0_dac_device.state == STM32L0_DAC_STATE_CONVERT)
     {
-	count = stm32l0_dma_stop(STM32L0_DMA_CHANNEL_DMA1_CH2_DAC1);
+        count = stm32l0_dma_stop(STM32L0_DMA_CHANNEL_DMA1_CH2_DAC1);
 
-	stm32l0_dac_device.state = STM32L0_DAC_STATE_DONE;
+        stm32l0_dac_device.state = STM32L0_DAC_STATE_DONE;
 
-	if (stm32l0_dac_device.control & STM32L0_DAC_CONTROL_STEREO)
-	{
-	    if (stm32l0_dac_device.control & STM32L0_DAC_CONTROL_BYTE_PACKED)
-	    {
-		count = count * 2;
-	    }
-	    else
-	    {
-		count = count * 4;
-	    }
-	}
-	else
-	{
-	    if (!(stm32l0_dac_device.control & STM32L0_DAC_CONTROL_BYTE_PACKED))
-	    {
-		count = count * 2;
-	    }
-	}
+        if (stm32l0_dac_device.control & STM32L0_DAC_CONTROL_STEREO)
+        {
+            if (stm32l0_dac_device.control & STM32L0_DAC_CONTROL_BYTE_PACKED)
+            {
+                count = count * 2;
+            }
+            else
+            {
+                count = count * 4;
+            }
+        }
+        else
+        {
+            if (!(stm32l0_dac_device.control & STM32L0_DAC_CONTROL_BYTE_PACKED))
+            {
+                count = count * 2;
+            }
+        }
 
-	(*stm32l0_dac_device.xf_callback)(stm32l0_dac_device.xf_context, count);
+        (*stm32l0_dac_device.xf_callback)(stm32l0_dac_device.xf_context, count);
 
-	if (stm32l0_dac_device.state == STM32L0_DAC_STATE_DONE)
-	{
-	    DAC->CR &= ~(DAC_CR_DMAEN1 | DAC_CR_TEN1 | DAC_CR_TSEL1 | DAC_CR_TEN2 | DAC_CR_TSEL2);
+        if (stm32l0_dac_device.state == STM32L0_DAC_STATE_DONE)
+        {
+            DAC->CR &= ~(DAC_CR_DMAEN1 | DAC_CR_TEN1 | DAC_CR_TSEL1 | DAC_CR_TEN2 | DAC_CR_TSEL2);
 
-	    stm32l0_dma_disable(STM32L0_DMA_CHANNEL_DMA1_CH2_DAC1);
+            stm32l0_dma_disable(STM32L0_DMA_CHANNEL_DMA1_CH2_DAC1);
 
-	    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
+            stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
 
-	    stm32l0_dac_device.state = STM32L0_DAC_STATE_READY;
-	}
+            stm32l0_dac_device.state = STM32L0_DAC_STATE_READY;
+        }
     }
 }

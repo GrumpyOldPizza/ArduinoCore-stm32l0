@@ -94,7 +94,7 @@ static uint8_t stm32l0_sfspi_wait(stm32l0_sfspi_t *sfspi)
 
     do
     {
-	status = stm32l0_spi_data(sfspi->spi, 0xff);
+        status = stm32l0_spi_data(sfspi->spi, 0xff);
     }
     while (status & SFLASH_SR_WIP);
 
@@ -109,7 +109,7 @@ static uint32_t stm32l0_sfspi_capacity(void *context)
 
     if ((sfspi->state != STM32L0_SFSPI_STATE_READY) && (sfspi->state != STM32L0_SFSPI_STATE_LOCKED))
     {
-	return 0;
+        return 0;
     }
 
     return (1u << sfspi->ID[2]);
@@ -130,11 +130,11 @@ static void stm32l0_sfspi_lock(void *context)
 
     if (sfspi->state == STM32L0_SFSPI_STATE_SLEEP)
     {
-	stm32l0_sfspi_select(sfspi);
-	stm32l0_spi_data(sfspi->spi, SFLASH_CMD_RDPD);
-	stm32l0_sfspi_unselect(sfspi);
-	
-	armv6m_core_udelay(50);
+        stm32l0_sfspi_select(sfspi);
+        stm32l0_spi_data(sfspi->spi, SFLASH_CMD_RDPD);
+        stm32l0_sfspi_unselect(sfspi);
+        
+        armv6m_core_udelay(50);
     }
 
     sfspi->state = STM32L0_SFSPI_STATE_LOCKED;
@@ -159,14 +159,14 @@ static bool stm32l0_sfspi_erase(void *context, uint32_t address)
 
     do
     {
-	stm32l0_sfspi_select(sfspi);
-	stm32l0_spi_data(sfspi->spi, SFLASH_CMD_WREN);
-	stm32l0_sfspi_unselect(sfspi);
-	
-	stm32l0_sfspi_select(sfspi);
-	stm32l0_spi_data(sfspi->spi, SFLASH_CMD_RDSR);
-	status = stm32l0_spi_data(sfspi->spi, 0xff);
-	stm32l0_sfspi_unselect(sfspi);
+        stm32l0_sfspi_select(sfspi);
+        stm32l0_spi_data(sfspi->spi, SFLASH_CMD_WREN);
+        stm32l0_sfspi_unselect(sfspi);
+        
+        stm32l0_sfspi_select(sfspi);
+        stm32l0_spi_data(sfspi->spi, SFLASH_CMD_RDSR);
+        status = stm32l0_spi_data(sfspi->spi, 0xff);
+        stm32l0_sfspi_unselect(sfspi);
     }
     while (!(status & SFLASH_SR_WEL));
 
@@ -178,51 +178,51 @@ static bool stm32l0_sfspi_erase(void *context, uint32_t address)
 
     if (sfspi->ID[0] == SFLASH_MID_MACRONIX)
     {
-	stm32l0_sfspi_select(sfspi);
-	stm32l0_spi_data(sfspi->spi, SFLASH_CMD_RDSCUR);
-	status = stm32l0_spi_data(sfspi->spi, 0xff);
-	stm32l0_sfspi_unselect(sfspi);
-	
-	if (status & SFLASH_SCUR_E_FAIL)
-	{
-	    DOSFS_SFLASH_STATISTICS_COUNT(sflash_nor_efail);
-	    
-	    return false;
-	}
+        stm32l0_sfspi_select(sfspi);
+        stm32l0_spi_data(sfspi->spi, SFLASH_CMD_RDSCUR);
+        status = stm32l0_spi_data(sfspi->spi, 0xff);
+        stm32l0_sfspi_unselect(sfspi);
+        
+        if (status & SFLASH_SCUR_E_FAIL)
+        {
+            DOSFS_SFLASH_STATISTICS_COUNT(sflash_nor_efail);
+            
+            return false;
+        }
     }
 
 #if 0
     if (sfspi->ID[0] == SFLASH_MID_MICRON)
     {
-	stm32l0_sfspi_select(sfspi);
-	stm32l0_spi_data(sfspi->spi, SFLASH_CMD_RDFS);
-	status = stm32l0_spi_data(sfspi->spi, 0xff);
-	stm32l0_sfspi_unselect(sfspi);
-	
-	if (status & SFLASH_FS_E_FAIL)
-	{
-	    DOSFS_SFLASH_STATISTICS_COUNT(sflash_nor_efail);
+        stm32l0_sfspi_select(sfspi);
+        stm32l0_spi_data(sfspi->spi, SFLASH_CMD_RDFS);
+        status = stm32l0_spi_data(sfspi->spi, 0xff);
+        stm32l0_sfspi_unselect(sfspi);
+        
+        if (status & SFLASH_FS_E_FAIL)
+        {
+            DOSFS_SFLASH_STATISTICS_COUNT(sflash_nor_efail);
 
-	    stm32l0_sfspi_select(sfspi);
-	    stm32l0_spi_data(sfspi->spi, SFLASH_CMD_CLFS);
-	    stm32l0_sfspi_unselect(sfspi);
-	    
-	    return false;
-	}
+            stm32l0_sfspi_select(sfspi);
+            stm32l0_spi_data(sfspi->spi, SFLASH_CMD_CLFS);
+            stm32l0_sfspi_unselect(sfspi);
+            
+            return false;
+        }
     }
 
     if (sfspi->ID[0] == SFLASH_MID_SPANSION)
     {
-	if (status & SFLASH_SR_E_ERR)
-	{
-	    DOSFS_SFLASH_STATISTICS_COUNT(sflash_nor_efail);
+        if (status & SFLASH_SR_E_ERR)
+        {
+            DOSFS_SFLASH_STATISTICS_COUNT(sflash_nor_efail);
 
-	    stm32l0_sfspi_select(sfspi);
-	    stm32l0_spi_data(sfspi->spi, SFLASH_CMD_CLSR);
-	    stm32l0_sfspi_unselect(sfspi);
+            stm32l0_sfspi_select(sfspi);
+            stm32l0_spi_data(sfspi->spi, SFLASH_CMD_CLSR);
+            stm32l0_sfspi_unselect(sfspi);
 
-	    return false;
-	}
+            return false;
+        }
     }
 #endif
 
@@ -239,14 +239,14 @@ static bool stm32l0_sfspi_program(void *context, uint32_t address, const uint8_t
 
     do
     {
-	stm32l0_sfspi_select(sfspi);
-	stm32l0_spi_data(sfspi->spi, SFLASH_CMD_WREN);
-	stm32l0_sfspi_unselect(sfspi);
-	
-	stm32l0_sfspi_select(sfspi);
-	stm32l0_spi_data(sfspi->spi, SFLASH_CMD_RDSR);
-	status = stm32l0_spi_data(sfspi->spi, 0xff);
-	stm32l0_sfspi_unselect(sfspi);
+        stm32l0_sfspi_select(sfspi);
+        stm32l0_spi_data(sfspi->spi, SFLASH_CMD_WREN);
+        stm32l0_sfspi_unselect(sfspi);
+        
+        stm32l0_sfspi_select(sfspi);
+        stm32l0_spi_data(sfspi->spi, SFLASH_CMD_RDSR);
+        status = stm32l0_spi_data(sfspi->spi, 0xff);
+        stm32l0_sfspi_unselect(sfspi);
     }
     while (!(status & SFLASH_SR_WEL));
 
@@ -259,51 +259,51 @@ static bool stm32l0_sfspi_program(void *context, uint32_t address, const uint8_t
 
     if (sfspi->ID[0] == SFLASH_MID_MACRONIX)
     {
-	stm32l0_sfspi_select(sfspi);
-	stm32l0_spi_data(sfspi->spi, SFLASH_CMD_RDSCUR);
-	status = stm32l0_spi_data(sfspi->spi, 0xff);
-	stm32l0_sfspi_unselect(sfspi);
-	
-	if (status & SFLASH_SCUR_P_FAIL)
-	{
-	    DOSFS_SFLASH_STATISTICS_COUNT(sflash_nor_pfail);
-	    
-	    return false;
-	}
+        stm32l0_sfspi_select(sfspi);
+        stm32l0_spi_data(sfspi->spi, SFLASH_CMD_RDSCUR);
+        status = stm32l0_spi_data(sfspi->spi, 0xff);
+        stm32l0_sfspi_unselect(sfspi);
+        
+        if (status & SFLASH_SCUR_P_FAIL)
+        {
+            DOSFS_SFLASH_STATISTICS_COUNT(sflash_nor_pfail);
+            
+            return false;
+        }
     }
 
 #if 0
     if (sfspi->ID[0] == SFLASH_MID_MICRON)
     {
-	stm32l0_sfspi_select(sfspi);
-	stm32l0_spi_data(sfspi->spi, SFLASH_CMD_RDFS);
-	status = stm32l0_spi_data(sfspi->spi, 0xff);
-	stm32l0_sfspi_unselect(sfspi);
-	
-	if (status & SFLASH_FS_P_FAIL)
-	{
-	    DOSFS_SFLASH_STATISTICS_COUNT(sflash_nor_pfail);
+        stm32l0_sfspi_select(sfspi);
+        stm32l0_spi_data(sfspi->spi, SFLASH_CMD_RDFS);
+        status = stm32l0_spi_data(sfspi->spi, 0xff);
+        stm32l0_sfspi_unselect(sfspi);
+        
+        if (status & SFLASH_FS_P_FAIL)
+        {
+            DOSFS_SFLASH_STATISTICS_COUNT(sflash_nor_pfail);
 
-	    stm32l0_sfspi_select(sfspi);
-	    stm32l0_spi_data(sfspi->spi, SFLASH_CMD_CLFS);
-	    stm32l0_sfspi_unselect(sfspi);
-	    
-	    return false;
-	}
+            stm32l0_sfspi_select(sfspi);
+            stm32l0_spi_data(sfspi->spi, SFLASH_CMD_CLFS);
+            stm32l0_sfspi_unselect(sfspi);
+            
+            return false;
+        }
     }
 
     if (sfspi->ID[0] == SFLASH_MID_SPANSION)
     {
-	if (status & SFLASH_SR_P_ERR)
-	{
-	    DOSFS_SFLASH_STATISTICS_COUNT(sflash_nor_pfail);
+        if (status & SFLASH_SR_P_ERR)
+        {
+            DOSFS_SFLASH_STATISTICS_COUNT(sflash_nor_pfail);
 
-	    stm32l0_sfspi_select(sfspi);
-	    stm32l0_spi_data(sfspi->spi, SFLASH_CMD_CLSR);
-	    stm32l0_sfspi_unselect(sfspi);
+            stm32l0_sfspi_select(sfspi);
+            stm32l0_spi_data(sfspi->spi, SFLASH_CMD_CLSR);
+            stm32l0_sfspi_unselect(sfspi);
 
-	    return false;
-	}
+            return false;
+        }
     }
 #endif
 
@@ -329,24 +329,24 @@ static void stm32l0_sfspi_callback(void *context, uint32_t events)
     
     if (events & STM32L0_SYSTEM_EVENT_SLEEP)
     {
-	if (sfspi->ID[0] == SFLASH_MID_MACRONIX)
-	{
-	    /* lock/unlock will block shared interrupts and USB/MSC.
-	     */
+        if (sfspi->ID[0] == SFLASH_MID_MACRONIX)
+        {
+            /* lock/unlock will block shared interrupts and USB/MSC.
+             */
 
-	    stm32l0_sfspi_lock(sfspi);
-	    
-	    if (sfspi->state == STM32L0_SFSPI_STATE_READY)
-	    {
-		stm32l0_sfspi_select(sfspi);
-		stm32l0_spi_data(sfspi->spi, SFLASH_CMD_DPD);
-		stm32l0_sfspi_unselect(sfspi);
-		
-		sfspi->state = STM32L0_SFSPI_STATE_SLEEP;
-	    }
+            stm32l0_sfspi_lock(sfspi);
+            
+            if (sfspi->state == STM32L0_SFSPI_STATE_READY)
+            {
+                stm32l0_sfspi_select(sfspi);
+                stm32l0_spi_data(sfspi->spi, SFLASH_CMD_DPD);
+                stm32l0_sfspi_unselect(sfspi);
+                
+                sfspi->state = STM32L0_SFSPI_STATE_SLEEP;
+            }
 
-	    stm32l0_sfspi_unlock(sfspi);
-	}
+            stm32l0_sfspi_unlock(sfspi);
+        }
     }
 }
 
@@ -366,51 +366,51 @@ bool stm32l0_sfspi_initialize(stm32l0_spi_t *spi, const stm32l0_sfspi_params_t *
 
     if (sfspi->state == STM32L0_SFSPI_STATE_NONE)
     {
-	if (spi->state == STM32L0_SPI_STATE_NONE)
-	{
-	    return false;
-	}
+        if (spi->state == STM32L0_SPI_STATE_NONE)
+        {
+            return false;
+        }
 
-	sfspi->spi = spi;
-	sfspi->pin_cs = params->pin_cs;
+        sfspi->spi = spi;
+        sfspi->pin_cs = params->pin_cs;
 
-	stm32l0_spi_enable(spi); // bump up refcount
+        stm32l0_spi_enable(spi); // bump up refcount
 
-	stm32l0_gpio_pin_configure(sfspi->pin_cs, (STM32L0_GPIO_PARK_PULLUP | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_VERY_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
-	stm32l0_gpio_pin_write(sfspi->pin_cs, 1);
+        stm32l0_gpio_pin_configure(sfspi->pin_cs, (STM32L0_GPIO_PARK_PULLUP | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_VERY_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
+        stm32l0_gpio_pin_write(sfspi->pin_cs, 1);
 
-	stm32l0_sfspi_lock(sfspi);
+        stm32l0_sfspi_lock(sfspi);
 
-	stm32l0_sfspi_select(sfspi);
-	stm32l0_spi_data(sfspi->spi, SFLASH_CMD_RDPD);
-	stm32l0_sfspi_unselect(sfspi);
+        stm32l0_sfspi_select(sfspi);
+        stm32l0_spi_data(sfspi->spi, SFLASH_CMD_RDPD);
+        stm32l0_sfspi_unselect(sfspi);
 
-	armv6m_core_udelay(50);
+        armv6m_core_udelay(50);
 
-	stm32l0_sfspi_select(sfspi);
-	stm32l0_spi_data(sfspi->spi, SFLASH_CMD_RDID);
-	sfspi->ID[0] = stm32l0_spi_data(sfspi->spi, 0xff);
-	sfspi->ID[1] = stm32l0_spi_data(sfspi->spi, 0xff);
-	sfspi->ID[2] = stm32l0_spi_data(sfspi->spi, 0xff);
-	stm32l0_sfspi_unselect(sfspi);
+        stm32l0_sfspi_select(sfspi);
+        stm32l0_spi_data(sfspi->spi, SFLASH_CMD_RDID);
+        sfspi->ID[0] = stm32l0_spi_data(sfspi->spi, 0xff);
+        sfspi->ID[1] = stm32l0_spi_data(sfspi->spi, 0xff);
+        sfspi->ID[2] = stm32l0_spi_data(sfspi->spi, 0xff);
+        stm32l0_sfspi_unselect(sfspi);
 
-	stm32l0_sfspi_unlock(sfspi);
+        stm32l0_sfspi_unlock(sfspi);
 
-	if (((sfspi->ID[0] == 0x00) && (sfspi->ID[1] == 0x00) && (sfspi->ID[2] == 0x00)) ||
-	    ((sfspi->ID[0] == 0xff) && (sfspi->ID[1] == 0xff) && (sfspi->ID[2] == 0xff)))
-	{
-	    sfspi->ID[0] = 0x00;
-	    sfspi->ID[1] = 0x00;
-	    sfspi->ID[2] = 0x00;
+        if (((sfspi->ID[0] == 0x00) && (sfspi->ID[1] == 0x00) && (sfspi->ID[2] == 0x00)) ||
+            ((sfspi->ID[0] == 0xff) && (sfspi->ID[1] == 0xff) && (sfspi->ID[2] == 0xff)))
+        {
+            sfspi->ID[0] = 0x00;
+            sfspi->ID[1] = 0x00;
+            sfspi->ID[2] = 0x00;
 
-	    sfspi->state = STM32L0_SFSPI_STATE_INIT;
-	}
-	else
-	{
-	    sfspi->state = STM32L0_SFSPI_STATE_READY;
+            sfspi->state = STM32L0_SFSPI_STATE_INIT;
+        }
+        else
+        {
+            sfspi->state = STM32L0_SFSPI_STATE_READY;
 
-	    stm32l0_system_notify(&stm32l0_sfspi.notify, stm32l0_sfspi_callback, (void*)&stm32l0_sfspi, STM32L0_SYSTEM_EVENT_SLEEP);
-	}
+            stm32l0_system_notify(&stm32l0_sfspi.notify, stm32l0_sfspi_callback, (void*)&stm32l0_sfspi, STM32L0_SYSTEM_EVENT_SLEEP);
+        }
     }
 
     dosfs_sflash_device.interface = &stm32l0_sfspi_interface;

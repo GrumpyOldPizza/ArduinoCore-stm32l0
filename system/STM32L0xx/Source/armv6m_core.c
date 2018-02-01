@@ -38,17 +38,17 @@ static armv6m_core_control_t armv6m_core_control;
 static void armv6m_core_stack_fill(void)
 {
     __asm__(
-	"  ldr     r0, =0xdeadbeef                     \n"
-	"  ldr     r1, =__StackLimit                   \n"
-	"  mov     r2, sp                              \n"
-	"  sub     r2, r1                              \n"
-	".Lrepeat:                                     \n"
-	"  sub     r2, #4                              \n"
-	"  str     r0, [r1, r2]                        \n"
-	"  bne     .Lrepeat                            \n"
-	:
-	:
-	);
+        "  ldr     r0, =0xdeadbeef                     \n"
+        "  ldr     r1, =__StackLimit                   \n"
+        "  mov     r2, sp                              \n"
+        "  sub     r2, r1                              \n"
+        ".Lrepeat:                                     \n"
+        "  sub     r2, #4                              \n"
+        "  str     r0, [r1, r2]                        \n"
+        "  bne     .Lrepeat                            \n"
+        :
+        :
+        );
 }
 
 void armv6m_core_initialize(void)
@@ -66,16 +66,16 @@ void armv6m_core_udelay(uint32_t delay)
 
     if (armv6m_core_control.clock != SystemCoreClock)
     {
-	armv6m_core_control.clock = SystemCoreClock;
-	armv6m_core_control.scale = SystemCoreClock / 1000000;
+        armv6m_core_control.clock = SystemCoreClock;
+        armv6m_core_control.scale = SystemCoreClock / 1000000;
     }
 
     n = (delay * armv6m_core_control.scale + 3) / 4;
 
     __asm__ __volatile__(
-			 "1: sub  %0, #1 \n"
-			 "   bne  1b     \n"
-			 : "+r" (n));
+                         "1: sub  %0, #1 \n"
+                         "   bne  1b     \n"
+                         : "+r" (n));
 }
 
 static __attribute__((naked)) void armv6m_core_call_indirect(void *context)
@@ -84,9 +84,9 @@ static __attribute__((naked)) void armv6m_core_call_indirect(void *context)
         "  mov     r12, r0                             \n"
         "  mov     r0, r1                              \n"
         "  bx      r12                                 \n"
-	:
-	:
-	);
+        :
+        :
+        );
 }
 
 void armv6m_core_c_function(armv6m_core_callback_t *callback, void *function)
@@ -107,14 +107,14 @@ void armv6m_core_cxx_method(armv6m_core_callback_t *callback, const void *method
 
     if (!((((const uint32_t*)method)[1]) & 1))
     {
-	/* non-virtual function */
-	callback->routine = ptr;
+        /* non-virtual function */
+        callback->routine = ptr;
     }
     else
     {
-	/* virtual function */
-	void *vptr = *((void**)((uintptr_t)object + adj)); 
-	callback->routine = *((void**)((uint8_t*)vptr + (ptrdiff_t)ptr));
+        /* virtual function */
+        void *vptr = *((void**)((uintptr_t)object + adj)); 
+        callback->routine = *((void**)((uint8_t*)vptr + (ptrdiff_t)ptr));
     }
 
     callback->context = (void*)((uintptr_t)object + adj);

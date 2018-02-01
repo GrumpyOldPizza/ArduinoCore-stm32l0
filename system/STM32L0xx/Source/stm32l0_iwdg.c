@@ -42,7 +42,7 @@ void stm32l0_iwdg_enable(uint32_t timeout)
      */
     if (timeout > 18000)
     {
-	timeout = 18000;
+        timeout = 18000;
     }
 
     iwdg_pr = 0;
@@ -50,8 +50,8 @@ void stm32l0_iwdg_enable(uint32_t timeout)
     
     while (iwdg_rl > 4096)
     {
-	iwdg_pr++;
-	iwdg_rl >>= 1;
+        iwdg_pr++;
+        iwdg_rl >>= 1;
     }
     
     IWDG->KR = 0xcccc;

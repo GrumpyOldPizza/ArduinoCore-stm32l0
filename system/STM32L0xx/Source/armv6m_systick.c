@@ -86,30 +86,30 @@ void armv6m_systick_sync(uint32_t seconds, uint16_t subseconds)
 
     if (armv6m_systick_control.clock != SystemCoreClock)
     {
-	cycle = SystemCoreClock / 8 -1;
+        cycle = SystemCoreClock / 8 -1;
 
-	if (armv6m_systick_control.clock)
-	{
-	    SysTick->VAL = cycle - (uint32_t)(((uint64_t)(armv6m_systick_control.cycle - SysTick->VAL) * (uint64_t)SystemCoreClock) / (uint64_t)armv6m_systick_control.clock);
-	}
-	else
-	{
-	    SysTick->VAL = cycle;
-	}
+        if (armv6m_systick_control.clock)
+        {
+            SysTick->VAL = cycle - (uint32_t)(((uint64_t)(armv6m_systick_control.cycle - SysTick->VAL) * (uint64_t)SystemCoreClock) / (uint64_t)armv6m_systick_control.clock);
+        }
+        else
+        {
+            SysTick->VAL = cycle;
+        }
 
-	armv6m_systick_control.clock = SystemCoreClock;
-	armv6m_systick_control.cycle = cycle;
+        armv6m_systick_control.clock = SystemCoreClock;
+        armv6m_systick_control.cycle = cycle;
 
-	/* To get from the current counter to the microsecond offset,
-	 * the ((cycle - 1) - Systick->VAL) value is scaled so that the resulting
-	 * microseconds fit into the upper 17 bits of a 32bit value. Then
-	 * this is post divided by 2^15. That ensures proper scaling.
-	 *
-	 * For millisconds we can use the upper 7 bits of a 32bit value.
-	 */
+        /* To get from the current counter to the microsecond offset,
+         * the ((cycle - 1) - Systick->VAL) value is scaled so that the resulting
+         * microseconds fit into the upper 17 bits of a 32bit value. Then
+         * this is post divided by 2^15. That ensures proper scaling.
+         *
+         * For millisconds we can use the upper 7 bits of a 32bit value.
+         */
 
-	armv6m_systick_control.scale[0] = (uint64_t)32768000000ull / (uint64_t)SystemCoreClock;
-	armv6m_systick_control.scale[1] = (uint64_t)33554432000ull / (uint64_t)SystemCoreClock;
+        armv6m_systick_control.scale[0] = (uint64_t)32768000000ull / (uint64_t)SystemCoreClock;
+        armv6m_systick_control.scale[1] = (uint64_t)33554432000ull / (uint64_t)SystemCoreClock;
     }
 
     armv6m_systick_control.micros = 125000 * ((seconds * 8) + (subseconds / 4096));
@@ -125,14 +125,14 @@ uint32_t armv6m_systick_micros(void)
     
     do
     {
-	micros = armv6m_systick_control.micros;
-	count = SysTick->VAL;
+        micros = armv6m_systick_control.micros;
+        count = SysTick->VAL;
 
-	if (SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk)
-	{
-	    armv6m_systick_control.micros += 125000;
-	    armv6m_systick_control.millis += 125;
-	}
+        if (SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk)
+        {
+            armv6m_systick_control.micros += 125000;
+            armv6m_systick_control.millis += 125;
+        }
     }
     while (micros != armv6m_systick_control.micros);
 
@@ -147,14 +147,14 @@ uint32_t armv6m_systick_millis(void)
     
     do
     {
-	millis = armv6m_systick_control.millis;
-	count = SysTick->VAL;
+        millis = armv6m_systick_control.millis;
+        count = SysTick->VAL;
 
-	if (SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk)
-	{
-	    armv6m_systick_control.micros += 125000;
-	    armv6m_systick_control.millis += 125;
-	}
+        if (SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk)
+        {
+            armv6m_systick_control.micros += 125000;
+            armv6m_systick_control.millis += 125;
+        }
     }
     while (millis != armv6m_systick_control.millis);
 
@@ -179,7 +179,7 @@ void SysTick_Handler(void)
 {
     if (SysTick->CTRL & SysTick_CTRL_COUNTFLAG_Msk)
     {
-	armv6m_systick_control.micros += 125000;
-	armv6m_systick_control.millis += 125;
+        armv6m_systick_control.micros += 125000;
+        armv6m_systick_control.millis += 125;
     }
 }

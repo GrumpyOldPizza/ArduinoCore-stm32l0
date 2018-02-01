@@ -59,7 +59,7 @@ bool stm32l0_comp_enable(uint16_t pin, uint32_t option)
 
     if (stm32l0_comp_device.state != STM32L0_COMP_STATE_NONE)
     {
-	return false;
+        return false;
     }
 
     if      (pin == STM32L0_GPIO_PIN_PA3) { comp_csr = 0;                                               }
@@ -68,50 +68,50 @@ bool stm32l0_comp_enable(uint16_t pin, uint32_t option)
     else if (pin == STM32L0_GPIO_PIN_PB7) { comp_csr = COMP_CSR_COMP2INNSEL_1 | COMP_CSR_COMP2INNSEL_0; }
     else
     {
-	return false;
+        return false;
     }
 
     if ((option & STM32L0_COMP_OPTION_REFERENCE_MASK) == STM32L0_COMP_OPTION_REFERENCE_EXTERNAL)
     {
-	comp_csr |= (COMP_CSR_COMP2INPSEL_0);
+        comp_csr |= (COMP_CSR_COMP2INPSEL_0);
     }
     else if ((option & STM32L0_COMP_OPTION_REFERENCE_MASK) == STM32L0_COMP_OPTION_REFERENCE_DAC1)
     {
-	comp_csr |= (COMP_CSR_COMP2INPSEL_1);
+        comp_csr |= (COMP_CSR_COMP2INPSEL_1);
     }
     else if ((option & STM32L0_COMP_OPTION_REFERENCE_MASK) == STM32L0_COMP_OPTION_REFERENCE_DAC2)
     {
-	comp_csr |= (COMP_CSR_COMP2INPSEL_1 | COMP_CSR_COMP2INPSEL_0);
+        comp_csr |= (COMP_CSR_COMP2INPSEL_1 | COMP_CSR_COMP2INPSEL_0);
     }
     else
     {
-	if ((option & STM32L0_COMP_OPTION_REFERENCE_MASK) == STM32L0_COMP_OPTION_REFERENCE_1_4_VREFINT)
-	{
-	    comp_csr |= (COMP_CSR_COMP2INPSEL_2);
-	}
+        if ((option & STM32L0_COMP_OPTION_REFERENCE_MASK) == STM32L0_COMP_OPTION_REFERENCE_1_4_VREFINT)
+        {
+            comp_csr |= (COMP_CSR_COMP2INPSEL_2);
+        }
 
-	if ((option & STM32L0_COMP_OPTION_REFERENCE_MASK) == STM32L0_COMP_OPTION_REFERENCE_1_2_VREFINT)
-	{
-	    comp_csr |= (COMP_CSR_COMP2INPSEL_2 | COMP_CSR_COMP2INPSEL_0);
-	}
+        if ((option & STM32L0_COMP_OPTION_REFERENCE_MASK) == STM32L0_COMP_OPTION_REFERENCE_1_2_VREFINT)
+        {
+            comp_csr |= (COMP_CSR_COMP2INPSEL_2 | COMP_CSR_COMP2INPSEL_0);
+        }
 
-	if ((option & STM32L0_COMP_OPTION_REFERENCE_MASK) == STM32L0_COMP_OPTION_REFERENCE_3_4_VREFINT)
-	{
-	    comp_csr |= (COMP_CSR_COMP2INPSEL_2 | COMP_CSR_COMP2INPSEL_1);
-	}
+        if ((option & STM32L0_COMP_OPTION_REFERENCE_MASK) == STM32L0_COMP_OPTION_REFERENCE_3_4_VREFINT)
+        {
+            comp_csr |= (COMP_CSR_COMP2INPSEL_2 | COMP_CSR_COMP2INPSEL_1);
+        }
 
-	armv6m_atomic_or(&SYSCFG->CFGR3, (SYSCFG_CFGR3_ENBUF_VREFINT_COMP2 | SYSCFG_CFGR3_EN_VREFINT));
+        armv6m_atomic_or(&SYSCFG->CFGR3, (SYSCFG_CFGR3_ENBUF_VREFINT_COMP2 | SYSCFG_CFGR3_EN_VREFINT));
 
-	while (!(SYSCFG->CFGR3 & SYSCFG_CFGR3_VREFINT_RDYF))
-	{
-	}
+        while (!(SYSCFG->CFGR3 & SYSCFG_CFGR3_VREFINT_RDYF))
+        {
+        }
 
-	stm32l0_system_lock(STM32L0_SYSTEM_LOCK_VREFINT);
+        stm32l0_system_lock(STM32L0_SYSTEM_LOCK_VREFINT);
     }
 
     if (option & STM32L0_COMP_OPTION_POLARITY)
     {
-	comp_csr |= COMP_CSR_COMP2POLARITY;
+        comp_csr |= COMP_CSR_COMP2POLARITY;
     }
 
     COMP2->CSR = comp_csr;
@@ -126,7 +126,7 @@ bool stm32l0_comp_disable(void)
 {
     if (stm32l0_comp_device.state != STM32L0_COMP_STATE_READY)
     {
-	return false;
+        return false;
     }
 
     armv6m_atomic_and(&EXTI->IMR, ~EXTI_IMR_IM22);
@@ -135,9 +135,9 @@ bool stm32l0_comp_disable(void)
 
     if (SYSCFG->CFGR3 & SYSCFG_CFGR3_ENBUF_VREFINT_COMP2)
     {
-	stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_VREFINT);
+        stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_VREFINT);
 
-	armv6m_atomic_and(&SYSCFG->CFGR3, ~SYSCFG_CFGR3_ENBUF_VREFINT_COMP2);
+        armv6m_atomic_and(&SYSCFG->CFGR3, ~SYSCFG_CFGR3_ENBUF_VREFINT_COMP2);
     }
 
     stm32l0_comp_device.state = STM32L0_COMP_STATE_NONE;
@@ -149,7 +149,7 @@ bool stm32l0_comp_attach(uint32_t control, stm32l0_comp_callback_t callback, voi
 {
     if (stm32l0_comp_device.state != STM32L0_COMP_STATE_READY)
     {
-	return false;
+        return false;
     }
 
     armv6m_atomic_and(&EXTI->IMR, ~EXTI_IMR_IM22);
@@ -159,20 +159,20 @@ bool stm32l0_comp_attach(uint32_t control, stm32l0_comp_callback_t callback, voi
 
     if (control & STM32L0_COMP_CONTROL_EDGE_RISING)
     {
-	armv6m_atomic_or(&EXTI->RTSR, EXTI_RTSR_RT22);
+        armv6m_atomic_or(&EXTI->RTSR, EXTI_RTSR_RT22);
     }
     else
     {
-	armv6m_atomic_and(&EXTI->RTSR, ~EXTI_RTSR_RT22);
+        armv6m_atomic_and(&EXTI->RTSR, ~EXTI_RTSR_RT22);
     }
     
     if (control & STM32L0_COMP_CONTROL_EDGE_FALLING)
     {
-	armv6m_atomic_or(&EXTI->FTSR, EXTI_FTSR_FT22);
+        armv6m_atomic_or(&EXTI->FTSR, EXTI_FTSR_FT22);
     }
     else
     {
-	armv6m_atomic_and(&EXTI->FTSR, ~EXTI_FTSR_FT22);
+        armv6m_atomic_and(&EXTI->FTSR, ~EXTI_FTSR_FT22);
     }
 
     EXTI->PR = EXTI_PR_PIF22;
@@ -186,7 +186,7 @@ bool stm32l0_comp_detach(void)
 {
     if (stm32l0_comp_device.state != STM32L0_COMP_STATE_READY)
     {
-	return false;
+        return false;
     }
 
     armv6m_atomic_and(&EXTI->IMR, ~EXTI_IMR_IM22);
@@ -198,7 +198,7 @@ bool stm32l0_comp_status(void)
 {
     if (stm32l0_comp_device.state != STM32L0_COMP_STATE_READY)
     {
-	return false;
+        return false;
     }
 
     return ((COMP2->CSR & COMP_CSR_COMP2VALUE) == COMP_CSR_COMP2VALUE);
@@ -208,11 +208,11 @@ void ADC1_COMP_IRQHandler(void)
 {
     if (EXTI->PR & EXTI_PR_PIF22)
     {
-	EXTI->PR = EXTI_PR_PIF22;
+        EXTI->PR = EXTI_PR_PIF22;
 
-	if (stm32l0_comp_device.callback)
-	{
-	    (*stm32l0_comp_device.callback)(stm32l0_comp_device.context);
-	}
+        if (stm32l0_comp_device.callback)
+        {
+            (*stm32l0_comp_device.callback)(stm32l0_comp_device.context);
+        }
     }
 }

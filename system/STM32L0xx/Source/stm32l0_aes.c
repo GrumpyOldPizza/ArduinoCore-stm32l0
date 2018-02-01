@@ -51,7 +51,7 @@ static void stm32l0_aes_memzero(uint8_t *d, uint32_t n)
 
     while (d != d_e)
     {
-	*d++ = 0x00;
+        *d++ = 0x00;
     }
 }
 
@@ -64,7 +64,7 @@ static void stm32l0_aes_memcpy(uint8_t *d, const uint8_t *s, uint32_t n)
 
     while (d != d_e)
     {
-	*d++ = *s++;
+        *d++ = *s++;
     }
 }
 
@@ -85,32 +85,32 @@ static void stm32l0_aes_engine(const uint8_t *iv, const uint8_t *in, uint8_t *ou
 
     if (mode & AES_CR_MODE_1)
     {
-	AES->CR = AES_CR_DATATYPE_1 | AES_CR_MODE_0;
+        AES->CR = AES_CR_DATATYPE_1 | AES_CR_MODE_0;
 
-	AES->CR |= AES_CR_EN;
+        AES->CR |= AES_CR_EN;
 
-	while (!(AES->SR & AES_SR_CCF))
-	{
-	}
+        while (!(AES->SR & AES_SR_CCF))
+        {
+        }
 
-	AES->CR |= AES_CR_CCFC;
+        AES->CR |= AES_CR_CCFC;
     }
 
     AES->CR = AES_CR_DATATYPE_1 | mode;
 
     if (iv)
     {
-	AES->IVR0 = ((iv[12] << 24) | (iv[13] << 16) |(iv[14] <<  8) |(iv[15] <<  0));
-	AES->IVR1 = ((iv[ 8] << 24) | (iv[ 9] << 16) |(iv[10] <<  8) |(iv[11] <<  0));
-	AES->IVR2 = ((iv[ 4] << 24) | (iv[ 5] << 16) |(iv[ 6] <<  8) |(iv[ 7] <<  0));
-	AES->IVR3 = ((iv[ 0] << 24) | (iv[ 1] << 16) |(iv[ 2] <<  8) |(iv[ 3] <<  0));
+        AES->IVR0 = ((iv[12] << 24) | (iv[13] << 16) |(iv[14] <<  8) |(iv[15] <<  0));
+        AES->IVR1 = ((iv[ 8] << 24) | (iv[ 9] << 16) |(iv[10] <<  8) |(iv[11] <<  0));
+        AES->IVR2 = ((iv[ 4] << 24) | (iv[ 5] << 16) |(iv[ 6] <<  8) |(iv[ 7] <<  0));
+        AES->IVR3 = ((iv[ 0] << 24) | (iv[ 1] << 16) |(iv[ 2] <<  8) |(iv[ 3] <<  0));
     }
     else
     {
-	AES->IVR0 = 0;
-	AES->IVR1 = 0;
-	AES->IVR2 = 0;
-	AES->IVR3 = 0;
+        AES->IVR0 = 0;
+        AES->IVR1 = 0;
+        AES->IVR2 = 0;
+        AES->IVR3 = 0;
     }
 
     AES->CR |= AES_CR_EN;
@@ -121,115 +121,115 @@ static void stm32l0_aes_engine(const uint8_t *iv, const uint8_t *in, uint8_t *ou
 
     while (in != in_e)
     {
-	data[0] = ((in[ 3] << 24) | (in[ 2] << 16) |(in[ 1] <<  8) |(in[ 0] <<  0));
-	data[1] = ((in[ 7] << 24) | (in[ 6] << 16) |(in[ 5] <<  8) |(in[ 4] <<  0));
-	data[2] = ((in[11] << 24) | (in[10] << 16) |(in[ 9] <<  8) |(in[ 8] <<  0));
-	data[3] = ((in[15] << 24) | (in[14] << 16) |(in[13] <<  8) |(in[12] <<  0));
+        data[0] = ((in[ 3] << 24) | (in[ 2] << 16) |(in[ 1] <<  8) |(in[ 0] <<  0));
+        data[1] = ((in[ 7] << 24) | (in[ 6] << 16) |(in[ 5] <<  8) |(in[ 4] <<  0));
+        data[2] = ((in[11] << 24) | (in[10] << 16) |(in[ 9] <<  8) |(in[ 8] <<  0));
+        data[3] = ((in[15] << 24) | (in[14] << 16) |(in[13] <<  8) |(in[12] <<  0));
 
-	in += 16;
+        in += 16;
 
-	AES->DINR = data[0];
-	AES->DINR = data[1];
-	AES->DINR = data[2];
-	AES->DINR = data[3];
+        AES->DINR = data[0];
+        AES->DINR = data[1];
+        AES->DINR = data[2];
+        AES->DINR = data[3];
 
-	while (!(AES->SR & AES_SR_CCF))
-	{
-	}
+        while (!(AES->SR & AES_SR_CCF))
+        {
+        }
 
-	AES->CR |= AES_CR_CCFC;
-	
-	data[0] = AES->DOUTR;
-	data[1] = AES->DOUTR;
-	data[2] = AES->DOUTR;
-	data[3] = AES->DOUTR;
-	
-	if (!discard)
-	{
-	    out[ 0] = data[0] >>  0;
-	    out[ 1] = data[0] >>  8;
-	    out[ 2] = data[0] >> 16;
-	    out[ 3] = data[0] >> 24;
-	    
-	    out[ 4] = data[1] >>  0;
-	    out[ 5] = data[1] >>  8;
-	    out[ 6] = data[1] >> 16;
-	    out[ 7] = data[1] >> 24;
-	    
-	    out[ 8] = data[2] >>  0;
-	    out[ 9] = data[2] >>  8;
-	    out[10] = data[2] >> 16;
-	    out[11] = data[2] >> 24;
-	    
-	    out[12] = data[3] >>  0;
-	    out[13] = data[3] >>  8;
-	    out[14] = data[3] >> 16;
-	    out[15] = data[3] >> 24;
+        AES->CR |= AES_CR_CCFC;
+        
+        data[0] = AES->DOUTR;
+        data[1] = AES->DOUTR;
+        data[2] = AES->DOUTR;
+        data[3] = AES->DOUTR;
+        
+        if (!discard)
+        {
+            out[ 0] = data[0] >>  0;
+            out[ 1] = data[0] >>  8;
+            out[ 2] = data[0] >> 16;
+            out[ 3] = data[0] >> 24;
+            
+            out[ 4] = data[1] >>  0;
+            out[ 5] = data[1] >>  8;
+            out[ 6] = data[1] >> 16;
+            out[ 7] = data[1] >> 24;
+            
+            out[ 8] = data[2] >>  0;
+            out[ 9] = data[2] >>  8;
+            out[10] = data[2] >> 16;
+            out[11] = data[2] >> 24;
+            
+            out[12] = data[3] >>  0;
+            out[13] = data[3] >>  8;
+            out[14] = data[3] >> 16;
+            out[15] = data[3] >> 24;
 
-	    out += 16;
-	}
+            out += 16;
+        }
     }
 
     tail = n - size;
 
     if (tail)
     {
-	data[0] = 0;
-	data[1] = 0;
-	data[2] = 0;
-	data[3] = 0;
+        data[0] = 0;
+        data[1] = 0;
+        data[2] = 0;
+        data[3] = 0;
 
-	for (i = 0; i < tail; i++)
-	{
-	    ((uint8_t*)(&data[0]))[i] = in[i];
-	}
+        for (i = 0; i < tail; i++)
+        {
+            ((uint8_t*)(&data[0]))[i] = in[i];
+        }
 
-	AES->DINR = data[0];
-	AES->DINR = data[1];
-	AES->DINR = data[2];
-	AES->DINR = data[3];
+        AES->DINR = data[0];
+        AES->DINR = data[1];
+        AES->DINR = data[2];
+        AES->DINR = data[3];
 
-	while (!(AES->SR & AES_SR_CCF))
-	{
-	}
+        while (!(AES->SR & AES_SR_CCF))
+        {
+        }
 
-	AES->CR |= AES_CR_CCFC;
-	
-	data[0] = AES->DOUTR;
-	data[1] = AES->DOUTR;
-	data[2] = AES->DOUTR;
-	data[3] = AES->DOUTR;
-	
-	if (!discard)
-	{
-	    for (i = 0; i < tail; i++)
-	    {
-		out[i] = ((uint8_t*)(&data[0]))[i];
-	    }
-	}
+        AES->CR |= AES_CR_CCFC;
+        
+        data[0] = AES->DOUTR;
+        data[1] = AES->DOUTR;
+        data[2] = AES->DOUTR;
+        data[3] = AES->DOUTR;
+        
+        if (!discard)
+        {
+            for (i = 0; i < tail; i++)
+            {
+                out[i] = ((uint8_t*)(&data[0]))[i];
+            }
+        }
     }
 
     if (discard)
     {
-	out[ 0] = data[0] >>  0;
-	out[ 1] = data[0] >>  8;
-	out[ 2] = data[0] >> 16;
-	out[ 3] = data[0] >> 24;
-	    
-	out[ 4] = data[1] >>  0;
-	out[ 5] = data[1] >>  8;
-	out[ 6] = data[1] >> 16;
-	out[ 7] = data[1] >> 24;
-	
-	out[ 8] = data[2] >>  0;
-	out[ 9] = data[2] >>  8;
-	out[10] = data[2] >> 16;
-	out[11] = data[2] >> 24;
-	
-	out[12] = data[3] >>  0;
-	out[13] = data[3] >>  8;
-	out[14] = data[3] >> 16;
-	out[15] = data[3] >> 24;
+        out[ 0] = data[0] >>  0;
+        out[ 1] = data[0] >>  8;
+        out[ 2] = data[0] >> 16;
+        out[ 3] = data[0] >> 24;
+            
+        out[ 4] = data[1] >>  0;
+        out[ 5] = data[1] >>  8;
+        out[ 6] = data[1] >> 16;
+        out[ 7] = data[1] >> 24;
+        
+        out[ 8] = data[2] >>  0;
+        out[ 9] = data[2] >>  8;
+        out[10] = data[2] >> 16;
+        out[11] = data[2] >> 24;
+        
+        out[12] = data[3] >>  0;
+        out[13] = data[3] >>  8;
+        out[14] = data[3] >> 16;
+        out[15] = data[3] >> 24;
     }
 
     AES->CR &= ~AES_CR_EN;
@@ -296,33 +296,33 @@ static void stm32l0_aes_ccm_authenticate(uint32_t msize, const uint8_t *nonce, c
 
     if (adata)
     {
-	stm32l0_aes_memzero(&stm32l0_aes_device.M[0], 16);
+        stm32l0_aes_memzero(&stm32l0_aes_device.M[0], 16);
 
-	stm32l0_aes_device.M[0] = asize >> 8;
-	stm32l0_aes_device.M[1] = asize >> 0;
-	
-	size = 14;
-	
-	if (size > asize)
-	{
-	    size = asize;
-	}
-	
-	stm32l0_aes_memcpy(&stm32l0_aes_device.M[2], adata, size);
-	adata += size;
-	asize -= size;
+        stm32l0_aes_device.M[0] = asize >> 8;
+        stm32l0_aes_device.M[1] = asize >> 0;
+        
+        size = 14;
+        
+        if (size > asize)
+        {
+            size = asize;
+        }
+        
+        stm32l0_aes_memcpy(&stm32l0_aes_device.M[2], adata, size);
+        adata += size;
+        asize -= size;
 
-	stm32l0_aes_engine(&stm32l0_aes_device.K1[0], &stm32l0_aes_device.M[0], &stm32l0_aes_device.K1[0], 16, AES_CR_CHMOD_0, true);
+        stm32l0_aes_engine(&stm32l0_aes_device.K1[0], &stm32l0_aes_device.M[0], &stm32l0_aes_device.K1[0], 16, AES_CR_CHMOD_0, true);
 
-	if (asize)
-	{
-	    stm32l0_aes_engine(&stm32l0_aes_device.K1[0], adata, &stm32l0_aes_device.K1[0], asize, AES_CR_CHMOD_0, true);
-	}
+        if (asize)
+        {
+            stm32l0_aes_engine(&stm32l0_aes_device.K1[0], adata, &stm32l0_aes_device.K1[0], asize, AES_CR_CHMOD_0, true);
+        }
     }
 
     if (n)
     {
-	stm32l0_aes_engine(&stm32l0_aes_device.K1[0], in, &stm32l0_aes_device.K1[0], n, AES_CR_CHMOD_0, true);
+        stm32l0_aes_engine(&stm32l0_aes_device.K1[0], in, &stm32l0_aes_device.K1[0], n, AES_CR_CHMOD_0, true);
     }
 }
 
@@ -339,7 +339,7 @@ void stm32l0_aes_ccm_encrypt(uint32_t msize, const uint8_t *nonce, const uint8_t
 
     if (n)
     {
-	stm32l0_aes_engine(&stm32l0_aes_device.M[0], in, out, n, AES_CR_CHMOD_1, false);
+        stm32l0_aes_engine(&stm32l0_aes_device.M[0], in, out, n, AES_CR_CHMOD_1, false);
     }
 
     stm32l0_aes_device.M[14] = 0x00;
@@ -367,7 +367,7 @@ bool stm32l0_aes_ccm_decrypt(uint32_t msize, const uint8_t *nonce, const uint8_t
 
     if (n)
     {
-	stm32l0_aes_engine(&stm32l0_aes_device.M[0], in, out, n, AES_CR_CHMOD_1, false);
+        stm32l0_aes_engine(&stm32l0_aes_device.M[0], in, out, n, AES_CR_CHMOD_1, false);
     }
 
     stm32l0_aes_device.M[14] = 0x00;
@@ -379,11 +379,11 @@ bool stm32l0_aes_ccm_decrypt(uint32_t msize, const uint8_t *nonce, const uint8_t
 
     for (i = 0; i < msize; i++)
     {
-	if (stm32l0_aes_device.K1[i] != stm32l0_aes_device.K2[i])
-	{
-	    check = false;
-	    break;
-	}
+        if (stm32l0_aes_device.K1[i] != stm32l0_aes_device.K2[i])
+        {
+            check = false;
+            break;
+        }
     }
 
     return check;
@@ -402,54 +402,54 @@ void stm32l0_aes_cmac_update(const uint8_t *in, uint32_t n)
 
     if (n)
     {
-	if (stm32l0_aes_device.index == 16)
-	{
-	    stm32l0_aes_engine(&stm32l0_aes_device.IV[0], &stm32l0_aes_device.M[0], &stm32l0_aes_device.IV[0], 16, AES_CR_CHMOD_0, true);
-	    stm32l0_aes_device.index = 0;
-	}
+        if (stm32l0_aes_device.index == 16)
+        {
+            stm32l0_aes_engine(&stm32l0_aes_device.IV[0], &stm32l0_aes_device.M[0], &stm32l0_aes_device.IV[0], 16, AES_CR_CHMOD_0, true);
+            stm32l0_aes_device.index = 0;
+        }
 
-	if (stm32l0_aes_device.index != 0)
-	{
-	    size = 16 - stm32l0_aes_device.index;
-	    
-	    if (size > n)
-	    {
-		size =  n;
-	    }
-	    
-	    stm32l0_aes_memcpy(&stm32l0_aes_device.M[stm32l0_aes_device.index], in, size);
-	    stm32l0_aes_device.index += size;
-	    
-	    in += size;
-	    n -= size;
-	}
+        if (stm32l0_aes_device.index != 0)
+        {
+            size = 16 - stm32l0_aes_device.index;
+            
+            if (size > n)
+            {
+                size =  n;
+            }
+            
+            stm32l0_aes_memcpy(&stm32l0_aes_device.M[stm32l0_aes_device.index], in, size);
+            stm32l0_aes_device.index += size;
+            
+            in += size;
+            n -= size;
+        }
 
-	if (n)
-	{
-	    if (stm32l0_aes_device.index == 16)
-	    {
-		stm32l0_aes_engine(&stm32l0_aes_device.IV[0], &stm32l0_aes_device.M[0], &stm32l0_aes_device.IV[0], 16, AES_CR_CHMOD_0, true);
-		stm32l0_aes_device.index = 0;
-	    }
+        if (n)
+        {
+            if (stm32l0_aes_device.index == 16)
+            {
+                stm32l0_aes_engine(&stm32l0_aes_device.IV[0], &stm32l0_aes_device.M[0], &stm32l0_aes_device.IV[0], 16, AES_CR_CHMOD_0, true);
+                stm32l0_aes_device.index = 0;
+            }
 
-	    if (n > 16)
-	    {
-		size = n & ~15;
+            if (n > 16)
+            {
+                size = n & ~15;
 
-		if (size == n)
-		{
-		    size -= 16;
-		}
+                if (size == n)
+                {
+                    size -= 16;
+                }
 
-		stm32l0_aes_engine(&stm32l0_aes_device.IV[0], in, &stm32l0_aes_device.IV[0], size, AES_CR_CHMOD_0, true);
-		
-		in += size;
-		n -= size;
-	    }
+                stm32l0_aes_engine(&stm32l0_aes_device.IV[0], in, &stm32l0_aes_device.IV[0], size, AES_CR_CHMOD_0, true);
+                
+                in += size;
+                n -= size;
+            }
 
-	    stm32l0_aes_memcpy(&stm32l0_aes_device.M[0], in, n);
-	    stm32l0_aes_device.index = n;
-	}
+            stm32l0_aes_memcpy(&stm32l0_aes_device.M[0], in, n);
+            stm32l0_aes_device.index = n;
+        }
     }
 }
 
@@ -460,46 +460,46 @@ void stm32l0_aes_cmac_final(uint8_t *out)
     
     stm32l0_aes_memzero(&stm32l0_aes_device.K2[0], 16);
     stm32l0_aes_engine(NULL, &stm32l0_aes_device.K2[0], &stm32l0_aes_device.K2[0], 16, 0, false);
-	
+        
     for (i = 0; i < 15; i++)
     {
-	stm32l0_aes_device.K1[i] = (stm32l0_aes_device.K2[i] << 1) | (stm32l0_aes_device.K2[i+1] >> 7);
+        stm32l0_aes_device.K1[i] = (stm32l0_aes_device.K2[i] << 1) | (stm32l0_aes_device.K2[i+1] >> 7);
     }
 
     stm32l0_aes_device.K1[15] = (stm32l0_aes_device.K2[15] << 1);
-	
+        
     if (stm32l0_aes_device.K2[0] & 0x80) 
     {
-	stm32l0_aes_device.K1[15] ^= 0x87;
+        stm32l0_aes_device.K1[15] ^= 0x87;
     }
 
     if (stm32l0_aes_device.index == 16)
     {
-	K = &stm32l0_aes_device.K1[0];
+        K = &stm32l0_aes_device.K1[0];
     }
     else
     {
-	for (i = 0; i < 15; i++)
-	{
-	    stm32l0_aes_device.K2[i] = (stm32l0_aes_device.K1[i] << 1) | (stm32l0_aes_device.K1[i+1] >> 7);
-	}
-	
-	stm32l0_aes_device.K2[15] = (stm32l0_aes_device.K1[15] << 1);
+        for (i = 0; i < 15; i++)
+        {
+            stm32l0_aes_device.K2[i] = (stm32l0_aes_device.K1[i] << 1) | (stm32l0_aes_device.K1[i+1] >> 7);
+        }
+        
+        stm32l0_aes_device.K2[15] = (stm32l0_aes_device.K1[15] << 1);
 
-	if (stm32l0_aes_device.K1[0] & 0x80) 
-	{
-	    stm32l0_aes_device.K2[15] ^= 0x87;
-	}
+        if (stm32l0_aes_device.K1[0] & 0x80) 
+        {
+            stm32l0_aes_device.K2[15] ^= 0x87;
+        }
 
-	K = &stm32l0_aes_device.K2[0];
+        K = &stm32l0_aes_device.K2[0];
 
-	stm32l0_aes_memzero(&stm32l0_aes_device.M[stm32l0_aes_device.index], 16 - stm32l0_aes_device.index);
-	stm32l0_aes_device.M[stm32l0_aes_device.index] = 0x80;
+        stm32l0_aes_memzero(&stm32l0_aes_device.M[stm32l0_aes_device.index], 16 - stm32l0_aes_device.index);
+        stm32l0_aes_device.M[stm32l0_aes_device.index] = 0x80;
     }
 
     for (i = 0; i < 16; i++)
     {
-	stm32l0_aes_device.M[i] ^= K[i];
+        stm32l0_aes_device.M[i] ^= K[i];
     }
 
     stm32l0_aes_engine(&stm32l0_aes_device.IV[0], &stm32l0_aes_device.M[0], out, 16, AES_CR_CHMOD_0, true);

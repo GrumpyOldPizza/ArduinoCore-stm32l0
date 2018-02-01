@@ -43,45 +43,45 @@ bool stm32l0_random(uint8_t *data, uint32_t count)
 
     while (count)
     {
-	while (!(RNG->SR & RNG_SR_DRDY))
-	{
-	    if (RNG->SR & (RNG_SR_CECS | RNG_SR_SECS))
-	    {
-		return false;
-	    }
-	}
+        while (!(RNG->SR & RNG_SR_DRDY))
+        {
+            if (RNG->SR & (RNG_SR_CECS | RNG_SR_SECS))
+            {
+                return false;
+            }
+        }
 
-	rng_data = RNG->DR;
+        rng_data = RNG->DR;
 
-	if (count >= 4)
-	{
-	    data[0] = rng_data;
-	    data[1] = rng_data >> 8;
-	    data[2] = rng_data >> 16;
-	    data[3] = rng_data >> 24;
-	    
-	    data += 4;
-	    count -= 4;
-	}
-	else
-	{
-	    if (count >= 3) 
-	    {
-		data[2] = rng_data >> 16;
-	    }
+        if (count >= 4)
+        {
+            data[0] = rng_data;
+            data[1] = rng_data >> 8;
+            data[2] = rng_data >> 16;
+            data[3] = rng_data >> 24;
+            
+            data += 4;
+            count -= 4;
+        }
+        else
+        {
+            if (count >= 3) 
+            {
+                data[2] = rng_data >> 16;
+            }
 
-	    if (count >= 2) 
-	    {
-		data[1] = rng_data >> 8;
-	    }
+            if (count >= 2) 
+            {
+                data[1] = rng_data >> 8;
+            }
 
-	    if (count >= 1) 
-	    {
-		data[0] = rng_data >> 8;
-	    }
+            if (count >= 1) 
+            {
+                data[0] = rng_data >> 8;
+            }
 
-	    count = 0;
-	}
+            count = 0;
+        }
     }
     
 

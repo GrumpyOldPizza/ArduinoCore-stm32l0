@@ -182,11 +182,11 @@ struct _dosfs_sflash_t {
         uint32_t                sflash_ftl_read;
         uint32_t                sflash_ftl_write;
         uint32_t                sflash_ftl_delete;
-	uint32_t                sflash_ftl_xlate_miss;
-	uint32_t                sflash_ftl_xlate_hit;
-	uint32_t                sflash_ftl_xlate2_miss;
-	uint32_t                sflash_ftl_xlate2_hit;
-	uint32_t                sflash_ftl_reclaim;
+        uint32_t                sflash_ftl_xlate_miss;
+        uint32_t                sflash_ftl_xlate_hit;
+        uint32_t                sflash_ftl_xlate2_miss;
+        uint32_t                sflash_ftl_xlate2_hit;
+        uint32_t                sflash_ftl_reclaim;
     }                       statistics;
 #endif /* (DOSFS_CONFIG_STATISTICS == 1) */
 };

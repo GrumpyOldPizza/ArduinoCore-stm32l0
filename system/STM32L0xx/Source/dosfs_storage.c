@@ -41,14 +41,14 @@ static int8_t dosfs_storage_init(uint8_t lun)
 
     if (!dosfs_device.interface)
     {
-	return -1;
+        return -1;
     }
 
     status = (*dosfs_device.interface->notify)(dosfs_device.context, (dosfs_device_notify_callback_t)USBD_MSC_Notify, (void*)lun);
 
     if (status != F_NO_ERROR)
     {
-	return -1;
+        return -1;
     }
 
     return 0;
@@ -60,7 +60,7 @@ static int8_t dosfs_storage_deinit(uint8_t lun)
 
     if (!dosfs_device.interface)
     {
-	return -1;
+        return -1;
     }
 
     dosfs_device.lock &= ~(DOSFS_DEVICE_LOCK_ACCESSED | DOSFS_DEVICE_LOCK_SCSI | DOSFS_DEVICE_LOCK_MEDIUM);
@@ -69,7 +69,7 @@ static int8_t dosfs_storage_deinit(uint8_t lun)
 
     if (status != F_NO_ERROR)
     {
-	return -1;
+        return -1;
     }
 
     return 0;
@@ -83,19 +83,19 @@ static int8_t dosfs_storage_get_capacity(uint8_t lun, uint32_t *block_num, uint1
 
     if (!dosfs_device.interface)
     {
-	return -1;
+        return -1;
     }
 
     if ((dosfs_device.lock & (DOSFS_DEVICE_LOCK_INIT | DOSFS_DEVICE_LOCK_SFLASH | DOSFS_DEVICE_LOCK_VOLUME | DOSFS_DEVICE_LOCK_EJECTED)) || (armv6m_systick_millis() < 2000))
     {
-	return -1;
+        return -1;
     }
     
     status = (*dosfs_device.interface->info)(dosfs_device.context, &media, &write_protected, &block_count, &au_size, &serial);
 
     if (status != F_NO_ERROR)
     {
-	return -1;
+        return -1;
     }
 
     *block_num  = block_count;
@@ -108,12 +108,12 @@ static int8_t dosfs_storage_is_ready(uint8_t lun)
 {
     if (!dosfs_device.interface)
     {
-	return -1;
+        return -1;
     }
 
     if ((dosfs_device.lock & (DOSFS_DEVICE_LOCK_INIT | DOSFS_DEVICE_LOCK_SFLASH | DOSFS_DEVICE_LOCK_VOLUME | DOSFS_DEVICE_LOCK_EJECTED)) || (armv6m_systick_millis() < 2000))
     {
-	return -1;
+        return -1;
     }
     
     return 0;
@@ -128,12 +128,12 @@ static int8_t dosfs_storage_is_changed(uint8_t lun)
 {
     if (dosfs_device.lock & DOSFS_DEVICE_LOCK_MODIFIED)
     {
-	dosfs_device.lock &= ~DOSFS_DEVICE_LOCK_MODIFIED;
+        dosfs_device.lock &= ~DOSFS_DEVICE_LOCK_MODIFIED;
 
-	if (dosfs_device.lock & DOSFS_DEVICE_LOCK_ACCESSED)
-	{
-	    return -1;
-	}
+        if (dosfs_device.lock & DOSFS_DEVICE_LOCK_ACCESSED)
+        {
+            return -1;
+        }
     }
     
     return 0;
@@ -143,18 +143,18 @@ static int8_t dosfs_storage_start_stop_unit(uint8_t lun, uint8_t start, uint8_t 
 {
     if (!dosfs_device.interface)
     {
-	return -1;
+        return -1;
     }
 
     if ((dosfs_device.lock & (DOSFS_DEVICE_LOCK_INIT | DOSFS_DEVICE_LOCK_SFLASH | DOSFS_DEVICE_LOCK_VOLUME | DOSFS_DEVICE_LOCK_EJECTED)) || (armv6m_systick_millis() < 2000))
     {
-	return -1;
+        return -1;
     }
 
     if (!start && loej)
     {
-	dosfs_device.lock &= ~(DOSFS_DEVICE_LOCK_ACCESSED | DOSFS_DEVICE_LOCK_SCSI | DOSFS_DEVICE_LOCK_MEDIUM);
-	dosfs_device.lock |= DOSFS_DEVICE_LOCK_EJECTED;
+        dosfs_device.lock &= ~(DOSFS_DEVICE_LOCK_ACCESSED | DOSFS_DEVICE_LOCK_SCSI | DOSFS_DEVICE_LOCK_MEDIUM);
+        dosfs_device.lock |= DOSFS_DEVICE_LOCK_EJECTED;
     }
 
     return 0;
@@ -164,21 +164,21 @@ static int8_t dosfs_storage_prevent_allow_medium_removal(uint8_t lun, uint8_t pa
 {
     if (!dosfs_device.interface)
     {
-	return -1;
+        return -1;
     }
 
     if ((dosfs_device.lock & (DOSFS_DEVICE_LOCK_INIT | DOSFS_DEVICE_LOCK_SFLASH | DOSFS_DEVICE_LOCK_VOLUME | DOSFS_DEVICE_LOCK_EJECTED)) || (armv6m_systick_millis() < 2000))
     {
-	return -1;
+        return -1;
     }
 
     if (param & 1)
     {
-	dosfs_device.lock |= DOSFS_DEVICE_LOCK_MEDIUM;
+        dosfs_device.lock |= DOSFS_DEVICE_LOCK_MEDIUM;
     }
     else
     {
-	dosfs_device.lock &= ~DOSFS_DEVICE_LOCK_MEDIUM;
+        dosfs_device.lock &= ~DOSFS_DEVICE_LOCK_MEDIUM;
     }
 
     return 0;
@@ -189,7 +189,7 @@ static int8_t dosfs_storage_acquire(uint8_t lun)
 {
     if ((dosfs_device.lock & (DOSFS_DEVICE_LOCK_INIT | DOSFS_DEVICE_LOCK_SFLASH | DOSFS_DEVICE_LOCK_VOLUME | DOSFS_DEVICE_LOCK_EJECTED)) || (armv6m_systick_millis() < 2000))
     {
-	return -1;
+        return -1;
     }
     
     dosfs_device.lock |= DOSFS_DEVICE_LOCK_SCSI;
@@ -205,14 +205,14 @@ static int8_t dosfs_storage_read(uint8_t lun, uint8_t *buf, uint32_t blk_addr, u
 
     if (status != F_NO_ERROR)
     {
-	dosfs_device.lock &= ~DOSFS_DEVICE_LOCK_SCSI;
+        dosfs_device.lock &= ~DOSFS_DEVICE_LOCK_SCSI;
 
-	return -1;
+        return -1;
     }
 
     if (last)
     {
-	dosfs_device.lock &= ~DOSFS_DEVICE_LOCK_SCSI;
+        dosfs_device.lock &= ~DOSFS_DEVICE_LOCK_SCSI;
     }
 
     dosfs_device.lock |= DOSFS_DEVICE_LOCK_ACCESSED;
@@ -228,14 +228,14 @@ static int8_t dosfs_storage_write(uint8_t lun, uint8_t *buf, uint32_t blk_addr, 
 
     if (status != F_NO_ERROR)
     {
-	dosfs_device.lock &= ~DOSFS_DEVICE_LOCK_SCSI;
+        dosfs_device.lock &= ~DOSFS_DEVICE_LOCK_SCSI;
 
-	return -1;
+        return -1;
     }
 
     if (last)
     {
-	dosfs_device.lock &= ~DOSFS_DEVICE_LOCK_SCSI;
+        dosfs_device.lock &= ~DOSFS_DEVICE_LOCK_SCSI;
     }
 
     dosfs_device.lock |= DOSFS_DEVICE_LOCK_ACCESSED;
@@ -252,13 +252,13 @@ static int8_t dosfs_storage_get_maxlun(void)
 static const int8_t dosfs_storage_inquiry_data[] = {
   
   /* LUN 0 */
-  0x00,		
-  0x80,		
-  0x02,		
+  0x00,         
+  0x80,         
+  0x02,         
   0x02,
   (STANDARD_INQUIRY_DATA_LEN - 5),
   0x00,
-  0x00,	
+  0x00, 
   0x00,
   'T', 'l', 'e', 'r', 'a', ' ', ' ', ' ', /* Manufacturer : 8 bytes */
   'D', 'O', 'S', 'F', 'S', ' ', ' ', ' ', /* Product      : 16 Bytes */

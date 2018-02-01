@@ -44,58 +44,58 @@ static void stm32l0_servo_timer_callback(void *context, uint32_t events)
 
     if (index != active->entries)
     {
-	active->slot[index].GPIO->BRR = active->slot[index].mask;
-	    
-	index++;
+        active->slot[index].GPIO->BRR = active->slot[index].mask;
+            
+        index++;
 
-	if (index != active->entries)
-	{
-	    active->slot[index].GPIO->BSRR = active->slot[index].mask;
+        if (index != active->entries)
+        {
+            active->slot[index].GPIO->BSRR = active->slot[index].mask;
 
-	    stm32l0_timer_period(servo->timer, active->slot[index].width -1, true);
-	}
-	else
-	{
-	    stm32l0_timer_period(servo->timer, active->sync -1, true);
-	}
+            stm32l0_timer_period(servo->timer, active->slot[index].width -1, true);
+        }
+        else
+        {
+            stm32l0_timer_period(servo->timer, active->sync -1, true);
+        }
 
-	servo->index = index;
+        servo->index = index;
     }
     else
     {
-	servo->index = 0;
+        servo->index = 0;
 
-	pending = servo->pending;
+        pending = servo->pending;
 
-	if (pending == NULL)
-	{
-	    active->slot[0].GPIO->BSRR = active->slot[0].mask;
+        if (pending == NULL)
+        {
+            active->slot[0].GPIO->BSRR = active->slot[0].mask;
 
-	    stm32l0_timer_period(servo->timer, active->slot[0].width -1, true);
-	}
-	else
-	{
-	    if (pending->entries)
-	    {
-		pending->slot[0].GPIO->BSRR = pending->slot[0].mask;
+            stm32l0_timer_period(servo->timer, active->slot[0].width -1, true);
+        }
+        else
+        {
+            if (pending->entries)
+            {
+                pending->slot[0].GPIO->BSRR = pending->slot[0].mask;
 
-		stm32l0_timer_period(servo->timer, pending->slot[0].width -1, true);
-	    }
-	    else
-	    {
-		stm32l0_timer_stop(servo->timer);
+                stm32l0_timer_period(servo->timer, pending->slot[0].width -1, true);
+            }
+            else
+            {
+                stm32l0_timer_stop(servo->timer);
 
-		servo->state = STM32L0_SERVO_STATE_READY;
-	    }
+                servo->state = STM32L0_SERVO_STATE_READY;
+            }
 
-	    servo->pending = NULL;
-	    servo->active = pending;
-	}
+            servo->pending = NULL;
+            servo->active = pending;
+        }
 
-	if (servo->callback)
-	{
-	    (*servo->callback)(servo->context, STM32L0_SERVO_EVENT_SYNC);
-	}
+        if (servo->callback)
+        {
+            (*servo->callback)(servo->context, STM32L0_SERVO_EVENT_SYNC);
+        }
     }
 }
 
@@ -118,7 +118,7 @@ bool stm32l0_servo_destroy(stm32l0_servo_t *servo)
 {
     if (servo->state != STM32L0_SERVO_STATE_INIT)
     {
-	return false;
+        return false;
     }
 
     servo->state = STM32L0_SERVO_STATE_NONE;
@@ -130,25 +130,25 @@ bool stm32l0_servo_enable(stm32l0_servo_t *servo, const stm32l0_servo_table_t *t
 {
     if (servo->state != STM32L0_SERVO_STATE_INIT)
     {
-	return false;
+        return false;
     }
 
     servo->state = STM32L0_SERVO_STATE_BUSY;
 
     if (!stm32l0_timer_enable(servo->timer, 0, 0, stm32l0_servo_timer_callback, servo, STM32L0_TIMER_EVENT_PERIOD))
     {
-	servo->state = STM32L0_SERVO_STATE_INIT;
+        servo->state = STM32L0_SERVO_STATE_INIT;
 
-	return false;
+        return false;
     }
 
     if (!stm32l0_servo_configure(servo, table))
     {
-	stm32l0_timer_disable(servo->timer);
+        stm32l0_timer_disable(servo->timer);
 
-	servo->state = STM32L0_SERVO_STATE_INIT;
+        servo->state = STM32L0_SERVO_STATE_INIT;
 
-	return false;
+        return false;
     }
 
     servo->callback = callback;
@@ -161,7 +161,7 @@ bool stm32l0_servo_disable(stm32l0_servo_t *servo)
 {
     if (servo->state != STM32L0_SERVO_STATE_READY)
     {
-	return false;
+        return false;
     }
 
     stm32l0_timer_disable(servo->timer);
@@ -181,7 +181,7 @@ bool stm32l0_servo_configure(stm32l0_servo_t *servo, const stm32l0_servo_table_t
 
     if (servo->state < STM32L0_SERVO_STATE_BUSY)
     {
-	return false;
+        return false;
     }
 
     servo->pending = NULL;
@@ -190,56 +190,56 @@ bool stm32l0_servo_configure(stm32l0_servo_t *servo, const stm32l0_servo_table_t
 
     for (offset = 0, entry = 0, index = 0; entry < table->entries; entry++)
     {
-	if ((table->slot[entry].pin != STM32L0_GPIO_PIN_NONE) && (table->slot[index].width >= STM32L0_SERVO_PULSE_WIDTH))
-	{
-	    pending->slot[index].GPIO = (GPIO_TypeDef *)(GPIOA_BASE + (GPIOB_BASE - GPIOA_BASE) * ((table->slot[entry].pin & STM32L0_GPIO_PIN_GROUP_MASK) >> STM32L0_GPIO_PIN_GROUP_SHIFT));
-	    pending->slot[index].mask = (1ul << ((table->slot[entry].pin & STM32L0_GPIO_PIN_INDEX_MASK) >> STM32L0_GPIO_PIN_INDEX_SHIFT));
-	    pending->slot[index].width = table->slot[entry].width;
+        if ((table->slot[entry].pin != STM32L0_GPIO_PIN_NONE) && (table->slot[index].width >= STM32L0_SERVO_PULSE_WIDTH))
+        {
+            pending->slot[index].GPIO = (GPIO_TypeDef *)(GPIOA_BASE + (GPIOB_BASE - GPIOA_BASE) * ((table->slot[entry].pin & STM32L0_GPIO_PIN_GROUP_MASK) >> STM32L0_GPIO_PIN_GROUP_SHIFT));
+            pending->slot[index].mask = (1ul << ((table->slot[entry].pin & STM32L0_GPIO_PIN_INDEX_MASK) >> STM32L0_GPIO_PIN_INDEX_SHIFT));
+            pending->slot[index].width = table->slot[entry].width;
 
-	    offset += table->slot[entry].width;
-	    index++;
-	}
+            offset += table->slot[entry].width;
+            index++;
+        }
     }
 
     if (offset == 0)
     {
-	pending->sync = 0;
-	pending->entries = 0;
+        pending->sync = 0;
+        pending->entries = 0;
     }
     else
     {
-	pending->entries = index;
+        pending->entries = index;
 
-	servo->prescaler = stm32l0_timer_clock(servo->timer) / 1000000;
+        servo->prescaler = stm32l0_timer_clock(servo->timer) / 1000000;
 
-	if ((offset + STM32L0_SERVO_SYNC_WIDTH) >= STM32L0_SERVO_FRAME_WIDTH)
-	{
-	    pending->sync = STM32L0_SERVO_SYNC_WIDTH;
-	}
-	else
-	{
-	    pending->sync = STM32L0_SERVO_FRAME_WIDTH - offset;
-	}
+        if ((offset + STM32L0_SERVO_SYNC_WIDTH) >= STM32L0_SERVO_FRAME_WIDTH)
+        {
+            pending->sync = STM32L0_SERVO_SYNC_WIDTH;
+        }
+        else
+        {
+            pending->sync = STM32L0_SERVO_FRAME_WIDTH - offset;
+        }
     }
 
     if (servo->active)
     {
-	servo->pending = pending;
+        servo->pending = pending;
     }
     else
     {
-	if (pending->entries)
-	{
-	    servo->state = STM32L0_SERVO_STATE_ACTIVE;
+        if (pending->entries)
+        {
+            servo->state = STM32L0_SERVO_STATE_ACTIVE;
 
-	    servo->active = pending;
-	    servo->index = 0;
-	    
-	    stm32l0_timer_configure(servo->timer, servo->prescaler -1, 0);
-	    stm32l0_timer_start(servo->timer, pending->slot[0].width -1, false);
-	    
-	    pending->slot[0].GPIO->BSRR = pending->slot[0].mask;
-	}
+            servo->active = pending;
+            servo->index = 0;
+            
+            stm32l0_timer_configure(servo->timer, servo->prescaler -1, 0);
+            stm32l0_timer_start(servo->timer, pending->slot[0].width -1, false);
+            
+            pending->slot[0].GPIO->BSRR = pending->slot[0].mask;
+        }
     }
 
     return true;

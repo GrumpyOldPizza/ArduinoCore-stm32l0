@@ -87,7 +87,7 @@ static void stm32l0_usbd_hid_do_send_report(uint8_t *tx_data, uint32_t tx_count)
     NVIC_DisableIRQ(USB_IRQn);
 
     USBD_HID_SendReport(stm32l0_usbd_hid_device.USBD, tx_data, tx_count);
-	
+        
     NVIC_EnableIRQ(USB_IRQn);
 }
 
@@ -97,23 +97,23 @@ bool stm32l0_usbd_hid_send_report(uint8_t id, const uint8_t *data, uint32_t coun
 
     if (armv6m_atomic_swap(&stm32l0_usbd_hid_device.tx_busy, 1))
     {
-	return false;
+        return false;
     }
     else
     {
-	stm32l0_usbd_hid_device.tx_data[0] = id;
-	memcpy(&stm32l0_usbd_hid_device.tx_data[1], data, count);
+        stm32l0_usbd_hid_device.tx_data[0] = id;
+        memcpy(&stm32l0_usbd_hid_device.tx_data[1], data, count);
 
-	if (__get_IPSR() == 0)
-	{
-	    armv6m_svcall_2((uint32_t)&stm32l0_usbd_hid_do_send_report, (uint32_t)&stm32l0_usbd_hid_device.tx_data[0], (count+1));
-	}
-	else
-	{
-	    success = armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)stm32l0_usbd_hid_do_send_report, &stm32l0_usbd_hid_device.tx_data[0], (count+1));
-	}
+        if (__get_IPSR() == 0)
+        {
+            armv6m_svcall_2((uint32_t)&stm32l0_usbd_hid_do_send_report, (uint32_t)&stm32l0_usbd_hid_device.tx_data[0], (count+1));
+        }
+        else
+        {
+            success = armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)stm32l0_usbd_hid_do_send_report, &stm32l0_usbd_hid_device.tx_data[0], (count+1));
+        }
 
-	return success;
+        return success;
     }
 }
 

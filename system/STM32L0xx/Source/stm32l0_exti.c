@@ -91,7 +91,7 @@ bool stm32l0_exti_attach(uint16_t pin, uint32_t control, stm32l0_exti_callback_t
 
     if (stm32l0_exti_device.events & mask)
     {
-	return false;
+        return false;
     }
 
     stm32l0_exti_device.callback[index] = callback;
@@ -101,20 +101,20 @@ bool stm32l0_exti_attach(uint16_t pin, uint32_t control, stm32l0_exti_callback_t
 
     if (control & STM32L0_EXTI_CONTROL_EDGE_RISING)
     {
-	armv6m_atomic_or(&EXTI->RTSR, mask);
+        armv6m_atomic_or(&EXTI->RTSR, mask);
     }
     else
     {
-	armv6m_atomic_and(&EXTI->RTSR, ~mask);
+        armv6m_atomic_and(&EXTI->RTSR, ~mask);
     }
     
     if (control & STM32L0_EXTI_CONTROL_EDGE_FALLING)
     {
-	armv6m_atomic_or(&EXTI->FTSR, mask);
+        armv6m_atomic_or(&EXTI->FTSR, mask);
     }
     else
     {
-	armv6m_atomic_and(&EXTI->FTSR, ~mask);
+        armv6m_atomic_and(&EXTI->FTSR, ~mask);
     }
 
     if (control & STM32L0_EXTI_CONTROL_WAKEUP)
@@ -161,26 +161,26 @@ void EXTI0_1_IRQHandler(void)
 
     if (mask & 0x0001)
     {
-	EXTI->PR = 0x0001;
+        EXTI->PR = 0x0001;
 
-	(*stm32l0_exti_device.callback[0])(stm32l0_exti_device.context[0]);
+        (*stm32l0_exti_device.callback[0])(stm32l0_exti_device.context[0]);
 
-	if (stm32l0_exti_device.wakeup & 0x0001) 
-	{
-	    stm32l0_system_wakeup();
-	}
+        if (stm32l0_exti_device.wakeup & 0x0001) 
+        {
+            stm32l0_system_wakeup();
+        }
     }
 
     if (mask & 0x0002)
     {
-	EXTI->PR = 0x0002;
+        EXTI->PR = 0x0002;
 
-	(*stm32l0_exti_device.callback[1])(stm32l0_exti_device.context[1]);
+        (*stm32l0_exti_device.callback[1])(stm32l0_exti_device.context[1]);
 
-	if (stm32l0_exti_device.wakeup & 0x0002) 
-	{
-	    stm32l0_system_wakeup();
-	}
+        if (stm32l0_exti_device.wakeup & 0x0002) 
+        {
+            stm32l0_system_wakeup();
+        }
     }
 }
 
@@ -190,26 +190,26 @@ void EXTI2_3_IRQHandler(void)
 
     if (mask & 0x0004)
     {
-	EXTI->PR = 0x0004;
+        EXTI->PR = 0x0004;
 
-	(*stm32l0_exti_device.callback[2])(stm32l0_exti_device.context[2]);
+        (*stm32l0_exti_device.callback[2])(stm32l0_exti_device.context[2]);
 
-	if (stm32l0_exti_device.wakeup & 0x0004) 
-	{
-	    stm32l0_system_wakeup();
-	}
+        if (stm32l0_exti_device.wakeup & 0x0004) 
+        {
+            stm32l0_system_wakeup();
+        }
     }
 
     if (mask & 0x0008)
     {
-	EXTI->PR = 0x0008;
+        EXTI->PR = 0x0008;
 
-	(*stm32l0_exti_device.callback[3])(stm32l0_exti_device.context[3]);
+        (*stm32l0_exti_device.callback[3])(stm32l0_exti_device.context[3]);
 
-	if (stm32l0_exti_device.wakeup & 0x0008) 
-	{
-	    stm32l0_system_wakeup();
-	}
+        if (stm32l0_exti_device.wakeup & 0x0008) 
+        {
+            stm32l0_system_wakeup();
+        }
     }
 }
 
@@ -220,18 +220,18 @@ void EXTI4_15_IRQHandler(void)
 
     for (bit = 0x0010, index = 4; mask; bit <<= 1, index++)
     {
-	if (mask & bit)
-	{
-	    EXTI->PR = bit;
+        if (mask & bit)
+        {
+            EXTI->PR = bit;
 
-	    mask &= ~bit;
+            mask &= ~bit;
 
-	    (*stm32l0_exti_device.callback[index])(stm32l0_exti_device.context[index]);
+            (*stm32l0_exti_device.callback[index])(stm32l0_exti_device.context[index]);
 
-	    if (stm32l0_exti_device.wakeup & bit) 
-	    {
-		stm32l0_system_wakeup();
-	    }
-	}
+            if (stm32l0_exti_device.wakeup & bit) 
+            {
+                stm32l0_system_wakeup();
+            }
+        }
     }
 }

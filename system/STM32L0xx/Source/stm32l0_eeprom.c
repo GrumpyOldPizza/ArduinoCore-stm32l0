@@ -39,7 +39,7 @@ bool stm32l0_eeprom_write(uint32_t address, const uint8_t *data, uint32_t count)
 
     if ((address + count) > DATA_EEPROM_SIZE)
     {
-	return false;
+        return false;
     }
 
     primask = __get_PRIMASK();
@@ -53,53 +53,53 @@ bool stm32l0_eeprom_write(uint32_t address, const uint8_t *data, uint32_t count)
 
     if (address & 1)
     {
-	if (count >= 1)
-	{
-	    *((volatile uint8_t*)(DATA_EEPROM_BASE + address)) = data[0];
-	    
-	    data    += 1;
-	    address += 1;
-	    count   -= 1;
-	}
+        if (count >= 1)
+        {
+            *((volatile uint8_t*)(DATA_EEPROM_BASE + address)) = data[0];
+            
+            data    += 1;
+            address += 1;
+            count   -= 1;
+        }
     }
 
     if (address & 2)
     {
-	if (count >= 2)
-	{
-	    *((volatile uint16_t*)(DATA_EEPROM_BASE + address)) = ((data[1] << 8) | data[0]);
+        if (count >= 2)
+        {
+            *((volatile uint16_t*)(DATA_EEPROM_BASE + address)) = ((data[1] << 8) | data[0]);
 
-	    data    += 2;
-	    address += 2;
-	    count   -= 2;
-	}
+            data    += 2;
+            address += 2;
+            count   -= 2;
+        }
     }
 
     while (count >= 4)
     {
-	*((volatile uint32_t*)(DATA_EEPROM_BASE + address)) = ((data[3] << 24) | (data[2] << 16) | (data[1] << 8) | data[0]);
+        *((volatile uint32_t*)(DATA_EEPROM_BASE + address)) = ((data[3] << 24) | (data[2] << 16) | (data[1] << 8) | data[0]);
 
-	data    += 4;
-	address += 4;
-	count   -= 4;
+        data    += 4;
+        address += 4;
+        count   -= 4;
     }
 
     if (count >= 2)
     {
-	*((volatile uint16_t*)(DATA_EEPROM_BASE + address)) = ((data[1] << 8) | data[0]);
-	
-	data    += 2;
-	address += 2;
-	count   -= 2;
+        *((volatile uint16_t*)(DATA_EEPROM_BASE + address)) = ((data[1] << 8) | data[0]);
+        
+        data    += 2;
+        address += 2;
+        count   -= 2;
     }
 
     if (count >= 1)
     {
-	*((volatile uint8_t*)(DATA_EEPROM_BASE + address)) = data[0];
-	
-	data    += 1;
-	address += 1;
-	count   -= 1;
+        *((volatile uint8_t*)(DATA_EEPROM_BASE + address)) = data[0];
+        
+        data    += 1;
+        address += 1;
+        count   -= 1;
     }
 
     while (FLASH->SR & FLASH_SR_BSY)
@@ -121,7 +121,7 @@ bool stm32l0_eeprom_read(uint32_t address, uint8_t *data, uint32_t count)
 {
     if ((address + count) > DATA_EEPROM_SIZE)
     {
-	return false;
+        return false;
     }
 
     memcpy(data, (const void*)(DATA_EEPROM_BASE + address), count);

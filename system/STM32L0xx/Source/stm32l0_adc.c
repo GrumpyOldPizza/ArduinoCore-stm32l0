@@ -34,20 +34,20 @@
 #include "stm32l0_system.h"
 
 
-#define STM32L0_ADC_DMA_OPTION_RECEIVE_8	    \
+#define STM32L0_ADC_DMA_OPTION_RECEIVE_8            \
     (STM32L0_DMA_OPTION_EVENT_TRANSFER_DONE |       \
-     STM32L0_DMA_OPTION_PERIPHERAL_TO_MEMORY |	    \
+     STM32L0_DMA_OPTION_PERIPHERAL_TO_MEMORY |      \
      STM32L0_DMA_OPTION_PERIPHERAL_DATA_SIZE_32 |   \
-     STM32L0_DMA_OPTION_MEMORY_DATA_SIZE_8 |	    \
-     STM32L0_DMA_OPTION_MEMORY_DATA_INCREMENT |	    \
+     STM32L0_DMA_OPTION_MEMORY_DATA_SIZE_8 |        \
+     STM32L0_DMA_OPTION_MEMORY_DATA_INCREMENT |     \
      STM32L0_DMA_OPTION_PRIORITY_HIGH)
 
-#define STM32L0_ADC_DMA_OPTION_RECEIVE_16	    \
+#define STM32L0_ADC_DMA_OPTION_RECEIVE_16           \
     (STM32L0_DMA_OPTION_EVENT_TRANSFER_DONE |       \
-     STM32L0_DMA_OPTION_PERIPHERAL_TO_MEMORY |	    \
+     STM32L0_DMA_OPTION_PERIPHERAL_TO_MEMORY |      \
      STM32L0_DMA_OPTION_PERIPHERAL_DATA_SIZE_32 |   \
-     STM32L0_DMA_OPTION_MEMORY_DATA_SIZE_16 |	    \
-     STM32L0_DMA_OPTION_MEMORY_DATA_INCREMENT |	    \
+     STM32L0_DMA_OPTION_MEMORY_DATA_SIZE_16 |       \
+     STM32L0_DMA_OPTION_MEMORY_DATA_INCREMENT |     \
      STM32L0_DMA_OPTION_PRIORITY_HIGH)
 
 #define ADC_CFGR2_CKMODE_HSI16      0
@@ -101,7 +101,7 @@ bool stm32l0_adc_enable(void)
 
     if (stm32l0_adc_device.state != STM32L0_ADC_STATE_NONE)
     {
-	return false;
+        return false;
     }
 
     stm32l0_system_periph_enable(STM32L0_SYSTEM_PERIPH_ADC);
@@ -118,24 +118,24 @@ bool stm32l0_adc_enable(void)
 
     if ((hclk < 8000000) && (hclk == pclk))
     {
-	ADC1->CFGR2 = ADC_CFGR2_CKMODE_PCLK_DIV_1;
-	
-	adcclk = pclk;
+        ADC1->CFGR2 = ADC_CFGR2_CKMODE_PCLK_DIV_1;
+        
+        adcclk = pclk;
     }
     else
     {
-	if (pclk < 16000000)
-	{
-	    ADC1->CFGR2 = ADC_CFGR2_CKMODE_PCLK_DIV_2;
-	    
-	    adcclk = pclk / 2;
-	}
-	else
-	{
-	    ADC1->CFGR2 = ADC_CFGR2_CKMODE_PCLK_DIV_4;
-	    
-	    adcclk = pclk / 4;
-	}
+        if (pclk < 16000000)
+        {
+            ADC1->CFGR2 = ADC_CFGR2_CKMODE_PCLK_DIV_2;
+            
+            adcclk = pclk / 2;
+        }
+        else
+        {
+            ADC1->CFGR2 = ADC_CFGR2_CKMODE_PCLK_DIV_4;
+            
+            adcclk = pclk / 4;
+        }
     }
     
     ADC1_COMMON->CCR = (ADC1_COMMON->CCR & ~ADC_CCR_LFMEN) | ((adcclk < 3500000) ? ADC_CCR_LFMEN : 0);
@@ -146,13 +146,13 @@ bool stm32l0_adc_enable(void)
 
     if (!stm32l0_adc_device.calibration)
     {
-	ADC1->CR |= ADC_CR_ADCAL;
+        ADC1->CR |= ADC_CR_ADCAL;
     
-	while (ADC1->CR & ADC_CR_ADCAL)
-	{
-	}
+        while (ADC1->CR & ADC_CR_ADCAL)
+        {
+        }
 
-	stm32l0_adc_device.calibration = 1;
+        stm32l0_adc_device.calibration = 1;
     }
 
     stm32l0_adc_device.state = STM32L0_ADC_STATE_READY;
@@ -164,7 +164,7 @@ bool stm32l0_adc_disable(void)
 {
     if (stm32l0_adc_device.state != STM32L0_ADC_STATE_READY)
     {
-	return false;
+        return false;
     }
 
     ADC1->CR &= ~ADC_CR_ADVREGEN;
@@ -182,34 +182,34 @@ uint32_t stm32l0_adc_read(unsigned int channel, uint16_t smp)
 
     if (stm32l0_adc_device.state != STM32L0_ADC_STATE_READY)
     {
-	return 0;
+        return 0;
     }
 
     if (channel > STM32L0_ADC_CHANNEL_15)
     {
-	if (channel == STM32L0_ADC_CHANNEL_VREFINT)
-	{
-	    armv6m_atomic_or(&SYSCFG->CFGR3, (SYSCFG_CFGR3_ENBUF_VREFINT_ADC | SYSCFG_CFGR3_EN_VREFINT));
+        if (channel == STM32L0_ADC_CHANNEL_VREFINT)
+        {
+            armv6m_atomic_or(&SYSCFG->CFGR3, (SYSCFG_CFGR3_ENBUF_VREFINT_ADC | SYSCFG_CFGR3_EN_VREFINT));
 
-	    while (!(SYSCFG->CFGR3 & SYSCFG_CFGR3_VREFINT_RDYF))
-	    {
-	    }
+            while (!(SYSCFG->CFGR3 & SYSCFG_CFGR3_VREFINT_RDYF))
+            {
+            }
 
-	    ADC1_COMMON->CCR |= ADC_CCR_VREFEN;
-	}
+            ADC1_COMMON->CCR |= ADC_CCR_VREFEN;
+        }
 
-	if (channel == STM32L0_ADC_CHANNEL_TSENSE)
-	{
-	    armv6m_atomic_or(&SYSCFG->CFGR3, (SYSCFG_CFGR3_ENBUF_SENSOR_ADC | SYSCFG_CFGR3_EN_VREFINT));
+        if (channel == STM32L0_ADC_CHANNEL_TSENSE)
+        {
+            armv6m_atomic_or(&SYSCFG->CFGR3, (SYSCFG_CFGR3_ENBUF_SENSOR_ADC | SYSCFG_CFGR3_EN_VREFINT));
 
-	    while (!(SYSCFG->CFGR3 & SYSCFG_CFGR3_VREFINT_RDYF))
-	    {
-	    }
+            while (!(SYSCFG->CFGR3 & SYSCFG_CFGR3_VREFINT_RDYF))
+            {
+            }
 
-	    ADC1_COMMON->CCR |= ADC_CCR_TSEN;
+            ADC1_COMMON->CCR |= ADC_CCR_TSEN;
 
-	    armv6m_core_udelay(20);
-	}
+            armv6m_core_udelay(20);
+        }
     }
 
     hclk = stm32l0_system_hclk();
@@ -217,24 +217,24 @@ uint32_t stm32l0_adc_read(unsigned int channel, uint16_t smp)
 
     if ((hclk < 8000000) && (hclk == pclk))
     {
-	adc_cfgr2 = ADC_CFGR2_CKMODE_PCLK_DIV_1;
+        adc_cfgr2 = ADC_CFGR2_CKMODE_PCLK_DIV_1;
 
-	adcclk = pclk;
+        adcclk = pclk;
     }
     else
     {
-	if (pclk < 16000000)
-	{
-	    adc_cfgr2 = ADC_CFGR2_CKMODE_PCLK_DIV_2;
-	    
-	    adcclk = pclk / 2;
-	}
-	else
-	{
-	    adc_cfgr2 = ADC_CFGR2_CKMODE_PCLK_DIV_4;
+        if (pclk < 16000000)
+        {
+            adc_cfgr2 = ADC_CFGR2_CKMODE_PCLK_DIV_2;
+            
+            adcclk = pclk / 2;
+        }
+        else
+        {
+            adc_cfgr2 = ADC_CFGR2_CKMODE_PCLK_DIV_4;
 
-	    adcclk = pclk / 4;
-	}
+            adcclk = pclk / 4;
+        }
     }
 
     /* smp is in nS. 1e9 / adcclk is one tick in terms of nS.
@@ -251,7 +251,7 @@ uint32_t stm32l0_adc_read(unsigned int channel, uint16_t smp)
 
     if (smp > 50000)
     {
-	smp = 50000;
+        smp = 50000;
     }
     
     threshold = ((uint32_t)smp * (adcclk / 256));
@@ -298,17 +298,17 @@ uint32_t stm32l0_adc_read(unsigned int channel, uint16_t smp)
 
     if (channel > STM32L0_ADC_CHANNEL_15)
     {
-	if (channel == STM32L0_ADC_CHANNEL_VREFINT)
-	{
-	    armv6m_atomic_and(&SYSCFG->CFGR3, ~SYSCFG_CFGR3_ENBUF_VREFINT_ADC);
-	}
+        if (channel == STM32L0_ADC_CHANNEL_VREFINT)
+        {
+            armv6m_atomic_and(&SYSCFG->CFGR3, ~SYSCFG_CFGR3_ENBUF_VREFINT_ADC);
+        }
 
-	if (channel == STM32L0_ADC_CHANNEL_TSENSE)
-	{
-	    ADC1_COMMON->CCR &= ~ADC_CCR_TSEN;
+        if (channel == STM32L0_ADC_CHANNEL_TSENSE)
+        {
+            ADC1_COMMON->CCR &= ~ADC_CCR_TSEN;
 
-	    armv6m_atomic_and(&SYSCFG->CFGR3, ~SYSCFG_CFGR3_ENBUF_SENSOR_ADC);
-	}
+            armv6m_atomic_and(&SYSCFG->CFGR3, ~SYSCFG_CFGR3_ENBUF_SENSOR_ADC);
+        }
     }
 
     return data;
@@ -320,207 +320,207 @@ bool stm32l0_adc_convert(void *data, uint32_t count, uint16_t mask, uint16_t smp
 
     if ((stm32l0_adc_device.state != STM32L0_ADC_STATE_READY) && (stm32l0_adc_device.state != STM32L0_ADC_STATE_DONE))
     {
-	return false;
+        return false;
     }
 
     if ((stm32l0_adc_device.state == STM32L0_ADC_STATE_READY) || (stm32l0_adc_device.mask != mask) || (stm32l0_adc_device.smp != smp) || (stm32l0_adc_device.control != control))
     {
-	if (((control & STM32L0_ADC_CONTROL_MODE_MASK) >= STM32L0_ADC_CONTROL_MODE_CONTINUOUS_1000000) && (hclk < 32000000))
-	{
-	    return false;
-	}
+        if (((control & STM32L0_ADC_CONTROL_MODE_MASK) >= STM32L0_ADC_CONTROL_MODE_CONTINUOUS_1000000) && (hclk < 32000000))
+        {
+            return false;
+        }
 
-	if (stm32l0_adc_device.state == STM32L0_ADC_STATE_READY)
-	{
-	    if (!stm32l0_dma_enable(STM32L0_DMA_CHANNEL_DMA1_CH1_ADC, (stm32l0_dma_callback_t)stm32l0_adc_cancel, NULL))
-	    {
-		return false;
-	    }
+        if (stm32l0_adc_device.state == STM32L0_ADC_STATE_READY)
+        {
+            if (!stm32l0_dma_enable(STM32L0_DMA_CHANNEL_DMA1_CH1_ADC, (stm32l0_dma_callback_t)stm32l0_adc_cancel, NULL))
+            {
+                return false;
+            }
 
-	    stm32l0_system_lock(STM32L0_SYSTEM_LOCK_CLOCKS);
-	    stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
-	}
-	else
-	{
-	    ADC1->CR |= ADC_CR_ADSTP;
-	    
-	    while (ADC1->CR & (ADC_CR_ADSTP | ADC_CR_ADSTART))
-	    {
-	    }
-	    
-	    ADC1->CFGR1 &= ~ADC_CFGR1_EXTEN;
-	    
-	    ADC1->CR |= ADC_CR_ADDIS;
-	    
-	    while (ADC1->CR & ADC_CR_ADEN)
-	    {
-	    }
+            stm32l0_system_lock(STM32L0_SYSTEM_LOCK_CLOCKS);
+            stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
+        }
+        else
+        {
+            ADC1->CR |= ADC_CR_ADSTP;
+            
+            while (ADC1->CR & (ADC_CR_ADSTP | ADC_CR_ADSTART))
+            {
+            }
+            
+            ADC1->CFGR1 &= ~ADC_CFGR1_EXTEN;
+            
+            ADC1->CR |= ADC_CR_ADDIS;
+            
+            while (ADC1->CR & ADC_CR_ADEN)
+            {
+            }
 
-	    if ((stm32l0_adc_device.control & STM32L0_ADC_CONTROL_MODE_MASK) >= STM32L0_ADC_CONTROL_MODE_CONTINUOUS_1000000)
-	    {
-		stm32l0_system_hsi16_disable();
-	    }
-	}
+            if ((stm32l0_adc_device.control & STM32L0_ADC_CONTROL_MODE_MASK) >= STM32L0_ADC_CONTROL_MODE_CONTINUOUS_1000000)
+            {
+                stm32l0_system_hsi16_disable();
+            }
+        }
 
-	adc_cfgr1 = ADC_CFGR1_OVRMOD | ADC_CFGR1_DMAEN;
-	adc_cfgr2 = 0;
-	adc_smpr = 0;
-	adc_ccr = 0;
+        adc_cfgr1 = ADC_CFGR1_OVRMOD | ADC_CFGR1_DMAEN;
+        adc_cfgr2 = 0;
+        adc_smpr = 0;
+        adc_ccr = 0;
 
-	if (control & STM32L0_ADC_CONTROL_BYTE_PACKED)
-	{
-	    adc_cfgr1 |= ADC_CFGR1_RES_1;
-	}
-	else
-	{
-	    if (control & STM32L0_ADC_CONTROL_LEFT_ALIGNED)
-	    {
-		adc_cfgr1 |= ADC_CFGR1_ALIGN;
-	    }
-	    else
-	    {
-		if ((control & STM32L0_ADC_CONTROL_RATIO_MASK) != STM32L0_ADC_CONTROL_RATIO_1)
-		{
-		    adc_cfgr2 |= ADC_CFGR2_OVSE;
-		    adc_cfgr2 |= ((((control & STM32L0_ADC_CONTROL_RATIO_MASK) >> STM32L0_ADC_CONTROL_RATIO_SHIFT) -1) << ADC_CFGR2_OVSR_Pos);
-		}
-		
-		adc_cfgr2 |= (((control & STM32L0_ADC_CONTROL_SHIFT_MASK) >> STM32L0_ADC_CONTROL_SHIFT_SHIFT) << ADC_CFGR2_OVSS_Pos);
-	    }
-	}
-	
-	if ((control & STM32L0_ADC_CONTROL_MODE_MASK) >= STM32L0_ADC_CONTROL_MODE_CONTINUOUS_1000000)
-	{
-	    adc_cfgr1 |= ADC_CFGR1_CONT;
-	    adc_cfgr2 |= ADC_CFGR2_CKMODE_HSI16;
-	    adc_smpr = ((control & STM32L0_ADC_CONTROL_MODE_MASK) == STM32L0_ADC_CONTROL_MODE_CONTINUOUS_1000000) ? ADC_SMPR_SMP_3_5 : ADC_SMPR_SMP_19_5;
-	    adc_ccr = ADC_CCR_PRESC_DIV_1;
+        if (control & STM32L0_ADC_CONTROL_BYTE_PACKED)
+        {
+            adc_cfgr1 |= ADC_CFGR1_RES_1;
+        }
+        else
+        {
+            if (control & STM32L0_ADC_CONTROL_LEFT_ALIGNED)
+            {
+                adc_cfgr1 |= ADC_CFGR1_ALIGN;
+            }
+            else
+            {
+                if ((control & STM32L0_ADC_CONTROL_RATIO_MASK) != STM32L0_ADC_CONTROL_RATIO_1)
+                {
+                    adc_cfgr2 |= ADC_CFGR2_OVSE;
+                    adc_cfgr2 |= ((((control & STM32L0_ADC_CONTROL_RATIO_MASK) >> STM32L0_ADC_CONTROL_RATIO_SHIFT) -1) << ADC_CFGR2_OVSR_Pos);
+                }
+                
+                adc_cfgr2 |= (((control & STM32L0_ADC_CONTROL_SHIFT_MASK) >> STM32L0_ADC_CONTROL_SHIFT_SHIFT) << ADC_CFGR2_OVSS_Pos);
+            }
+        }
+        
+        if ((control & STM32L0_ADC_CONTROL_MODE_MASK) >= STM32L0_ADC_CONTROL_MODE_CONTINUOUS_1000000)
+        {
+            adc_cfgr1 |= ADC_CFGR1_CONT;
+            adc_cfgr2 |= ADC_CFGR2_CKMODE_HSI16;
+            adc_smpr = ((control & STM32L0_ADC_CONTROL_MODE_MASK) == STM32L0_ADC_CONTROL_MODE_CONTINUOUS_1000000) ? ADC_SMPR_SMP_3_5 : ADC_SMPR_SMP_19_5;
+            adc_ccr = ADC_CCR_PRESC_DIV_1;
 
-	    adcclk = 16000000;
+            adcclk = 16000000;
 
-	    stm32l0_system_hsi16_enable();
-	}
-	else
-	{
-	    hclk = stm32l0_system_hclk();
-	    pclk = stm32l0_system_pclk2();
+            stm32l0_system_hsi16_enable();
+        }
+        else
+        {
+            hclk = stm32l0_system_hclk();
+            pclk = stm32l0_system_pclk2();
 
-	    if ((hclk < 8000000) && (hclk == pclk))
-	    {
-		adc_cfgr2 = ADC_CFGR2_CKMODE_PCLK_DIV_1;
-		
-		adcclk = pclk;
-	    }
-	    else
-	    {
-		if (pclk < 16000000)
-		{
-		    adc_cfgr2 = ADC_CFGR2_CKMODE_PCLK_DIV_2;
-		    
-		    adcclk = pclk / 2;
-		}
-		else
-		{
-		    adc_cfgr2 = ADC_CFGR2_CKMODE_PCLK_DIV_4;
-		    
-		    adcclk = pclk / 4;
-		}
-	    }
+            if ((hclk < 8000000) && (hclk == pclk))
+            {
+                adc_cfgr2 = ADC_CFGR2_CKMODE_PCLK_DIV_1;
+                
+                adcclk = pclk;
+            }
+            else
+            {
+                if (pclk < 16000000)
+                {
+                    adc_cfgr2 = ADC_CFGR2_CKMODE_PCLK_DIV_2;
+                    
+                    adcclk = pclk / 2;
+                }
+                else
+                {
+                    adc_cfgr2 = ADC_CFGR2_CKMODE_PCLK_DIV_4;
+                    
+                    adcclk = pclk / 4;
+                }
+            }
 
-	    if (adcclk < 3500000)
-	    {
-		adc_ccr |= ADC_CCR_LFMEN;
-	    }
+            if (adcclk < 3500000)
+            {
+                adc_ccr |= ADC_CCR_LFMEN;
+            }
 
-	    if ((control & STM32L0_ADC_CONTROL_MODE_MASK) == STM32L0_ADC_CONTROL_MODE_SINGLE)
-	    {
-		if ((control & STM32L0_ADC_CONTROL_TRIG_MASK) != STM32L0_ADC_CONTROL_TRIG_EXTERNAL)
-		{
-		    adc_cfgr1 |= ((((control & STM32L0_ADC_CONTROL_TRIG_MASK) >> STM32L0_ADC_CONTROL_TRIG_SHIFT) << ADC_CFGR1_EXTSEL_Pos) | ADC_CFGR1_EXTEN_0);
-		}
-		else
-		{
-		    adc_cfgr1 |= ((((control & STM32L0_ADC_CONTROL_EDGE_MASK) >> STM32L0_ADC_CONTROL_EDGE_SHIFT) << ADC_CFGR1_EXTEN_Pos) | ADC_CFGR1_EXTSEL);
-		}
+            if ((control & STM32L0_ADC_CONTROL_MODE_MASK) == STM32L0_ADC_CONTROL_MODE_SINGLE)
+            {
+                if ((control & STM32L0_ADC_CONTROL_TRIG_MASK) != STM32L0_ADC_CONTROL_TRIG_EXTERNAL)
+                {
+                    adc_cfgr1 |= ((((control & STM32L0_ADC_CONTROL_TRIG_MASK) >> STM32L0_ADC_CONTROL_TRIG_SHIFT) << ADC_CFGR1_EXTSEL_Pos) | ADC_CFGR1_EXTEN_0);
+                }
+                else
+                {
+                    adc_cfgr1 |= ((((control & STM32L0_ADC_CONTROL_EDGE_MASK) >> STM32L0_ADC_CONTROL_EDGE_SHIFT) << ADC_CFGR1_EXTEN_Pos) | ADC_CFGR1_EXTSEL);
+                }
 
-		if (control & STM32L0_ADC_CONTROL_DISCONTINUOUS)
-		{
-		    adc_cfgr1 |= ADC_CFGR1_DISCEN;
-		    
-		    if ((control & STM32L0_ADC_CONTROL_RATIO_MASK) != STM32L0_ADC_CONTROL_RATIO_1)
-		    {
-			adc_cfgr2 |= ADC_CFGR2_TOVS;
-		    }
-		}
+                if (control & STM32L0_ADC_CONTROL_DISCONTINUOUS)
+                {
+                    adc_cfgr1 |= ADC_CFGR1_DISCEN;
+                    
+                    if ((control & STM32L0_ADC_CONTROL_RATIO_MASK) != STM32L0_ADC_CONTROL_RATIO_1)
+                    {
+                        adc_cfgr2 |= ADC_CFGR2_TOVS;
+                    }
+                }
 
-		if (!(control & STM32L0_ADC_CONTROL_NOSLEEP))
-		{
-		    adc_cfgr1 |= ADC_CFGR1_AUTOFF;
-		}
-	    }
-	    
-	    /* smp is in nS. 1e9 / adcclk is one tick in terms of nS.
-	     *
-	     * (smp * adcclk) / 1e9 is the threshold for the sampling time.
-	     *
-	     * smp has a upper limit of 50000nS. Hence this calculation will
-	     * overflow by 8 bits (max adcclk == 16MHz).
-	     * 
-	     * Hence we use:
-	     *
-	     * (smp * (adcclk / 256)) / (1e9 / 256)
-	     */
+                if (!(control & STM32L0_ADC_CONTROL_NOSLEEP))
+                {
+                    adc_cfgr1 |= ADC_CFGR1_AUTOFF;
+                }
+            }
+            
+            /* smp is in nS. 1e9 / adcclk is one tick in terms of nS.
+             *
+             * (smp * adcclk) / 1e9 is the threshold for the sampling time.
+             *
+             * smp has a upper limit of 50000nS. Hence this calculation will
+             * overflow by 8 bits (max adcclk == 16MHz).
+             * 
+             * Hence we use:
+             *
+             * (smp * (adcclk / 256)) / (1e9 / 256)
+             */
 
-	    if (smp > 50000)
-	    {
-		smp = 50000;
-	    }
-	    
-	    threshold = ((uint32_t)smp * (adcclk / 256));
-	    
-	    if      (threshold < (uint32_t)(  1.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_1_5;   }
-	    else if (threshold < (uint32_t)(  3.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_3_5;   }
-	    else if (threshold < (uint32_t)(  7.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_7_5;   }
-	    else if (threshold < (uint32_t)( 12.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_12_5;  }
-	    else if (threshold < (uint32_t)( 19.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_19_5;  }
-	    else if (threshold < (uint32_t)( 39.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_39_5;  }
-	    else if (threshold < (uint32_t)( 79.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_79_5;  }
-	    else                                                  { adc_smpr = ADC_SMPR_SMP_160_5; }
-	}
+            if (smp > 50000)
+            {
+                smp = 50000;
+            }
+            
+            threshold = ((uint32_t)smp * (adcclk / 256));
+            
+            if      (threshold < (uint32_t)(  1.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_1_5;   }
+            else if (threshold < (uint32_t)(  3.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_3_5;   }
+            else if (threshold < (uint32_t)(  7.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_7_5;   }
+            else if (threshold < (uint32_t)( 12.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_12_5;  }
+            else if (threshold < (uint32_t)( 19.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_19_5;  }
+            else if (threshold < (uint32_t)( 39.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_39_5;  }
+            else if (threshold < (uint32_t)( 79.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_79_5;  }
+            else                                                  { adc_smpr = ADC_SMPR_SMP_160_5; }
+        }
 
-	ADC1_COMMON->CCR = (ADC1_COMMON->CCR & ~(ADC_CCR_LFMEN | ADC_CCR_PRESC)) | adc_ccr;
+        ADC1_COMMON->CCR = (ADC1_COMMON->CCR & ~(ADC_CCR_LFMEN | ADC_CCR_PRESC)) | adc_ccr;
 
-	ADC1->CFGR1 = adc_cfgr1;
-	ADC1->CFGR2 = adc_cfgr2;
-	ADC1->SMPR = adc_smpr;
-	ADC1->CHSELR = mask & 0xffff;
+        ADC1->CFGR1 = adc_cfgr1;
+        ADC1->CFGR2 = adc_cfgr2;
+        ADC1->SMPR = adc_smpr;
+        ADC1->CHSELR = mask & 0xffff;
 
-	stm32l0_adc_device.smp = smp;
-	stm32l0_adc_device.mask = mask;
-	stm32l0_adc_device.control = control;
+        stm32l0_adc_device.smp = smp;
+        stm32l0_adc_device.mask = mask;
+        stm32l0_adc_device.control = control;
 
-	for (mask &= 0xffff, channels = 0; mask; mask >>= 1)
-	{
-	    if (mask & 1) 
-	    {
-		channels++;
-	    }
-	}
+        for (mask &= 0xffff, channels = 0; mask; mask >>= 1)
+        {
+            if (mask & 1) 
+            {
+                channels++;
+            }
+        }
 
-	stm32l0_adc_device.channels = channels;
+        stm32l0_adc_device.channels = channels;
     }
 
     if (stm32l0_adc_device.control & STM32L0_ADC_CONTROL_BYTE_PACKED)
     {
-	count = (count / stm32l0_adc_device.channels) * stm32l0_adc_device.channels;
+        count = (count / stm32l0_adc_device.channels) * stm32l0_adc_device.channels;
 
-	option = STM32L0_ADC_DMA_OPTION_RECEIVE_8;
+        option = STM32L0_ADC_DMA_OPTION_RECEIVE_8;
     }
     else
     {
-	count = ((count / 2) / stm32l0_adc_device.channels) * stm32l0_adc_device.channels;
+        count = ((count / 2) / stm32l0_adc_device.channels) * stm32l0_adc_device.channels;
 
-	option = STM32L0_ADC_DMA_OPTION_RECEIVE_16;
+        option = STM32L0_ADC_DMA_OPTION_RECEIVE_16;
     }
 
     stm32l0_adc_device.xf_callback = callback;
@@ -531,9 +531,9 @@ bool stm32l0_adc_convert(void *data, uint32_t count, uint16_t mask, uint16_t smp
 
     if ((stm32l0_adc_device.control & STM32L0_ADC_CONTROL_MODE_MASK) != STM32L0_ADC_CONTROL_MODE_SINGLE)
     {
-	ADC1->ISR = ADC_ISR_EOC;
+        ADC1->ISR = ADC_ISR_EOC;
     
-	ADC1->CR |= ADC_CR_ADSTART;
+        ADC1->CR |= ADC_CR_ADSTART;
     }
 
     return true;
@@ -545,48 +545,48 @@ void stm32l0_adc_cancel(void)
 
     if (stm32l0_adc_device.state == STM32L0_ADC_STATE_CONVERT)
     {
-	count = stm32l0_dma_stop(STM32L0_DMA_CHANNEL_DMA1_CH1_ADC);
+        count = stm32l0_dma_stop(STM32L0_DMA_CHANNEL_DMA1_CH1_ADC);
 
-	stm32l0_adc_device.state = STM32L0_ADC_STATE_DONE;
+        stm32l0_adc_device.state = STM32L0_ADC_STATE_DONE;
 
-	if (!(stm32l0_adc_device.control & STM32L0_ADC_CONTROL_BYTE_PACKED))
-	{
-	    count = count * 2;
-	}
+        if (!(stm32l0_adc_device.control & STM32L0_ADC_CONTROL_BYTE_PACKED))
+        {
+            count = count * 2;
+        }
 
-	if (stm32l0_adc_device.xf_callback)
-	{
-	    (*stm32l0_adc_device.xf_callback)(stm32l0_adc_device.xf_context, count);
-	}
+        if (stm32l0_adc_device.xf_callback)
+        {
+            (*stm32l0_adc_device.xf_callback)(stm32l0_adc_device.xf_context, count);
+        }
 
-	if (stm32l0_adc_device.state == STM32L0_ADC_STATE_DONE)
-	{
-	    ADC1->CR |= ADC_CR_ADSTP;
+        if (stm32l0_adc_device.state == STM32L0_ADC_STATE_DONE)
+        {
+            ADC1->CR |= ADC_CR_ADSTP;
 
-	    while (ADC1->CR & (ADC_CR_ADSTP | ADC_CR_ADSTART))
-	    {
-	    }
+            while (ADC1->CR & (ADC_CR_ADSTP | ADC_CR_ADSTART))
+            {
+            }
 
-	    ADC1->CFGR1 &= ~(ADC_CFGR1_EXTEN | ADC_CFGR1_CONT);
-	    
-	    ADC1->CR |= ADC_CR_ADDIS;
+            ADC1->CFGR1 &= ~(ADC_CFGR1_EXTEN | ADC_CFGR1_CONT);
+            
+            ADC1->CR |= ADC_CR_ADDIS;
 
-	    while (ADC1->CR & ADC_CR_ADEN)
-	    {
-	    }
+            while (ADC1->CR & ADC_CR_ADEN)
+            {
+            }
 
-	    stm32l0_dma_disable(STM32L0_DMA_CHANNEL_DMA1_CH1_ADC);
+            stm32l0_dma_disable(STM32L0_DMA_CHANNEL_DMA1_CH1_ADC);
 
-	    if ((stm32l0_adc_device.control & STM32L0_ADC_CONTROL_MODE_MASK) >= STM32L0_ADC_CONTROL_MODE_CONTINUOUS_1000000)
-	    {
-		stm32l0_system_hsi16_disable();
-	    }
+            if ((stm32l0_adc_device.control & STM32L0_ADC_CONTROL_MODE_MASK) >= STM32L0_ADC_CONTROL_MODE_CONTINUOUS_1000000)
+            {
+                stm32l0_system_hsi16_disable();
+            }
 
-	    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
-	    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_CLOCKS);
-	
-	    stm32l0_adc_device.state = STM32L0_ADC_STATE_READY;
-	}
+            stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
+            stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_CLOCKS);
+        
+            stm32l0_adc_device.state = STM32L0_ADC_STATE_READY;
+        }
     }
 }
 

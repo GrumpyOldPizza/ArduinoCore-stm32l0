@@ -76,40 +76,40 @@ static void stm32l0_timer_interrupt(stm32l0_timer_t *timer)
 
     if (timer)
     {
-	if (tim_sr & TIM_SR_UIF)
-	{
-	    events |= STM32L0_TIMER_EVENT_PERIOD;
-	}
+        if (tim_sr & TIM_SR_UIF)
+        {
+            events |= STM32L0_TIMER_EVENT_PERIOD;
+        }
 
-	if (tim_sr & (TIM_SR_CC1IF | TIM_SR_CC2IF | TIM_SR_CC3IF | TIM_SR_CC4IF))
-	{
-	    if (tim_sr & TIM_SR_CC1IF)
-	    {
-		events |= STM32L0_TIMER_EVENT_CHANNEL_1;
-	    }
+        if (tim_sr & (TIM_SR_CC1IF | TIM_SR_CC2IF | TIM_SR_CC3IF | TIM_SR_CC4IF))
+        {
+            if (tim_sr & TIM_SR_CC1IF)
+            {
+                events |= STM32L0_TIMER_EVENT_CHANNEL_1;
+            }
 
-	    if (tim_sr & TIM_SR_CC2IF)
-	    {
-		events |= STM32L0_TIMER_EVENT_CHANNEL_2;
-	    }
+            if (tim_sr & TIM_SR_CC2IF)
+            {
+                events |= STM32L0_TIMER_EVENT_CHANNEL_2;
+            }
 
-	    if (tim_sr & TIM_SR_CC3IF)
-	    {
-		events |= STM32L0_TIMER_EVENT_CHANNEL_3;
-	    }
+            if (tim_sr & TIM_SR_CC3IF)
+            {
+                events |= STM32L0_TIMER_EVENT_CHANNEL_3;
+            }
 
-	    if (tim_sr & TIM_SR_CC4IF)
-	    {
-		events |= STM32L0_TIMER_EVENT_CHANNEL_4;
-	    }
-	}
+            if (tim_sr & TIM_SR_CC4IF)
+            {
+                events |= STM32L0_TIMER_EVENT_CHANNEL_4;
+            }
+        }
     
-	events &= timer->events;
+        events &= timer->events;
 
-	if (events)
-	{
-	    (*timer->callback)(timer->context, events);
-	}
+        if (events)
+        {
+            (*timer->callback)(timer->context, events);
+        }
     }
 }
 
@@ -117,7 +117,7 @@ bool stm32l0_timer_create(stm32l0_timer_t *timer, unsigned int instance, unsigne
 {
     if (instance >= STM32L0_TIMER_INSTANCE_COUNT)
     {
-	return false;
+        return false;
     }
 
     timer->TIM = stm32l0_timer_xlate_TIM[instance];
@@ -136,7 +136,7 @@ bool stm32l0_timer_destroy(stm32l0_timer_t *timer)
 {
     if (timer->state != STM32L0_TIMER_STATE_INIT)
     {
-	return false;
+        return false;
     }
 
     timer->state = STM32L0_TIMER_STATE_NONE;
@@ -153,15 +153,15 @@ uint32_t stm32l0_timer_clock(stm32l0_timer_t *timer)
     hclk = stm32l0_system_hclk();
 
     if ((timer->instance == STM32L0_TIMER_INSTANCE_TIM2) ||
-	(timer->instance == STM32L0_TIMER_INSTANCE_TIM3) ||
-	(timer->instance == STM32L0_TIMER_INSTANCE_TIM6) ||
-	(timer->instance == STM32L0_TIMER_INSTANCE_TIM7))
+        (timer->instance == STM32L0_TIMER_INSTANCE_TIM3) ||
+        (timer->instance == STM32L0_TIMER_INSTANCE_TIM6) ||
+        (timer->instance == STM32L0_TIMER_INSTANCE_TIM7))
     {
-	pclk = stm32l0_system_pclk1();
+        pclk = stm32l0_system_pclk1();
     }
     else
     {
-	pclk = stm32l0_system_pclk2();
+        pclk = stm32l0_system_pclk2();
     }
 
     return ((hclk == pclk) ? hclk : (2 * pclk));
@@ -171,7 +171,7 @@ bool stm32l0_timer_enable(stm32l0_timer_t *timer, uint32_t prescaler, uint32_t o
 {
     if (timer->state != STM32L0_TIMER_STATE_INIT)
     {
-	return false;
+        return false;
     }
 
     timer->events = 0;
@@ -199,7 +199,7 @@ bool stm32l0_timer_disable(stm32l0_timer_t *timer)
 {
     if (timer->state != STM32L0_TIMER_STATE_READY)
     {
-	return false;
+        return false;
     }
 
     stm32l0_system_periph_disable(STM32L0_SYSTEM_PERIPH_TIM2 + timer->instance);
@@ -218,7 +218,7 @@ bool stm32l0_timer_configure(stm32l0_timer_t *timer, uint32_t prescaler, uint32_
 
     if ((timer->state != STM32L0_TIMER_STATE_BUSY) && (timer->state != STM32L0_TIMER_STATE_READY))
     {
-	return false;
+        return false;
     }
 
     tim_cr1 = 0;
@@ -226,41 +226,41 @@ bool stm32l0_timer_configure(stm32l0_timer_t *timer, uint32_t prescaler, uint32_
 
     if (option & STM32L0_TIMER_OPTION_ENCODER_MODE_MASK)
     {
-	tim_smcr |= (((option & STM32L0_TIMER_OPTION_ENCODER_MODE_MASK) >> STM32L0_TIMER_OPTION_ENCODER_MODE_SHIFT) << 0);
+        tim_smcr |= (((option & STM32L0_TIMER_OPTION_ENCODER_MODE_MASK) >> STM32L0_TIMER_OPTION_ENCODER_MODE_SHIFT) << 0);
     }
     else
     {
-	if (option & (STM32L0_TIMER_OPTION_CLOCK_EXTERNAL_CHANNEL_1 | STM32L0_TIMER_OPTION_CLOCK_EXTERNAL_CHANNEL_2))
-	{
-	    tim_smcr |= (TIM_SMCR_SMS_0 | TIM_SMCR_SMS_1 | TIM_SMCR_SMS_2); /* EXTERNAL 1 */
+        if (option & (STM32L0_TIMER_OPTION_CLOCK_EXTERNAL_CHANNEL_1 | STM32L0_TIMER_OPTION_CLOCK_EXTERNAL_CHANNEL_2))
+        {
+            tim_smcr |= (TIM_SMCR_SMS_0 | TIM_SMCR_SMS_1 | TIM_SMCR_SMS_2); /* EXTERNAL 1 */
 
-	    if (option & STM32L0_TIMER_OPTION_CLOCK_EXTERNAL_CHANNEL_1)
-	    {
-		tim_smcr |= (TIM_SMCR_TS_0 | TIM_SMCR_TS_2); /* TI1FP1 */
-	
-	    }
-	    else
-	    {
-		tim_smcr |= (TIM_SMCR_TS_1 | TIM_SMCR_TS_2); /* TI2FP2 */
-	    }
-	}
+            if (option & STM32L0_TIMER_OPTION_CLOCK_EXTERNAL_CHANNEL_1)
+            {
+                tim_smcr |= (TIM_SMCR_TS_0 | TIM_SMCR_TS_2); /* TI1FP1 */
+        
+            }
+            else
+            {
+                tim_smcr |= (TIM_SMCR_TS_1 | TIM_SMCR_TS_2); /* TI2FP2 */
+            }
+        }
 
-	if (option & STM32L0_TIMER_OPTION_COUNT_CENTER_MASK)
-	{
-	    tim_cr1 |= (((option & STM32L0_TIMER_OPTION_COUNT_CENTER_MASK) >> STM32L0_TIMER_OPTION_COUNT_CENTER_SHIFT) << 5);
-	}
-	else
-	{
-	    if (option & STM32L0_TIMER_OPTION_COUNT_DOWN)
-	    {
-		tim_cr1 |= TIM_CR1_DIR;
-	    }
-	}
+        if (option & STM32L0_TIMER_OPTION_COUNT_CENTER_MASK)
+        {
+            tim_cr1 |= (((option & STM32L0_TIMER_OPTION_COUNT_CENTER_MASK) >> STM32L0_TIMER_OPTION_COUNT_CENTER_SHIFT) << 5);
+        }
+        else
+        {
+            if (option & STM32L0_TIMER_OPTION_COUNT_DOWN)
+            {
+                tim_cr1 |= TIM_CR1_DIR;
+            }
+        }
 
-	if (option & STM32L0_TIMER_OPTION_COUNT_PRELOAD)
-	{
-	    tim_cr1 |= TIM_CR1_ARPE;
-	}
+        if (option & STM32L0_TIMER_OPTION_COUNT_PRELOAD)
+        {
+            tim_cr1 |= TIM_CR1_ARPE;
+        }
     }
 
     TIM->CR1  = tim_cr1;
@@ -278,7 +278,7 @@ bool stm32l0_timer_notify(stm32l0_timer_t *timer, stm32l0_timer_callback_t callb
 
     if ((timer->state != STM32L0_TIMER_STATE_BUSY) && (timer->state != STM32L0_TIMER_STATE_READY))
     {
-	return false;
+        return false;
     }
 
     timer->callback = callback;
@@ -289,27 +289,27 @@ bool stm32l0_timer_notify(stm32l0_timer_t *timer, stm32l0_timer_callback_t callb
 
     if (events & STM32L0_TIMER_EVENT_PERIOD)
     {
-	dier |= TIM_DIER_UIE;
+        dier |= TIM_DIER_UIE;
     }
 
     if ((events & timer->channels) & STM32L0_TIMER_EVENT_CHANNEL_1)
     {
-	dier |= TIM_DIER_CC1IE;
+        dier |= TIM_DIER_CC1IE;
     }
 
     if ((events & timer->channels) & STM32L0_TIMER_EVENT_CHANNEL_2)
     {
-	dier |= TIM_DIER_CC2IE;
+        dier |= TIM_DIER_CC2IE;
     }
 
     if ((events & timer->channels) & STM32L0_TIMER_EVENT_CHANNEL_3)
     {
-	dier |= TIM_DIER_CC3IE;
+        dier |= TIM_DIER_CC3IE;
     }
 
     if ((events & timer->channels) & STM32L0_TIMER_EVENT_CHANNEL_4)
     {
-	dier |= TIM_DIER_CC4IE;
+        dier |= TIM_DIER_CC4IE;
     }
     
     armv6m_atomic_modify(&TIM->DIER, (TIM_DIER_UIE | TIM_DIER_CC1IE | TIM_DIER_CC2IE | TIM_DIER_CC3IE | TIM_DIER_CC4IE), dier);
@@ -323,16 +323,16 @@ bool stm32l0_timer_start(stm32l0_timer_t *timer, uint32_t period, bool oneshot)
 
     if ((timer->state != STM32L0_TIMER_STATE_READY) && (timer->state != STM32L0_TIMER_STATE_ACTIVE))
     {
-	return false;
+        return false;
     }
 
     if (timer->state == STM32L0_TIMER_STATE_READY)
     {
-	stm32l0_system_lock(STM32L0_SYSTEM_LOCK_CLOCKS);
+        stm32l0_system_lock(STM32L0_SYSTEM_LOCK_CLOCKS);
     }
     else
     {
-	armv6m_atomic_and(&TIM->CR1, ~TIM_CR1_CEN);
+        armv6m_atomic_and(&TIM->CR1, ~TIM_CR1_CEN);
     }
 
     TIM->SR = 0;
@@ -340,12 +340,12 @@ bool stm32l0_timer_start(stm32l0_timer_t *timer, uint32_t period, bool oneshot)
 
     if (oneshot)
     {
-	armv6m_atomic_or(&TIM->CR1, (TIM_CR1_OPM | TIM_CR1_CEN));
+        armv6m_atomic_or(&TIM->CR1, (TIM_CR1_OPM | TIM_CR1_CEN));
     }
     else
     {
-	armv6m_atomic_and(&TIM->CR1, ~TIM_CR1_OPM);
-	armv6m_atomic_or(&TIM->CR1, TIM_CR1_CEN);
+        armv6m_atomic_and(&TIM->CR1, ~TIM_CR1_OPM);
+        armv6m_atomic_or(&TIM->CR1, TIM_CR1_CEN);
     }
 
     timer->state = STM32L0_TIMER_STATE_ACTIVE;
@@ -359,7 +359,7 @@ bool stm32l0_timer_stop(stm32l0_timer_t *timer)
 
     if (timer->state != STM32L0_TIMER_STATE_ACTIVE)
     {
-	return false;
+        return false;
     }
 
     armv6m_atomic_and(&TIM->CR1, ~TIM_CR1_CEN);
@@ -377,7 +377,7 @@ uint32_t stm32l0_timer_count(stm32l0_timer_t *timer)
 
     if ((timer->state != STM32L0_TIMER_STATE_READY) && (timer->state != STM32L0_TIMER_STATE_ACTIVE))
     {
-	return 0;
+        return 0;
     }
 
     return TIM->CNT;
@@ -389,20 +389,20 @@ bool stm32l0_timer_period(stm32l0_timer_t *timer, uint32_t period, bool offset)
 
     if ((timer->state != STM32L0_TIMER_STATE_READY) && (timer->state != STM32L0_TIMER_STATE_ACTIVE))
     {
-	return false;
+        return false;
     }
 
     if (offset)
     {
-	NVIC_DisableIRQ(timer->interrupt);
+        NVIC_DisableIRQ(timer->interrupt);
 
-	TIM->ARR = period - TIM->CNT;
+        TIM->ARR = period - TIM->CNT;
 
-	NVIC_EnableIRQ(timer->interrupt);
+        NVIC_EnableIRQ(timer->interrupt);
     }
     else
     {
-	TIM->ARR = period;
+        TIM->ARR = period;
     }
 
     return true;
@@ -415,7 +415,7 @@ bool stm32l0_timer_channel(stm32l0_timer_t *timer, unsigned int channel, uint32_
 
     if ((timer->state != STM32L0_TIMER_STATE_READY) && (timer->state != STM32L0_TIMER_STATE_ACTIVE))
     {
-	return false;
+        return false;
     }
 
     armv6m_atomic_and(&TIM->CCER, ~(TIM_CCER_CC1E << (channel * 4)));
@@ -425,75 +425,75 @@ bool stm32l0_timer_channel(stm32l0_timer_t *timer, unsigned int channel, uint32_
 
     if (control & (STM32L0_TIMER_CONTROL_CAPTURE_MASK | STM32L0_TIMER_CONTROL_COMPARE_MASK))
     {
-	if (control & STM32L0_TIMER_CONTROL_CAPTURE_MASK)
-	{
-	    tim_ccer |= TIM_CCER_CC1E;
+        if (control & STM32L0_TIMER_CONTROL_CAPTURE_MASK)
+        {
+            tim_ccer |= TIM_CCER_CC1E;
 
-	    tim_ccmr |= ((control & STM32L0_TIMER_CONTROL_CAPTURE_ALTERNATE ? TIM_CCMR1_CC1S_1 : TIM_CCMR1_CC1S_0) |
-			 (((control & STM32L0_TIMER_CONTROL_CAPTURE_PRESCALE_MASK) >> STM32L0_TIMER_CONTROL_CAPTURE_PRESCALE_SHIFT) << 2) |
-			 (((control & STM32L0_TIMER_CONTROL_CAPTURE_FILTER_MASK) >> STM32L0_TIMER_CONTROL_CAPTURE_FILTER_SHIFT) << 4));
-	    
-	    if (control & STM32L0_TIMER_CONTROL_CAPTURE_POLARITY)
-	    {
-		if (control & STM32L0_TIMER_CONTROL_CAPTURE_RISING_EDGE)
-		{
-		    tim_ccer |= ((control & STM32L0_TIMER_CONTROL_CAPTURE_FALLING_EDGE) ? (TIM_CCER_CC1P | TIM_CCER_CC1NP) : TIM_CCER_CC1P);
-		}
-	    }
-	    else
-	    {
-		if (control & STM32L0_TIMER_CONTROL_CAPTURE_FALLING_EDGE)
-		{
-		    tim_ccer |= ((control & STM32L0_TIMER_CONTROL_CAPTURE_RISING_EDGE) ? (TIM_CCER_CC1P | TIM_CCER_CC1NP) : TIM_CCER_CC1P);
-		}
-	    }
- 	}
-	else
-	{
-	    switch (control & STM32L0_TIMER_CONTROL_COMPARE_MASK) {
-	    case STM32L0_TIMER_CONTROL_COMPARE_TIMING:          tim_ccmr |= (                  (0 << 4)); break;
-	    case STM32L0_TIMER_CONTROL_COMPARE_ACTIVE:          tim_ccmr |= (                  (1 << 4)); break;
-	    case STM32L0_TIMER_CONTROL_COMPARE_INACTIVE:        tim_ccmr |= (                  (2 << 4)); break;
-	    case STM32L0_TIMER_CONTROL_COMPARE_TOGGLE:          tim_ccmr |= (                  (3 << 4)); break;
-	    case STM32L0_TIMER_CONTROL_COMPARE_FORCED_ACTIVE:   tim_ccmr |= (                  (5 << 4)); break;
-	    case STM32L0_TIMER_CONTROL_COMPARE_FORCED_INACTIVE: tim_ccmr |= (                  (4 << 4)); break;
-	    case STM32L0_TIMER_CONTROL_PWM:                     tim_ccmr |= (TIM_CCMR1_OC1PE | (6 << 4)); break;
-	    }
+            tim_ccmr |= ((control & STM32L0_TIMER_CONTROL_CAPTURE_ALTERNATE ? TIM_CCMR1_CC1S_1 : TIM_CCMR1_CC1S_0) |
+                         (((control & STM32L0_TIMER_CONTROL_CAPTURE_PRESCALE_MASK) >> STM32L0_TIMER_CONTROL_CAPTURE_PRESCALE_SHIFT) << 2) |
+                         (((control & STM32L0_TIMER_CONTROL_CAPTURE_FILTER_MASK) >> STM32L0_TIMER_CONTROL_CAPTURE_FILTER_SHIFT) << 4));
+            
+            if (control & STM32L0_TIMER_CONTROL_CAPTURE_POLARITY)
+            {
+                if (control & STM32L0_TIMER_CONTROL_CAPTURE_RISING_EDGE)
+                {
+                    tim_ccer |= ((control & STM32L0_TIMER_CONTROL_CAPTURE_FALLING_EDGE) ? (TIM_CCER_CC1P | TIM_CCER_CC1NP) : TIM_CCER_CC1P);
+                }
+            }
+            else
+            {
+                if (control & STM32L0_TIMER_CONTROL_CAPTURE_FALLING_EDGE)
+                {
+                    tim_ccer |= ((control & STM32L0_TIMER_CONTROL_CAPTURE_RISING_EDGE) ? (TIM_CCER_CC1P | TIM_CCER_CC1NP) : TIM_CCER_CC1P);
+                }
+            }
+        }
+        else
+        {
+            switch (control & STM32L0_TIMER_CONTROL_COMPARE_MASK) {
+            case STM32L0_TIMER_CONTROL_COMPARE_TIMING:          tim_ccmr |= (                  (0 << 4)); break;
+            case STM32L0_TIMER_CONTROL_COMPARE_ACTIVE:          tim_ccmr |= (                  (1 << 4)); break;
+            case STM32L0_TIMER_CONTROL_COMPARE_INACTIVE:        tim_ccmr |= (                  (2 << 4)); break;
+            case STM32L0_TIMER_CONTROL_COMPARE_TOGGLE:          tim_ccmr |= (                  (3 << 4)); break;
+            case STM32L0_TIMER_CONTROL_COMPARE_FORCED_ACTIVE:   tim_ccmr |= (                  (5 << 4)); break;
+            case STM32L0_TIMER_CONTROL_COMPARE_FORCED_INACTIVE: tim_ccmr |= (                  (4 << 4)); break;
+            case STM32L0_TIMER_CONTROL_PWM:                     tim_ccmr |= (TIM_CCMR1_OC1PE | (6 << 4)); break;
+            }
 
-	    tim_ccer |= TIM_CCER_CC1E;
-	}
+            tim_ccer |= TIM_CCER_CC1E;
+        }
 
-	armv6m_atomic_or(&timer->channels, (STM32L0_TIMER_EVENT_CHANNEL_1 << channel));
+        armv6m_atomic_or(&timer->channels, (STM32L0_TIMER_EVENT_CHANNEL_1 << channel));
     }
     else
     {
-	/* If no CAPTURE/COMPARE is used the input can still be used clock input.
-	 */
+        /* If no CAPTURE/COMPARE is used the input can still be used clock input.
+         */
 
-	tim_ccer |= TIM_CCER_CC1E;
+        tim_ccer |= TIM_CCER_CC1E;
 
-	tim_ccmr |= ((control & STM32L0_TIMER_CONTROL_CAPTURE_ALTERNATE ? TIM_CCMR1_CC1S_1 : TIM_CCMR1_CC1S_0) |
-		     (((control & STM32L0_TIMER_CONTROL_CAPTURE_PRESCALE_MASK) >> STM32L0_TIMER_CONTROL_CAPTURE_PRESCALE_SHIFT) << 2) |
-		     (((control & STM32L0_TIMER_CONTROL_CAPTURE_FILTER_MASK) >> STM32L0_TIMER_CONTROL_CAPTURE_FILTER_SHIFT) << 4));
-	
-	if (control & STM32L0_TIMER_CONTROL_CAPTURE_POLARITY)
-	{
-	    tim_ccer |= TIM_CCER_CC1P;
-	}
-	    
-	if (channel > STM32L0_TIMER_CHANNEL_4)
-	{
-	    armv6m_atomic_and(&timer->channels, ~(STM32L0_TIMER_EVENT_CHANNEL_1 << channel));
-	}
+        tim_ccmr |= ((control & STM32L0_TIMER_CONTROL_CAPTURE_ALTERNATE ? TIM_CCMR1_CC1S_1 : TIM_CCMR1_CC1S_0) |
+                     (((control & STM32L0_TIMER_CONTROL_CAPTURE_PRESCALE_MASK) >> STM32L0_TIMER_CONTROL_CAPTURE_PRESCALE_SHIFT) << 2) |
+                     (((control & STM32L0_TIMER_CONTROL_CAPTURE_FILTER_MASK) >> STM32L0_TIMER_CONTROL_CAPTURE_FILTER_SHIFT) << 4));
+        
+        if (control & STM32L0_TIMER_CONTROL_CAPTURE_POLARITY)
+        {
+            tim_ccer |= TIM_CCER_CC1P;
+        }
+            
+        if (channel > STM32L0_TIMER_CHANNEL_4)
+        {
+            armv6m_atomic_and(&timer->channels, ~(STM32L0_TIMER_EVENT_CHANNEL_1 << channel));
+        }
     }
 
     if ((timer->channels & timer->events) & (STM32L0_TIMER_EVENT_CHANNEL_1 << channel))
     {
-	armv6m_atomic_or(&TIM->DIER, (TIM_DIER_CC1IE << channel));
+        armv6m_atomic_or(&TIM->DIER, (TIM_DIER_CC1IE << channel));
     }
     else
     {
-	armv6m_atomic_and(&TIM->DIER, ~(TIM_DIER_CC1IE << channel));
+        armv6m_atomic_and(&TIM->DIER, ~(TIM_DIER_CC1IE << channel));
     }
 
     switch (channel) {
@@ -502,9 +502,9 @@ bool stm32l0_timer_channel(stm32l0_timer_t *timer, unsigned int channel, uint32_
     case STM32L0_TIMER_CHANNEL_3: armv6m_atomic_modify(&TIM->CCMR2, 0x000100ff, (tim_ccmr << 0)); TIM->CCR3 = compare; break;
     case STM32L0_TIMER_CHANNEL_4: armv6m_atomic_modify(&TIM->CCMR2, 0x0100ff00, (tim_ccmr << 8)); TIM->CCR4 = compare; break;
     }
-	
+        
     armv6m_atomic_modify(&TIM->CCER, (0x0000000f << (channel * 4)), (tim_ccer << (channel * 4)));
-	
+        
     return true;
 }
 
@@ -514,7 +514,7 @@ bool stm32l0_timer_compare(stm32l0_timer_t *timer, unsigned int channel, uint32_
 
     if ((timer->state != STM32L0_TIMER_STATE_READY) && (timer->state != STM32L0_TIMER_STATE_ACTIVE))
     {
-	return false;
+        return false;
     }
 
     switch (channel) {
@@ -537,7 +537,7 @@ uint32_t stm32l0_timer_capture(stm32l0_timer_t *timer, unsigned int channel)
     case STM32L0_TIMER_CHANNEL_3: return TIM->CCR3; break;
     case STM32L0_TIMER_CHANNEL_4: return TIM->CCR4; break;
     default:
-	return 0;
+        return 0;
     }
 }
 

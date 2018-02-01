@@ -78,8 +78,8 @@
 #define F_SECTOR_SIZE                512
 
 #define F_MAXLNAME                   255 /* long file name */
-#define F_MAXNAME                    8	 /* 8 byte name */
-#define F_MAXEXT                     3	 /* 3 byte extension */
+#define F_MAXNAME                    8   /* 8 byte name */
+#define F_MAXEXT                     3   /* 3 byte extension */
 
 #if !defined(F_MAXPATH)
 #if (DOSFS_CONFIG_VFAT_SUPPORTED == 1)
@@ -101,19 +101,19 @@
 #define F_FAT16_MEDIA                2
 #define F_FAT32_MEDIA                3
 
-#define F_CTIME_SEC_SHIFT	     0
-#define F_CTIME_SEC_MASK	     0x001f   /* 0-30 in 2 seconds */
+#define F_CTIME_SEC_SHIFT            0
+#define F_CTIME_SEC_MASK             0x001f   /* 0-30 in 2 seconds */
 #define F_CTIME_MIN_SHIFT            5
-#define F_CTIME_MIN_MASK	     0x07e0   /* 0-59 */
-#define F_CTIME_HOUR_SHIFT	     11
-#define F_CTIME_HOUR_MASK	     0xf800   /* 0-23 */
+#define F_CTIME_MIN_MASK             0x07e0   /* 0-59 */
+#define F_CTIME_HOUR_SHIFT           11
+#define F_CTIME_HOUR_MASK            0xf800   /* 0-23 */
 
-#define F_CDATE_DAY_SHIFT	     0
-#define F_CDATE_DAY_MASK	     0x001f   /* 1-31 */
-#define F_CDATE_MONTH_SHIFT	     5
-#define F_CDATE_MONTH_MASK	     0x01e0   /* 1-12 */
-#define F_CDATE_YEAR_SHIFT	     9
-#define F_CDATE_YEAR_MASK	     0xfe00   /* 0-119 (1980+value) */
+#define F_CDATE_DAY_SHIFT            0
+#define F_CDATE_DAY_MASK             0x001f   /* 1-31 */
+#define F_CDATE_MONTH_SHIFT          5
+#define F_CDATE_MONTH_MASK           0x01e0   /* 1-12 */
+#define F_CDATE_YEAR_SHIFT           9
+#define F_CDATE_YEAR_MASK            0xfe00   /* 0-119 (1980+value) */
 
 #define F_CLUSTER_FREE               ((unsigned long)0x00000000)
 #define F_CLUSTER_RESERVED           ((unsigned long)0x0ffffff0)
@@ -131,24 +131,24 @@ typedef struct {
 
 typedef struct {
     char           filename[F_MAXPATH];             /* name.ext           */
-    char           name[F_MAXNAME];	            /* file name          */
-    char           ext[F_MAXEXT];	            /* file extension     */
-    unsigned char  attr;	    	            /* file attribute     */
-    unsigned short ctime;		            /* file creation time */
-    unsigned short cdate;		            /* file creation date */
-    unsigned int   cluster;	                    /* file start cluster */
-    unsigned int   filesize;		            /* file length        */
+    char           name[F_MAXNAME];                 /* file name          */
+    char           ext[F_MAXEXT];                   /* file extension     */
+    unsigned char  attr;                            /* file attribute     */
+    unsigned short ctime;                           /* file creation time */
+    unsigned short cdate;                           /* file creation date */
+    unsigned int   cluster;                         /* file start cluster */
+    unsigned int   filesize;                        /* file length        */
 } F_DIRENT;
 
 typedef struct {
     char           filename[F_MAXPATH];             /* name.ext           */
-    char           name[F_MAXNAME];	            /* file name          */
-    char           ext[F_MAXEXT];	            /* file extension     */
-    unsigned char  attr;	    	            /* file attribute     */
-    unsigned short ctime;		            /* file creation time */
-    unsigned short cdate;		            /* file creation date */
-    unsigned int   cluster;	                    /* file start cluster */
-    unsigned int   filesize;		            /* file length        */
+    char           name[F_MAXNAME];                 /* file name          */
+    char           ext[F_MAXEXT];                   /* file extension     */
+    unsigned char  attr;                            /* file attribute     */
+    unsigned short ctime;                           /* file creation time */
+    unsigned short cdate;                           /* file creation date */
+    unsigned int   cluster;                         /* file start cluster */
+    unsigned int   filesize;                        /* file length        */
 
     /* IMPLEMENTATION SPECIFIC BELOW */
 #if (DOSFS_CONFIG_VFAT_SUPPORTED == 0)

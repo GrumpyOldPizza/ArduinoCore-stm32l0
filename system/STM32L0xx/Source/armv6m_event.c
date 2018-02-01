@@ -50,17 +50,17 @@ static __attribute__((naked, used)) void armv6m_event_notify(void)
 {
     __asm__(
         "  ldr     r3, =armv6m_event_control           \n"
-	"  ldr     r0, [r3, %[offset_CONTROL_NEXT]]    \n"
-	"  cmp     r0, #0                              \n"
-	"  beq     .Lreturn                            \n"
-	"  ldr     r0, [r3, %[offset_CONTROL_STACK]]   \n"
-	"  ldr     r1, [r3, %[offset_CONTROL_SELF]]    \n"
-	"  push    { r0, r1 }                          \n"
-	"  mov     r0, sp                              \n"
-	"  str     r0, [r3, %[offset_CONTROL_STACK]]   \n"
+        "  ldr     r0, [r3, %[offset_CONTROL_NEXT]]    \n"
+        "  cmp     r0, #0                              \n"
+        "  beq     .Lreturn                            \n"
+        "  ldr     r0, [r3, %[offset_CONTROL_STACK]]   \n"
+        "  ldr     r1, [r3, %[offset_CONTROL_SELF]]    \n"
+        "  push    { r0, r1 }                          \n"
+        "  mov     r0, sp                              \n"
+        "  str     r0, [r3, %[offset_CONTROL_STACK]]   \n"
         "  bl      armv6m_event_switch                 \n"
         "  ldr     r3, =armv6m_event_control           \n"
-	"  ldr     r0, [r3, %[offset_CONTROL_SELF]]    \n"
+        "  ldr     r0, [r3, %[offset_CONTROL_SELF]]    \n"
         "  sub     sp, #0x20                           \n"
         "  ldr     r1, [r0, %[offset_EVENT_CONTEXT]]   \n"
         "  str     r1, [sp, #0x00]                     \n"
@@ -73,62 +73,62 @@ static __attribute__((naked, used)) void armv6m_event_notify(void)
         "  str     r3, [sp, #0x1c]                     \n"
         "  ldr     r0, =0xfffffff9                     \n"
         "  mov     lr, r0                              \n"
-	".Lreturn:                                     \n"
+        ".Lreturn:                                     \n"
         "  bx      lr                                  \n"
         "  bkpt                                        \n"
-	:
-	: [offset_CONTROL_STACK]    "I" (offsetof(armv6m_event_control_t, stack)),
-	  [offset_CONTROL_SELF]     "I" (offsetof(armv6m_event_control_t, self)),
-	  [offset_CONTROL_NEXT]     "I" (offsetof(armv6m_event_control_t, next)),
-	  [offset_EVENT_ROUTINE]    "I" (offsetof(armv6m_event_t, routine)),
-	  [offset_EVENT_CONTEXT]    "I" (offsetof(armv6m_event_t, context))
-	);
+        :
+        : [offset_CONTROL_STACK]    "I" (offsetof(armv6m_event_control_t, stack)),
+          [offset_CONTROL_SELF]     "I" (offsetof(armv6m_event_control_t, self)),
+          [offset_CONTROL_NEXT]     "I" (offsetof(armv6m_event_control_t, next)),
+          [offset_EVENT_ROUTINE]    "I" (offsetof(armv6m_event_t, routine)),
+          [offset_EVENT_CONTEXT]    "I" (offsetof(armv6m_event_t, context))
+        );
 }
 
 static __attribute__((naked, used)) void armv6m_event_svcall(void)
 {
     __asm__(
         "  add     sp, #0x28                           \n" // drop SVC stack frame
-	"  pop     { r0, r1 }                          \n"
+        "  pop     { r0, r1 }                          \n"
         "  ldr     r3, =armv6m_event_control           \n"
-	"  str     r0, [r3, %[offset_CONTROL_STACK]]   \n"
-	"  str     r1, [r3, %[offset_CONTROL_SELF]]    \n"
+        "  str     r0, [r3, %[offset_CONTROL_STACK]]   \n"
+        "  str     r1, [r3, %[offset_CONTROL_SELF]]    \n"
         "  bl      armv6m_event_schedule               \n"
         "  ldr     r0, =0xfffffff9                     \n"
         "  mov     lr, r0                              \n"
         "  bx      lr                                  \n"
         "  bkpt                                        \n"
-	:
-	: [offset_CONTROL_STACK]    "I" (offsetof(armv6m_event_control_t, stack)),
-	  [offset_CONTROL_SELF]     "I" (offsetof(armv6m_event_control_t, self))
-	);
+        :
+        : [offset_CONTROL_STACK]    "I" (offsetof(armv6m_event_control_t, stack)),
+          [offset_CONTROL_SELF]     "I" (offsetof(armv6m_event_control_t, self))
+        );
 }
 
 static __attribute__((naked, used)) void armv6m_event_return(void)
 {
     __asm__(
-	"  ldr     r0, =armv6m_event_svcall            \n"
-	"  mov     r12, r0                             \n"
-	"  svc     0                                   \n"
+        "  ldr     r0, =armv6m_event_svcall            \n"
+        "  mov     r12, r0                             \n"
+        "  svc     0                                   \n"
         "  bkpt                                        \n"
-	:
-	:
-	);
+        :
+        :
+        );
 }
 
 static  __attribute__((used)) void armv6m_event_schedule(void)
 {
     if (armv6m_event_control.preemptive &&
-	(armv6m_event_control.preemptive->priority < armv6m_event_control.ceiling) &&
-	(!armv6m_event_control.self || (armv6m_event_control.preemptive->priority < armv6m_event_control.self->priority)))
+        (armv6m_event_control.preemptive->priority < armv6m_event_control.ceiling) &&
+        (!armv6m_event_control.self || (armv6m_event_control.preemptive->priority < armv6m_event_control.self->priority)))
     {
-	armv6m_event_control.next = armv6m_event_control.preemptive;
+        armv6m_event_control.next = armv6m_event_control.preemptive;
 
-	armv6m_pendsv_notify(armv6m_event_notify);
+        armv6m_pendsv_notify(armv6m_event_notify);
     }
     else
     {
-	armv6m_event_control.next = NULL;
+        armv6m_event_control.next = NULL;
     }
 }
 
@@ -138,62 +138,62 @@ static  __attribute__((used)) void armv6m_event_insert(armv6m_event_t *event)
 
     if (event->priority == ARMV6M_EVENT_PRIORITY_COOPERATIVE)
     {
-	if (armv6m_event_control.cooperative == NULL)
-	{
-	    event->next = event;
-	    event->previous = event;
-	    
-	    armv6m_event_control.cooperative = event;
-	}
-	else
-	{
-	    element = armv6m_event_control.cooperative;
+        if (armv6m_event_control.cooperative == NULL)
+        {
+            event->next = event;
+            event->previous = event;
+            
+            armv6m_event_control.cooperative = event;
+        }
+        else
+        {
+            element = armv6m_event_control.cooperative;
 
-	    event->previous = element->previous;
-	    event->next = element;
+            event->previous = element->previous;
+            event->next = element;
 
-	    event->next->previous = event;
-	    event->previous->next = event;
-	}
+            event->next->previous = event;
+            event->previous->next = event;
+        }
     }
     else
     {
-	if (armv6m_event_control.preemptive == NULL)
-	{
-	    event->next = event;
-	    event->previous = event;
-	    
-	    armv6m_event_control.preemptive = event;
-	    
-	    armv6m_event_schedule();
-	}
-	else
-	{
-	    element = armv6m_event_control.preemptive;
-	    
-	    do
-	    {
-		if (element->priority > event->priority)
-		{
-		    if (armv6m_event_control.preemptive == element)
-		    {
-			armv6m_event_control.preemptive = event;
-			
-			armv6m_event_schedule();
-		    }
-		    break;
-		}
-		
-		element = element->next;
-	    }
-	    while (armv6m_event_control.preemptive != element);
-	    
-	    event->previous = element->previous;
-	    event->next = element;
+        if (armv6m_event_control.preemptive == NULL)
+        {
+            event->next = event;
+            event->previous = event;
+            
+            armv6m_event_control.preemptive = event;
+            
+            armv6m_event_schedule();
+        }
+        else
+        {
+            element = armv6m_event_control.preemptive;
+            
+            do
+            {
+                if (element->priority > event->priority)
+                {
+                    if (armv6m_event_control.preemptive == element)
+                    {
+                        armv6m_event_control.preemptive = event;
+                        
+                        armv6m_event_schedule();
+                    }
+                    break;
+                }
+                
+                element = element->next;
+            }
+            while (armv6m_event_control.preemptive != element);
+            
+            event->previous = element->previous;
+            event->next = element;
 
-	    event->next->previous = event;
-	    event->previous->next = event;
-	}
+            event->next->previous = event;
+            event->previous->next = event;
+        }
     }
 }
 
@@ -201,45 +201,45 @@ static  __attribute__((used)) void armv6m_event_remove(armv6m_event_t *event)
 {
     if (event->priority == ARMV6M_EVENT_PRIORITY_COOPERATIVE)
     {
-	if (event->next == event)
-	{
-	    armv6m_event_control.cooperative = NULL;
-	}
-	else
-	{
-	    if (armv6m_event_control.cooperative == event)
-	    {
-		armv6m_event_control.cooperative = event->next;
-	    }
-	    
-	    event->next->previous = event->previous;
-	    event->previous->next = event->next;
-	}
+        if (event->next == event)
+        {
+            armv6m_event_control.cooperative = NULL;
+        }
+        else
+        {
+            if (armv6m_event_control.cooperative == event)
+            {
+                armv6m_event_control.cooperative = event->next;
+            }
+            
+            event->next->previous = event->previous;
+            event->previous->next = event->next;
+        }
     }
     else
     {
-	if (event->next == event)
-	{
-	    armv6m_event_control.preemptive = NULL;
-	}
-	else
-	{
-	    if (armv6m_event_control.preemptive == event)
-	    {
-		armv6m_event_control.preemptive = event->next;
-	    }
-	    
-	    event->next->previous = event->previous;
-	    event->previous->next = event->next;
-	}
+        if (event->next == event)
+        {
+            armv6m_event_control.preemptive = NULL;
+        }
+        else
+        {
+            if (armv6m_event_control.preemptive == event)
+            {
+                armv6m_event_control.preemptive = event->next;
+            }
+            
+            event->next->previous = event->previous;
+            event->previous->next = event->next;
+        }
     }
 
     event->next = NULL;
     event->previous = NULL;
-	
+        
     if (armv6m_event_control.next == event)
     {
-	armv6m_event_schedule();
+        armv6m_event_schedule();
     }
 }
 
@@ -247,7 +247,7 @@ static  __attribute__((used)) void armv6m_event_switch(void)
 {
     if (armv6m_event_control.self == armv6m_event_control.next)
     {
-	__BKPT();
+        __BKPT();
     }
 
     armv6m_event_control.self = armv6m_event_control.next;
@@ -257,7 +257,7 @@ static  __attribute__((used)) void armv6m_event_switch(void)
 
     if (--armv6m_event_control.self->count != 0)
     {
-	armv6m_event_insert(armv6m_event_control.self);
+        armv6m_event_insert(armv6m_event_control.self);
     }
 }
 
@@ -265,7 +265,7 @@ static void armv6m_event_svc_destroy(armv6m_event_t *event)
 {
     if (event->next)
     {
-	armv6m_event_remove(event);
+        armv6m_event_remove(event);
     }
 
     event->routine = NULL;
@@ -279,13 +279,13 @@ static void armv6m_event_svc_enqueue(armv6m_event_t *event)
 {
     if (!event->count && !event->lock)
     {
-	event->count = 1;
+        event->count = 1;
 
-	armv6m_event_insert(event);
+        armv6m_event_insert(event);
     }
     else
     {
-	event->count++;
+        event->count++;
     }
 }
 
@@ -293,7 +293,7 @@ static void armv6m_event_svc_lock(armv6m_event_t *event)
 {
     if (event->next)
     {
-	armv6m_event_remove(event);
+        armv6m_event_remove(event);
     }
 
     event->lock = 1;
@@ -305,10 +305,10 @@ static void armv6m_event_svc_unlock(armv6m_event_t *event)
 
     if (event->count)
     {
-	if (!event->next)
-	{
-	    armv6m_event_insert(event);
-	}
+        if (!event->next)
+        {
+            armv6m_event_insert(event);
+        }
     }
 }
 
@@ -316,18 +316,18 @@ static void armv6m_event_svc_set_priority(armv6m_event_t *event, uint32_t priori
 {
     if (event->priority != priority)
     {
-	if (event->next)
-	{
-	    armv6m_event_remove(event);
+        if (event->next)
+        {
+            armv6m_event_remove(event);
 
-	    event->priority = priority;
-	    
-	    armv6m_event_insert(event);
-	}
-	else
-	{
-	    event->priority = priority;
-	}
+            event->priority = priority;
+            
+            armv6m_event_insert(event);
+        }
+        else
+        {
+            event->priority = priority;
+        }
     }
 }
 
@@ -337,23 +337,23 @@ static uint32_t armv6m_event_svc_dequeue(armv6m_core_callback_t *callback)
 
     if (!armv6m_event_control.cooperative)
     {
-	return 0;
+        return 0;
     }
     else
     {
-	event = armv6m_event_control.cooperative;
+        event = armv6m_event_control.cooperative;
 
-	event->count--;
+        event->count--;
 
-	if (event->count == 0)
-	{
-	    armv6m_event_remove(event);
-	}
+        if (event->count == 0)
+        {
+            armv6m_event_remove(event);
+        }
 
-	callback->routine = event->routine;
-	callback->context = event->context;
+        callback->routine = event->routine;
+        callback->context = event->context;
 
-	return 1;
+        return 1;
     }
 }
 
@@ -382,11 +382,11 @@ void armv6m_event_destroy(armv6m_event_t *event)
 {
     if (__get_IPSR() == 0)
     {
-	armv6m_svcall_1((uint32_t)&armv6m_event_svc_destroy, (uint32_t)event);
+        armv6m_svcall_1((uint32_t)&armv6m_event_svc_destroy, (uint32_t)event);
     }
     else
     {
-	armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)armv6m_event_svc_destroy, (void*)event, 0);
+        armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)armv6m_event_svc_destroy, (void*)event, 0);
     }
 }
 
@@ -394,11 +394,11 @@ void armv6m_event_enqueue(armv6m_event_t *event)
 {
     if (__get_IPSR() == 0)
     {
-	armv6m_svcall_1((uint32_t)&armv6m_event_svc_enqueue, (uint32_t)event);
+        armv6m_svcall_1((uint32_t)&armv6m_event_svc_enqueue, (uint32_t)event);
     }
     else
     {
-	armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)armv6m_event_svc_enqueue, (void*)event, 0);
+        armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)armv6m_event_svc_enqueue, (void*)event, 0);
     }
 }
 
@@ -406,11 +406,11 @@ void armv6m_event_lock(armv6m_event_t *event)
 {
     if (__get_IPSR() == 0)
     {
-	armv6m_svcall_1((uint32_t)&armv6m_event_svc_lock, (uint32_t)event);
+        armv6m_svcall_1((uint32_t)&armv6m_event_svc_lock, (uint32_t)event);
     }
     else
     {
-	armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)armv6m_event_svc_lock, (void*)event, 0);
+        armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)armv6m_event_svc_lock, (void*)event, 0);
     }
 }
 
@@ -418,11 +418,11 @@ void armv6m_event_unlock(armv6m_event_t *event)
 {
     if (__get_IPSR() == 0)
     {
-	armv6m_svcall_1((uint32_t)&armv6m_event_svc_unlock, (uint32_t)event);
+        armv6m_svcall_1((uint32_t)&armv6m_event_svc_unlock, (uint32_t)event);
     }
     else
     {
-	armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)armv6m_event_svc_unlock, (void*)event, 0);
+        armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)armv6m_event_svc_unlock, (void*)event, 0);
     }
 }
 
@@ -430,11 +430,11 @@ void armv6m_event_set_priority(armv6m_event_t *event, uint8_t priority)
 {
     if (__get_IPSR() == 0)
     {
-	armv6m_svcall_2((uint32_t)&armv6m_event_svc_set_priority, (uint32_t)event, priority);
+        armv6m_svcall_2((uint32_t)&armv6m_event_svc_set_priority, (uint32_t)event, priority);
     }
     else
     {
-	armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)armv6m_event_svc_set_priority, (void*)event, priority);
+        armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)armv6m_event_svc_set_priority, (void*)event, priority);
     }
 }
 
@@ -446,7 +446,7 @@ uint8_t armv6m_event_acquire(uint8_t priority)
 
     if (priority < ceiling)
     {
-	armv6m_event_control.ceiling = priority;
+        armv6m_event_control.ceiling = priority;
     }
 
     return ceiling;
@@ -463,12 +463,12 @@ bool armv6m_event_dequeue(void)
 
     if (__get_IPSR() != 0)
     {
-	return false;
+        return false;
     }
 
     if (!armv6m_svcall_1((uint32_t)&armv6m_event_svc_dequeue, (uint32_t)&callback))
     {
-	return false;
+        return false;
     }
 
     (*callback.routine)(callback.routine);
@@ -480,7 +480,7 @@ armv6m_event_t *armv6m_event_self(void)
 {
     if (__get_IPSR() != 0)
     {
-	return NULL;
+        return NULL;
     }
 
     return armv6m_event_control.self;

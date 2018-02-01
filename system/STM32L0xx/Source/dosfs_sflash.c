@@ -66,8 +66,8 @@ static uint32_t dosfs_sflash_ftl_extract_info_entry(const void *cache, uint32_t 
     uint32_t offset = (DOSFS_SFLASH_INFO_ENTRY_OFFSET + (index * DOSFS_SFLASH_INFO_ENTRY_SIZE));
 
     return ((((const uint8_t*)cache)[offset+0] << 0) |
-	    (((const uint8_t*)cache)[offset+1] << 8) |
-	    (((const uint8_t*)cache)[offset+2] << 16));
+            (((const uint8_t*)cache)[offset+1] << 8) |
+            (((const uint8_t*)cache)[offset+2] << 16));
 }
 
 static void dosfs_sflash_ftl_merge_info_type(void *cache, uint32_t index, uint32_t info)
@@ -89,21 +89,21 @@ static void dosfs_sflash_ftl_merge_info_entry(void *cache, uint32_t index, uint3
 static void dosfs_sflash_ftl_set_info_type(dosfs_sflash_t *sflash, uint32_t logical, uint32_t info)
 {
     (*sflash->interface->program)(sflash->context,
-				  (dosfs_sflash_ftl_translate(sflash, logical) & ~(DOSFS_SFLASH_ERASE_SIZE-1)) +
-				  DOSFS_SFLASH_INFO_ENTRY_OFFSET +
-				  ((logical & DOSFS_SFLASH_LOGICAL_BLOCK_MASK) * DOSFS_SFLASH_INFO_ENTRY_SIZE) +2,
-				  (const uint8_t*)&info + 2,
-				  1);
+                                  (dosfs_sflash_ftl_translate(sflash, logical) & ~(DOSFS_SFLASH_ERASE_SIZE-1)) +
+                                  DOSFS_SFLASH_INFO_ENTRY_OFFSET +
+                                  ((logical & DOSFS_SFLASH_LOGICAL_BLOCK_MASK) * DOSFS_SFLASH_INFO_ENTRY_SIZE) +2,
+                                  (const uint8_t*)&info + 2,
+                                  1);
 }
 
 static void dosfs_sflash_ftl_set_info_entry(dosfs_sflash_t *sflash, uint32_t logical, uint32_t info)
 {
     (*sflash->interface->program)(sflash->context,
-				  (dosfs_sflash_ftl_translate(sflash, logical) & ~(DOSFS_SFLASH_ERASE_SIZE-1)) +
-				  DOSFS_SFLASH_INFO_ENTRY_OFFSET +
-				  ((logical & DOSFS_SFLASH_LOGICAL_BLOCK_MASK) * DOSFS_SFLASH_INFO_ENTRY_SIZE),
-				  (const uint8_t*)&info,
-				  DOSFS_SFLASH_INFO_ENTRY_SIZE);
+                                  (dosfs_sflash_ftl_translate(sflash, logical) & ~(DOSFS_SFLASH_ERASE_SIZE-1)) +
+                                  DOSFS_SFLASH_INFO_ENTRY_OFFSET +
+                                  ((logical & DOSFS_SFLASH_LOGICAL_BLOCK_MASK) * DOSFS_SFLASH_INFO_ENTRY_SIZE),
+                                  (const uint8_t*)&info,
+                                  DOSFS_SFLASH_INFO_ENTRY_SIZE);
 }
     
 static void dosfs_sflash_ftl_swap(dosfs_sflash_t *sflash, uint32_t victim_offset, uint32_t victim_sector, uint32_t victim_erase_count, uint32_t reclaim_offset)
@@ -182,98 +182,98 @@ static void dosfs_sflash_ftl_reclaim(dosfs_sflash_t *sflash, uint32_t victim_off
 
     for (index = 1; index < DOSFS_SFLASH_BLOCK_INFO_ENTRIES; index++)
     {
-	info_entry = dosfs_sflash_ftl_extract_info_entry(cache, index);
+        info_entry = dosfs_sflash_ftl_extract_info_entry(cache, index);
 
-	if ((info_entry & DOSFS_SFLASH_INFO_NOT_WRITTEN_TO) || ((info_entry & DOSFS_SFLASH_INFO_TYPE_MASK) == DOSFS_SFLASH_INFO_TYPE_DELETED))
-	{
-	    if (sflash->alloc_count == 0)
-	    {
-		sflash->alloc_index = index;
-	    }
-	    
-	    sflash->alloc_mask[index / 32] |= (1ul << (index & 31));
-	    sflash->alloc_count++;
+        if ((info_entry & DOSFS_SFLASH_INFO_NOT_WRITTEN_TO) || ((info_entry & DOSFS_SFLASH_INFO_TYPE_MASK) == DOSFS_SFLASH_INFO_TYPE_DELETED))
+        {
+            if (sflash->alloc_count == 0)
+            {
+                sflash->alloc_index = index;
+            }
+            
+            sflash->alloc_mask[index / 32] |= (1ul << (index & 31));
+            sflash->alloc_count++;
 
-	    if ((info_entry & DOSFS_SFLASH_INFO_TYPE_MASK) == DOSFS_SFLASH_INFO_TYPE_DELETED)
-	    {
-		dosfs_sflash_ftl_merge_info_entry(cache, index, DOSFS_SFLASH_INFO_ERASED);
-	    }
-	}
+            if ((info_entry & DOSFS_SFLASH_INFO_TYPE_MASK) == DOSFS_SFLASH_INFO_TYPE_DELETED)
+            {
+                dosfs_sflash_ftl_merge_info_entry(cache, index, DOSFS_SFLASH_INFO_ERASED);
+            }
+        }
     }
 
     if (sflash->alloc_count || ((sflash->erase_count_max - victim_erase_count) > DOSFS_SFLASH_ERASE_COUNT_THRESHOLD))
     {
-	/* Mark the victim sector as VICTIM and record the "reclaim_offset" (ERASE -> VICTIM).
-	 */
+        /* Mark the victim sector as VICTIM and record the "reclaim_offset" (ERASE -> VICTIM).
+         */
 
-	info_entry = dosfs_sflash_ftl_extract_info_entry(cache, 0);
-	
-	info_entry &= ~DOSFS_SFLASH_INFO_TYPE_VICTIM;
-	
-	dosfs_sflash_ftl_merge_info_type(cache, 0, info_entry);
-	
-	(*sflash->interface->program)(sflash->context, victim_offset + DOSFS_SFLASH_INFO_ENTRY_OFFSET, (const uint8_t*)&info_entry, DOSFS_SFLASH_INFO_ENTRY_SIZE);
+        info_entry = dosfs_sflash_ftl_extract_info_entry(cache, 0);
+        
+        info_entry &= ~DOSFS_SFLASH_INFO_TYPE_VICTIM;
+        
+        dosfs_sflash_ftl_merge_info_type(cache, 0, info_entry);
+        
+        (*sflash->interface->program)(sflash->context, victim_offset + DOSFS_SFLASH_INFO_ENTRY_OFFSET, (const uint8_t*)&info_entry, DOSFS_SFLASH_INFO_ENTRY_SIZE);
 
-	head_info[0] = DOSFS_SFLASH_SECTOR_IDENT_0;
-	head_info[1] = DOSFS_SFLASH_SECTOR_IDENT_1;
-	head_info[2] = sflash->data_start;
-	head_info[3] = sflash->data_limit;
-	head_info[4] = victim_erase_count;
-	head_info[5] = sflash->reclaim_erase_count + 1;
-	head_info[6] = 0xffffffff;
-	head_info[7] = 0xffffffff;
-	
-	(*sflash->interface->program)(sflash->context, victim_offset + DOSFS_SFLASH_INFO_HEAD_OFFSET, (const uint8_t*)&head_info[0], DOSFS_SFLASH_INFO_HEAD_SIZE);
-	
-	/* Here the reclaim sector stays in uncommitted state.
-	 */
+        head_info[0] = DOSFS_SFLASH_SECTOR_IDENT_0;
+        head_info[1] = DOSFS_SFLASH_SECTOR_IDENT_1;
+        head_info[2] = sflash->data_start;
+        head_info[3] = sflash->data_limit;
+        head_info[4] = victim_erase_count;
+        head_info[5] = sflash->reclaim_erase_count + 1;
+        head_info[6] = 0xffffffff;
+        head_info[7] = 0xffffffff;
+        
+        (*sflash->interface->program)(sflash->context, victim_offset + DOSFS_SFLASH_INFO_HEAD_OFFSET, (const uint8_t*)&head_info[0], DOSFS_SFLASH_INFO_HEAD_SIZE);
+        
+        /* Here the reclaim sector stays in uncommitted state.
+         */
 
 
-	for (index = 1; index < DOSFS_SFLASH_BLOCK_INFO_ENTRIES; index++)
-	{
-	    info_entry = dosfs_sflash_ftl_extract_info_entry(cache, index);
+        for (index = 1; index < DOSFS_SFLASH_BLOCK_INFO_ENTRIES; index++)
+        {
+            info_entry = dosfs_sflash_ftl_extract_info_entry(cache, index);
 
-	    if (!((info_entry & DOSFS_SFLASH_INFO_NOT_WRITTEN_TO) || ((info_entry & DOSFS_SFLASH_INFO_TYPE_MASK) == DOSFS_SFLASH_INFO_TYPE_DELETED)))
-	    {
-		(*sflash->interface->read)(sflash->context, victim_offset + (index * DOSFS_SFLASH_BLOCK_SIZE), (uint8_t*)data, DOSFS_SFLASH_BLOCK_SIZE);
+            if (!((info_entry & DOSFS_SFLASH_INFO_NOT_WRITTEN_TO) || ((info_entry & DOSFS_SFLASH_INFO_TYPE_MASK) == DOSFS_SFLASH_INFO_TYPE_DELETED)))
+            {
+                (*sflash->interface->read)(sflash->context, victim_offset + (index * DOSFS_SFLASH_BLOCK_SIZE), (uint8_t*)data, DOSFS_SFLASH_BLOCK_SIZE);
 
-		(*sflash->interface->program)(sflash->context, sflash->reclaim_offset + (index * DOSFS_SFLASH_BLOCK_SIZE), (const uint8_t*)data, DOSFS_SFLASH_PAGE_SIZE);
-		(*sflash->interface->program)(sflash->context, sflash->reclaim_offset + (index * DOSFS_SFLASH_BLOCK_SIZE) + DOSFS_SFLASH_PAGE_SIZE, (const uint8_t*)data + DOSFS_SFLASH_PAGE_SIZE, DOSFS_SFLASH_PAGE_SIZE);
-	    }
-	}
+                (*sflash->interface->program)(sflash->context, sflash->reclaim_offset + (index * DOSFS_SFLASH_BLOCK_SIZE), (const uint8_t*)data, DOSFS_SFLASH_PAGE_SIZE);
+                (*sflash->interface->program)(sflash->context, sflash->reclaim_offset + (index * DOSFS_SFLASH_BLOCK_SIZE) + DOSFS_SFLASH_PAGE_SIZE, (const uint8_t*)data + DOSFS_SFLASH_PAGE_SIZE, DOSFS_SFLASH_PAGE_SIZE);
+            }
+        }
 
-	victim_erase_count++;
+        victim_erase_count++;
 
-	/* Write the update info header to the reclaim sector (2nd page first). This commits the reclaim operation (UNCOMITTED -> RECLAIM).
-	 */
-	
-	info_entry = DOSFS_SFLASH_INFO_TYPE_RECLAIM | DOSFS_SFLASH_INFO_DATA_MASK;
+        /* Write the update info header to the reclaim sector (2nd page first). This commits the reclaim operation (UNCOMITTED -> RECLAIM).
+         */
+        
+        info_entry = DOSFS_SFLASH_INFO_TYPE_RECLAIM | DOSFS_SFLASH_INFO_DATA_MASK;
 
-	dosfs_sflash_ftl_merge_info_entry(cache, 0, info_entry);
+        dosfs_sflash_ftl_merge_info_entry(cache, 0, info_entry);
 
-	head_info[0] = DOSFS_SFLASH_SECTOR_IDENT_0;
-	head_info[1] = DOSFS_SFLASH_SECTOR_IDENT_1;
-	head_info[2] = sflash->data_start;
-	head_info[3] = sflash->data_limit;
-	head_info[4] = sflash->reclaim_erase_count;
-	head_info[5] = 0xffffffff;
-	head_info[6] = 0xffffffff;
-	head_info[7] = 0xffffffff;
+        head_info[0] = DOSFS_SFLASH_SECTOR_IDENT_0;
+        head_info[1] = DOSFS_SFLASH_SECTOR_IDENT_1;
+        head_info[2] = sflash->data_start;
+        head_info[3] = sflash->data_limit;
+        head_info[4] = sflash->reclaim_erase_count;
+        head_info[5] = 0xffffffff;
+        head_info[6] = 0xffffffff;
+        head_info[7] = 0xffffffff;
 
-	tail_info[0] = DOSFS_SFLASH_SECTOR_IDENT_TAIL;
+        tail_info[0] = DOSFS_SFLASH_SECTOR_IDENT_TAIL;
 
-	(*sflash->interface->program)(sflash->context, sflash->reclaim_offset + DOSFS_SFLASH_PAGE_SIZE, (const uint8_t*)cache + DOSFS_SFLASH_PAGE_SIZE, DOSFS_SFLASH_PAGE_SIZE);
-	(*sflash->interface->program)(sflash->context, sflash->reclaim_offset, (const uint8_t*)cache, DOSFS_SFLASH_PAGE_SIZE);
+        (*sflash->interface->program)(sflash->context, sflash->reclaim_offset + DOSFS_SFLASH_PAGE_SIZE, (const uint8_t*)cache + DOSFS_SFLASH_PAGE_SIZE, DOSFS_SFLASH_PAGE_SIZE);
+        (*sflash->interface->program)(sflash->context, sflash->reclaim_offset, (const uint8_t*)cache, DOSFS_SFLASH_PAGE_SIZE);
 
-	/* Here a valid VICTIM and a valid RECLAIM header exist. Erase the victim and set it up as new reclaim.
-	 */
-	
-	dosfs_sflash_ftl_swap(sflash, victim_offset, victim_sector, victim_erase_count, sflash->reclaim_offset);
+        /* Here a valid VICTIM and a valid RECLAIM header exist. Erase the victim and set it up as new reclaim.
+         */
+        
+        dosfs_sflash_ftl_swap(sflash, victim_offset, victim_sector, victim_erase_count, sflash->reclaim_offset);
 
-	if (sflash->erase_count_max < victim_erase_count)
-	{
-	    sflash->erase_count_max = victim_erase_count;
-	}
+        if (sflash->erase_count_max < victim_erase_count)
+        {
+            sflash->erase_count_max = victim_erase_count;
+        }
     }
 
     DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_reclaim);
@@ -297,49 +297,49 @@ static void dosfs_sflash_ftl_format(dosfs_sflash_t *sflash)
 
     for (offset = sflash->data_start; offset < sflash->data_limit; offset += DOSFS_SFLASH_ERASE_SIZE)
     {
-	erase_count = 1;
+        erase_count = 1;
 
-	(*sflash->interface->read)(sflash->context, offset, (uint8_t*)cache, DOSFS_SFLASH_BLOCK_SIZE);
+        (*sflash->interface->read)(sflash->context, offset, (uint8_t*)cache, DOSFS_SFLASH_BLOCK_SIZE);
 
-	info_entry = dosfs_sflash_ftl_extract_info_entry(cache, 0);
+        info_entry = dosfs_sflash_ftl_extract_info_entry(cache, 0);
 
-	if (!(info_entry & DOSFS_SFLASH_INFO_NOT_WRITTEN_TO))
-	{
-	    if ((head_info[0] == DOSFS_SFLASH_SECTOR_IDENT_0) &&
-		(head_info[1] == DOSFS_SFLASH_SECTOR_IDENT_1) &&
-		(tail_info[0] == DOSFS_SFLASH_SECTOR_IDENT_TAIL))
-	    {
-		erase_count = head_info[DOSFS_SFLASH_INFO_SLOT_ERASE_COUNT] + 1;
-	    }
-	}
+        if (!(info_entry & DOSFS_SFLASH_INFO_NOT_WRITTEN_TO))
+        {
+            if ((head_info[0] == DOSFS_SFLASH_SECTOR_IDENT_0) &&
+                (head_info[1] == DOSFS_SFLASH_SECTOR_IDENT_1) &&
+                (tail_info[0] == DOSFS_SFLASH_SECTOR_IDENT_TAIL))
+            {
+                erase_count = head_info[DOSFS_SFLASH_INFO_SLOT_ERASE_COUNT] + 1;
+            }
+        }
 
-	(*sflash->interface->erase)(sflash->context, offset);
+        (*sflash->interface->erase)(sflash->context, offset);
 
-	if (offset == (sflash->data_limit - DOSFS_SFLASH_ERASE_SIZE))
-	{
-	    info_entry = DOSFS_SFLASH_INFO_TYPE_RESERVED | DOSFS_SFLASH_INFO_DATA_MASK;
-	}
-	else
-	{
-	    info_entry = DOSFS_SFLASH_INFO_TYPE_ERASE | (offset / DOSFS_SFLASH_ERASE_SIZE);
-	}
+        if (offset == (sflash->data_limit - DOSFS_SFLASH_ERASE_SIZE))
+        {
+            info_entry = DOSFS_SFLASH_INFO_TYPE_RESERVED | DOSFS_SFLASH_INFO_DATA_MASK;
+        }
+        else
+        {
+            info_entry = DOSFS_SFLASH_INFO_TYPE_ERASE | (offset / DOSFS_SFLASH_ERASE_SIZE);
+        }
 
-	(*sflash->interface->program)(sflash->context, offset + DOSFS_SFLASH_INFO_ENTRY_OFFSET, (const uint8_t*)&info_entry, DOSFS_SFLASH_INFO_ENTRY_SIZE);
+        (*sflash->interface->program)(sflash->context, offset + DOSFS_SFLASH_INFO_ENTRY_OFFSET, (const uint8_t*)&info_entry, DOSFS_SFLASH_INFO_ENTRY_SIZE);
 
-	head_info[0] = DOSFS_SFLASH_SECTOR_IDENT_0;
-	head_info[1] = DOSFS_SFLASH_SECTOR_IDENT_1;
-	head_info[2] = sflash->data_start;
-	head_info[3] = sflash->data_limit;
-	head_info[4] = erase_count;
-	head_info[5] = 0xffffffff;
-	head_info[6] = 0xffffffff;
-	head_info[7] = 0xffffffff;
+        head_info[0] = DOSFS_SFLASH_SECTOR_IDENT_0;
+        head_info[1] = DOSFS_SFLASH_SECTOR_IDENT_1;
+        head_info[2] = sflash->data_start;
+        head_info[3] = sflash->data_limit;
+        head_info[4] = erase_count;
+        head_info[5] = 0xffffffff;
+        head_info[6] = 0xffffffff;
+        head_info[7] = 0xffffffff;
 
-	(*sflash->interface->program)(sflash->context, offset + DOSFS_SFLASH_INFO_HEAD_OFFSET, (const uint8_t*)&head_info[0], DOSFS_SFLASH_INFO_HEAD_SIZE);
+        (*sflash->interface->program)(sflash->context, offset + DOSFS_SFLASH_INFO_HEAD_OFFSET, (const uint8_t*)&head_info[0], DOSFS_SFLASH_INFO_HEAD_SIZE);
 
-	tail_info[0] = DOSFS_SFLASH_SECTOR_IDENT_TAIL;
+        tail_info[0] = DOSFS_SFLASH_SECTOR_IDENT_TAIL;
 
-	(*sflash->interface->program)(sflash->context, offset + DOSFS_SFLASH_INFO_TAIL_OFFSET, (const uint8_t*)&tail_info[0], DOSFS_SFLASH_INFO_TAIL_SIZE);
+        (*sflash->interface->program)(sflash->context, offset + DOSFS_SFLASH_INFO_TAIL_OFFSET, (const uint8_t*)&tail_info[0], DOSFS_SFLASH_INFO_TAIL_SIZE);
     }
 
 #if (DOSFS_CONFIG_SFLASH_DEBUG == 1)
@@ -368,9 +368,9 @@ static void dosfs_sflash_ftl_modify(dosfs_sflash_t *sflash, uint32_t address, ui
     {
         DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate_miss);
 
-	sflash->xlate_logical = sflash->xlate_table[xlate_segment];
-	
-	(*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate_logical), (uint8_t*)xlate_cache, DOSFS_SFLASH_BLOCK_SIZE);
+        sflash->xlate_logical = sflash->xlate_table[xlate_segment];
+        
+        (*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate_logical), (uint8_t*)xlate_cache, DOSFS_SFLASH_BLOCK_SIZE);
     }
     else
     {
@@ -382,50 +382,50 @@ static void dosfs_sflash_ftl_modify(dosfs_sflash_t *sflash, uint32_t address, ui
     if (read_logical == DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
     {
 #if (DOSFS_CONFIG_SFLASH_DEBUG == 1)
-	assert(read_logical == sflash_xlate_shadow[address]);
-	sflash_xlate_shadow[address] = write_logical;
+        assert(read_logical == sflash_xlate_shadow[address]);
+        sflash_xlate_shadow[address] = write_logical;
 #endif /* DOSFS_CONFIG_SFLASH_DEBUG == 1 */
-	
-	xlate_cache[xlate_index] = write_logical;
-	
-	(*sflash->interface->program)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate_logical) + (xlate_index * 2), (const uint8_t*)&xlate_cache[xlate_index], 2);
-	
-	dosfs_sflash_ftl_set_info_type(sflash, write_logical, (DOSFS_SFLASH_INFO_TYPE_DATA_COMMITTED | address));
+        
+        xlate_cache[xlate_index] = write_logical;
+        
+        (*sflash->interface->program)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate_logical) + (xlate_index * 2), (const uint8_t*)&xlate_cache[xlate_index], 2);
+        
+        dosfs_sflash_ftl_set_info_type(sflash, write_logical, (DOSFS_SFLASH_INFO_TYPE_DATA_COMMITTED | address));
     }
     else
     {
-	if (sflash->xlate2_logical != sflash->xlate2_table[xlate_segment])
-	{
-	    DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate2_miss);
+        if (sflash->xlate2_logical != sflash->xlate2_table[xlate_segment])
+        {
+            DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate2_miss);
 
-	    sflash->xlate2_logical = sflash->xlate2_table[xlate_segment];
-	    
-	    (*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate2_logical), (uint8_t*)xlate2_cache, DOSFS_SFLASH_BLOCK_SIZE);
-	}
-	else
-	{
-	    DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate2_hit);
-	}
+            sflash->xlate2_logical = sflash->xlate2_table[xlate_segment];
+            
+            (*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate2_logical), (uint8_t*)xlate2_cache, DOSFS_SFLASH_BLOCK_SIZE);
+        }
+        else
+        {
+            DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate2_hit);
+        }
 
 #if (DOSFS_CONFIG_SFLASH_DEBUG == 1)
-	assert(read_logical == sflash_xlate_shadow[address]);
-	sflash_xlate_shadow[address] = write_logical;
+        assert(read_logical == sflash_xlate_shadow[address]);
+        sflash_xlate_shadow[address] = write_logical;
 #endif /* DOSFS_CONFIG_SFLASH_DEBUG == 1 */
-	
-	xlate2_cache[xlate_index] = write_logical;
-	
-	(*sflash->interface->program)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate2_logical) + (xlate_index * 2), (const uint8_t*)&xlate2_cache[xlate_index], 2);
-	
-	dosfs_sflash_ftl_set_info_type(sflash, write_logical, (DOSFS_SFLASH_INFO_TYPE_DATA_COMMITTED | address));
-	
-	if (read_logical != DOSFS_SFLASH_BLOCK_DELETED)
-	{
-	    xlate_cache[xlate_index] = DOSFS_SFLASH_BLOCK_DELETED;
-	    
-	    (*sflash->interface->program)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate_logical) + (xlate_index * 2), (const uint8_t*)&xlate_cache[xlate_index], 2);
-	    
-	    dosfs_sflash_ftl_set_info_entry(sflash, read_logical, DOSFS_SFLASH_INFO_TYPE_DELETED);
-	}
+        
+        xlate2_cache[xlate_index] = write_logical;
+        
+        (*sflash->interface->program)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate2_logical) + (xlate_index * 2), (const uint8_t*)&xlate2_cache[xlate_index], 2);
+        
+        dosfs_sflash_ftl_set_info_type(sflash, write_logical, (DOSFS_SFLASH_INFO_TYPE_DATA_COMMITTED | address));
+        
+        if (read_logical != DOSFS_SFLASH_BLOCK_DELETED)
+        {
+            xlate_cache[xlate_index] = DOSFS_SFLASH_BLOCK_DELETED;
+            
+            (*sflash->interface->program)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate_logical) + (xlate_index * 2), (const uint8_t*)&xlate_cache[xlate_index], 2);
+            
+            dosfs_sflash_ftl_set_info_entry(sflash, read_logical, DOSFS_SFLASH_INFO_TYPE_DELETED);
+        }
     }
 }
 
@@ -442,52 +442,52 @@ static void dosfs_sflash_ftl_trim(dosfs_sflash_t *sflash, uint32_t address, uint
 
     if (sflash->xlate_logical != sflash->xlate_table[xlate_segment])
     {
-	DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate_miss);
+        DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate_miss);
 
-	sflash->xlate_logical = sflash->xlate_table[xlate_segment];
-	
-	(*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate_logical), (uint8_t*)xlate_cache, DOSFS_SFLASH_BLOCK_SIZE);
+        sflash->xlate_logical = sflash->xlate_table[xlate_segment];
+        
+        (*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate_logical), (uint8_t*)xlate_cache, DOSFS_SFLASH_BLOCK_SIZE);
     }
     else
     {
-	DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate_hit);;
+        DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate_hit);;
     }
 
     if (xlate_cache[xlate_index] != DOSFS_SFLASH_BLOCK_DELETED)
     {
 #if (DOSFS_CONFIG_SFLASH_DEBUG == 1)
-	sflash_xlate_shadow[address] = DOSFS_SFLASH_BLOCK_DELETED;
+        sflash_xlate_shadow[address] = DOSFS_SFLASH_BLOCK_DELETED;
 #endif /* DOSFS_CONFIG_SFLASH_DEBUG == 1 */
 
-	xlate_cache[xlate_index] = DOSFS_SFLASH_BLOCK_DELETED;
-				
-	(*sflash->interface->program)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate_logical) + (xlate_index * 2), (const uint8_t*)&xlate_cache[xlate_index], 2);
+        xlate_cache[xlate_index] = DOSFS_SFLASH_BLOCK_DELETED;
+                                
+        (*sflash->interface->program)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate_logical) + (xlate_index * 2), (const uint8_t*)&xlate_cache[xlate_index], 2);
     }
     else
     {
-	if (sflash->xlate2_table[xlate_segment] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
-	{
-	    if (sflash->xlate2_logical != sflash->xlate2_table[xlate_segment])
-	    {
-		DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate2_miss);
+        if (sflash->xlate2_table[xlate_segment] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
+        {
+            if (sflash->xlate2_logical != sflash->xlate2_table[xlate_segment])
+            {
+                DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate2_miss);
 
-		sflash->xlate2_logical = sflash->xlate2_table[xlate_segment];
-		
-		(*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate2_logical), (uint8_t*)xlate2_cache, DOSFS_SFLASH_BLOCK_SIZE);
-	    }
-	    else
-	    {
-		DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate2_hit);
-	    }
+                sflash->xlate2_logical = sflash->xlate2_table[xlate_segment];
+                
+                (*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate2_logical), (uint8_t*)xlate2_cache, DOSFS_SFLASH_BLOCK_SIZE);
+            }
+            else
+            {
+                DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate2_hit);
+            }
 
 #if (DOSFS_CONFIG_SFLASH_DEBUG == 1)
-	    sflash_xlate_shadow[address] = DOSFS_SFLASH_BLOCK_DELETED;
+            sflash_xlate_shadow[address] = DOSFS_SFLASH_BLOCK_DELETED;
 #endif /* DOSFS_CONFIG_SFLASH_DEBUG == 1 */
 
-	    xlate2_cache[xlate_index] = DOSFS_SFLASH_BLOCK_DELETED;
-	    
-	    (*sflash->interface->program)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate2_logical) + (xlate_index * 2), (const uint8_t*)&xlate2_cache[xlate_index], 2);
-	}
+            xlate2_cache[xlate_index] = DOSFS_SFLASH_BLOCK_DELETED;
+            
+            (*sflash->interface->program)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate2_logical) + (xlate_index * 2), (const uint8_t*)&xlate2_cache[xlate_index], 2);
+        }
     }
 
     dosfs_sflash_ftl_set_info_entry(sflash, delete_logical, DOSFS_SFLASH_INFO_TYPE_DELETED);
@@ -511,169 +511,169 @@ static void dosfs_sflash_ftl_check()
 
     for (offset = sflash->data_start; offset < sflash->data_limit; offset += DOSFS_SFLASH_ERASE_SIZE)
     {
-	(*sflash->interface->read)(sflash->context, offset, (uint8_t*)cache, DOSFS_SFLASH_BLOCK_SIZE);
+        (*sflash->interface->read)(sflash->context, offset, (uint8_t*)cache, DOSFS_SFLASH_BLOCK_SIZE);
 
-	info_entry = dosfs_sflash_ftl_extract_info_entry(cache, 0);
-	
-	if (info_entry & DOSFS_SFLASH_INFO_NOT_WRITTEN_TO)
-	{
-	    DOSFS_SFLASH_FTL_CHECK();
-	}
-	else
-	{
-	    if ((head_info[0] != DOSFS_SFLASH_SECTOR_IDENT_0) ||
-		(head_info[1] != DOSFS_SFLASH_SECTOR_IDENT_1) ||
-		(head_info[2] != sflash->data_start) ||
-		(head_info[3] != sflash->data_limit) ||
-		(tail_info[0] != DOSFS_SFLASH_SECTOR_IDENT_TAIL))
-	    {
-		DOSFS_SFLASH_FTL_CHECK();
-	    }
+        info_entry = dosfs_sflash_ftl_extract_info_entry(cache, 0);
+        
+        if (info_entry & DOSFS_SFLASH_INFO_NOT_WRITTEN_TO)
+        {
+            DOSFS_SFLASH_FTL_CHECK();
+        }
+        else
+        {
+            if ((head_info[0] != DOSFS_SFLASH_SECTOR_IDENT_0) ||
+                (head_info[1] != DOSFS_SFLASH_SECTOR_IDENT_1) ||
+                (head_info[2] != sflash->data_start) ||
+                (head_info[3] != sflash->data_limit) ||
+                (tail_info[0] != DOSFS_SFLASH_SECTOR_IDENT_TAIL))
+            {
+                DOSFS_SFLASH_FTL_CHECK();
+            }
 
-	    switch (info_entry & DOSFS_SFLASH_INFO_TYPE_MASK) {
-	    case DOSFS_SFLASH_INFO_TYPE_DELETED:
-	    case DOSFS_SFLASH_INFO_TYPE_XLATE:
-	    case DOSFS_SFLASH_INFO_TYPE_XLATE_SECONDARY:
-	    case DOSFS_SFLASH_INFO_TYPE_DATA_DELETED:
-	    case DOSFS_SFLASH_INFO_TYPE_DATA_COMMITTED:
-	    case DOSFS_SFLASH_INFO_TYPE_DATA_WRITTEN:
-		DOSFS_SFLASH_FTL_CHECK();
-		break;
+            switch (info_entry & DOSFS_SFLASH_INFO_TYPE_MASK) {
+            case DOSFS_SFLASH_INFO_TYPE_DELETED:
+            case DOSFS_SFLASH_INFO_TYPE_XLATE:
+            case DOSFS_SFLASH_INFO_TYPE_XLATE_SECONDARY:
+            case DOSFS_SFLASH_INFO_TYPE_DATA_DELETED:
+            case DOSFS_SFLASH_INFO_TYPE_DATA_COMMITTED:
+            case DOSFS_SFLASH_INFO_TYPE_DATA_WRITTEN:
+                DOSFS_SFLASH_FTL_CHECK();
+                break;
 
-	    case DOSFS_SFLASH_INFO_TYPE_VICTIM:
-		DOSFS_SFLASH_FTL_CHECK();
-		break;
+            case DOSFS_SFLASH_INFO_TYPE_VICTIM:
+                DOSFS_SFLASH_FTL_CHECK();
+                break;
 
-	    case DOSFS_SFLASH_INFO_TYPE_ERASE:
-		sector = info_entry & DOSFS_SFLASH_INFO_DATA_MASK;
+            case DOSFS_SFLASH_INFO_TYPE_ERASE:
+                sector = info_entry & DOSFS_SFLASH_INFO_DATA_MASK;
 
-		if (dosfs_sflash_ftl_sector_lookup(sflash, sector) != (offset / DOSFS_SFLASH_ERASE_SIZE))
-		{
-		    DOSFS_SFLASH_FTL_CHECK();
-		}
+                if (dosfs_sflash_ftl_sector_lookup(sflash, sector) != (offset / DOSFS_SFLASH_ERASE_SIZE))
+                {
+                    DOSFS_SFLASH_FTL_CHECK();
+                }
 
-		for (index = 1; index < DOSFS_SFLASH_BLOCK_INFO_ENTRIES; index++)
-		{
-		    info_entry = dosfs_sflash_ftl_extract_info_entry(cache, index);
+                for (index = 1; index < DOSFS_SFLASH_BLOCK_INFO_ENTRIES; index++)
+                {
+                    info_entry = dosfs_sflash_ftl_extract_info_entry(cache, index);
 
-		    if (info_entry & DOSFS_SFLASH_INFO_NOT_WRITTEN_TO)
-		    {
-			if ((info_entry & DOSFS_SFLASH_INFO_TYPE_MASK) != DOSFS_SFLASH_INFO_TYPE_RESERVED)
-			{
-			    DOSFS_SFLASH_FTL_CHECK();
-			}
-		    }
-		    else
-		    {
-			info_logical = (sector << DOSFS_SFLASH_LOGICAL_SECTOR_SHIFT) + index;
+                    if (info_entry & DOSFS_SFLASH_INFO_NOT_WRITTEN_TO)
+                    {
+                        if ((info_entry & DOSFS_SFLASH_INFO_TYPE_MASK) != DOSFS_SFLASH_INFO_TYPE_RESERVED)
+                        {
+                            DOSFS_SFLASH_FTL_CHECK();
+                        }
+                    }
+                    else
+                    {
+                        info_logical = (sector << DOSFS_SFLASH_LOGICAL_SECTOR_SHIFT) + index;
 
-			switch (info_entry & DOSFS_SFLASH_INFO_TYPE_MASK) {
-			case DOSFS_SFLASH_INFO_TYPE_VICTIM:
-			case DOSFS_SFLASH_INFO_TYPE_ERASE:
-			case DOSFS_SFLASH_INFO_TYPE_RECLAIM:
-			    DOSFS_SFLASH_FTL_CHECK();
-			    break;
+                        switch (info_entry & DOSFS_SFLASH_INFO_TYPE_MASK) {
+                        case DOSFS_SFLASH_INFO_TYPE_VICTIM:
+                        case DOSFS_SFLASH_INFO_TYPE_ERASE:
+                        case DOSFS_SFLASH_INFO_TYPE_RECLAIM:
+                            DOSFS_SFLASH_FTL_CHECK();
+                            break;
 
-			case DOSFS_SFLASH_INFO_TYPE_DELETED:
-			    break;
+                        case DOSFS_SFLASH_INFO_TYPE_DELETED:
+                            break;
 
-			case DOSFS_SFLASH_INFO_TYPE_DATA_DELETED:
-			    DOSFS_SFLASH_FTL_CHECK();
-			    break;
-		
-			case DOSFS_SFLASH_INFO_TYPE_DATA_COMMITTED:
-			    address = info_entry & DOSFS_SFLASH_INFO_DATA_MASK;
+                        case DOSFS_SFLASH_INFO_TYPE_DATA_DELETED:
+                            DOSFS_SFLASH_FTL_CHECK();
+                            break;
+                
+                        case DOSFS_SFLASH_INFO_TYPE_DATA_COMMITTED:
+                            address = info_entry & DOSFS_SFLASH_INFO_DATA_MASK;
 
-			    if (address < DOSFS_SFLASH_XLATE_OFFSET)
-			    {
-				read_logical = sflash->block_table[address];
-			    }
-			    else
-			    {
-				xlate_cache   = (uint16_t*)sflash->cache[0];
-				xlate2_cache  = (uint16_t*)sflash->cache[1];
-				
-				xlate_segment = (address - DOSFS_SFLASH_XLATE_OFFSET) >> DOSFS_SFLASH_XLATE_SEGMENT_SHIFT;
-				xlate_index   = (address - DOSFS_SFLASH_XLATE_OFFSET) & DOSFS_SFLASH_XLATE_INDEX_MASK;
-				
-				if (sflash->xlate_table[xlate_segment] == DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
-				{
-				    read_logical = DOSFS_SFLASH_BLOCK_NOT_ALLOCATED;
-				}
-				else
-				{
-				    if (sflash->xlate_logical != sflash->xlate_table[xlate_segment])
-				    {
-					sflash->xlate_logical = sflash->xlate_table[xlate_segment];
+                            if (address < DOSFS_SFLASH_XLATE_OFFSET)
+                            {
+                                read_logical = sflash->block_table[address];
+                            }
+                            else
+                            {
+                                xlate_cache   = (uint16_t*)sflash->cache[0];
+                                xlate2_cache  = (uint16_t*)sflash->cache[1];
+                                
+                                xlate_segment = (address - DOSFS_SFLASH_XLATE_OFFSET) >> DOSFS_SFLASH_XLATE_SEGMENT_SHIFT;
+                                xlate_index   = (address - DOSFS_SFLASH_XLATE_OFFSET) & DOSFS_SFLASH_XLATE_INDEX_MASK;
+                                
+                                if (sflash->xlate_table[xlate_segment] == DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
+                                {
+                                    read_logical = DOSFS_SFLASH_BLOCK_NOT_ALLOCATED;
+                                }
+                                else
+                                {
+                                    if (sflash->xlate_logical != sflash->xlate_table[xlate_segment])
+                                    {
+                                        sflash->xlate_logical = sflash->xlate_table[xlate_segment];
 
-					(*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate_logical), (uint8_t*)xlate_cache, DOSFS_SFLASH_BLOCK_SIZE);
-				    }
+                                        (*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate_logical), (uint8_t*)xlate_cache, DOSFS_SFLASH_BLOCK_SIZE);
+                                    }
 
-				    read_logical = xlate_cache[xlate_index];
-				    
-				    if (read_logical == DOSFS_SFLASH_BLOCK_DELETED)
-				    {
-					if (sflash->xlate2_table[xlate_segment] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
-					{
-					    if (sflash->xlate2_logical != sflash->xlate2_table[xlate_segment])
-					    {
-						sflash->xlate2_logical = sflash->xlate2_table[xlate_segment];
-			
-						(*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate2_logical), (uint8_t*)xlate2_cache, DOSFS_SFLASH_BLOCK_SIZE);
-					    }
+                                    read_logical = xlate_cache[xlate_index];
+                                    
+                                    if (read_logical == DOSFS_SFLASH_BLOCK_DELETED)
+                                    {
+                                        if (sflash->xlate2_table[xlate_segment] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
+                                        {
+                                            if (sflash->xlate2_logical != sflash->xlate2_table[xlate_segment])
+                                            {
+                                                sflash->xlate2_logical = sflash->xlate2_table[xlate_segment];
+                        
+                                                (*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate2_logical), (uint8_t*)xlate2_cache, DOSFS_SFLASH_BLOCK_SIZE);
+                                            }
 
-					    if (xlate2_cache[xlate_index] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
-					    {
-						read_logical = xlate2_cache[xlate_index];
-					    }
-					}
-				    }
-				}
-			    }
-			
-			    if (read_logical != info_logical)
-			    {
-				DOSFS_SFLASH_FTL_CHECK();
-			    }
-			    break;
+                                            if (xlate2_cache[xlate_index] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
+                                            {
+                                                read_logical = xlate2_cache[xlate_index];
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        
+                            if (read_logical != info_logical)
+                            {
+                                DOSFS_SFLASH_FTL_CHECK();
+                            }
+                            break;
 
-			case DOSFS_SFLASH_INFO_TYPE_DATA_WRITTEN:
-			    DOSFS_SFLASH_FTL_CHECK();
-			    break;
+                        case DOSFS_SFLASH_INFO_TYPE_DATA_WRITTEN:
+                            DOSFS_SFLASH_FTL_CHECK();
+                            break;
 
-			case DOSFS_SFLASH_INFO_TYPE_XLATE:
-			    if (sflash->xlate_table[info_entry & DOSFS_SFLASH_INFO_DATA_MASK] != info_logical)
-			    {
-				DOSFS_SFLASH_FTL_CHECK();
-			    }
-			    break;
+                        case DOSFS_SFLASH_INFO_TYPE_XLATE:
+                            if (sflash->xlate_table[info_entry & DOSFS_SFLASH_INFO_DATA_MASK] != info_logical)
+                            {
+                                DOSFS_SFLASH_FTL_CHECK();
+                            }
+                            break;
 
-			case DOSFS_SFLASH_INFO_TYPE_XLATE_SECONDARY:
-			    if (sflash->xlate2_table[info_entry & DOSFS_SFLASH_INFO_DATA_MASK] != info_logical)
-			    {
-				DOSFS_SFLASH_FTL_CHECK();
-			    }
-			    break;
+                        case DOSFS_SFLASH_INFO_TYPE_XLATE_SECONDARY:
+                            if (sflash->xlate2_table[info_entry & DOSFS_SFLASH_INFO_DATA_MASK] != info_logical)
+                            {
+                                DOSFS_SFLASH_FTL_CHECK();
+                            }
+                            break;
 
-			case DOSFS_SFLASH_INFO_TYPE_RESERVED:
-			    break;
-			}
-		    }
-		}
-		break;
+                        case DOSFS_SFLASH_INFO_TYPE_RESERVED:
+                            break;
+                        }
+                    }
+                }
+                break;
 
-	    case DOSFS_SFLASH_INFO_TYPE_RECLAIM:
-		DOSFS_SFLASH_FTL_CHECK();
-		break;
-		    
-	    case DOSFS_SFLASH_INFO_TYPE_RESERVED:
-		if (sflash->reclaim_offset != offset)
-		{
-		    DOSFS_SFLASH_FTL_CHECK();
-		}
-		break;
-	    }
-	}
+            case DOSFS_SFLASH_INFO_TYPE_RECLAIM:
+                DOSFS_SFLASH_FTL_CHECK();
+                break;
+                    
+            case DOSFS_SFLASH_INFO_TYPE_RESERVED:
+                if (sflash->reclaim_offset != offset)
+                {
+                    DOSFS_SFLASH_FTL_CHECK();
+                }
+                break;
+            }
+        }
     }
 
     xlate_cache   = (uint16_t*)sflash->cache[0];
@@ -683,74 +683,74 @@ static void dosfs_sflash_ftl_check()
 
     for (xlate_segment = 0; xlate_segment < sflash->xlate_count; xlate_segment++)
     {
-	if (sflash->xlate_table[xlate_segment] == DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
-	{
-	    if (sflash->xlate2_table[xlate_segment] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
-	    {
-		DOSFS_SFLASH_FTL_CHECK();
-	    }
-	}
-	else
-	{
-	    for (xlate_index = 0; xlate_index < DOSFS_SFLASH_XLATE_ENTRIES; xlate_index++)
-	    {
-		address = ((xlate_segment << DOSFS_SFLASH_XLATE_SEGMENT_SHIFT) | xlate_index) + DOSFS_SFLASH_XLATE_OFFSET;
+        if (sflash->xlate_table[xlate_segment] == DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
+        {
+            if (sflash->xlate2_table[xlate_segment] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
+            {
+                DOSFS_SFLASH_FTL_CHECK();
+            }
+        }
+        else
+        {
+            for (xlate_index = 0; xlate_index < DOSFS_SFLASH_XLATE_ENTRIES; xlate_index++)
+            {
+                address = ((xlate_segment << DOSFS_SFLASH_XLATE_SEGMENT_SHIFT) | xlate_index) + DOSFS_SFLASH_XLATE_OFFSET;
 
-		if (sflash->xlate_table[xlate_segment] == DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
-		{
-		    read_logical = DOSFS_SFLASH_BLOCK_NOT_ALLOCATED;
-		}
-		else
-		{
-		    if (sflash->xlate_logical != sflash->xlate_table[xlate_segment])
-		    {
-			sflash->xlate_logical = sflash->xlate_table[xlate_segment];
+                if (sflash->xlate_table[xlate_segment] == DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
+                {
+                    read_logical = DOSFS_SFLASH_BLOCK_NOT_ALLOCATED;
+                }
+                else
+                {
+                    if (sflash->xlate_logical != sflash->xlate_table[xlate_segment])
+                    {
+                        sflash->xlate_logical = sflash->xlate_table[xlate_segment];
 
-			(*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate_logical), (uint8_t*)xlate_cache, DOSFS_SFLASH_BLOCK_SIZE);
-		    }
+                        (*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate_logical), (uint8_t*)xlate_cache, DOSFS_SFLASH_BLOCK_SIZE);
+                    }
 
-		    read_logical = xlate_cache[xlate_index];
+                    read_logical = xlate_cache[xlate_index];
 
-		    if (read_logical == DOSFS_SFLASH_BLOCK_DELETED)
-		    {
-			if (sflash->xlate2_table[xlate_segment] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
-			{
-			    if (sflash->xlate2_logical != sflash->xlate2_table[xlate_segment])
-			    {
-				sflash->xlate2_logical = sflash->xlate2_table[xlate_segment];
-			
-				(*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate2_logical), (uint8_t*)xlate2_cache, DOSFS_SFLASH_BLOCK_SIZE);
-			    }
-			    
-			    if (xlate2_cache[xlate_index] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
-			    {
-				read_logical = xlate2_cache[xlate_index];
-			    }
-			}
-		    }
-		}
+                    if (read_logical == DOSFS_SFLASH_BLOCK_DELETED)
+                    {
+                        if (sflash->xlate2_table[xlate_segment] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
+                        {
+                            if (sflash->xlate2_logical != sflash->xlate2_table[xlate_segment])
+                            {
+                                sflash->xlate2_logical = sflash->xlate2_table[xlate_segment];
+                        
+                                (*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate2_logical), (uint8_t*)xlate2_cache, DOSFS_SFLASH_BLOCK_SIZE);
+                            }
+                            
+                            if (xlate2_cache[xlate_index] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
+                            {
+                                read_logical = xlate2_cache[xlate_index];
+                            }
+                        }
+                    }
+                }
 
-		if ((read_logical != DOSFS_SFLASH_BLOCK_DELETED) && (read_logical != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED))
-		{
-		    /* Here we have a "address" and it's "read_logical" translation. Check whether the corresponding info header says the same.
-		     */
+                if ((read_logical != DOSFS_SFLASH_BLOCK_DELETED) && (read_logical != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED))
+                {
+                    /* Here we have a "address" and it's "read_logical" translation. Check whether the corresponding info header says the same.
+                     */
 
-		    if (cache_logical != (read_logical & ~DOSFS_SFLASH_LOGICAL_BLOCK_MASK))
-		    {
-			cache_logical = (read_logical & ~DOSFS_SFLASH_LOGICAL_BLOCK_MASK);
-			
-			(*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, cache_logical), (uint8_t*)cache, DOSFS_SFLASH_BLOCK_SIZE);
-		    }
+                    if (cache_logical != (read_logical & ~DOSFS_SFLASH_LOGICAL_BLOCK_MASK))
+                    {
+                        cache_logical = (read_logical & ~DOSFS_SFLASH_LOGICAL_BLOCK_MASK);
+                        
+                        (*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, cache_logical), (uint8_t*)cache, DOSFS_SFLASH_BLOCK_SIZE);
+                    }
 
-		    info_entry = dosfs_sflash_ftl_extract_info_entry(cache, (read_logical & DOSFS_SFLASH_LOGICAL_BLOCK_MASK));
+                    info_entry = dosfs_sflash_ftl_extract_info_entry(cache, (read_logical & DOSFS_SFLASH_LOGICAL_BLOCK_MASK));
 
-		    if (info_entry != (DOSFS_SFLASH_INFO_TYPE_DATA_COMMITTED | address))
-		    {
-			DOSFS_SFLASH_FTL_CHECK();
-		    }
-		}
-	    }
-	}
+                    if (info_entry != (DOSFS_SFLASH_INFO_TYPE_DATA_COMMITTED | address))
+                    {
+                        DOSFS_SFLASH_FTL_CHECK();
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -769,68 +769,68 @@ static bool dosfs_sflash_ftl_collect(dosfs_sflash_t *sflash, const uint32_t *cac
 
     for (index = 1; index < DOSFS_SFLASH_BLOCK_INFO_ENTRIES; index++)
     {
-	info_entry = dosfs_sflash_ftl_extract_info_entry(cache, index);
+        info_entry = dosfs_sflash_ftl_extract_info_entry(cache, index);
 
-	if (!(info_entry & DOSFS_SFLASH_INFO_NOT_WRITTEN_TO))
-	{
-	    info_logical = (sector << DOSFS_SFLASH_LOGICAL_SECTOR_SHIFT) + index;
+        if (!(info_entry & DOSFS_SFLASH_INFO_NOT_WRITTEN_TO))
+        {
+            info_logical = (sector << DOSFS_SFLASH_LOGICAL_SECTOR_SHIFT) + index;
 
-	    switch (info_entry & DOSFS_SFLASH_INFO_TYPE_MASK) {
-	    case DOSFS_SFLASH_INFO_TYPE_VICTIM:
-	    case DOSFS_SFLASH_INFO_TYPE_ERASE:
-	    case DOSFS_SFLASH_INFO_TYPE_RECLAIM:
-		return false;
+            switch (info_entry & DOSFS_SFLASH_INFO_TYPE_MASK) {
+            case DOSFS_SFLASH_INFO_TYPE_VICTIM:
+            case DOSFS_SFLASH_INFO_TYPE_ERASE:
+            case DOSFS_SFLASH_INFO_TYPE_RECLAIM:
+                return false;
 
-	    case DOSFS_SFLASH_INFO_TYPE_DELETED:
-		break;
+            case DOSFS_SFLASH_INFO_TYPE_DELETED:
+                break;
 
-	    case DOSFS_SFLASH_INFO_TYPE_DATA_DELETED:
-		p_data_deleted[0] = (info_entry & DOSFS_SFLASH_INFO_DATA_MASK);
-		p_data_deleted[1] = info_logical;
-		break;
-		
-	    case DOSFS_SFLASH_INFO_TYPE_DATA_COMMITTED:
-		if ((info_entry & DOSFS_SFLASH_INFO_DATA_MASK) < DOSFS_SFLASH_XLATE_OFFSET)
-		{
-		    if (sflash->block_table[info_entry & DOSFS_SFLASH_INFO_DATA_MASK] == DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
-		    {
-			sflash->block_table[info_entry & DOSFS_SFLASH_INFO_DATA_MASK] = info_logical;
-		    }
-		    else
-		    {
-			dosfs_sflash_ftl_set_info_entry(sflash, info_logical, DOSFS_SFLASH_INFO_TYPE_DELETED);
-		    }
-		}
-		break;
+            case DOSFS_SFLASH_INFO_TYPE_DATA_DELETED:
+                p_data_deleted[0] = (info_entry & DOSFS_SFLASH_INFO_DATA_MASK);
+                p_data_deleted[1] = info_logical;
+                break;
+                
+            case DOSFS_SFLASH_INFO_TYPE_DATA_COMMITTED:
+                if ((info_entry & DOSFS_SFLASH_INFO_DATA_MASK) < DOSFS_SFLASH_XLATE_OFFSET)
+                {
+                    if (sflash->block_table[info_entry & DOSFS_SFLASH_INFO_DATA_MASK] == DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
+                    {
+                        sflash->block_table[info_entry & DOSFS_SFLASH_INFO_DATA_MASK] = info_logical;
+                    }
+                    else
+                    {
+                        dosfs_sflash_ftl_set_info_entry(sflash, info_logical, DOSFS_SFLASH_INFO_TYPE_DELETED);
+                    }
+                }
+                break;
 
-	    case DOSFS_SFLASH_INFO_TYPE_DATA_WRITTEN:
-		p_data_written[0] = (info_entry & DOSFS_SFLASH_INFO_DATA_MASK);
-		p_data_written[1] = info_logical;
-		break;
+            case DOSFS_SFLASH_INFO_TYPE_DATA_WRITTEN:
+                p_data_written[0] = (info_entry & DOSFS_SFLASH_INFO_DATA_MASK);
+                p_data_written[1] = info_logical;
+                break;
 
-	    case DOSFS_SFLASH_INFO_TYPE_XLATE:
-		if ((info_entry & DOSFS_SFLASH_INFO_DATA_MASK) >= DOSFS_SFLASH_XLATE_COUNT)
-		{
-		    return false;
-		}
+            case DOSFS_SFLASH_INFO_TYPE_XLATE:
+                if ((info_entry & DOSFS_SFLASH_INFO_DATA_MASK) >= DOSFS_SFLASH_XLATE_COUNT)
+                {
+                    return false;
+                }
 
-		sflash->xlate_table[info_entry & DOSFS_SFLASH_INFO_DATA_MASK] = info_logical;
-		break;
+                sflash->xlate_table[info_entry & DOSFS_SFLASH_INFO_DATA_MASK] = info_logical;
+                break;
 
-	    case DOSFS_SFLASH_INFO_TYPE_XLATE_SECONDARY:
-		if ((info_entry & DOSFS_SFLASH_INFO_DATA_MASK) >= DOSFS_SFLASH_XLATE_COUNT)
-		{
-		    return false;
-		}
+            case DOSFS_SFLASH_INFO_TYPE_XLATE_SECONDARY:
+                if ((info_entry & DOSFS_SFLASH_INFO_DATA_MASK) >= DOSFS_SFLASH_XLATE_COUNT)
+                {
+                    return false;
+                }
 
-		sflash->xlate2_table[info_entry & DOSFS_SFLASH_INFO_DATA_MASK] = info_logical;
-		break;
+                sflash->xlate2_table[info_entry & DOSFS_SFLASH_INFO_DATA_MASK] = info_logical;
+                break;
 
-	    case DOSFS_SFLASH_INFO_TYPE_RESERVED:
-		dosfs_sflash_ftl_set_info_entry(sflash, info_logical, DOSFS_SFLASH_INFO_TYPE_DELETED);
-		break;
-	    }
-	}
+            case DOSFS_SFLASH_INFO_TYPE_RESERVED:
+                dosfs_sflash_ftl_set_info_entry(sflash, info_logical, DOSFS_SFLASH_INFO_TYPE_DELETED);
+                break;
+            }
+        }
     }
 
     return true;
@@ -879,98 +879,98 @@ static bool dosfs_sflash_ftl_mount(dosfs_sflash_t *sflash)
 
     for (offset = sflash->data_start; offset < sflash->data_limit; offset += DOSFS_SFLASH_ERASE_SIZE)
     {
-	(*sflash->interface->read)(sflash->context, offset, (uint8_t*)cache, DOSFS_SFLASH_BLOCK_SIZE);
+        (*sflash->interface->read)(sflash->context, offset, (uint8_t*)cache, DOSFS_SFLASH_BLOCK_SIZE);
 
-	info_entry = dosfs_sflash_ftl_extract_info_entry(cache, 0);
-	
-	if (info_entry & DOSFS_SFLASH_INFO_NOT_WRITTEN_TO)
-	{
-	    /* A crash happened during the reclaim process. 
-	     */
+        info_entry = dosfs_sflash_ftl_extract_info_entry(cache, 0);
+        
+        if (info_entry & DOSFS_SFLASH_INFO_NOT_WRITTEN_TO)
+        {
+            /* A crash happened during the reclaim process. 
+             */
 
-	    if (erase_offset != DOSFS_SFLASH_PHYSICAL_ILLEGAL)
-	    {
-		return false;
-	    }
+            if (erase_offset != DOSFS_SFLASH_PHYSICAL_ILLEGAL)
+            {
+                return false;
+            }
 
-	    erase_offset = offset;
-	}
-	else
-	{
-	    if ((head_info[0] != DOSFS_SFLASH_SECTOR_IDENT_0) ||
-		(head_info[1] != DOSFS_SFLASH_SECTOR_IDENT_1) ||
-		(head_info[2] != sflash->data_start) ||
-		(head_info[3] != sflash->data_limit) ||
-		(tail_info[0] != DOSFS_SFLASH_SECTOR_IDENT_TAIL))
-	    {
-		return false;
-	    }
+            erase_offset = offset;
+        }
+        else
+        {
+            if ((head_info[0] != DOSFS_SFLASH_SECTOR_IDENT_0) ||
+                (head_info[1] != DOSFS_SFLASH_SECTOR_IDENT_1) ||
+                (head_info[2] != sflash->data_start) ||
+                (head_info[3] != sflash->data_limit) ||
+                (tail_info[0] != DOSFS_SFLASH_SECTOR_IDENT_TAIL))
+            {
+                return false;
+            }
 
-	    erase_count = head_info[DOSFS_SFLASH_INFO_SLOT_ERASE_COUNT];
+            erase_count = head_info[DOSFS_SFLASH_INFO_SLOT_ERASE_COUNT];
 
-	    switch (info_entry & DOSFS_SFLASH_INFO_TYPE_MASK) {
-	    case DOSFS_SFLASH_INFO_TYPE_DELETED:
-	    case DOSFS_SFLASH_INFO_TYPE_XLATE:
-	    case DOSFS_SFLASH_INFO_TYPE_XLATE_SECONDARY:
-	    case DOSFS_SFLASH_INFO_TYPE_DATA_DELETED:
-	    case DOSFS_SFLASH_INFO_TYPE_DATA_COMMITTED:
-	    case DOSFS_SFLASH_INFO_TYPE_DATA_WRITTEN:
-		break;
+            switch (info_entry & DOSFS_SFLASH_INFO_TYPE_MASK) {
+            case DOSFS_SFLASH_INFO_TYPE_DELETED:
+            case DOSFS_SFLASH_INFO_TYPE_XLATE:
+            case DOSFS_SFLASH_INFO_TYPE_XLATE_SECONDARY:
+            case DOSFS_SFLASH_INFO_TYPE_DATA_DELETED:
+            case DOSFS_SFLASH_INFO_TYPE_DATA_COMMITTED:
+            case DOSFS_SFLASH_INFO_TYPE_DATA_WRITTEN:
+                break;
 
-	    case DOSFS_SFLASH_INFO_TYPE_VICTIM:
-		/* A crash happened during the reclaim process. 
-		 */
+            case DOSFS_SFLASH_INFO_TYPE_VICTIM:
+                /* A crash happened during the reclaim process. 
+                 */
 
-		if (victim_offset != DOSFS_SFLASH_PHYSICAL_ILLEGAL)
-		{
-		    return false;
-		}
+                if (victim_offset != DOSFS_SFLASH_PHYSICAL_ILLEGAL)
+                {
+                    return false;
+                }
 
-		victim_offset = offset;
-		/* FALLTHROU */
+                victim_offset = offset;
+                /* FALLTHROU */
 
-	    case DOSFS_SFLASH_INFO_TYPE_ERASE:
-		if (!dosfs_sflash_ftl_collect(sflash, cache, offset, (info_entry & DOSFS_SFLASH_INFO_DATA_MASK), &data_written[0], &data_deleted[0]))
-		{
-		    return false;
-		}
-		break;
+            case DOSFS_SFLASH_INFO_TYPE_ERASE:
+                if (!dosfs_sflash_ftl_collect(sflash, cache, offset, (info_entry & DOSFS_SFLASH_INFO_DATA_MASK), &data_written[0], &data_deleted[0]))
+                {
+                    return false;
+                }
+                break;
 
-	    case DOSFS_SFLASH_INFO_TYPE_RECLAIM:
-		/* A crash happened during the reclaim process. 
-		 */
+            case DOSFS_SFLASH_INFO_TYPE_RECLAIM:
+                /* A crash happened during the reclaim process. 
+                 */
 
-		if (reclaim_offset != DOSFS_SFLASH_PHYSICAL_ILLEGAL)
-		{
-		    return false;
-		}
+                if (reclaim_offset != DOSFS_SFLASH_PHYSICAL_ILLEGAL)
+                {
+                    return false;
+                }
 
-		reclaim_offset = offset;
-		break;
+                reclaim_offset = offset;
+                break;
 
-	    case DOSFS_SFLASH_INFO_TYPE_RESERVED:
-		/* This is really the case where there is a unallocated free
-		 * free erase unit ... So pick the one with the lowest erase
-		 * count as the reclaim erase unit.
-		 *
-		 * There should be only one, and that is reclaim sector.
-		 */
+            case DOSFS_SFLASH_INFO_TYPE_RESERVED:
+                /* This is really the case where there is a unallocated free
+                 * free erase unit ... So pick the one with the lowest erase
+                 * count as the reclaim erase unit.
+                 *
+                 * There should be only one, and that is reclaim sector.
+                 */
 
-		if (sflash->reclaim_offset != DOSFS_SFLASH_PHYSICAL_ILLEGAL)
-		{
-		    return false;
-		}
+                if (sflash->reclaim_offset != DOSFS_SFLASH_PHYSICAL_ILLEGAL)
+                {
+                    return false;
+                }
 
-		sflash->reclaim_offset = offset;
-		sflash->reclaim_erase_count = erase_count;
-		break;
-	    }
+                sflash->reclaim_offset = offset;
+                sflash->reclaim_erase_count = erase_count;
+                break;
+            }
 
-	    if (erase_count_max < erase_count)
-	    {
-		erase_count_max = erase_count;
-	    }
-	}
+            if (erase_count_max < erase_count)
+            {
+                erase_count_max = erase_count;
+            }
+        }
     }
 
     /* Check for the case where a crash happened during the reclaim process.
@@ -979,97 +979,97 @@ static bool dosfs_sflash_ftl_mount(dosfs_sflash_t *sflash)
 
     if (victim_offset != DOSFS_SFLASH_PHYSICAL_ILLEGAL)
     {
-	(*sflash->interface->read)(sflash->context, victim_offset, (uint8_t*)cache, DOSFS_SFLASH_BLOCK_SIZE);
+        (*sflash->interface->read)(sflash->context, victim_offset, (uint8_t*)cache, DOSFS_SFLASH_BLOCK_SIZE);
 
-	info_entry = dosfs_sflash_ftl_extract_info_entry(cache, 0);
+        info_entry = dosfs_sflash_ftl_extract_info_entry(cache, 0);
     
-	victim_sector = info_entry & DOSFS_SFLASH_INFO_DATA_MASK;
-	victim_erase_count = head_info[DOSFS_SFLASH_INFO_SLOT_ERASE_COUNT];
+        victim_sector = info_entry & DOSFS_SFLASH_INFO_DATA_MASK;
+        victim_erase_count = head_info[DOSFS_SFLASH_INFO_SLOT_ERASE_COUNT];
 
-	if (reclaim_offset != DOSFS_SFLASH_PHYSICAL_ILLEGAL)
-	{
-	    /* If there is a victim and a reclaim sector, That means everything got
-	     * copied, and just the victim sector needs to be erased and made
-	     * the new reclaim sector.
-	     */
+        if (reclaim_offset != DOSFS_SFLASH_PHYSICAL_ILLEGAL)
+        {
+            /* If there is a victim and a reclaim sector, That means everything got
+             * copied, and just the victim sector needs to be erased and made
+             * the new reclaim sector.
+             */
 
-	    victim_erase_count++;
-	    
-	    dosfs_sflash_ftl_swap(sflash, victim_offset, victim_sector, victim_erase_count, reclaim_offset);
+            victim_erase_count++;
+            
+            dosfs_sflash_ftl_swap(sflash, victim_offset, victim_sector, victim_erase_count, reclaim_offset);
 
-	    if (erase_count_max < victim_erase_count)
-	    {
-		erase_count_max = victim_erase_count;
-	    }
-	}
-	else
-	{
-	    /* Here a crash happened while copying data from the victim sector to the reclaim sector.
-	     * Hence erase the reclaim sector and try again with the reclaim.
-	     *
-	     * If there is a valid erase_offset, there was a double crash before, so assume that
-	     * the newly earase sector was the reclaim sector, and the victim sector contains
-	     * the proper erase_count.
-	     */
+            if (erase_count_max < victim_erase_count)
+            {
+                erase_count_max = victim_erase_count;
+            }
+        }
+        else
+        {
+            /* Here a crash happened while copying data from the victim sector to the reclaim sector.
+             * Hence erase the reclaim sector and try again with the reclaim.
+             *
+             * If there is a valid erase_offset, there was a double crash before, so assume that
+             * the newly earase sector was the reclaim sector, and the victim sector contains
+             * the proper erase_count.
+             */
 
-	    if (erase_offset != DOSFS_SFLASH_PHYSICAL_ILLEGAL)
-	    {
-		sflash->reclaim_erase_count = head_info[DOSFS_SFLASH_INFO_SLOT_RECLAIM_ERASE_COUNT];
-		sflash->reclaim_offset = erase_offset;
+            if (erase_offset != DOSFS_SFLASH_PHYSICAL_ILLEGAL)
+            {
+                sflash->reclaim_erase_count = head_info[DOSFS_SFLASH_INFO_SLOT_RECLAIM_ERASE_COUNT];
+                sflash->reclaim_offset = erase_offset;
 
-		erase_offset = DOSFS_SFLASH_PHYSICAL_ILLEGAL;
-	    }
-	    else
-	    {
-		sflash->reclaim_erase_count++;
+                erase_offset = DOSFS_SFLASH_PHYSICAL_ILLEGAL;
+            }
+            else
+            {
+                sflash->reclaim_erase_count++;
 
-		(*sflash->interface->erase)(sflash->context, sflash->reclaim_offset);
+                (*sflash->interface->erase)(sflash->context, sflash->reclaim_offset);
 
-		if (erase_count_max < sflash->reclaim_erase_count)
-		{
-		    erase_count_max = sflash->reclaim_erase_count;
-		}
-	    }
+                if (erase_count_max < sflash->reclaim_erase_count)
+                {
+                    erase_count_max = sflash->reclaim_erase_count;
+                }
+            }
 
-	    info_entry = DOSFS_SFLASH_INFO_ERASED & ~DOSFS_SFLASH_INFO_NOT_WRITTEN_TO;
-	    
-	    (*sflash->interface->program)(sflash->context, sflash->reclaim_offset + DOSFS_SFLASH_INFO_ENTRY_OFFSET, (const uint8_t*)&info_entry, DOSFS_SFLASH_INFO_ENTRY_SIZE);
+            info_entry = DOSFS_SFLASH_INFO_ERASED & ~DOSFS_SFLASH_INFO_NOT_WRITTEN_TO;
+            
+            (*sflash->interface->program)(sflash->context, sflash->reclaim_offset + DOSFS_SFLASH_INFO_ENTRY_OFFSET, (const uint8_t*)&info_entry, DOSFS_SFLASH_INFO_ENTRY_SIZE);
 
-	    head_info[0] = DOSFS_SFLASH_SECTOR_IDENT_0;
-	    head_info[1] = DOSFS_SFLASH_SECTOR_IDENT_1;
-	    head_info[2] = sflash->data_start;
-	    head_info[3] = sflash->data_limit;
-	    head_info[4] = sflash->reclaim_erase_count;
-	    head_info[5] = 0xffffffff;
-	    head_info[6] = 0xffffffff;
-	    head_info[7] = 0xffffffff;
+            head_info[0] = DOSFS_SFLASH_SECTOR_IDENT_0;
+            head_info[1] = DOSFS_SFLASH_SECTOR_IDENT_1;
+            head_info[2] = sflash->data_start;
+            head_info[3] = sflash->data_limit;
+            head_info[4] = sflash->reclaim_erase_count;
+            head_info[5] = 0xffffffff;
+            head_info[6] = 0xffffffff;
+            head_info[7] = 0xffffffff;
 
-	    (*sflash->interface->program)(sflash->context, sflash->reclaim_offset + DOSFS_SFLASH_INFO_HEAD_OFFSET, (const uint8_t*)&head_info[0], DOSFS_SFLASH_INFO_HEAD_SIZE);
+            (*sflash->interface->program)(sflash->context, sflash->reclaim_offset + DOSFS_SFLASH_INFO_HEAD_OFFSET, (const uint8_t*)&head_info[0], DOSFS_SFLASH_INFO_HEAD_SIZE);
 
-	    tail_info[0] = DOSFS_SFLASH_SECTOR_IDENT_TAIL;
+            tail_info[0] = DOSFS_SFLASH_SECTOR_IDENT_TAIL;
 
-	    (*sflash->interface->program)(sflash->context, sflash->reclaim_offset + DOSFS_SFLASH_INFO_TAIL_OFFSET, (const uint8_t*)&tail_info[0], DOSFS_SFLASH_INFO_TAIL_SIZE);
-	}
+            (*sflash->interface->program)(sflash->context, sflash->reclaim_offset + DOSFS_SFLASH_INFO_TAIL_OFFSET, (const uint8_t*)&tail_info[0], DOSFS_SFLASH_INFO_TAIL_SIZE);
+        }
     }
     else
     {
-	if (reclaim_offset != DOSFS_SFLASH_PHYSICAL_ILLEGAL)
-	{
-	    /* Here we crashed before marking the reclaim sector as normal erase sector.
-	     */
-	    (*sflash->interface->read)(sflash->context, reclaim_offset, (uint8_t*)cache, DOSFS_SFLASH_BLOCK_SIZE);
+        if (reclaim_offset != DOSFS_SFLASH_PHYSICAL_ILLEGAL)
+        {
+            /* Here we crashed before marking the reclaim sector as normal erase sector.
+             */
+            (*sflash->interface->read)(sflash->context, reclaim_offset, (uint8_t*)cache, DOSFS_SFLASH_BLOCK_SIZE);
 
-	    info_entry = dosfs_sflash_ftl_extract_info_entry(cache, 0);
+            info_entry = dosfs_sflash_ftl_extract_info_entry(cache, 0);
 
-	    info_entry &= ~DOSFS_SFLASH_INFO_TYPE_ERASE;
+            info_entry &= ~DOSFS_SFLASH_INFO_TYPE_ERASE;
 
-	    (*sflash->interface->program)(sflash->context, reclaim_offset + DOSFS_SFLASH_INFO_ENTRY_OFFSET, (const uint8_t*)&info_entry, DOSFS_SFLASH_INFO_ENTRY_SIZE); /* RECLAIM -> ERASE */
+            (*sflash->interface->program)(sflash->context, reclaim_offset + DOSFS_SFLASH_INFO_ENTRY_OFFSET, (const uint8_t*)&info_entry, DOSFS_SFLASH_INFO_ENTRY_SIZE); /* RECLAIM -> ERASE */
 
-	    if (!dosfs_sflash_ftl_collect(sflash, cache, reclaim_offset, (cache[0] & DOSFS_SFLASH_INFO_DATA_MASK), &data_written[0], &data_deleted[0]))
-	    {
-		return false;
-	    }
-	}
+            if (!dosfs_sflash_ftl_collect(sflash, cache, reclaim_offset, (cache[0] & DOSFS_SFLASH_INFO_DATA_MASK), &data_written[0], &data_deleted[0]))
+            {
+                return false;
+            }
+        }
     }
 
     /* If there is still a fully erased sector around, it means
@@ -1079,7 +1079,7 @@ static bool dosfs_sflash_ftl_mount(dosfs_sflash_t *sflash)
 
     if (erase_offset != DOSFS_SFLASH_PHYSICAL_ILLEGAL)
     {
-	return false;
+        return false;
     }
 
     /* Scan xlate_table and xlate2_table for the case where there is a xlate2 entry but
@@ -1093,25 +1093,25 @@ static bool dosfs_sflash_ftl_mount(dosfs_sflash_t *sflash)
 
     for (xlate_segment = 0; xlate_segment < sflash->xlate_count; xlate_segment++)
     {
-	if ((sflash->xlate_table[xlate_segment] == DOSFS_SFLASH_BLOCK_NOT_ALLOCATED) && (sflash->xlate2_table[xlate_segment] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED))
-	{
-	    xlate2_logical = sflash->xlate2_table[xlate_segment];
-	    
-	    dosfs_sflash_ftl_set_info_type(sflash, xlate2_logical, (DOSFS_SFLASH_INFO_TYPE_XLATE | xlate_segment));
-	    
-	    sflash->xlate_table[xlate_segment] = xlate2_logical;
-	    sflash->xlate2_table[xlate_segment] = DOSFS_SFLASH_BLOCK_NOT_ALLOCATED;
-	}
+        if ((sflash->xlate_table[xlate_segment] == DOSFS_SFLASH_BLOCK_NOT_ALLOCATED) && (sflash->xlate2_table[xlate_segment] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED))
+        {
+            xlate2_logical = sflash->xlate2_table[xlate_segment];
+            
+            dosfs_sflash_ftl_set_info_type(sflash, xlate2_logical, (DOSFS_SFLASH_INFO_TYPE_XLATE | xlate_segment));
+            
+            sflash->xlate_table[xlate_segment] = xlate2_logical;
+            sflash->xlate2_table[xlate_segment] = DOSFS_SFLASH_BLOCK_NOT_ALLOCATED;
+        }
     }
 
     if (data_written[0] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
     {
-	dosfs_sflash_ftl_modify(sflash, data_written[0], data_written[1]);
+        dosfs_sflash_ftl_modify(sflash, data_written[0], data_written[1]);
     }
 
     if (data_deleted[0] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
     {
-	dosfs_sflash_ftl_trim(sflash, data_deleted[0], data_deleted[1]);
+        dosfs_sflash_ftl_trim(sflash, data_deleted[0], data_deleted[1]);
     }
 
     sflash->erase_count_max = erase_count_max;
@@ -1120,7 +1120,7 @@ static bool dosfs_sflash_ftl_mount(dosfs_sflash_t *sflash)
 
     if (sflash->victim_offset == sflash->data_limit)
     {
-	sflash->victim_offset = sflash->data_start;
+        sflash->victim_offset = sflash->data_start;
     }
 
     (*sflash->interface->read)(sflash->context, sflash->victim_offset, (uint8_t*)cache, DOSFS_SFLASH_BLOCK_SIZE);
@@ -1137,18 +1137,18 @@ static bool dosfs_sflash_ftl_mount(dosfs_sflash_t *sflash)
 
     for (index = 1; index < DOSFS_SFLASH_BLOCK_INFO_ENTRIES; index++)
     {
-	info_entry = dosfs_sflash_ftl_extract_info_entry(cache, index);
+        info_entry = dosfs_sflash_ftl_extract_info_entry(cache, index);
 
-	if ((info_entry & DOSFS_SFLASH_INFO_NOT_WRITTEN_TO) || ((info_entry & DOSFS_SFLASH_INFO_TYPE_MASK) == DOSFS_SFLASH_INFO_TYPE_DELETED))
-	{
-	    if (sflash->alloc_count == 0)
-	    {
-		sflash->alloc_index = index;
-	    }
-	    
-	    sflash->alloc_mask[index / 32] |= (1ul << (index & 31));
-	    sflash->alloc_count++;
-	}
+        if ((info_entry & DOSFS_SFLASH_INFO_NOT_WRITTEN_TO) || ((info_entry & DOSFS_SFLASH_INFO_TYPE_MASK) == DOSFS_SFLASH_INFO_TYPE_DELETED))
+        {
+            if (sflash->alloc_count == 0)
+            {
+                sflash->alloc_index = index;
+            }
+            
+            sflash->alloc_mask[index / 32] |= (1ul << (index & 31));
+            sflash->alloc_count++;
+        }
     }
 
 #if (DOSFS_CONFIG_SFLASH_DEBUG == 1)
@@ -1164,33 +1164,33 @@ static uint32_t dosfs_sflash_ftl_allocate(dosfs_sflash_t *sflash)
 
     while (!sflash->alloc_count)
     {
-	sflash->victim_offset = sflash->victim_offset + DOSFS_SFLASH_ERASE_SIZE;
+        sflash->victim_offset = sflash->victim_offset + DOSFS_SFLASH_ERASE_SIZE;
 
-	if (sflash->victim_offset == sflash->data_limit)
-	{
-	    sflash->victim_offset = sflash->data_start;
-	}
+        if (sflash->victim_offset == sflash->data_limit)
+        {
+            sflash->victim_offset = sflash->data_start;
+        }
 
-	if (sflash->victim_offset == sflash->reclaim_offset)
-	{
-	    sflash->victim_offset = sflash->victim_offset + DOSFS_SFLASH_ERASE_SIZE;
+        if (sflash->victim_offset == sflash->reclaim_offset)
+        {
+            sflash->victim_offset = sflash->victim_offset + DOSFS_SFLASH_ERASE_SIZE;
 
-	    if (sflash->victim_offset == sflash->data_limit)
-	    {
-		sflash->victim_offset = sflash->data_start;
-	    }
-	}
+            if (sflash->victim_offset == sflash->data_limit)
+            {
+                sflash->victim_offset = sflash->data_start;
+            }
+        }
 
-	dosfs_sflash_ftl_reclaim(sflash, sflash->victim_offset);
+        dosfs_sflash_ftl_reclaim(sflash, sflash->victim_offset);
     }
 
     while (!(sflash->alloc_mask[sflash->alloc_index / 32] & (1ul << (sflash->alloc_index & 31))))
     {
-	sflash->alloc_index++;
+        sflash->alloc_index++;
     }
 
     logical = (sflash->alloc_sector << DOSFS_SFLASH_LOGICAL_SECTOR_SHIFT) + sflash->alloc_index;
-	    
+            
     sflash->alloc_mask[sflash->alloc_index / 32] &= ~(1ul << (sflash->alloc_index & 31));
     sflash->alloc_count--;
     sflash->alloc_index++;
@@ -1222,99 +1222,99 @@ static void dosfs_sflash_ftl_write(dosfs_sflash_t *sflash, uint32_t address, con
 
     if (address >= DOSFS_SFLASH_XLATE_OFFSET)
     {
-	if (sflash->xlate_table[xlate_segment] == DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
-	{
-	    sflash->xlate_logical = dosfs_sflash_ftl_allocate(sflash);
-	    sflash->xlate_table[xlate_segment] = sflash->xlate_logical;
+        if (sflash->xlate_table[xlate_segment] == DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
+        {
+            sflash->xlate_logical = dosfs_sflash_ftl_allocate(sflash);
+            sflash->xlate_table[xlate_segment] = sflash->xlate_logical;
 
-	    dosfs_sflash_ftl_set_info_entry(sflash, sflash->xlate_logical, (DOSFS_SFLASH_INFO_TYPE_XLATE | xlate_segment));
+            dosfs_sflash_ftl_set_info_entry(sflash, sflash->xlate_logical, (DOSFS_SFLASH_INFO_TYPE_XLATE | xlate_segment));
 
-	    memset(xlate_cache, 0xff, DOSFS_SFLASH_BLOCK_SIZE);
-	}
-	else 
-	{
-	    if (sflash->xlate_logical != sflash->xlate_table[xlate_segment])
-	    {
-		DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate_miss);
+            memset(xlate_cache, 0xff, DOSFS_SFLASH_BLOCK_SIZE);
+        }
+        else 
+        {
+            if (sflash->xlate_logical != sflash->xlate_table[xlate_segment])
+            {
+                DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate_miss);
 
-		sflash->xlate_logical = sflash->xlate_table[xlate_segment];
+                sflash->xlate_logical = sflash->xlate_table[xlate_segment];
 
-		(*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate_logical), (uint8_t*)xlate_cache, DOSFS_SFLASH_BLOCK_SIZE);
-	    }
-	    else
-	    {
-		DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate_hit);;
-	    }
+                (*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate_logical), (uint8_t*)xlate_cache, DOSFS_SFLASH_BLOCK_SIZE);
+            }
+            else
+            {
+                DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate_hit);;
+            }
 
-	    if (xlate_cache[xlate_index] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
-	    {
-		if (sflash->xlate2_table[xlate_segment] == DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
-		{
-		    sflash->xlate2_logical = dosfs_sflash_ftl_allocate(sflash);
-		    sflash->xlate2_table[xlate_segment] = sflash->xlate2_logical;
-		    
-		    dosfs_sflash_ftl_set_info_entry(sflash, sflash->xlate2_logical, (DOSFS_SFLASH_INFO_TYPE_XLATE_SECONDARY | xlate_segment));
-		    
-		    memset(xlate2_cache, 0xff, DOSFS_SFLASH_BLOCK_SIZE);
-		}
-		else
-		{
-		    if (sflash->xlate2_logical != sflash->xlate2_table[xlate_segment])
-		    {
-			DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate2_miss);
+            if (xlate_cache[xlate_index] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
+            {
+                if (sflash->xlate2_table[xlate_segment] == DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
+                {
+                    sflash->xlate2_logical = dosfs_sflash_ftl_allocate(sflash);
+                    sflash->xlate2_table[xlate_segment] = sflash->xlate2_logical;
+                    
+                    dosfs_sflash_ftl_set_info_entry(sflash, sflash->xlate2_logical, (DOSFS_SFLASH_INFO_TYPE_XLATE_SECONDARY | xlate_segment));
+                    
+                    memset(xlate2_cache, 0xff, DOSFS_SFLASH_BLOCK_SIZE);
+                }
+                else
+                {
+                    if (sflash->xlate2_logical != sflash->xlate2_table[xlate_segment])
+                    {
+                        DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate2_miss);
 
-			sflash->xlate2_logical = sflash->xlate2_table[xlate_segment];
-			
-			(*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate2_logical), (uint8_t*)xlate2_cache, DOSFS_SFLASH_BLOCK_SIZE);
-		    }
-		    else
-		    {
-			DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate2_hit);
-		    }
+                        sflash->xlate2_logical = sflash->xlate2_table[xlate_segment];
+                        
+                        (*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate2_logical), (uint8_t*)xlate2_cache, DOSFS_SFLASH_BLOCK_SIZE);
+                    }
+                    else
+                    {
+                        DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate2_hit);
+                    }
 
-		    if (xlate2_cache[xlate_index] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
-		    {
-			/* Swap xlate & xlate2. Backprop all changes into xlate_cache, and then write
-			 * xlate2 with the merged data back. Next allocate a new xlate2 and properly
-			 * add the next logical mapping.
-			 *
-			 * Make sure the upper allocate did not blow away the xlate_cache ...
-			 */
+                    if (xlate2_cache[xlate_index] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
+                    {
+                        /* Swap xlate & xlate2. Backprop all changes into xlate_cache, and then write
+                         * xlate2 with the merged data back. Next allocate a new xlate2 and properly
+                         * add the next logical mapping.
+                         *
+                         * Make sure the upper allocate did not blow away the xlate_cache ...
+                         */
 
-			for (index = 0; index < DOSFS_SFLASH_XLATE_ENTRIES; index++)
-			{
-			    if (xlate2_cache[index] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
-			    {
-				xlate_cache[index] = xlate2_cache[index];
-			    }
-			}
+                        for (index = 0; index < DOSFS_SFLASH_XLATE_ENTRIES; index++)
+                        {
+                            if (xlate2_cache[index] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
+                            {
+                                xlate_cache[index] = xlate2_cache[index];
+                            }
+                        }
 
-			(*sflash->interface->program)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate2_logical), (const uint8_t*)xlate_cache, DOSFS_SFLASH_PAGE_SIZE);
-			(*sflash->interface->program)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate2_logical) + DOSFS_SFLASH_PAGE_SIZE, (const uint8_t*)xlate_cache + DOSFS_SFLASH_PAGE_SIZE, DOSFS_SFLASH_PAGE_SIZE);
+                        (*sflash->interface->program)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate2_logical), (const uint8_t*)xlate_cache, DOSFS_SFLASH_PAGE_SIZE);
+                        (*sflash->interface->program)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate2_logical) + DOSFS_SFLASH_PAGE_SIZE, (const uint8_t*)xlate_cache + DOSFS_SFLASH_PAGE_SIZE, DOSFS_SFLASH_PAGE_SIZE);
 
-			/* Change xlate2 to xlate, and delete the old xlate entry.
-			 */
-			
-			dosfs_sflash_ftl_set_info_entry(sflash, sflash->xlate_logical, DOSFS_SFLASH_INFO_TYPE_DELETED);
+                        /* Change xlate2 to xlate, and delete the old xlate entry.
+                         */
+                        
+                        dosfs_sflash_ftl_set_info_entry(sflash, sflash->xlate_logical, DOSFS_SFLASH_INFO_TYPE_DELETED);
 
-			dosfs_sflash_ftl_set_info_type(sflash, sflash->xlate2_logical, (DOSFS_SFLASH_INFO_TYPE_XLATE | xlate_segment));
+                        dosfs_sflash_ftl_set_info_type(sflash, sflash->xlate2_logical, (DOSFS_SFLASH_INFO_TYPE_XLATE | xlate_segment));
 
-			sflash->xlate_logical = sflash->xlate2_logical;
-			sflash->xlate_table[xlate_segment] = sflash->xlate_logical;
+                        sflash->xlate_logical = sflash->xlate2_logical;
+                        sflash->xlate_table[xlate_segment] = sflash->xlate_logical;
 
-			/* Allocate a new xlate2 and modify the target entry.
-			 */
+                        /* Allocate a new xlate2 and modify the target entry.
+                         */
 
-			sflash->xlate2_logical = dosfs_sflash_ftl_allocate(sflash);
-			sflash->xlate2_table[xlate_segment] = sflash->xlate2_logical;
+                        sflash->xlate2_logical = dosfs_sflash_ftl_allocate(sflash);
+                        sflash->xlate2_table[xlate_segment] = sflash->xlate2_logical;
 
-			dosfs_sflash_ftl_set_info_entry(sflash, sflash->xlate2_logical, (DOSFS_SFLASH_INFO_TYPE_XLATE_SECONDARY | xlate_segment));
+                        dosfs_sflash_ftl_set_info_entry(sflash, sflash->xlate2_logical, (DOSFS_SFLASH_INFO_TYPE_XLATE_SECONDARY | xlate_segment));
 
-			memset(xlate2_cache, 0xff, DOSFS_SFLASH_BLOCK_SIZE);
-		    }
-		}
-	    }
-	}
+                        memset(xlate2_cache, 0xff, DOSFS_SFLASH_BLOCK_SIZE);
+                    }
+                }
+            }
+        }
     }
 
     /* Allocate a new block and write the data to it.
@@ -1340,27 +1340,27 @@ static void dosfs_sflash_ftl_write(dosfs_sflash_t *sflash, uint32_t address, con
 
     if (address < DOSFS_SFLASH_XLATE_OFFSET)
     {
-	dosfs_sflash_ftl_set_info_type(sflash, write_logical, (DOSFS_SFLASH_INFO_TYPE_DATA_COMMITTED | address));
+        dosfs_sflash_ftl_set_info_type(sflash, write_logical, (DOSFS_SFLASH_INFO_TYPE_DATA_COMMITTED | address));
 
-	read_logical = sflash->block_table[address];
+        read_logical = sflash->block_table[address];
 
 #if (DOSFS_CONFIG_SFLASH_DEBUG == 1)
-	assert(read_logical == sflash_xlate_shadow[address]);
-	sflash_xlate_shadow[address] = write_logical;
+        assert(read_logical == sflash_xlate_shadow[address]);
+        sflash_xlate_shadow[address] = write_logical;
 #endif /* DOSFS_CONFIG_SFLASH_DEBUG == 1 */
 
-	sflash->block_table[address] = write_logical;
+        sflash->block_table[address] = write_logical;
 
-	if (read_logical != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
-	{
-	    dosfs_sflash_ftl_set_info_entry(sflash, read_logical, DOSFS_SFLASH_INFO_TYPE_DELETED);
-	}
+        if (read_logical != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
+        {
+            dosfs_sflash_ftl_set_info_entry(sflash, read_logical, DOSFS_SFLASH_INFO_TYPE_DELETED);
+        }
     }
     else
     {
-	dosfs_sflash_ftl_set_info_type(sflash, write_logical, (DOSFS_SFLASH_INFO_TYPE_DATA_WRITTEN | address));
+        dosfs_sflash_ftl_set_info_type(sflash, write_logical, (DOSFS_SFLASH_INFO_TYPE_DATA_WRITTEN | address));
 
-	dosfs_sflash_ftl_modify(sflash, address, write_logical);
+        dosfs_sflash_ftl_modify(sflash, address, write_logical);
     }
 }
 
@@ -1373,61 +1373,61 @@ static void dosfs_sflash_ftl_read(dosfs_sflash_t *sflash, uint32_t address, uint
 
     if (address < DOSFS_SFLASH_XLATE_OFFSET)
     {
-	read_logical = sflash->block_table[address];
+        read_logical = sflash->block_table[address];
     }
     else
     {
-	xlate_cache   = (uint16_t*)sflash->cache[0];
-	xlate2_cache  = (uint16_t*)sflash->cache[1];
+        xlate_cache   = (uint16_t*)sflash->cache[0];
+        xlate2_cache  = (uint16_t*)sflash->cache[1];
 
-	xlate_segment = (address - DOSFS_SFLASH_XLATE_OFFSET) >> DOSFS_SFLASH_XLATE_SEGMENT_SHIFT;
-	xlate_index   = (address - DOSFS_SFLASH_XLATE_OFFSET) & DOSFS_SFLASH_XLATE_INDEX_MASK;
+        xlate_segment = (address - DOSFS_SFLASH_XLATE_OFFSET) >> DOSFS_SFLASH_XLATE_SEGMENT_SHIFT;
+        xlate_index   = (address - DOSFS_SFLASH_XLATE_OFFSET) & DOSFS_SFLASH_XLATE_INDEX_MASK;
 
-	if (sflash->xlate_table[xlate_segment] == DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
-	{
-	    read_logical = DOSFS_SFLASH_BLOCK_NOT_ALLOCATED;
-	}
-	else
-	{
-	    if (sflash->xlate_logical != sflash->xlate_table[xlate_segment])
-	    {
-		DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate_miss);
+        if (sflash->xlate_table[xlate_segment] == DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
+        {
+            read_logical = DOSFS_SFLASH_BLOCK_NOT_ALLOCATED;
+        }
+        else
+        {
+            if (sflash->xlate_logical != sflash->xlate_table[xlate_segment])
+            {
+                DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate_miss);
 
-		sflash->xlate_logical = sflash->xlate_table[xlate_segment];
+                sflash->xlate_logical = sflash->xlate_table[xlate_segment];
 
-		(*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate_logical), (uint8_t*)xlate_cache, DOSFS_SFLASH_BLOCK_SIZE);
-	    }
-	    else
-	    {
-		DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate_hit);;
-	    }
+                (*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate_logical), (uint8_t*)xlate_cache, DOSFS_SFLASH_BLOCK_SIZE);
+            }
+            else
+            {
+                DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate_hit);;
+            }
 
-	    read_logical = xlate_cache[xlate_index];
+            read_logical = xlate_cache[xlate_index];
 
-	    if (read_logical == DOSFS_SFLASH_BLOCK_DELETED)
-	    {
-		if (sflash->xlate2_table[xlate_segment] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
-		{
-		    if (sflash->xlate2_logical != sflash->xlate2_table[xlate_segment])
-		    {
-			DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate2_miss);
+            if (read_logical == DOSFS_SFLASH_BLOCK_DELETED)
+            {
+                if (sflash->xlate2_table[xlate_segment] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
+                {
+                    if (sflash->xlate2_logical != sflash->xlate2_table[xlate_segment])
+                    {
+                        DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate2_miss);
 
-			sflash->xlate2_logical = sflash->xlate2_table[xlate_segment];
-			
-			(*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate2_logical), (uint8_t*)xlate2_cache, DOSFS_SFLASH_BLOCK_SIZE);
-		    }
-		    else
-		    {
-			DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate2_hit);
-		    }
+                        sflash->xlate2_logical = sflash->xlate2_table[xlate_segment];
+                        
+                        (*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate2_logical), (uint8_t*)xlate2_cache, DOSFS_SFLASH_BLOCK_SIZE);
+                    }
+                    else
+                    {
+                        DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate2_hit);
+                    }
 
-		    if (xlate2_cache[xlate_index] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
-		    {
-			read_logical = xlate2_cache[xlate_index];
-		    }
-		}
-	    }
-	}
+                    if (xlate2_cache[xlate_index] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
+                    {
+                        read_logical = xlate2_cache[xlate_index];
+                    }
+                }
+            }
+        }
     }
 
 #if (DOSFS_CONFIG_SFLASH_DEBUG == 1)
@@ -1436,15 +1436,15 @@ static void dosfs_sflash_ftl_read(dosfs_sflash_t *sflash, uint32_t address, uint
 
     if ((read_logical != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED) && (read_logical != DOSFS_SFLASH_BLOCK_DELETED))
     {
-	read_offset = dosfs_sflash_ftl_translate(sflash, read_logical);
+        read_offset = dosfs_sflash_ftl_translate(sflash, read_logical);
 
-	// printf("READ %08x @%08x =%08x\n", address, read_logical, dosfs_sflash_ftl_translate(sflash, read_logical));
+        // printf("READ %08x @%08x =%08x\n", address, read_logical, dosfs_sflash_ftl_translate(sflash, read_logical));
     
-	(*sflash->interface->read)(sflash->context, read_offset, (uint8_t*)data, DOSFS_SFLASH_BLOCK_SIZE);
+        (*sflash->interface->read)(sflash->context, read_offset, (uint8_t*)data, DOSFS_SFLASH_BLOCK_SIZE);
     }
     else
     {
-	memset(data, 0xff, DOSFS_SFLASH_BLOCK_SIZE);
+        memset(data, 0xff, DOSFS_SFLASH_BLOCK_SIZE);
     }
 
 #if (DOSFS_CONFIG_SFLASH_DEBUG == 1)
@@ -1465,86 +1465,86 @@ static void dosfs_sflash_ftl_discard(dosfs_sflash_t *sflash, uint32_t address)
 
     if (address < DOSFS_SFLASH_XLATE_OFFSET)
     {
-	delete_logical = sflash->block_table[address];
+        delete_logical = sflash->block_table[address];
 
 #if (DOSFS_CONFIG_SFLASH_DEBUG == 1)
-	assert(delete_logical == sflash_xlate_shadow[address]);
+        assert(delete_logical == sflash_xlate_shadow[address]);
 #endif /* DOSFS_CONFIG_SFLASH_DEBUG == 1 */
 
-	if ((delete_logical != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED) && (delete_logical != DOSFS_SFLASH_BLOCK_DELETED))
-	{
+        if ((delete_logical != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED) && (delete_logical != DOSFS_SFLASH_BLOCK_DELETED))
+        {
 #if (DOSFS_CONFIG_SFLASH_DEBUG == 1)
-	    sflash_xlate_shadow[address] = DOSFS_SFLASH_BLOCK_DELETED;
+            sflash_xlate_shadow[address] = DOSFS_SFLASH_BLOCK_DELETED;
 #endif /* DOSFS_CONFIG_SFLASH_DEBUG == 1 */
 
-	    sflash->block_table[address] = DOSFS_SFLASH_BLOCK_DELETED;
+            sflash->block_table[address] = DOSFS_SFLASH_BLOCK_DELETED;
 
-	    dosfs_sflash_ftl_set_info_entry(sflash, delete_logical, DOSFS_SFLASH_INFO_TYPE_DELETED);
-	}
+            dosfs_sflash_ftl_set_info_entry(sflash, delete_logical, DOSFS_SFLASH_INFO_TYPE_DELETED);
+        }
     }
     else
     {
-	xlate_cache   = (uint16_t*)sflash->cache[0];
-	xlate2_cache  = (uint16_t*)sflash->cache[1];
+        xlate_cache   = (uint16_t*)sflash->cache[0];
+        xlate2_cache  = (uint16_t*)sflash->cache[1];
 
-	xlate_segment = (address - DOSFS_SFLASH_XLATE_OFFSET) >> DOSFS_SFLASH_XLATE_SEGMENT_SHIFT;
-	xlate_index   = (address - DOSFS_SFLASH_XLATE_OFFSET) & DOSFS_SFLASH_XLATE_INDEX_MASK;
+        xlate_segment = (address - DOSFS_SFLASH_XLATE_OFFSET) >> DOSFS_SFLASH_XLATE_SEGMENT_SHIFT;
+        xlate_index   = (address - DOSFS_SFLASH_XLATE_OFFSET) & DOSFS_SFLASH_XLATE_INDEX_MASK;
 
-	if (sflash->xlate_table[xlate_segment] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
-	{
-	    if (sflash->xlate_logical != sflash->xlate_table[xlate_segment])
-	    {
-		DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate_miss);
+        if (sflash->xlate_table[xlate_segment] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
+        {
+            if (sflash->xlate_logical != sflash->xlate_table[xlate_segment])
+            {
+                DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate_miss);
 
-		sflash->xlate_logical = sflash->xlate_table[xlate_segment];
+                sflash->xlate_logical = sflash->xlate_table[xlate_segment];
 
-		(*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate_logical), (uint8_t*)xlate_cache, DOSFS_SFLASH_BLOCK_SIZE);
-	    }
-	    else
-	    {
-		DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate_hit);;
-	    }
+                (*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate_logical), (uint8_t*)xlate_cache, DOSFS_SFLASH_BLOCK_SIZE);
+            }
+            else
+            {
+                DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate_hit);;
+            }
 
-	    delete_logical = xlate_cache[xlate_index];
+            delete_logical = xlate_cache[xlate_index];
 
-	    if (delete_logical != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
-	    {
-		if (delete_logical == DOSFS_SFLASH_BLOCK_DELETED)
-		{
-		    if (sflash->xlate2_table[xlate_segment] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
-		    {
-			if (sflash->xlate2_logical != sflash->xlate2_table[xlate_segment])
-			{
-			    DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate2_miss);
-			    
-			    sflash->xlate2_logical = sflash->xlate2_table[xlate_segment];
-			
-			    (*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate2_logical), (uint8_t*)xlate2_cache, DOSFS_SFLASH_BLOCK_SIZE);
-			}
-			else
-			{
-			    DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate2_hit);
-			}
+            if (delete_logical != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
+            {
+                if (delete_logical == DOSFS_SFLASH_BLOCK_DELETED)
+                {
+                    if (sflash->xlate2_table[xlate_segment] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
+                    {
+                        if (sflash->xlate2_logical != sflash->xlate2_table[xlate_segment])
+                        {
+                            DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate2_miss);
+                            
+                            sflash->xlate2_logical = sflash->xlate2_table[xlate_segment];
+                        
+                            (*sflash->interface->read)(sflash->context, dosfs_sflash_ftl_translate(sflash, sflash->xlate2_logical), (uint8_t*)xlate2_cache, DOSFS_SFLASH_BLOCK_SIZE);
+                        }
+                        else
+                        {
+                            DOSFS_SFLASH_STATISTICS_COUNT(sflash_ftl_xlate2_hit);
+                        }
 
-			if (xlate2_cache[xlate_index] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
-			{
-			    delete_logical = xlate2_cache[xlate_index];
-			}
-		    }
-		}
-	    }
+                        if (xlate2_cache[xlate_index] != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED)
+                        {
+                            delete_logical = xlate2_cache[xlate_index];
+                        }
+                    }
+                }
+            }
 
 #if (DOSFS_CONFIG_SFLASH_DEBUG == 1)
-	    assert(delete_logical == sflash_xlate_shadow[address]);
+            assert(delete_logical == sflash_xlate_shadow[address]);
 #endif /* DOSFS_CONFIG_SFLASH_DEBUG == 1 */
 
-	    if ((delete_logical != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED) && (delete_logical != DOSFS_SFLASH_BLOCK_DELETED))
-	    {
-		dosfs_sflash_ftl_set_info_type(sflash, delete_logical, (DOSFS_SFLASH_INFO_TYPE_DATA_DELETED | address));
-		
-		dosfs_sflash_ftl_trim(sflash, address, delete_logical);
-	    }
-	}
+            if ((delete_logical != DOSFS_SFLASH_BLOCK_NOT_ALLOCATED) && (delete_logical != DOSFS_SFLASH_BLOCK_DELETED))
+            {
+                dosfs_sflash_ftl_set_info_type(sflash, delete_logical, (DOSFS_SFLASH_INFO_TYPE_DATA_DELETED | address));
+                
+                dosfs_sflash_ftl_trim(sflash, address, delete_logical);
+            }
+        }
     }
 }
 
@@ -1612,13 +1612,13 @@ static int dosfs_sflash_format(void *context)
 
     if (!dosfs_sflash_ftl_mount(sflash))
     {
-	sflash->state = DOSFS_SFLASH_STATE_NOT_FORMATTED;
+        sflash->state = DOSFS_SFLASH_STATE_NOT_FORMATTED;
 
-	status = F_ERR_ONDRIVE;
+        status = F_ERR_ONDRIVE;
     }
     else
     {
-	sflash->state = DOSFS_SFLASH_STATE_READY;
+        sflash->state = DOSFS_SFLASH_STATE_READY;
     }
 
     (*sflash->interface->unlock)(sflash->context);
@@ -1642,20 +1642,20 @@ static int dosfs_sflash_discard(void *context, uint32_t address, uint32_t length
 
     if (sflash->state != DOSFS_SFLASH_STATE_READY)
     {
-	status = F_ERR_ONDRIVE;
+        status = F_ERR_ONDRIVE;
     }
     else
     {
-	(*sflash->interface->lock)(sflash->context);
+        (*sflash->interface->lock)(sflash->context);
 
-	while (length--)
-	{
-	    dosfs_sflash_ftl_discard(sflash, address);
-	    
-	    address++;
-	}
+        while (length--)
+        {
+            dosfs_sflash_ftl_discard(sflash, address);
+            
+            address++;
+        }
 
-	(*sflash->interface->unlock)(sflash->context);
+        (*sflash->interface->unlock)(sflash->context);
     }
 
 #if (DOSFS_CONFIG_SFLASH_DEBUG == 1)
@@ -1676,20 +1676,20 @@ static int dosfs_sflash_read(void *context, uint32_t address, uint8_t *data, uin
 
     if (sflash->state != DOSFS_SFLASH_STATE_READY)
     {
-	status = F_ERR_ONDRIVE;
+        status = F_ERR_ONDRIVE;
     }
     else
     {
-	(*sflash->interface->lock)(sflash->context);
+        (*sflash->interface->lock)(sflash->context);
 
-	while (length--)
-	{
-	    dosfs_sflash_ftl_read(sflash, address, data);
-	    
-	    address++;
-	}
+        while (length--)
+        {
+            dosfs_sflash_ftl_read(sflash, address, data);
+            
+            address++;
+        }
 
-	(*sflash->interface->unlock)(sflash->context);
+        (*sflash->interface->unlock)(sflash->context);
     }
 
     return status;
@@ -1706,20 +1706,20 @@ static int dosfs_sflash_write(void *context, uint32_t address, const uint8_t *da
 
     if (sflash->state != DOSFS_SFLASH_STATE_READY)
     {
-	status = F_ERR_ONDRIVE;
+        status = F_ERR_ONDRIVE;
     }
     else
     {
-	(*sflash->interface->lock)(sflash->context);
+        (*sflash->interface->lock)(sflash->context);
 
-	while (length--)
-	{
-	    dosfs_sflash_ftl_write(sflash, address, data);
-	    
-	    address++;
-	}
+        while (length--)
+        {
+            dosfs_sflash_ftl_write(sflash, address, data);
+            
+            address++;
+        }
 
-	(*sflash->interface->unlock)(sflash->context);
+        (*sflash->interface->unlock)(sflash->context);
     }
 
 #if (DOSFS_CONFIG_SFLASH_DEBUG == 1)
@@ -1736,7 +1736,7 @@ static int dosfs_sflash_sync(void *context)
 
     if (sflash->state != DOSFS_SFLASH_STATE_READY)
     {
-	status = F_ERR_ONDRIVE;
+        status = F_ERR_ONDRIVE;
     }
 
     return status;
@@ -1762,62 +1762,62 @@ int dosfs_sflash_init(uint32_t data_start)
 
     if (!dosfs_sflash_device.interface)
     {
-	status = F_ERR_INITFUNC;
+        status = F_ERR_INITFUNC;
     }
     else
     {
-	sflash->interface = dosfs_sflash_device.interface;
-	sflash->context = dosfs_sflash_device.context;
+        sflash->interface = dosfs_sflash_device.interface;
+        sflash->context = dosfs_sflash_device.context;
 
-	dosfs_device.lock = DOSFS_DEVICE_LOCK_INIT;
-	dosfs_device.context = (void*)sflash;
-	dosfs_device.interface = &dosfs_sflash_interface;
+        dosfs_device.lock = DOSFS_DEVICE_LOCK_INIT;
+        dosfs_device.context = (void*)sflash;
+        dosfs_device.interface = &dosfs_sflash_interface;
     
-	if (sflash->state == DOSFS_SFLASH_STATE_NONE)
-	{
-	    sflash->data_start = data_start;
-	    sflash->data_limit = (*sflash->interface->capacity)(sflash->context);
+        if (sflash->state == DOSFS_SFLASH_STATE_NONE)
+        {
+            sflash->data_start = data_start;
+            sflash->data_limit = (*sflash->interface->capacity)(sflash->context);
 
-	    if (sflash->data_limit <= sflash->data_start)
-	    {
-		status = F_ERR_INVALIDMEDIA;
-	    }
-	    else
-	    {
-		sflash->xlate_count = (((((sflash->data_limit - sflash->data_start) / DOSFS_SFLASH_ERASE_SIZE) * ((DOSFS_SFLASH_ERASE_SIZE / DOSFS_SFLASH_BLOCK_SIZE) -1)) -2) + (DOSFS_SFLASH_XLATE_ENTRIES -1)) / DOSFS_SFLASH_XLATE_ENTRIES;
-	    
-		sflash->cache[0] = &dosfs_sflash_cache[0];
-		sflash->cache[1] = &dosfs_sflash_cache[DOSFS_SFLASH_BLOCK_SIZE / sizeof(uint32_t)];
+            if (sflash->data_limit <= sflash->data_start)
+            {
+                status = F_ERR_INVALIDMEDIA;
+            }
+            else
+            {
+                sflash->xlate_count = (((((sflash->data_limit - sflash->data_start) / DOSFS_SFLASH_ERASE_SIZE) * ((DOSFS_SFLASH_ERASE_SIZE / DOSFS_SFLASH_BLOCK_SIZE) -1)) -2) + (DOSFS_SFLASH_XLATE_ENTRIES -1)) / DOSFS_SFLASH_XLATE_ENTRIES;
+            
+                sflash->cache[0] = &dosfs_sflash_cache[0];
+                sflash->cache[1] = &dosfs_sflash_cache[DOSFS_SFLASH_BLOCK_SIZE / sizeof(uint32_t)];
 
-		(*sflash->interface->lock)(sflash->context);
+                (*sflash->interface->lock)(sflash->context);
 
-		if (!dosfs_sflash_ftl_mount(sflash))
-		{
-		    (*sflash->interface->unlock)(sflash->context);
+                if (!dosfs_sflash_ftl_mount(sflash))
+                {
+                    (*sflash->interface->unlock)(sflash->context);
 
-		    status = dosfs_device_format(&dosfs_device, (uint8_t*)data);
+                    status = dosfs_device_format(&dosfs_device, (uint8_t*)data);
 
-		    if (status == F_NO_ERROR)
-		    {
-			sflash->state = DOSFS_SFLASH_STATE_READY;
-		    }
-		    else
-		    {
-			sflash->state = DOSFS_SFLASH_STATE_NOT_FORMATTED;
+                    if (status == F_NO_ERROR)
+                    {
+                        sflash->state = DOSFS_SFLASH_STATE_READY;
+                    }
+                    else
+                    {
+                        sflash->state = DOSFS_SFLASH_STATE_NOT_FORMATTED;
 
-			status = F_ERR_NOTFORMATTED;
-		    }
-		}
-		else
-		{
-		    (*sflash->interface->unlock)(sflash->context);
+                        status = F_ERR_NOTFORMATTED;
+                    }
+                }
+                else
+                {
+                    (*sflash->interface->unlock)(sflash->context);
 
-		    sflash->state = DOSFS_SFLASH_STATE_READY;
-		}
-	    }
-	}
+                    sflash->state = DOSFS_SFLASH_STATE_READY;
+                }
+            }
+        }
 
-	dosfs_device.lock = 0;
+        dosfs_device.lock = 0;
     }
 
     return status;

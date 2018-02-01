@@ -68,18 +68,18 @@ bool armv6m_pendsv_enqueue(armv6m_pendsv_routine_t routine, void *context, uint3
 
     do
     {
-	queue_write = armv6m_pendsv_control.queue_write;
-	queue_write_next = queue_write +1;
-	
-	if (queue_write_next == &armv6m_pendsv_control.queue_data[ARMV6M_PENDSV_ENTRY_COUNT])
-	{
-	    queue_write_next = &armv6m_pendsv_control.queue_data[0];
-	}
-	
-	if (queue_write_next == armv6m_pendsv_control.queue_read)
-	{
-	    return false;
-	}
+        queue_write = armv6m_pendsv_control.queue_write;
+        queue_write_next = queue_write +1;
+        
+        if (queue_write_next == &armv6m_pendsv_control.queue_data[ARMV6M_PENDSV_ENTRY_COUNT])
+        {
+            queue_write_next = &armv6m_pendsv_control.queue_data[0];
+        }
+        
+        if (queue_write_next == armv6m_pendsv_control.queue_read)
+        {
+            return false;
+        }
     }
     while (armv6m_atomic_compare_and_swap((volatile uint32_t*)&armv6m_pendsv_control.queue_write, (uint32_t)queue_write, (uint32_t)queue_write_next) != (uint32_t)queue_write);
 
@@ -100,20 +100,20 @@ static __attribute__((used)) void armv6m_pendsv_dequeue(volatile armv6m_pendsv_e
 
     do
     {
-	routine = queue_read->routine;
-	context = queue_read->context;
-	data = queue_read->data;
+        routine = queue_read->routine;
+        context = queue_read->context;
+        data = queue_read->data;
 
-	queue_read = queue_read + 1;
+        queue_read = queue_read + 1;
 
-	if (queue_read == &armv6m_pendsv_control.queue_data[ARMV6M_PENDSV_ENTRY_COUNT])
-	{
-	    queue_read = &armv6m_pendsv_control.queue_data[0];
-	}
+        if (queue_read == &armv6m_pendsv_control.queue_data[ARMV6M_PENDSV_ENTRY_COUNT])
+        {
+            queue_read = &armv6m_pendsv_control.queue_data[0];
+        }
 
-	armv6m_pendsv_control.queue_read = queue_read;
+        armv6m_pendsv_control.queue_read = queue_read;
 
-	(*routine)(context, data);
+        (*routine)(context, data);
     }
     while (queue_read != armv6m_pendsv_control.queue_write);
 }
@@ -124,24 +124,24 @@ void __attribute__((naked)) PendSV_Handler(void)
         "  ldr     r2, =armv6m_pendsv_control          \n"
         "  ldr     r0, [r2, %[offset_QUEUE_READ]]      \n"
         "  ldr     r1, [r2, %[offset_QUEUE_WRITE]]     \n"
-	"  cmp     r0, r1                              \n"
-	"  beq     .Lnotify                            \n"
-	"  push    { r2, lr }                          \n"
-	"  bl      armv6m_pendsv_dequeue               \n"
-	"  pop     { r2, r3 }                          \n"
-	"  mov     lr, r3                              \n"
-	".Lnotify:                                     \n"
+        "  cmp     r0, r1                              \n"
+        "  beq     .Lnotify                            \n"
+        "  push    { r2, lr }                          \n"
+        "  bl      armv6m_pendsv_dequeue               \n"
+        "  pop     { r2, r3 }                          \n"
+        "  mov     lr, r3                              \n"
+        ".Lnotify:                                     \n"
         "  ldr     r0, [r2, %[offset_NOTIFY_CALLBACK]] \n"
-	"  cmp     r0, #0                              \n"
-	"  bne     .Lcall                              \n"
+        "  cmp     r0, #0                              \n"
+        "  bne     .Lcall                              \n"
         "  bx      lr                                  \n"
-	".Lcall:                                       \n"
-	"  mov     r1, #0                              \n"
+        ".Lcall:                                       \n"
+        "  mov     r1, #0                              \n"
         "  str     r1, [r2, %[offset_NOTIFY_CALLBACK]] \n"
         "  bx      r0                                  \n"
-	:
-	: [offset_NOTIFY_CALLBACK] "I" (offsetof(armv6m_pendsv_control_t, notify_callback)),
-	  [offset_QUEUE_READ]      "I" (offsetof(armv6m_pendsv_control_t, queue_read)),
-	  [offset_QUEUE_WRITE]     "I" (offsetof(armv6m_pendsv_control_t, queue_write))
-	);
+        :
+        : [offset_NOTIFY_CALLBACK] "I" (offsetof(armv6m_pendsv_control_t, notify_callback)),
+          [offset_QUEUE_READ]      "I" (offsetof(armv6m_pendsv_control_t, queue_read)),
+          [offset_QUEUE_WRITE]     "I" (offsetof(armv6m_pendsv_control_t, queue_write))
+        );
 }

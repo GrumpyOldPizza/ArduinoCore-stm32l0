@@ -57,8 +57,8 @@ typedef void (*stm32l0_servo_event_callback_t)(void *context, uint32_t events);
 typedef struct _stm32l0_servo_table_t {
     uint32_t                    entries;
     struct {
-	uint16_t                  pin;
-	uint16_t                  width;
+        uint16_t                  pin;
+        uint16_t                  width;
     }                           slot[STM32L0_SERVO_SLOT_COUNT];
 } stm32l0_servo_table_t;
 
@@ -66,9 +66,9 @@ typedef struct _stm32l0_servo_schedule_t {
     uint16_t                    sync;
     uint16_t                    entries;
     struct {
-	GPIO_TypeDef              *GPIO;
-	uint16_t                  mask;
-	uint16_t                  width;
+        GPIO_TypeDef              *GPIO;
+        uint16_t                  mask;
+        uint16_t                  width;
     }                           slot[STM32L0_SERVO_SLOT_COUNT];
 } stm32l0_servo_schedule_t;
 
