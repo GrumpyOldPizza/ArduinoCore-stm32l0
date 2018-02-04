@@ -41,6 +41,8 @@ extern "C" {
 #define STM32L0_RTC_CALENDAR_MASK_DAY           0x00000008
 #define STM32L0_RTC_CALENDAR_MASK_MONTH         0x00000010
 #define STM32L0_RTC_CALENDAR_MASK_YEAR          0x00000020
+#define STM32L0_RTC_CALENDAR_MASK_TIME          0x00000007
+#define STM32L0_RTC_CALENDAR_MASK_DATE          0x00000038
 
 typedef struct __attribute__((aligned(4))) _stm32l0_rtc_calendar_t {
     uint16_t                       subseconds;
@@ -74,7 +76,7 @@ struct _stm32l0_rtc_timer_t {
     struct _stm32l0_rtc_timer_t           *previous;
     volatile stm32l0_rtc_timer_callback_t callback;
     void                                  *context;
-    uint32_t                              seconds;
+    int32_t                               seconds;
     uint16_t                              subseconds;
     volatile uint16_t                     adjust;
 };
@@ -137,12 +139,16 @@ extern void stm32l0_rtc_calendar_to_time(const stm32l0_rtc_calendar_t *calendar,
 extern void stm32l0_rtc_time_to_calendar(uint32_t seconds, uint16_t subseconds, stm32l0_rtc_calendar_t *p_calendar);
 
 extern int stm32l0_rtc_calendar_compare(const stm32l0_rtc_calendar_t *a_calendar, const stm32l0_rtc_calendar_t *b_calendar);
-extern void stm32l0_rtc_calendar_subtract(const stm32l0_rtc_calendar_t *a_calendar, const stm32l0_rtc_calendar_t *b_calendar, int32_t *p_seconds, uint16_t *p_subseconds);
+extern void stm32l0_rtc_calendar_delta(const stm32l0_rtc_calendar_t *a_calendar, const stm32l0_rtc_calendar_t *b_calendar, int32_t *p_seconds, uint16_t *p_subseconds);
 extern void stm32l0_rtc_calendar_offset(const stm32l0_rtc_calendar_t *a_calendar, int32_t b_seconds, uint16_t b_subseconds, stm32l0_rtc_calendar_t *p_calendar);
 
 extern int stm32l0_rtc_time_compare(uint32_t a_seconds, uint16_t a_subseconds, uint32_t b_seconds, uint16_t b_subseconds);
-extern void stm32l0_rtc_time_subtract(uint32_t a_seconds, uint16_t a_subseconds, uint32_t b_seconds, uint16_t b_subseconds, int32_t *p_seconds, uint16_t *p_subseconds);
+extern void stm32l0_rtc_time_delta(uint32_t a_seconds, uint16_t a_subseconds, uint32_t b_seconds, uint16_t b_subseconds, int32_t *p_seconds, uint16_t *p_subseconds);
 extern void stm32l0_rtc_time_offset(uint32_t a_seconds, uint16_t a_subseconds, int32_t b_seconds, uint16_t b_subseconds, uint32_t *p_second, uint16_t *p_subseconds);
+extern void stm32l0_rtc_time_add(int32_t a_seconds, uint16_t a_subseconds, int32_t b_seconds, uint16_t b_subseconds, int32_t *p_seconds, uint16_t *p_subseconds);
+extern void stm32l0_rtc_time_subtract(int32_t a_seconds, uint16_t a_subseconds, int32_t b_seconds, uint16_t b_subseconds, int32_t *p_seconds, uint16_t *p_subseconds);
+extern void stm32l0_rtc_time_negate(int32_t seconds, uint16_t subseconds, int32_t *p_seconds, uint16_t *p_subseconds);
+
 
 #ifdef __cplusplus
 }
