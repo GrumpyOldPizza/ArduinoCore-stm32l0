@@ -338,10 +338,10 @@ static void RegionEU868InitDefaults( InitType_t type )
         {
 	    // Bands
 	    LoRaMacBands[0] = ( Band_t ) EU868_BAND0;
-	    LoRaMacBands[0] = ( Band_t ) EU868_BAND1;
-	    LoRaMacBands[0] = ( Band_t ) EU868_BAND2;
-	    LoRaMacBands[0] = ( Band_t ) EU868_BAND3;
-	    LoRaMacBands[0] = ( Band_t ) EU868_BAND4;
+	    LoRaMacBands[1] = ( Band_t ) EU868_BAND1;
+	    LoRaMacBands[2] = ( Band_t ) EU868_BAND2;
+	    LoRaMacBands[3] = ( Band_t ) EU868_BAND3;
+	    LoRaMacBands[4] = ( Band_t ) EU868_BAND4;
 
             // Channels
             LoRaMacChannels[0] = ( ChannelParams_t ) EU868_LC1;
