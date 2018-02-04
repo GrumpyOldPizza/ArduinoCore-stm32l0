@@ -47,13 +47,15 @@
 #define STM32L0_CONFIG_VBAT_FULL          ((float)4.2)
 
 #define STM32L0_CONFIG_PIN_GNSS_ENABLE    STM32L0_GPIO_PIN_PB2
+#define STM32L0_CONFIG_PIN_GNSS_RX        STM32L0_GPIO_PIN_PA10_USART1_RX
+#define STM32L0_CONFIG_PIN_GNSS_TX        STM32L0_GPIO_PIN_PA9_USART1_TX
 
 #define STM32L0_CONFIG_SFLASH_DATA_START  (256 * 1024)
 
 #define USBCON
 
 /** Master clock frequency */
-#define VARIANT_MCK			  F_CPU
+#define VARIANT_MCK                       F_CPU
 
 /*----------------------------------------------------------------------------
  *        Headers
@@ -106,8 +108,8 @@ static const uint8_t A5  = PIN_A5;
 static const uint8_t DAC0 = PIN_DAC0;
 static const uint8_t DAC1 = PIN_DAC1;
 
-#define ADC_RESOLUTION		12
-#define DAC_RESOLUTION		12
+#define ADC_RESOLUTION          12
+#define DAC_RESOLUTION          12
 
 /*
  * Serial interfaces
@@ -135,7 +137,7 @@ static const uint8_t DAC1 = PIN_DAC1;
 #define PIN_SPI_MOSI         (11u)
 #define PIN_SPI_SCK          (13u)
 
-static const uint8_t SS	  = 10;
+static const uint8_t SS   = 10;
 static const uint8_t MOSI = PIN_SPI_MOSI;
 static const uint8_t MISO = PIN_SPI_MISO;
 static const uint8_t SCK  = PIN_SPI_SCK;
