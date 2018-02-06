@@ -185,6 +185,7 @@ private:
     Callback          _receiveCallback;
     Callback          _transmitCallback;
 
+    static void __McpsResend(void);
     static void __McpsConfirm(struct sMcpsConfirm*);
     static void __McpsIndication(struct sMcpsIndication*);
     static void __MlmeConfirm(struct sMlmeConfirm*);
