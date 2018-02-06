@@ -577,7 +577,10 @@ static void stm32l0_rtc_timer_alarm(const stm32l0_rtc_calendar_t *start)
             
             if (!stm32l0_rtc_device.timer_events)
             {
-                armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)stm32l0_rtc_timer_routine, NULL, 0);
+                if (armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)stm32l0_rtc_timer_routine, NULL, 0)) 
+                {
+                    armv6m_atomic_add(&stm32l0_rtc_device.timer_events, 1);
+                }
             }
         }
         else
@@ -600,7 +603,10 @@ static void stm32l0_rtc_timer_alarm(const stm32l0_rtc_calendar_t *start)
 
                 if (!stm32l0_rtc_device.timer_events)
                 {
-                    armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)stm32l0_rtc_timer_routine, NULL, 0);
+                    if (armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)stm32l0_rtc_timer_routine, NULL, 0)) 
+                    {
+                        armv6m_atomic_add(&stm32l0_rtc_device.timer_events, 1);
+                    }
                 }
             }
         }
@@ -1267,9 +1273,10 @@ void RTC_IRQHandler(void)
             
             if (stm32l0_rtc_device.timer_busy)
             {
-                armv6m_atomic_add(&stm32l0_rtc_device.timer_events, 1);
-
-                armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)stm32l0_rtc_timer_routine, NULL, 0);
+                if (armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)stm32l0_rtc_timer_routine, NULL, 0))
+                {
+                    armv6m_atomic_add(&stm32l0_rtc_device.timer_events, 1);
+                }
             }
         }
     }
