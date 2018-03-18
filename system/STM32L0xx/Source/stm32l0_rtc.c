@@ -925,12 +925,13 @@ void stm32l0_rtc_wakeup_start(uint32_t timeout, stm32l0_rtc_callback_t callback,
 
     RTC->WUTR = rtc_wutr;
 
-    armv6m_atomic_or(&RTC->CR, (RTC_CR_WUTIE | RTC_CR_WUTE | rtc_cr));
+    armv6m_atomic_modify(&RTC->CR, RTC_CR_WUCKSEL, rtc_cr);
+    armv6m_atomic_or(&RTC->CR, RTC_CR_WUTIE | RTC_CR_WUTE);
 }
 
 void stm32l0_rtc_wakeup_stop(void)
 {
-    armv6m_atomic_and(&RTC->CR, ~(RTC_CR_WUTIE | RTC_CR_WUTE | RTC_CR_WUCKSEL));
+    armv6m_atomic_and(&RTC->CR, ~(RTC_CR_WUTIE | RTC_CR_WUTE));
     armv6m_atomic_modify(&RTC->ISR, ~RTC_ISR_INIT, ~(RTC_ISR_WUTF | RTC_ISR_INIT));
 
     EXTI->PR = EXTI_PR_PIF20;
@@ -1292,7 +1293,7 @@ void RTC_IRQHandler(void)
 
         if (RTC->ISR & RTC_ISR_WUTF)
         {
-            armv6m_atomic_and(&RTC->CR, ~(RTC_CR_WUTIE | RTC_CR_WUTE | RTC_CR_WUCKSEL));
+            armv6m_atomic_and(&RTC->CR, ~(RTC_CR_WUTIE | RTC_CR_WUTE));
             armv6m_atomic_modify(&RTC->ISR, ~RTC_ISR_INIT, ~(RTC_ISR_WUTF | RTC_ISR_INIT));
 
             if (stm32l0_rtc_device.wakeup_callback)
