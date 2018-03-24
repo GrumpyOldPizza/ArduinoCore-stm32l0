@@ -358,28 +358,76 @@ LoRaWANClass::LoRaWANClass()
 }
 
 static const LoRaMacRegion_t *LoRaWANRegions[] = {
-    &LoRaMacRegionAS923,
-    &LoRaMacRegionAU915,
+#if (LORAWAN_REGIONS & 0x00000001)
     &LoRaMacRegionEU868,
-    &LoRaMacRegionIN865,
-    &LoRaMacRegionKR920,
+#else
+    NULL,
+#endif
+#if (LORAWAN_REGIONS & 0x00000002)
     &LoRaMacRegionUS915,
+#else
+    NULL,
+#endif
+#if (LORAWAN_REGIONS & 0x00000004)
+    &LoRaMacRegionAU915,
+#else
+    NULL,
+#endif
+#if (LORAWAN_REGIONS & 0x00000008)
+    &LoRaMacRegionAS923,
+#else
+    NULL,
+#endif
+#if (LORAWAN_REGIONS & 0x00000010)
+    &LoRaMacRegionKR920,
+#else
+    NULL,
+#endif
+#if (LORAWAN_REGIONS & 0x00000020)
+    &LoRaMacRegionIN865,
+#else
+    NULL,
+#endif
 };
 
-static const uint8_t LoRaWANTxPowerAS923[11] = { 16, 14, 12, 10,  8,  6,  4,  2,  0,  0,  0 };
-static const uint8_t LoRaWANTxPowerAU915[11] = { 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10 };
 static const uint8_t LoRaWANTxPowerEU868[11] = { 16, 14, 12, 10,  8,  6,  4,  2,  0,  0,  0 };
-static const uint8_t LoRaWANTxPowerIN865[11] = { 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10 };
-static const uint8_t LoRaWANTxPowerKR920[11] = { 14, 12, 10,  8,  6,  4,  2,  0,  0,  0,  0 };
 static const uint8_t LoRaWANTxPowerUS915[11] = { 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10 };
+static const uint8_t LoRaWANTxPowerAU915[11] = { 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10 };
+static const uint8_t LoRaWANTxPowerAS923[11] = { 16, 14, 12, 10,  8,  6,  4,  2,  0,  0,  0 };
+static const uint8_t LoRaWANTxPowerKR920[11] = { 14, 12, 10,  8,  6,  4,  2,  0,  0,  0,  0 };
+static const uint8_t LoRaWANTxPowerIN865[11] = { 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10 };
 
 static const uint8_t *LoRaWANTxPower[] = {
-    &LoRaWANTxPowerAS923[0],
-    &LoRaWANTxPowerAU915[0],
-    &LoRaWANTxPowerEU868[0],
-    &LoRaWANTxPowerIN865[0],
-    &LoRaWANTxPowerKR920[0],
-    &LoRaWANTxPowerUS915[0],
+#if (LORAWAN_REGIONS & 0x00000001)
+    LoRaWANTxPowerEU868,
+#else
+    NULL,
+#endif
+#if (LORAWAN_REGIONS & 0x00000002)
+    LoRaWANTxPowerUS915,
+#else
+    NULL,
+#endif
+#if (LORAWAN_REGIONS & 0x00000004)
+    LoRaWANTxPowerAU915,
+#else
+    NULL,
+#endif
+#if (LORAWAN_REGIONS & 0x00000008)
+    LoRaWANTxPowerAS923,
+#else
+    NULL,
+#endif
+#if (LORAWAN_REGIONS & 0x00000010)
+    LoRaWANTxPowerKR920,
+#else
+    NULL,
+#endif
+#if (LORAWAN_REGIONS & 0x00000020)
+    LoRaWANTxPowerIN865,
+#else
+    NULL,
+#endif
 };
 
 int LoRaWANClass::begin(LoRaWANBand band)
@@ -398,6 +446,10 @@ int LoRaWANClass::begin(LoRaWANBand band)
 
     if (__get_IPSR() != 0) {
         return 0;
+    }
+
+    if (!LoRaWANRegions[band]) {
+	return 0;
     }
 
     _Band = band;
@@ -1324,7 +1376,7 @@ int LoRaWANClass::setRX2Channel(unsigned long frequency, unsigned int datarate)
 
 int LoRaWANClass::setSubBand(unsigned int subband)
 {
-    uint16_t ChannelsMask[LORA_MAX_NB_CHANNELS / 16];
+    uint16_t ChannelsMask[(LORA_MAX_NB_CHANNELS +15) / 16];
     unsigned int group;
     MibRequestConfirm_t mibReq;
     
@@ -1360,7 +1412,6 @@ int LoRaWANClass::setSubBand(unsigned int subband)
         ChannelsMask[2] = 0xFFFF;
         ChannelsMask[3] = 0xFFFF;
         ChannelsMask[4] = 0x00FF;
-        ChannelsMask[5] = 0x0000;
     }
 
     mibReq.Type = MIB_CHANNELS_DEFAULT_MASK;
@@ -1450,7 +1501,7 @@ int LoRaWANClass::removeChannel(unsigned int index)
 
 int LoRaWANClass::enableChannel(unsigned int index)
 {
-    uint16_t ChannelsMask[LORA_MAX_NB_CHANNELS / 16];
+    uint16_t ChannelsMask[(LORA_MAX_NB_CHANNELS + 15) / 16];
     MibRequestConfirm_t mibReq;
 
     if (!_initialized) {
@@ -1500,7 +1551,7 @@ int LoRaWANClass::enableChannel(unsigned int index)
 
 int LoRaWANClass::disableChannel(unsigned int index)
 {
-    uint16_t ChannelsMask[LORA_MAX_NB_CHANNELS / 16];
+    uint16_t ChannelsMask[(LORA_MAX_NB_CHANNELS +15) / 16];
     MibRequestConfirm_t mibReq;
 
     if (!_initialized) {

@@ -33,7 +33,7 @@
 
 #define LORAWAN_DEFAULT_PORT     1
 #define LORAWAN_MAX_PAYLOAD_SIZE 242
-#define LORAWAN_RX_BUFFER_SIZE   (2 * (3 + LORAWAN_MAX_PAYLOAD_SIZE))
+#define LORAWAN_RX_BUFFER_SIZE   (6 + LORAWAN_MAX_PAYLOAD_SIZE)
 
 #define LORAWAN_JOINED_NONE      0
 #define LORAWAN_JOINED_OTAA      1
@@ -54,12 +54,12 @@ typedef struct {
 } LoRaWANSession;
 
 typedef enum {
-    AS923 = 0,
+    EU868 = 0,
+    US915,
     AU915,
-    EU868,
+    AS923,
     KR920,
     IN865,
-    US915,
 } LoRaWANBand;
 
 class LoRaWANClass : public Stream
