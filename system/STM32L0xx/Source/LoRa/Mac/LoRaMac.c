@@ -242,17 +242,17 @@ ChannelParams_t LoRaMacChannels[LORA_MAX_NB_CHANNELS];
 /*!
  * LoRaMAC channels mask
  */
-uint16_t LoRaMacChannelsMask[LORA_MAX_NB_CHANNELS / 16];
+uint16_t LoRaMacChannelsMask[(LORA_MAX_NB_CHANNELS +15) / 16];
 
 /*!
  * LoRaMAC channels default mask
  */
-uint16_t LoRaMacChannelsDefaultMask[LORA_MAX_NB_CHANNELS / 16];
+uint16_t LoRaMacChannelsDefaultMask[(LORA_MAX_NB_CHANNELS +15) / 16];
 
 /*!
  * LoRaMAC channels mask remaining
  */
-uint16_t LoRaMacChannelsMaskRemaining[LORA_MAX_NB_CHANNELS / 16];
+uint16_t LoRaMacChannelsMaskRemaining[(LORA_MAX_NB_CHANNELS +15) / 16];
 
 /*!
  * LoRaMac parameters

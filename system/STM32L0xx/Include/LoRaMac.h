@@ -125,7 +125,7 @@ typedef uint32_t TimerTime_t;
 /*!
  * LoRaMac maximum number of channels (all regions)
  */
-#define LORA_MAX_NB_CHANNELS                        96
+#define LORA_MAX_NB_CHANNELS                        72
 
 /*!
  * LoRaMac maximum number of bands (all regions)
