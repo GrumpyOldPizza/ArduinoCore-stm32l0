@@ -29,6 +29,13 @@
 #include "Arduino.h"
 #include "wiring_private.h"
 
+extern void __analogWriteDisable(uint32_t pin)  __attribute__((weak));
+
+void __analogWriteDisable(uint32_t pin)
+{
+    (void)pin;
+}
+
 void pinMode( uint32_t ulPin, uint32_t ulMode )
 {
     // Handle the case the pin isn't usable as PIO
