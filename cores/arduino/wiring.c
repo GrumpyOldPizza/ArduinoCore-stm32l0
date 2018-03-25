@@ -35,7 +35,8 @@ extern "C" {
 #endif
 
 #if defined(USBCON)
-stm32l0_usbd_cdc_t g_CDC;
+void USBD_Poll(void) __attribute__((weak));
+void USBD_Poll(void) { };
 #endif
 
 stm32l0_spi_t g_SPI;

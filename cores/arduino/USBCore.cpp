@@ -109,17 +109,29 @@ void USBDeviceClass::poll()
     
 bool USBDeviceClass::connected()
 {
+#if defined(USB_CLASS)
     return USBD_Connected();
+#else
+    return false;
+#endif
 }
 
 bool USBDeviceClass::configured()
 {
+#if defined(USB_CLASS)
     return USBD_Configured();
+#else
+    return false;
+#endif
 }
 
 bool USBDeviceClass::suspended()
 {
+#if defined(USB_CLASS)
     return USBD_Suspended();
+#else
+    return false;
+#endif
 }
 
 USBDeviceClass USBDevice;

@@ -37,7 +37,7 @@ extern bool Serial_available() __attribute__((weak));
 
 bool Serial_available() { return SerialUSB.available(); }
 
-extern stm32l0_usbd_cdc_t g_CDC;
+stm32l0_usbd_cdc_t g_CDC;
 
 CDC SerialUSB(&g_CDC, (serialEvent ? serialEventRun : NULL));
 
