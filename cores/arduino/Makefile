@@ -17,6 +17,7 @@ INCLUDES = \
 	-I../../system/CMSIS/Device/ST/STM32L0xx/Include \
 	-I../../system/STM32L0xx/Include \
 	-I../../variants/STM32L082CZ-Cricket \
+	-I../../libraries/CayenneLPP/src \
 	-I../../libraries/DOSFS/src \
 	-I../../libraries/EEPROM/src \
 	-I../../libraries/GNSS/src \
@@ -29,6 +30,7 @@ INCLUDES = \
 	-I../../libraries/Wire/src \
 	-I.
 SRCS = \
+	../../libraries/CayenneLPP/src/CayenneLPP.cpp \
 	../../libraries/DOSFS/src/DOSFS.cpp \
 	../../libraries/GNSS/src/GNSS.cpp \
 	../../libraries/GNSS/src/utility/gnss_core.c \
@@ -74,6 +76,7 @@ SRCS = \
 	wiring_shift.c \
 
 OBJS = \
+	../../libraries/CayenneLPP/src/CayenneLPP.o \
 	../../libraries/DOSFS/src/DOSFS.o \
 	../../libraries/GNSS/src/GNSS.o \
 	../../libraries/GNSS/src/utility/gnss_core.o \

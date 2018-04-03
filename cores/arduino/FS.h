@@ -33,6 +33,11 @@
 
 class File;
 class Dir;
+class DirEntry;
+class FileSystem;
+
+class FileHandle;
+class DirHandle;
 
 enum SeekMode {
     SeekSet = 0,
@@ -43,65 +48,151 @@ enum SeekMode {
 class File : public Stream
 {
 public:
+    File(const File &file);
+    File();
+    ~File();
+
+    File &operator=(const File &file);
+
+    operator bool() const;
+
     // Print methods:
-    virtual size_t write(uint8_t);
-    virtual size_t write(const uint8_t *buf, size_t size);
-    virtual void flush();
+    int availableForWrite() override;
+    size_t write(uint8_t) override;
+    size_t write(const uint8_t *data, size_t size) override;
+    void flush() override;
 
     // Stream methods:
-    virtual int available();
-    virtual int read();
-    virtual size_t read(uint8_t* buf, size_t size);
-    virtual int peek();
+    int available() override;
+    int read() override;
+    size_t read(uint8_t* data, size_t size) override;
+    int peek() override;
 
     // File methods
-    virtual bool seek(uint32_t pos, SeekMode mode = SeekSet);
-    virtual size_t position();
-    virtual size_t size();
-    virtual void close();
+    bool seek(uint32_t position, SeekMode mode = SeekSet);
+    size_t position();
+    size_t size();
+    void close();
 
-    virtual operator bool() const;
+    using Print::write;
+
+private:
+    File(FileHandle *handle);
+
+    FileHandle *_handle;
+
+    friend class FileHandle;
 };
+
 
 class Dir 
 {
 public:
-    virtual String fileName();
-    virtual size_t fileSize();
-    virtual bool isDirectory();
-    virtual bool next();
-    virtual bool rewind();
+    Dir(const Dir &dir);
+    Dir();
+    ~Dir();
 
-    virtual operator bool() const;
+    Dir &operator=(const Dir &dir);
+
+    operator bool() const;
+
+    bool read(DirEntry &entry);
+    bool rewind();
+    void close();
+
+private:
+    Dir(DirHandle *handle);
+
+    DirHandle *_handle;
+
+    friend class DirHandle;
 };
 
-class FS
+
+class DirEntry 
 {
 public:
-    virtual File open(const char* path, const char* mode);
-    virtual File open(const String& path, const char* mode);
+    enum {
+	DT_UNKNOWN = 0,
+	DT_DIR,
+	DT_REG,
+    };
 
-    virtual Dir openDir(const char* path);
-    virtual Dir openDir(const String& path);
+    DirEntry() { _info.type = DT_UNKNOWN; }
 
+    const char *name() { return (_info.type == DT_UNKNOWN) ? NULL : _info.name; }
+    size_t fileSize() { return (_info.type == DT_UNKNOWN) ? 0 : _info.size; };
+    bool isDirectory() { return _info.type == DT_DIR; }
+    bool isFile() { return _info.type == DT_REG; }
+
+    String fileName() { return String(name()); }
+
+    struct _DirInfo {
+	uint8_t type;
+	uint32_t size;
+	char name[256];
+    } _info;
+};
+
+class FileSystem
+{
+public:
+    virtual File open(const char *path, const char *mode) = 0;
+    virtual Dir openDir(const char *path) = 0;
     virtual bool exists(const char* path) = 0;
-    virtual bool exists(const String& path) = 0;
+    virtual bool remove(const char *path) = 0;
+    virtual bool mkdir(const char *path) = 0;
+    virtual bool rmdir(const char *path) = 0;
 
-    virtual bool mkdir(const char* path) = 0;
-    virtual bool mkdir(const String& path) = 0;
+    File open(const String &path, const char *mode) { return open(path.c_str(), mode); }
+    Dir openDir(const String &path) { return openDir(path.c_str()); }
+    bool exists(const String& path) { return exists(path.c_str()); };
+    bool remove(const String &path) { return remove(path.c_str()); }
+    bool mkdir(const String &path) { return mkdir(path.c_str()); }
+    bool rmdir(const String &path) { return rmdir(path.c_str()); }
+};
 
-    virtual bool rmdir(const char* path) = 0;
-    virtual bool rmdir(const String& path) = 0;
 
-    virtual bool chdir(const char* path) = 0;
-    virtual bool chdir(const String& path) = 0;
+class FileHandle
+{
+public:
+    FileHandle() : _refcount(1) { };
+    virtual ~FileHandle() { };
 
-    virtual bool remove(const char* path) = 0;
-    virtual bool remove(const String& path) = 0;
+    void reference();
+    void unreference();
 
-    virtual bool rename(const char* pathFrom, const char* pathTo) = 0;
-    virtual bool rename(const String& pathFrom, const String& pathTo) = 0;
+    File open() { return File(this); }
+    virtual void close() = 0;
 
+    virtual size_t read(uint8_t *data, size_t size) = 0;
+    virtual size_t write(const uint8_t *data, size_t size) = 0;
+    virtual void flush() = 0;
+    virtual bool seek(uint32_t position, SeekMode mode) = 0;
+    virtual size_t position() = 0;
+    virtual size_t size() = 0;
+
+private:
+    volatile uint32_t _refcount;
+};
+
+class DirHandle
+{
+public:
+    DirHandle() : _refcount(1) { };
+    virtual ~DirHandle() { };
+
+    void reference();
+    void unreference();
+
+    Dir open() { return Dir(this); }
+    virtual void close() = 0;
+
+    virtual bool read(struct DirEntry::_DirInfo *info) = 0;
+    virtual bool rewind() = 0;
+
+private:
+    volatile uint32_t _refcount;
 };
 
 #endif // FS_H

@@ -31,104 +31,30 @@
 
 #include <Arduino.h>
 #include <FS.h>
-#include <dosfs_api.h>
 
-class DOSFSFile;
-class DSFSDir;
-
-class DOSFSFile : public File
-{
-public:
-    DOSFSFile(const char* path, const char* mode);
-    DOSFSFile();
-  
-    // Print methods:
-    virtual size_t write(uint8_t);
-    virtual size_t write(const uint8_t *buf, size_t size);
-    virtual void flush();
-
-    // Stream methods:
-    virtual int available();
-    virtual int read();
-    virtual size_t read(uint8_t* buf, size_t size);
-    virtual int peek();
-
-    // File methods
-    virtual bool seek(uint32_t pos, SeekMode mode = SeekSet);
-    virtual size_t position();
-    virtual size_t size();
-    virtual void close();
-
-    virtual operator bool() const;
-
-private:
-    F_FILE *_file;
-};
-
-class DOSFSDir : public Dir
-{
-public:
-    DOSFSDir(const char* path);
-    DOSFSDir();
-
-    virtual String fileName();
-    virtual size_t fileSize();
-    virtual bool isDirectory();
-    virtual bool next();
-    virtual bool rewind();
-
-    virtual operator bool() const;
-
-private:
-    F_DIR _dir;
-    F_DIRENT _dirent;
-};
-
-typedef struct {
-    size_t totalBytes;
-    size_t usedBytes;
-    size_t blockSize;
-    size_t clusterSize;
-    size_t maxOpenFiles;
-    size_t maxPathLength;
-} DOSFSInfo;
-
-class DOSFSVolume : public FS
+class DOSFSFileSystem final : public FileSystem
 {
 public:
     int begin();
     void end();
-
     bool check();
     bool format();
-    bool info(DOSFSInfo& info);
 
-    virtual File open(const char* path, const char* mode);
-    virtual File open(const String& path, const char* mode);
+    File open(const char *path, const char *mode) override;
+    Dir openDir(const char *path) override;
+    bool exists(const char *path) override;
+    bool remove(const char *path) override;
+    bool mkdir(const char *path) override;
+    bool rmdir(const char *path) override;
 
-    virtual Dir openDir(const char* path);
-    virtual Dir openDir(const String& path);
-
-    virtual bool exists(const char* path);
-    virtual bool exists(const String& path);
-
-    virtual bool mkdir(const char* path);
-    virtual bool mkdir(const String& path);
-
-    virtual bool rmdir(const char* path);
-    virtual bool rmdir(const String& path);
-
-    virtual bool chdir(const char* path);
-    virtual bool chdir(const String& path);
-
-    virtual bool remove(const char* path);
-    virtual bool remove(const String& path);
-
-    virtual bool rename(const char* pathFrom, const char* pathTo);
-    virtual bool rename(const String& pathFrom, const String& pathTo);
-
+    using FileSystem::open;
+    using FileSystem::openDir;
+    using FileSystem::exists;
+    using FileSystem::remove;
+    using FileSystem::mkdir;
+    using FileSystem::rmdir;
 };
 
-extern DOSFSVolume DOSFS;
+extern DOSFSFileSystem DOSFS;
 
 #endif // DOSFS_H

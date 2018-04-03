@@ -123,7 +123,7 @@ static int dosfs_path_convert_filename(dosfs_volume_t *volume, const char *filen
 static int dosfs_path_find_entry(dosfs_volume_t *volume, uint32_t clsno, uint32_t index, uint32_t count, dosfs_find_callback_t callback, void *private, uint32_t *p_clsno, uint32_t *p_index, dosfs_dir_t **p_dir);
 static int dosfs_path_find_directory(dosfs_volume_t *volume, const char *filename, const char **p_filename, uint32_t *p_clsno);
 static int dosfs_path_find_file(dosfs_volume_t *volume, const char *filename, uint32_t *p_clsno, uint32_t *p_index, dosfs_dir_t **p_dir);
-static int dosfs_path_find_pattern(dosfs_volume_t *volume, F_DIR *parent, char *pattern, F_DIRENT *dirent);
+static int dosfs_path_find_pattern(dosfs_volume_t *volume, F_DIR *parent, char *pattern, char *filename, dosfs_dir_t **p_dir);
 
 static void dosfs_path_setup_entry(dosfs_volume_t *volume, const char *dosname, uint8_t attr, uint32_t first_clsno, uint16_t ctime, uint16_t cdate, dosfs_dir_t *dir);
 static int dosfs_path_create_entry(dosfs_volume_t *volume, uint32_t clsno_d, uint32_t clsno, uint32_t index, const char *dosname, uint8_t attr, uint32_t first_clsno, uint16_t ctime, uint16_t cdate);
@@ -142,7 +142,7 @@ static int dosfs_file_extend(dosfs_volume_t *volume, dosfs_file_t *file, uint32_
 #if (DOSFS_CONFIG_CONTIGUOUS_SUPPORTED == 1)
 static int dosfs_file_reserve(dosfs_volume_t *volume, dosfs_file_t *file, uint32_t size);
 #endif /* (DOSFS_CONFIG_CONTIGUOUS_SUPPORTED == 1) */
-static int dosfs_file_open(dosfs_volume_t *volume, const char *filename, uint32_t mode, uint32_t size, dosfs_file_t **p_file);
+static int dosfs_file_open(dosfs_volume_t *volume, dosfs_file_t *file, const char *filename, uint32_t mode, uint32_t size);
 static int dosfs_file_close(dosfs_volume_t *volume, dosfs_file_t *file);
 static int dosfs_file_read(dosfs_volume_t *volume, dosfs_file_t *file, uint8_t *data, uint32_t count, uint32_t *p_count);
 static int dosfs_file_write(dosfs_volume_t *volume, dosfs_file_t *file, const uint8_t *data, uint32_t count, uint32_t *p_count);
@@ -153,7 +153,7 @@ dosfs_volume_t dosfs_volume;
 __attribute__((section(".noinit"))) static uint32_t dosfs_cache[(1 +
                                                                  DOSFS_CONFIG_FAT_CACHE_ENTRIES +
                                                                  ((DOSFS_CONFIG_TRANSACTION_SAFE_SUPPORTED == 1) ? 1 : 0) +
-                                                                 (((DOSFS_CONFIG_FILE_DATA_CACHE == 0) ? 1 : DOSFS_CONFIG_MAX_FILES) * DOSFS_CONFIG_DATA_CACHE_ENTRIES))
+                                                                 DOSFS_CONFIG_DATA_CACHE_ENTRIES)
                                                                 * (DOSFS_BLK_SIZE / sizeof(uint32_t))];
 
 static const char dosfs_dirname_dot[11]    = ".          ";
@@ -184,11 +184,6 @@ static int dosfs_volume_init(dosfs_volume_t *volume, dosfs_device_t *device)
 {
     int status = F_NO_ERROR;
     uint8_t *cache;
-#if (DOSFS_CONFIG_FILE_DATA_CACHE == 1)
-#if (DOSFS_CONFIG_MAX_FILES != 1)
-    dosfs_file_t *file_s, *file_e;
-#endif /* (DOSFS_CONFIG_MAX_FILES != 1) */
-#endif /* (DOSFS_CONFIG_FILE_DATA_CACHE == 1) */
 
 #if (DOSFS_CONFIG_TRANSACTION_SAFE_SUPPORTED == 1)
     /* In order not to mess up dosfs_volume_t too much, the dosfs_boot_t.bpblog struct is aliased to
@@ -253,22 +248,6 @@ static int dosfs_volume_init(dosfs_volume_t *volume, dosfs_device_t *device)
 #if (DOSFS_CONFIG_FILE_DATA_CACHE == 0)
     volume->data_cache.data = cache;
     cache += DOSFS_BLK_SIZE;
-#else /* (DOSFS_CONFIG_FILE_DATA_CACHE == 0) */
-#if (DOSFS_CONFIG_MAX_FILES == 1)
-    volume->file_table[0].data_cache.data = cache;
-#else /* (DOSFS_CONFIG_MAX_FILES == 1) */
-    file_s = &volume->file_table[0];
-    file_e = &volume->file_table[DOSFS_CONFIG_MAX_FILES];
-
-    do
-    {
-        file_s->data_cache.data = cache;
-        cache += DOSFS_BLK_SIZE;
-        
-        file_s++;
-    }
-    while (file_s < file_e);
-#endif /* (DOSFS_CONFIG_MAX_FILES == 1) */
 #endif /* (DOSFS_CONFIG_FILE_DATA_CACHE == 0) */
 #endif /* (DOSFS_CONFIG_DATA_CACHE_ENTRIES != 0) */
 
@@ -299,9 +278,6 @@ static int dosfs_volume_mount(dosfs_volume_t * volume)
     uint32_t next_clsno;
 #endif /* (DOSFS_CONFIG_FSINFO_SUPPORTED == 1) */
     dosfs_boot_t *boot;
-#if (DOSFS_CONFIG_MAX_FILES != 1)
-    dosfs_file_t *file_s, *file_e;
-#endif /* (DOSFS_CONFIG_MAX_FILES != 1) */
 #if (DOSFS_CONFIG_CLUSTER_CACHE_ENTRIES != 0)
     unsigned int index;
 #endif /* (DOSFS_CONFIG_CLUSTER_CACHE_ENTRIES != 0) */
@@ -691,20 +667,8 @@ static int dosfs_volume_mount(dosfs_volume_t * volume)
 #endif /* (DOSFS_CONFIG_CLUSTER_CACHE_ENTRIES != 0) */
                             
                                     volume->cwd_clsno = DOSFS_CLSNO_NONE;
-                            
-#if (DOSFS_CONFIG_MAX_FILES == 1)
-                                    volume->file_table[0].mode = 0;
-#else /* (DOSFS_CONFIG_MAX_FILES == 1) */
-                                    file_s = &volume->file_table[0];
-                                    file_e = &volume->file_table[DOSFS_CONFIG_MAX_FILES];
-                            
-                                    do
-                                    {
-                                        file_s->mode = 0;
-                                        file_s++;
-                                    }
-                                    while (file_s < file_e);
-#endif /* (DOSFS_CONFIG_MAX_FILES == 1) */
+
+				    volume->files = NULL;
 
 #if (DOSFS_CONFIG_TRANSACTION_SAFE_SUPPORTED == 1)
                                     if (!write_protected)
@@ -862,35 +826,13 @@ static int dosfs_volume_mount(dosfs_volume_t * volume)
 static int dosfs_volume_unmount(dosfs_volume_t * volume)
 {
     int status = F_NO_ERROR;
-    dosfs_file_t *file;
-#if (DOSFS_CONFIG_MAX_FILES > 1)
-    dosfs_file_t *file_e;
-#endif /* (DOSFS_CONFIG_MAX_FILES > 1) */
 
     if (volume->state >= DOSFS_VOLUME_STATE_MOUNTED)
     {
-#if (DOSFS_CONFIG_MAX_FILES == 1)
-        file = &volume->file_table[0];
-
-        if (file->mode)
-        {
-            status = dosfs_file_close(volume, file);
+	while ((status == F_NO_ERROR) && volume->files)
+	{
+	    status = dosfs_file_close(volume, volume->files);
         }
-#else /* (DOSFS_CONFIG_MAX_FILES == 1) */
-        file = &volume->file_table[0];
-        file_e = &volume->file_table[DOSFS_CONFIG_MAX_FILES];
-            
-        do
-        {
-            if (file->mode)
-            {
-                status = dosfs_file_close(volume, file);
-            }
-                
-            file++;
-        }
-        while ((status == F_NO_ERROR) && (file < file_e));
-#endif /* (DOSFS_CONFIG_MAX_FILES == 1) */
 
         if (status == F_NO_ERROR)
         {
@@ -5671,88 +5613,88 @@ static int dosfs_path_find_callback_pattern(dosfs_volume_t *volume, void *privat
     {
         if (!(dir->dir_attr & DOSFS_DIR_ATTR_VOLUME_ID))
         {
+	    if (sequence != DOSFS_LDIR_SEQUENCE_LAST)
+	    {
+		/* A SFN is converted into a LFN before pattern matching.
+		 * Otherwise, the matching would be inconsistent.
+		 */
+
+		i = 0;
+
+		for (n_e = 7; n_e != 0; n_e--)
+		{
+		    if (dir->dir_name[n_e] != ' ')
+		    {
+			break;
+		    }
+		}
+                
+		for (n = 0; n <= n_e; n++)
+		{
+		    /* Matching is always done case insensitive. However when the name is converted
+		     * back into a cstring, it needs to be case sensitive.
+		     */
+		    if ((dir->dir_nt_reserved & DOSFS_DIR_TYPE_LCASE_NAME) && (dir->dir_name[n] >= 'A') && (dir->dir_name[n] <= 'Z'))
+		    {
+			volume->lfn_name[i++] = (dir->dir_name[n] + ('a' - 'A'));
+		    }
+		    else
+		    {
+			volume->lfn_name[i++] = dir->dir_name[n];
+		    }
+		}
+
+		offset = i;
+
+		for (n_e = 10; n_e != 7; n_e--)
+		{
+		    if (dir->dir_name[n_e] != ' ')
+		    {
+			break;
+		    }
+		}
+                
+		if (n_e != 7)
+		{
+		    volume->lfn_name[i++] = '.';
+
+		    for (n = 8; n <= n_e; n++)
+		    {
+			/* Matching is always done case insensitive. However when the name is converted
+			 * back into a cstring, it needs to be case sensitive.
+			 */
+			if ((dir->dir_nt_reserved & DOSFS_DIR_TYPE_LCASE_EXT) && (dir->dir_name[n] >= 'A') && (dir->dir_name[n] <= 'Z'))
+			{
+			    volume->lfn_name[i++] = (dir->dir_name[n] + ('a' - 'A'));
+			}
+			else
+			{
+			    volume->lfn_name[i++] = dir->dir_name[n];
+			}
+		    }
+		}
+
+		volume->dir_entries = 0;
+		volume->lfn_count = i;
+	    }
+	    else
+	    {
+		/* Compute the offset of the last '.' in the LFN.
+		 */
+
+		for (offset = volume->lfn_count, i = 0; i < volume->lfn_count; i++)
+		{
+		    if (volume->lfn_name[i] == '.')
+		    {
+			offset = i;
+		    }
+		}
+	    }
+
             match = true;
 
             if (pattern != NULL)
             {
-                if (sequence != DOSFS_LDIR_SEQUENCE_LAST)
-                {
-                    /* A SFN is converted into a LFN before pattern matching.
-                     * Otherwise, the matching would be inconsistent.
-                     */
-
-                    i = 0;
-
-                    for (n_e = 7; n_e != 0; n_e--)
-                    {
-                        if (dir->dir_name[n_e] != ' ')
-                        {
-                            break;
-                        }
-                    }
-                
-                    for (n = 0; n <= n_e; n++)
-                    {
-                        /* Matching is always done case insensitive. However when the name is converted
-                         * back into a cstring, it needs to be case sensitive.
-                         */
-                        if ((dir->dir_nt_reserved & DOSFS_DIR_TYPE_LCASE_NAME) && (dir->dir_name[n] >= 'A') && (dir->dir_name[n] <= 'Z'))
-                        {
-                            volume->lfn_name[i++] = (dir->dir_name[n] + ('a' - 'A'));
-                        }
-                        else
-                        {
-                            volume->lfn_name[i++] = dir->dir_name[n];
-                        }
-                    }
-
-                    offset = i;
-
-                    for (n_e = 10; n_e != 7; n_e--)
-                    {
-                        if (dir->dir_name[n_e] != ' ')
-                        {
-                            break;
-                        }
-                    }
-                
-                    if (n_e != 7)
-                    {
-                        volume->lfn_name[i++] = '.';
-
-                        for (n = 8; n <= n_e; n++)
-                        {
-                            /* Matching is always done case insensitive. However when the name is converted
-                             * back into a cstring, it needs to be case sensitive.
-                             */
-                            if ((dir->dir_nt_reserved & DOSFS_DIR_TYPE_LCASE_EXT) && (dir->dir_name[n] >= 'A') && (dir->dir_name[n] <= 'Z'))
-                            {
-                                volume->lfn_name[i++] = (dir->dir_name[n] + ('a' - 'A'));
-                            }
-                            else
-                            {
-                                volume->lfn_name[i++] = dir->dir_name[n];
-                            }
-                        }
-                    }
-
-                    volume->dir_entries = 0;
-                    volume->lfn_count = i;
-                }
-                else
-                {
-                    /* Compute the offset of the last '.' in the LFN.
-                     */
-
-                    for (offset = volume->lfn_count, i = 0; i < volume->lfn_count; i++)
-                    {
-                        if (volume->lfn_name[i] == '.')
-                        {
-                            offset = i;
-                        }
-                    }
-                }
-
                 /* The matcher below uses WINNT semantics:
                  *
                  * '.' (DOS_DOT)          matches either a '.' or zero characters beyond the name string
@@ -6352,10 +6294,9 @@ static int dosfs_path_find_file(dosfs_volume_t *volume, const char *filename, ui
     return status;
 }
 
-static int dosfs_path_find_pattern(dosfs_volume_t *volume, F_DIR *parent, char *pattern, F_DIRENT *dirent)
+static int dosfs_path_find_pattern(dosfs_volume_t *volume, F_DIR *parent, char *pattern, char *filename, dosfs_dir_t **p_dir)
 {
     int status = F_NO_ERROR;
-    char *filename;
     uint32_t clsno, index;
     dosfs_dir_t *dir;
 
@@ -6370,38 +6311,24 @@ static int dosfs_path_find_pattern(dosfs_volume_t *volume, F_DIR *parent, char *
              */
             if (volume->lfn_count)
             {
-                filename = dosfs_name_uniname_to_cstring(volume->lfn_name, volume->lfn_count, dirent->filename, (dirent->filename + sizeof(dirent->filename)));
+                filename = dosfs_name_uniname_to_cstring(volume->lfn_name, volume->lfn_count, filename, filename + F_MAXPATH);
             }
             else
 #endif /* (DOSFS_CONFIG_VFAT_SUPPORTED == 1) */
             {
-                filename = dosfs_name_dosname_to_cstring(dir->dir_name, dir->dir_nt_reserved, dirent->filename, (dirent->filename + sizeof(dirent->filename)));
+                filename = dosfs_name_dosname_to_cstring(dir->dir_name, dir->dir_nt_reserved, filename, filename + F_MAXPATH);
             }
 
             if (filename != NULL)
             {
-                memcpy(&dirent->name[0], &dir->dir_name[0], (F_MAXNAME+F_MAXEXT));
-                
-                dirent->attr = dir->dir_attr;
-                dirent->ctime = DOSFS_FTOHS(dir->dir_wrt_time);
-                dirent->cdate = DOSFS_FTOHS(dir->dir_wrt_date);
-                dirent->filesize = DOSFS_FTOHL(dir->dir_file_size);
-
-                if (volume->type == DOSFS_VOLUME_TYPE_FAT32)
-                {
-                    dirent->cluster = ((uint32_t)DOSFS_FTOHS(dir->dir_clsno_hi) << 16) | (uint32_t)DOSFS_FTOHS(dir->dir_clsno_lo);
-                }
-                else
-                {
-                    dirent->cluster = (uint32_t)DOSFS_FTOHS(dir->dir_clsno_lo);
-                }
-
                 parent->dir_clsno = clsno;
 #if (DOSFS_CONFIG_VFAT_SUPPORTED == 1)
                 parent->dir_index = index + volume->dir_entries +1;
 #else /* (DOSFS_CONFIG_VFAT_SUPPORTED == 1) */
                 parent->dir_dir.index = index +1;
 #endif /* (DOSFS_CONFIG_VFAT_SUPPORTED == 1) */
+
+		*p_dir = dir;
             }
             else
             {
@@ -6937,41 +6864,22 @@ static int dosfs_path_destroy_entry(dosfs_volume_t *volume, uint32_t clsno, uint
 
 static dosfs_file_t * dosfs_file_enumerate(dosfs_volume_t *volume, dosfs_file_t *file, uint32_t clsno, uint32_t index)
 {
-#if (DOSFS_CONFIG_MAX_FILES == 1)
-
-    dosfs_file_t *file_s;
-
-    if (file == NULL)
+    if (file)
     {
-        file_s = &volume->file_table[0];
-
-        if (file_s->mode && (file_s->dir_clsno == clsno) && (file_s->dir_index == index))
-        {
-            file = file_s;
-        }
+	file = file->next;
+    }
+    else
+    {
+	file = volume->files;
     }
 
-#else /* (DOSFS_CONFIG_MAX_FILES == 1) */
-
-    dosfs_file_t *file_s, *file_e;
-
-    file_s = (file == NULL) ? &volume->file_table[0] : NULL;
-    file_e = &volume->file_table[DOSFS_CONFIG_MAX_FILES];
-
-    file = NULL;
-
-    do
+    for (; file; file = file->next)
     {
-        if (file_s->mode && (file_s->dir_clsno == clsno) && (file_s->dir_index == index))
+        if ((file->dir_clsno == clsno) && (file->dir_index == index))
         {
-            file = file_s;
-            break;
-        }
-
-        file_s++;
+	    break;
+	}
     }
-    while (file_s < file_e);
-#endif /* (DOSFS_CONFIG_MAX_FILES == 1) */
 
     return file;
 }
@@ -7805,7 +7713,7 @@ static int dosfs_file_reserve(dosfs_volume_t *volume, dosfs_file_t *file, uint32
 
 #endif /* (DOSFS_CONFIG_CONTIGUOUS_SUPPORTED == 1) */
 
-static int dosfs_file_open(dosfs_volume_t *volume, const char *filename, uint32_t mode, uint32_t size, dosfs_file_t **p_file)
+static int dosfs_file_open(dosfs_volume_t *volume, dosfs_file_t *file, const char *filename, uint32_t mode, uint32_t size)
 {
     int status = F_NO_ERROR;
     uint32_t clsno, clsno_d, index, count;
@@ -7813,299 +7721,261 @@ static int dosfs_file_open(dosfs_volume_t *volume, const char *filename, uint32_
 #if (DOSFS_CONFIG_CONTIGUOUS_SUPPORTED == 1)
     uint32_t clscnt, clsdata;
 #endif /* (DOSFS_CONFIG_CONTIGUOUS_SUPPORTED == 1) */
-#if (DOSFS_CONFIG_MAX_FILES == 1)
-    dosfs_file_t *file;
-#else /* (DOSFS_CONFIG_MAX_FILES == 1) */
-    dosfs_file_t *file, *file_s, *file_e, *file_o;
-#endif /* (DOSFS_CONFIG_MAX_FILES == 1) */
+    dosfs_file_t *file_o;
     dosfs_dir_t *dir;
 
-    file = NULL;
+    file->mode = 0;
+    file->flags = 0;
 
-#if (DOSFS_CONFIG_MAX_FILES == 1)
-
-    if (!volume->file_table[0].mode)
+    if ((mode & DOSFS_FILE_MODE_WRITE) && (volume->flags & DOSFS_VOLUME_FLAG_WRITE_PROTECTED))
     {
-        file = &volume->file_table[0];
-    }
-#else /* (DOSFS_CONFIG_MAX_FILES == 1) */
-
-    file_s = &volume->file_table[0];
-    file_e = &volume->file_table[DOSFS_CONFIG_MAX_FILES];
-
-    do
-    {
-        if (!file_s->mode)
-        {
-            file = file_s;
-            break;
-        }
-
-        file_s++;
-    }
-    while (file_s < file_e);
-
-#endif /* (DOSFS_CONFIG_MAX_FILES == 1) */
-
-    if (file)
-    {
-        file->flags = 0;
-
-        if ((mode & DOSFS_FILE_MODE_WRITE) && (volume->flags & DOSFS_VOLUME_FLAG_WRITE_PROTECTED))
-        {
-            status = F_ERR_WRITEPROTECT;
-        }
-        else
-        {
-            status = dosfs_path_find_directory(volume, filename, &filename, &clsno_d);
-        
-            if (status == F_NO_ERROR)
-            {
-                status = dosfs_path_convert_filename(volume, filename, NULL);
-            
-                if (status == F_NO_ERROR)
-                {
-                    if (mode & DOSFS_FILE_MODE_CREATE)
-                    {
-#if (DOSFS_CONFIG_VFAT_SUPPORTED == 1)
-                        if ((volume->dir.dir_name[0] == '\0') || (volume->dir.dir_nt_reserved & DOSFS_DIR_TYPE_LOSSY))
-                        {
-                            count = 1 + volume->dir_entries;
-                        }
-                        else
-#endif /* (DOSFS_CONFIG_VFAT_SUPPORTED == 1) */
-                        {
-                            count = 1;
-                        }
-                    }
-                    else
-                    {
-                        count = 0;
-                    }
-
-                    status = dosfs_path_find_entry(volume, clsno_d, 0, count, dosfs_path_find_callback_name, NULL, &clsno, &index, &dir);
-
-                    if (status == F_NO_ERROR)
-                    {
-                        if (dir != NULL)
-                        {
-                            if (dir->dir_attr & DOSFS_DIR_ATTR_DIRECTORY)
-                            {
-                                status = F_ERR_INVALIDDIR;
-                            }
-                            else
-                            {
-                                if ((mode & DOSFS_FILE_MODE_WRITE) && (dir->dir_attr & DOSFS_DIR_ATTR_READ_ONLY))
-                                {
-                                    status = F_ERR_ACCESSDENIED;
-                                }
-#if (DOSFS_CONFIG_VFAT_SUPPORTED == 1)
-                                else
-                                {
-                                    /* Advance to primary dir entry. */
-                                    index += volume->dir_entries;
-                                }
-#endif /* (DOSFS_CONFIG_VFAT_SUPPORTED == 1) */
-
-                                file->dir_clsno = clsno;
-                                file->dir_index = index;
-                                file->length = DOSFS_FTOHL(dir->dir_file_size);
-                            
-                                if (volume->type == DOSFS_VOLUME_TYPE_FAT32)
-                                {
-                                    file->first_clsno = ((uint32_t)DOSFS_FTOHS(dir->dir_clsno_hi) << 16) | (uint32_t)DOSFS_FTOHS(dir->dir_clsno_lo);
-                                }
-                                else
-                                {
-                                    file->first_clsno = (uint32_t)DOSFS_FTOHS(dir->dir_clsno_lo);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            if (mode & DOSFS_FILE_MODE_CREATE)
-                            {
-#if defined(DOSFS_PORT_CORE_TIMEDATE)
-                                DOSFS_PORT_CORE_TIMEDATE(&ctime, &cdate);
-#else /* DOSFS_PORT_CORE_TIMEDATE */
-                                ctime = 0;
-                                cdate = 0;
-#endif /* DOSFS_PORT_CORE_TIMEDATE */
-                            
-                                status = dosfs_path_create_entry(volume, clsno_d, clsno, index, NULL, 0, DOSFS_CLSNO_NONE, ctime, cdate);
-                            
-                                if (status == F_NO_ERROR)
-                                {
-#if (DOSFS_CONFIG_VFAT_SUPPORTED == 1)
-                                    /* Stip out allocations bits, and advance to primary dir entry. */
-                                    index = (index & 0x0000ffff) + (count -1);
-#else /* (DOSFS_CONFIG_VFAT_SUPPORTED == 1) */
-                                    index = (index & 0x0000ffff);
-#endif /* (DOSFS_CONFIG_VFAT_SUPPORTED == 1) */
-
-                                    file->dir_clsno = clsno;
-                                    file->dir_index = index;
-                                    file->length = 0;
-                                    file->first_clsno = DOSFS_CLSNO_NONE;
-                                }
-                            }
-                            else
-                            {
-                                status = F_ERR_NOTFOUND;
-                            }
-                        }
-
-                        if (status == F_NO_ERROR)
-                        {
-
-#if (DOSFS_CONFIG_MAX_FILES != 1)
-                            file_o = NULL;
-
-                            do
-                            {
-                                file_o = dosfs_file_enumerate(volume, file_o, clsno, index);
-
-                                if (file_o != NULL)
-                                {
-                                    if (mode & DOSFS_FILE_MODE_WRITE)
-                                    {
-                                        status = F_ERR_LOCKED;
-                                    }
-                                    else
-                                    {
-                                        if (file_o->mode & DOSFS_FILE_MODE_WRITE)
-                                        {
-                                            status = F_ERR_LOCKED;
-                                        }
-                                    }
-                                }
-                            }
-                            while ((status == F_NO_ERROR) && (file_o != NULL));
-#endif /* (DOSFS_CONFIG_MAX_FILES != 1) */
-
-                            if (status == F_NO_ERROR)
-                            {
-                                file->status = F_NO_ERROR;
-                                file->position = 0;
-                                file->last_clsno = DOSFS_CLSNO_NONE;
-
-                                if (file->first_clsno == DOSFS_CLSNO_NONE)
-                                {
-                                    file->flags |= DOSFS_FILE_FLAG_END_OF_CHAIN;
-                                    file->clsno = DOSFS_CLSNO_NONE;
-                                    file->blkno = DOSFS_BLKNO_INVALID;
-                                    file->blkno_e = DOSFS_BLKNO_INVALID;
-                                }
-                                else
-                                {
-                                    file->clsno = file->first_clsno;
-                                    file->blkno = DOSFS_CLSNO_TO_BLKNO(file->clsno);
-                                    file->blkno_e = file->blkno + volume->cls_blk_size;
-                                }
-
-                                if (mode & DOSFS_FILE_MODE_TRUNCATE)
-                                {
-                                    file->length = 0;
-
-                                    status = dosfs_file_shrink(volume, file);
-                                }
-
-#if (DOSFS_CONFIG_CONTIGUOUS_SUPPORTED == 1)
-                                if (size)
-                                {
-                                    if (file->first_clsno == DOSFS_CLSNO_NONE)
-                                    {
-                                        status = dosfs_file_reserve(volume, file, size);
-                                    }
-                                    else
-                                    {
-                                        clsno = file->first_clsno;
-                                        clscnt = 0;
-
-                                        do
-                                        {
-                                            status = dosfs_cluster_read(volume, clsno, &clsdata);
-                                            
-                                            if (status == F_NO_ERROR)
-                                            {
-                                                if ((clsdata >= 2) && (clsdata <= volume->last_clsno))
-                                                {
-                                                    if ((clsno +1) == clsdata)
-                                                    {
-                                                        clsno++;
-                                                        clscnt++;
-                                                    }
-                                                    else
-                                                    {
-                                                        status = F_ERR_EOF;
-                                                    }
-
-                                                }
-                                                else
-                                                {
-                                                    if (clsdata < DOSFS_CLSNO_LAST)
-                                                    {
-                                                        status = F_ERR_EOF;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        while ((status == F_NO_ERROR) && (clsdata < DOSFS_CLSNO_LAST));
-
-                                        if (status == F_NO_ERROR)
-                                        {
-                                            if (clscnt == DOSFS_SIZE_TO_CLSCNT(size))
-                                            {
-                                                file->flags |= (DOSFS_FILE_FLAG_CONTIGUOUS | DOSFS_FILE_FLAG_END_OF_CHAIN);
-                                                file->last_clsno = file->first_clsno + clscnt -1;
-
-                                                if (size >= (DOSFS_FILE_SIZE_MAX & ~volume->cls_mask))
-                                                {
-                                                    file->size = DOSFS_FILE_SIZE_MAX;
-                                                }
-                                                else
-                                                {
-                                                    file->size = (size + volume->cls_mask) & ~volume->cls_mask;
-                                                }
-                                            }
-                                            else
-                                            {
-                                                status = F_ERR_EOF;
-                                            }
-                                        }
-                                    }
-                                }
-#endif /* (DOSFS_CONFIG_CONTIGUOUS_SUPPORTED == 1) */
-                            
-                                if (status == F_NO_ERROR)
-                                {
-                                    if (mode & DOSFS_FILE_MODE_APPEND)
-                                    {
-                                        status = dosfs_file_seek(volume, file, file->length);
-                                    }
-                                
-                                    if (status == F_NO_ERROR)
-                                    {
-#if (DOSFS_CONFIG_FILE_DATA_CACHE == 1)
-                                        file->data_cache.blkno = DOSFS_BLKNO_INVALID;
-#endif /* (DOSFS_CONFIG_FILE_DATA_CACHE == 1) */
-
-                                        file->mode = mode;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+	status = F_ERR_WRITEPROTECT;
     }
     else
     {
-        status = F_ERR_NOMOREENTRY;
-    }
+	status = dosfs_path_find_directory(volume, filename, &filename, &clsno_d);
+        
+	if (status == F_NO_ERROR)
+	{
+	    status = dosfs_path_convert_filename(volume, filename, NULL);
+            
+	    if (status == F_NO_ERROR)
+	    {
+		if (mode & DOSFS_FILE_MODE_CREATE)
+		{
+#if (DOSFS_CONFIG_VFAT_SUPPORTED == 1)
+		    if ((volume->dir.dir_name[0] == '\0') || (volume->dir.dir_nt_reserved & DOSFS_DIR_TYPE_LOSSY))
+		    {
+			count = 1 + volume->dir_entries;
+		    }
+		    else
+#endif /* (DOSFS_CONFIG_VFAT_SUPPORTED == 1) */
+		    {
+			count = 1;
+		    }
+		}
+		else
+		{
+		    count = 0;
+		}
+		
+		status = dosfs_path_find_entry(volume, clsno_d, 0, count, dosfs_path_find_callback_name, NULL, &clsno, &index, &dir);
+		
+		if (status == F_NO_ERROR)
+		{
+		    if (dir != NULL)
+		    {
+			if (dir->dir_attr & DOSFS_DIR_ATTR_DIRECTORY)
+			{
+			    status = F_ERR_INVALIDDIR;
+			}
+			else
+			{
+			    if ((mode & DOSFS_FILE_MODE_WRITE) && (dir->dir_attr & DOSFS_DIR_ATTR_READ_ONLY))
+			    {
+				status = F_ERR_ACCESSDENIED;
+			    }
+#if (DOSFS_CONFIG_VFAT_SUPPORTED == 1)
+			    else
+			    {
+				/* Advance to primary dir entry. */
+				index += volume->dir_entries;
+			    }
+#endif /* (DOSFS_CONFIG_VFAT_SUPPORTED == 1) */
+			    
+			    file->dir_clsno = clsno;
+			    file->dir_index = index;
+			    file->length = DOSFS_FTOHL(dir->dir_file_size);
+                            
+			    if (volume->type == DOSFS_VOLUME_TYPE_FAT32)
+			    {
+				file->first_clsno = ((uint32_t)DOSFS_FTOHS(dir->dir_clsno_hi) << 16) | (uint32_t)DOSFS_FTOHS(dir->dir_clsno_lo);
+			    }
+			    else
+			    {
+				file->first_clsno = (uint32_t)DOSFS_FTOHS(dir->dir_clsno_lo);
+			    }
+			}
+		    }
+		    else
+		    {
+			if (mode & DOSFS_FILE_MODE_CREATE)
+			{
+#if defined(DOSFS_PORT_CORE_TIMEDATE)
+			    DOSFS_PORT_CORE_TIMEDATE(&ctime, &cdate);
+#else /* DOSFS_PORT_CORE_TIMEDATE */
+			    ctime = 0;
+			    cdate = 0;
+#endif /* DOSFS_PORT_CORE_TIMEDATE */
+                            
+			    status = dosfs_path_create_entry(volume, clsno_d, clsno, index, NULL, 0, DOSFS_CLSNO_NONE, ctime, cdate);
+                            
+			    if (status == F_NO_ERROR)
+			    {
+#if (DOSFS_CONFIG_VFAT_SUPPORTED == 1)
+				/* Stip out allocations bits, and advance to primary dir entry. */
+				index = (index & 0x0000ffff) + (count -1);
+#else /* (DOSFS_CONFIG_VFAT_SUPPORTED == 1) */
+				index = (index & 0x0000ffff);
+#endif /* (DOSFS_CONFIG_VFAT_SUPPORTED == 1) */
+				
+				file->dir_clsno = clsno;
+				file->dir_index = index;
+				file->length = 0;
+				file->first_clsno = DOSFS_CLSNO_NONE;
+			    }
+			}
+			else
+			{
+			    status = F_ERR_NOTFOUND;
+			}
+		    }
+		    
+		    if (status == F_NO_ERROR)
+		    {
+			file_o = NULL;
+			
+			do
+			{
+			    file_o = dosfs_file_enumerate(volume, file_o, clsno, index);
+			    
+			    if (file_o != NULL)
+			    {
+				if (mode & DOSFS_FILE_MODE_WRITE)
+				{
+				    status = F_ERR_LOCKED;
+				}
+				else
+				{
+				    if (file_o->mode & DOSFS_FILE_MODE_WRITE)
+				    {
+					status = F_ERR_LOCKED;
+				    }
+				}
+			    }
+			}
+			while ((status == F_NO_ERROR) && (file_o != NULL));
+			
+			if (status == F_NO_ERROR)
+			{
+			    file->status = F_NO_ERROR;
+			    file->position = 0;
+			    file->last_clsno = DOSFS_CLSNO_NONE;
+			    
+			    if (file->first_clsno == DOSFS_CLSNO_NONE)
+			    {
+				file->flags |= DOSFS_FILE_FLAG_END_OF_CHAIN;
+				file->clsno = DOSFS_CLSNO_NONE;
+				file->blkno = DOSFS_BLKNO_INVALID;
+				file->blkno_e = DOSFS_BLKNO_INVALID;
+			    }
+			    else
+			    {
+				file->clsno = file->first_clsno;
+				file->blkno = DOSFS_CLSNO_TO_BLKNO(file->clsno);
+				file->blkno_e = file->blkno + volume->cls_blk_size;
+			    }
+			    
+			    if (mode & DOSFS_FILE_MODE_TRUNCATE)
+			    {
+				file->length = 0;
+				
+				status = dosfs_file_shrink(volume, file);
+			    }
+			    
+#if (DOSFS_CONFIG_CONTIGUOUS_SUPPORTED == 1)
+			    if (size)
+			    {
+				if (file->first_clsno == DOSFS_CLSNO_NONE)
+				{
+				    status = dosfs_file_reserve(volume, file, size);
+				}
+				else
+				{
+				    clsno = file->first_clsno;
+				    clscnt = 0;
+				    
+				    do
+				    {
+					status = dosfs_cluster_read(volume, clsno, &clsdata);
+                                        
+					if (status == F_NO_ERROR)
+					{
+					    if ((clsdata >= 2) && (clsdata <= volume->last_clsno))
+					    {
+						if ((clsno +1) == clsdata)
+						{
+						    clsno++;
+						    clscnt++;
+						}
+						else
+						{
+						    status = F_ERR_EOF;
+						}
+						
+					    }
+					    else
+					    {
+						if (clsdata < DOSFS_CLSNO_LAST)
+						{
+						    status = F_ERR_EOF;
+						}
+					    }
+					}
+				    }
+				    while ((status == F_NO_ERROR) && (clsdata < DOSFS_CLSNO_LAST));
+				    
+				    if (status == F_NO_ERROR)
+				    {
+					if (clscnt == DOSFS_SIZE_TO_CLSCNT(size))
+					{
+					    file->flags |= (DOSFS_FILE_FLAG_CONTIGUOUS | DOSFS_FILE_FLAG_END_OF_CHAIN);
+					    file->last_clsno = file->first_clsno + clscnt -1;
 
-    *p_file = file;
+					    if (size >= (DOSFS_FILE_SIZE_MAX & ~volume->cls_mask))
+					    {
+						file->size = DOSFS_FILE_SIZE_MAX;
+					    }
+					    else
+					    {
+						file->size = (size + volume->cls_mask) & ~volume->cls_mask;
+					    }
+					}
+					else
+					{
+					    status = F_ERR_EOF;
+					}
+				    }
+				}
+			    }
+#endif /* (DOSFS_CONFIG_CONTIGUOUS_SUPPORTED == 1) */
+                            
+			    if (status == F_NO_ERROR)
+			    {
+				if (mode & DOSFS_FILE_MODE_APPEND)
+				{
+				    status = dosfs_file_seek(volume, file, file->length);
+				}
+                                
+				if (status == F_NO_ERROR)
+				{
+#if (DOSFS_CONFIG_FILE_DATA_CACHE == 1)
+				    file->data_cache.blkno = DOSFS_BLKNO_INVALID;
+#endif /* (DOSFS_CONFIG_FILE_DATA_CACHE == 1) */
+
+				    file->mode = mode;
+
+				    file->next = volume->files;
+
+				    volume->files = file;
+				}
+			    }
+			}
+		    }
+		}
+	    }
+	}
+    }
 
     return status;
 }
@@ -8113,15 +7983,26 @@ static int dosfs_file_open(dosfs_volume_t *volume, const char *filename, uint32_
 static int dosfs_file_close(dosfs_volume_t *volume, dosfs_file_t *file)
 {
     int status = F_NO_ERROR;
+    dosfs_file_t *file_s, **file_p;
+
 
     if (file->mode & DOSFS_FILE_MODE_WRITE)
     {
         status = dosfs_file_flush(volume, file, TRUE);
     }
 
+    for (file_p = &volume->files, file_s = *file_p; file_s; file_p = &file_s->next, file_s = *file_p) 
+    {
+	if (file == file_s)
+	{
+	    *file_p = file->next;
+	}
+    }
+
     file->mode = 0;
     file->dir_clsno = DOSFS_CLSNO_NONE;
     file->dir_index = 0;
+    file->next = NULL;
 
     return status;
 }
@@ -9610,9 +9491,9 @@ int f_getcwd(char *dirname, int length)
 int f_opendir(F_DIR *dir, const char *dirname)
 {
     int status = F_NO_ERROR;
-    uint32_t clsno, index;
-    dosfs_dir_t *dir_e;
+    uint32_t clsno_d;
     dosfs_volume_t *volume;
+    dosfs_dir_t *dir_e;
 
     dir->dot_clsno = DOSFS_CLSNO_END_OF_CHAIN;
     dir->dir_clsno = DOSFS_CLSNO_END_OF_CHAIN;
@@ -9624,28 +9505,38 @@ int f_opendir(F_DIR *dir, const char *dirname)
     
     if (status == F_NO_ERROR)
     {
-        status = dosfs_path_find_file(volume, dirname, &clsno, &index, &dir_e);
-            
+	if (((dirname[0] == '/') || (dirname[0] == '\\')) && (dirname[1] == '\0'))
+	{
+	    clsno_d = DOSFS_CLSNO_NONE;
+	}
+	else
+	{
+	    status = dosfs_path_find_file(volume, dirname, NULL, NULL, &dir_e);
+
+	    if (status == F_NO_ERROR)
+	    {
+		if (dir_e->dir_attr & DOSFS_DIR_ATTR_DIRECTORY)
+		{
+		    if (volume->type == DOSFS_VOLUME_TYPE_FAT32)
+		    {
+			clsno_d = ((uint32_t)DOSFS_FTOHS(dir_e->dir_clsno_hi) << 16) | (uint32_t)DOSFS_FTOHS(dir_e->dir_clsno_lo);
+		    }
+		    else
+		    {
+			clsno_d = (uint32_t)DOSFS_FTOHS(dir_e->dir_clsno_lo);
+		    }
+		}
+		else
+		{
+		    status = F_ERR_INVALIDDIR;
+		}
+	    }
+	}
+
         if (status == F_NO_ERROR)
         {
-            if (dir_e->dir_attr & DOSFS_DIR_ATTR_DIRECTORY)
-            {
-                if (volume->type == DOSFS_VOLUME_TYPE_FAT32)
-                {
-                    dir->dot_clsno = ((uint32_t)DOSFS_FTOHS(dir_e->dir_clsno_hi) << 16) | (uint32_t)DOSFS_FTOHS(dir_e->dir_clsno_lo);
-                }
-                else
-                { 
-                    dir->dot_clsno = (uint32_t)DOSFS_FTOHS(dir_e->dir_clsno_lo);
-                }
-
-                dir->dir_clsno = dir->dot_clsno;
-            }
-            else
-            {
-                status = F_ERR_NOTFOUND;
-            }
-        }
+	    dir->dir_clsno = dir->dot_clsno = clsno_d;
+	}
     }
 
     return status;
@@ -9655,6 +9546,7 @@ int f_readdir(F_DIR *dir, F_DIRENT *dirent)
 {
     int status = F_NO_ERROR;
     dosfs_volume_t *volume;
+    dosfs_dir_t *dir_e;
 
     volume = DOSFS_FIND_VOLUME(find);
 
@@ -9668,7 +9560,13 @@ int f_readdir(F_DIR *dir, F_DIRENT *dirent)
         }
         else
         {
-            status = dosfs_path_find_pattern(volume, dir, NULL, dirent);
+	    status = dosfs_path_find_pattern(volume, dir, NULL, dirent->filename, &dir_e);
+
+	    if (status == F_NO_ERROR)
+	    {
+                dirent->attr = dir_e->dir_attr;
+                dirent->filesize = DOSFS_FTOHL(dir_e->dir_file_size);
+	    }
         }
 
         status = dosfs_volume_unlock(volume, status);
@@ -10263,12 +10161,7 @@ int f_findfirst(const char *filename, F_FIND *find)
             }
             while ((status == F_NO_ERROR) && (c != '\0'));
 #endif /* (DOSFS_CONFIG_VFAT_SUPPORTED == 0) */
-
-            if (status == F_NO_ERROR)
-            {
-                status = dosfs_path_find_pattern(volume, &find->find_dir, find->find_pattern, (F_DIRENT*)find);
-            }
-        }
+	}
 
         if (status != F_NO_ERROR)
         {
@@ -10278,6 +10171,11 @@ int f_findfirst(const char *filename, F_FIND *find)
         status = dosfs_volume_unlock(volume, status);
     }
 
+    if (status == F_NO_ERROR)
+    {
+	status = f_findnext(find);
+    }
+
     return status;
 }
 
@@ -10285,6 +10183,7 @@ int f_findnext(F_FIND *find)
 {
     int status = F_NO_ERROR;
     dosfs_volume_t *volume;
+    dosfs_dir_t *dir_e;
 
     volume = DOSFS_FIND_VOLUME(find);
 
@@ -10298,7 +10197,26 @@ int f_findnext(F_FIND *find)
         }
         else
         {
-            status = dosfs_path_find_pattern(volume, &find->find_dir, find->find_pattern, (F_DIRENT*)find);
+            status = dosfs_path_find_pattern(volume, &find->find_dir, find->find_pattern, find->filename, &dir_e);
+
+	    if (status == F_NO_ERROR)
+	    {
+		memcpy(&find->name[0], &dir_e->dir_name[0], (F_MAXNAME+F_MAXEXT));
+                
+		find->attr = dir_e->dir_attr;
+		find->ctime = DOSFS_FTOHS(dir_e->dir_wrt_time);
+		find->cdate = DOSFS_FTOHS(dir_e->dir_wrt_date);
+		find->filesize = DOSFS_FTOHL(dir_e->dir_file_size);
+
+		if (volume->type == DOSFS_VOLUME_TYPE_FAT32)
+		{
+		    find->cluster = ((uint32_t)DOSFS_FTOHS(dir_e->dir_clsno_hi) << 16) | (uint32_t)DOSFS_FTOHS(dir_e->dir_clsno_lo);
+		}
+		else
+		{
+		    find->cluster = (uint32_t)DOSFS_FTOHS(dir_e->dir_clsno_lo);
+		}
+	    }
         }
 
         status = dosfs_volume_unlock(volume, status);
@@ -10436,11 +10354,10 @@ int f_getattr(const char *filename, unsigned char *p_attr)
 }
 
 
-F_FILE * f_open(const char *filename, const char *type)
+int f_open(F_FILE *file, const char *filename, const char *type)
 {
     int status = F_NO_ERROR;
     int c;
-    dosfs_file_t *file = NULL;
     uint32_t mode, size;
     dosfs_volume_t *volume;
 
@@ -10543,7 +10460,7 @@ F_FILE * f_open(const char *filename, const char *type)
     
         if (status == F_NO_ERROR)
         {
-            status = dosfs_file_open(volume, filename, mode, size, &file);
+	    status = dosfs_file_open(volume, file, filename, mode, size);
 
             status = dosfs_volume_unlock(volume, status);
         }
@@ -10553,7 +10470,7 @@ F_FILE * f_open(const char *filename, const char *type)
         status = F_ERR_NOTUSEABLE;
     }
 
-    return (status == F_NO_ERROR) ? file : NULL;
+    return status;
 }
 
 int f_close(F_FILE *file)
@@ -11099,14 +11016,13 @@ int f_seteof(F_FILE *file)
     return status;
 }
 
-F_FILE * f_truncate(const char *filename, long length)
+int f_truncate(F_FILE *file, const char *filename, long length)
 {
     int status = F_NO_ERROR;
-    dosfs_file_t *file;
 
-    file = f_open(filename, "r+");
+    status = f_open(file, filename, "r+");
 
-    if (file != NULL)
+    if (status == F_NO_ERROR)
     {
         status = f_seek(file, length, F_SEEK_SET);
 
@@ -11118,10 +11034,8 @@ F_FILE * f_truncate(const char *filename, long length)
         if (status != F_NO_ERROR)
         {
             f_close(file);
-
-            file = NULL;
         }
     }
 
-    return file;
+    return status;
 }

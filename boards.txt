@@ -137,12 +137,9 @@ Cricket-L082CZ.menu.usb.none.build.usb_type=USB_TYPE_NONE
 Cricket-L082CZ.menu.dosfs.none=None
 Cricket-L082CZ.menu.dosfs.none.build.dosfs_sdcard=0
 Cricket-L082CZ.menu.dosfs.none.build.dosfs_sflash=0
-Cricket-L082CZ.menu.dosfs.sfspi=SFLASH (SPI)
+Cricket-L082CZ.menu.dosfs.sfspi=SFLASH
 Cricket-L082CZ.menu.dosfs.sfspi.build.dosfs_sdcard=0
 Cricket-L082CZ.menu.dosfs.sfspi.build.dosfs_sflash=1
-Cricket-L082CZ.menu.dosfs.sdspi=SDCARD (SPI)
-Cricket-L082CZ.menu.dosfs.sdspi.build.dosfs_sdcard=1
-Cricket-L082CZ.menu.dosfs.sdspi.build.dosfs_sflash=0
 
 Cricket-L082CZ.menu.speed.32=32 MHz
 Cricket-L082CZ.menu.speed.32.build.f_cpu=32000000L
@@ -226,12 +223,9 @@ Cicada-L082CZ.menu.usb.none.build.usb_type=USB_TYPE_NONE
 Cicada-L082CZ.menu.dosfs.none=None
 Cicada-L082CZ.menu.dosfs.none.build.dosfs_sdcard=0
 Cicada-L082CZ.menu.dosfs.none.build.dosfs_sflash=0
-Cicada-L082CZ.menu.dosfs.sfspi=SFLASH (SPI)
+Cicada-L082CZ.menu.dosfs.sfspi=SFLASH
 Cicada-L082CZ.menu.dosfs.sfspi.build.dosfs_sdcard=0
 Cicada-L082CZ.menu.dosfs.sfspi.build.dosfs_sflash=1
-Cicada-L082CZ.menu.dosfs.sdspi=SDCARD (SPI)
-Cicada-L082CZ.menu.dosfs.sdspi.build.dosfs_sdcard=1
-Cicada-L082CZ.menu.dosfs.sdspi.build.dosfs_sflash=0
 
 Cicada-L082CZ.menu.speed.32=32 MHz
 Cicada-L082CZ.menu.speed.32.build.f_cpu=32000000L

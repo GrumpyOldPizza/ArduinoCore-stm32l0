@@ -340,30 +340,6 @@ struct _dosfs_cache_entry_t {
 #endif /* (DOSFS_CONFIG_CONTIGUOUS_SUPPORTED == 1) */
 #define DOSFS_FILE_FLAG_END_OF_CHAIN         0x80   /* END_OF_CHAIN seen */
 
-struct _dosfs_file_t {
-    uint8_t                 mode;
-    uint8_t                 flags;
-    uint8_t                 status;
-    uint8_t                 reserved[3];    /* unused for now */
-    uint16_t                dir_index;      /* index within directory where primary dir entry resides */
-    uint32_t                dir_clsno;      /* clsno where primary dir entry resides */ 
-    uint32_t                first_clsno;    /* dir_clsno_hi/dir_clsno_lo from dir entry */
-    uint32_t                last_clsno;     /* clsno corresponding to file->length */
-#if (DOSFS_CONFIG_CONTIGUOUS_SUPPORTED == 1)
-    uint32_t                size;           /* size of reserved area */
-#endif /* (DOSFS_CONFIG_CONTIGUOUS_SUPPORTED == 1) */
-    uint32_t                length;         /* dir_file_size from dir entry */
-    uint32_t                position;
-    uint32_t                clsno;
-    uint32_t                blkno;
-    uint32_t                blkno_e;        /* exclusive */
-#if (DOSFS_CONFIG_FILE_DATA_CACHE == 1)
-#if (DOSFS_CONFIG_DATA_CACHE_ENTRIES != 0)
-    dosfs_cache_entry_t      data_cache;
-#endif /* (DOSFS_CONFIG_DATA_CACHE_ENTRIES != 0) */
-#endif /* (DOSFS_CONFIG_FILE_DATA_CACHE == 1) */
-};
-
 #if (DOSFS_CONFIG_CLUSTER_CACHE_ENTRIES != 0)
 
 struct _dosfs_cluster_entry_t {
@@ -521,7 +497,7 @@ struct _dosfs_volume_t {
     /* WORK AREA ABOVE */
 
     uint8_t                 media;
-    dosfs_file_t            file_table[DOSFS_CONFIG_MAX_FILES];
+    dosfs_file_t            *files;
 
 #if (DOSFS_CONFIG_STATISTICS == 1)
     struct {
