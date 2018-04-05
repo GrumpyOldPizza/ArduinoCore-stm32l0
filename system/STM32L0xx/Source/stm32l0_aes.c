@@ -26,6 +26,8 @@
  * WITH THE SOFTWARE.
  */
 
+#if defined(STM32L082xx)
+
 #include "armv6m.h"
 #include "stm32l0xx.h"
 
@@ -504,3 +506,5 @@ void stm32l0_aes_cmac_final(uint8_t *out)
 
     stm32l0_aes_engine(&stm32l0_aes_device.IV[0], &stm32l0_aes_device.M[0], out, 16, AES_CR_CHMOD_0, true);
 }
+
+#endif /* STM32L082xx */

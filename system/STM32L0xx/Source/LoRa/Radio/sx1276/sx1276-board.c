@@ -73,10 +73,14 @@ static const stm32l0_spi_params_t RADIO_SPI_PARAMS = {
     },
 };
 
+static uint16_t RADIO_TCXO_VCC;
+
 static stm32l0_spi_t RADIO_SPI;
 
-void CMWX1ZZABZ_Initialize( void )
+void CMWX1ZZABZ_Initialize( uint16_t pin_tcxo, uint16_t pin_stsafe )
 {
+    RADIO_TCXO_VCC = pin_tcxo;
+
     stm32l0_gpio_pin_configure(RADIO_NSS, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_VERY_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
     stm32l0_gpio_pin_write(RADIO_NSS, 1);
 
@@ -230,10 +234,15 @@ void SX1276SetAntSw( uint8_t opMode )
 
 void SX1276SetTCXO( bool status )
 {
+    if (RADIO_TCXO_VCC == STM32L0_GPIO_PIN_NONE)
+    {
+	return;
+    }
+
     if (IsTCXO != status)
     {
 	IsTCXO = status;
-	
+
 	if (status)
 	{
 	    stm32l0_lptim_stop();

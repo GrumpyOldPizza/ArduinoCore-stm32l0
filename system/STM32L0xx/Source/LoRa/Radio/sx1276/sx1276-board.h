@@ -27,7 +27,7 @@ Maintainer: Miguel Luis and Gregory Cristian
 #define RADIO_DIO_2                          STM32L0_GPIO_PIN_PB0
 //#define RADIO_DIO_3                          STM32L0_GPIO_PIN_PC13
 
-#define RADIO_TCXO_VCC                       STM32L0_GPIO_PIN_PH1
+//#define RADIO_TCXO_VCC                       STM32L0_GPIO_PIN_PH1
 
 #define RADIO_ANT_SWITCH_RX                  STM32L0_GPIO_PIN_PA1
 #define RADIO_ANT_SWITCH_TX_BOOST            STM32L0_GPIO_PIN_PC1

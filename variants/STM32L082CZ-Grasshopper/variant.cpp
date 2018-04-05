@@ -162,24 +162,6 @@ extern const stm32l0_i2c_params_t g_WireParams = {
     },
 };
 
-extern stm32l0_i2c_t g_Wire;
-
-static uint8_t stm32l0_usart1x_rx_fifo[64];
-
-extern const stm32l0_uart_params_t g_SerialGNSSParams = {
-    STM32L0_UART_INSTANCE_USART1,
-    STM32L0_UART_IRQ_PRIORITY,
-    STM32L0_DMA_CHANNEL_DMA1_CH3_USART1_RX,
-    STM32L0_DMA_CHANNEL_NONE,
-    &stm32l0_usart1x_rx_fifo[0],
-    sizeof(stm32l0_usart1x_rx_fifo),
-    {
-	STM32L0_GPIO_PIN_PA10_USART1_RX,
-	STM32L0_GPIO_PIN_PA9_USART1_TX,
-	STM32L0_GPIO_PIN_NONE,
-	STM32L0_GPIO_PIN_NONE,
-    },
-};
 
 extern const stm32l0_sdspi_params_t g_SDSPIParams = {
     STM32L0_GPIO_PIN_PB12,
@@ -187,5 +169,5 @@ extern const stm32l0_sdspi_params_t g_SDSPIParams = {
 
 void initVariant()
 {
-    CMWX1ZZABZ_Initialize();
+    CMWX1ZZABZ_Initialize(STM32L0_GPIO_PIN_PH1, STM32L0_GPIO_PIN_NONE);
 }

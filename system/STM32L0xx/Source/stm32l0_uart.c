@@ -1548,7 +1548,18 @@ void USART4_5_IRQHandler(void)
     }
 }
 
+#if defined(STM32L082xx)
+
 void AES_RNG_LPUART1_IRQHandler(void)
 {
     stm32l0_uart_interrupt(stm32l0_uart_device.instances[STM32L0_UART_INSTANCE_LPUART1]);
 }
+
+#else /* defined(STM32L082xx) */
+
+void RNG_LPUART1_IRQHandler(void)
+{
+    stm32l0_uart_interrupt(stm32l0_uart_device.instances[STM32L0_UART_INSTANCE_LPUART1]);
+}
+
+#endif /* defined(STM32L082xx) */

@@ -186,7 +186,7 @@ void initVariant()
     stm32l0_i2c_transaction_t transaction;
     uint8_t tx_data[2];
 
-    CMWX1ZZABZ_Initialize();
+    CMWX1ZZABZ_Initialize(STM32L0_GPIO_PIN_PH1, STM32L0_GPIO_PIN_NONE);
 
     stm32l0_i2c_create(&g_Wire, &g_WireParams);
     stm32l0_i2c_enable(&g_Wire, STM32L0_I2C_OPTION_MODE_100K, NULL, NULL);

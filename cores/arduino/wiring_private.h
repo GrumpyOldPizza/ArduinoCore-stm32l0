@@ -69,7 +69,7 @@ extern bool USBD_Connected(void);
 extern bool USBD_Configured(void);
 extern bool USBD_Suspended(void);
 
-extern void CMWX1ZZABZ_Initialize(void);
+extern void CMWX1ZZABZ_Initialize(uint16_t pin_tcxo, uint32_t pin_stsafe);
 
 extern int g_swdStatus;  /* 0, default, 1 = enable, 2 = disable, 3 = forced disable */
 

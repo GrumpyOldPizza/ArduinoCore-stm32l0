@@ -29,6 +29,8 @@
 #if !defined(_STM32L0_AES_H)
 #define _STM32L0_AES_H
 
+#if defined(STM32L082xx)
+
 #include "armv6m.h"
 #include "stm32l0xx.h"
 
@@ -51,5 +53,7 @@ extern void stm32l0_aes_cmac_final(uint8_t *out);
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* defined(STM32L082xx) */
 
 #endif /* _STM32L0_AES_H */

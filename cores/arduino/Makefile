@@ -133,7 +133,7 @@ all:: flash.bin
 	$(CC) $(ASFLAGS) -c $< -o $@
 
 flash.elf: $(OBJS)
-	$(CC) $(LDFLAGS) $(OBJS) -L../../system/STM32L0xx/Lib -lstm32l082 -lm -lc -lgcc -lstm32l082 -o flash.elf
+	$(CC) $(LDFLAGS) $(OBJS) -L../../system/STM32L0xx/Lib -lstm32l082xx -lm -lc -lgcc -lstm32l082xx -o flash.elf
 
 flash.bin:: flash.elf
 	arm-none-eabi-objcopy -O binary flash.elf flash.bin

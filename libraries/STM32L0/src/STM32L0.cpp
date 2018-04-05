@@ -53,11 +53,18 @@ void STM32L0Class::getUID(uint32_t uid[3])
 
 bool STM32L0Class::getVBUS()
 {
+#if defined(STM32L0_CONFIG_PIN_VBUS)
     if (STM32L0_CONFIG_PIN_VBUS == STM32L0_GPIO_PIN_NONE) {
 	return false;
     }
 
     return !!stm32l0_gpio_pin_read(STM32L0_CONFIG_PIN_VBUS);
+
+#else /* defined(STM32L0_CONFIG_PIN_VBUS */
+
+    return false;
+
+#endif /* defined(STM32L0_CONFIG_PIN_VBUS */
 }
 
 float STM32L0Class::getVBAT()
@@ -119,11 +126,13 @@ void STM32L0Class::sleep(uint32_t timeout)
 
 void STM32L0Class::stop(uint32_t timeout)
 {
+#if !defined(ARDUINO_STM32L0_B_L072Z_LRWAN1)
     if (g_swdStatus == 0) {
 	stm32l0_system_swd_disable();
 
 	g_swdStatus = 2;
     }
+#endif
 
     stm32l0_system_sleep(STM32L0_SYSTEM_POLICY_STOP, timeout);
 }

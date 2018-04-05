@@ -13,6 +13,7 @@ DEFINES  =
 INCLUDES = \
 	-I../../../system/CMSIS/Include \
 	-I../../../system/CMSIS/Device/ST/STM32L0xx/Include \
+	-I../../../system/STM32L0xx/Source/LoRa/Crypto \
 	-I../../../system/STM32L0xx/Source/LoRa/Mac \
 	-I../../../system/STM32L0xx/Source/LoRa/Mac/region \
 	-I../../../system/STM32L0xx/Source/LoRa/Radio \
@@ -29,6 +30,8 @@ INCLUDES = \
 	-I. 
 
 SRCS = \
+	./LoRa/Crypto/aes.c \
+	./LoRa/Crypto/cmac.c \
 	./LoRa/Mac/LoRaMac.c \
 	./LoRa/Mac/LoRaMacCrypto.c \
 	./LoRa/Mac/region/RegionCommon.c \
@@ -93,24 +96,39 @@ SRCS = \
 	stm32l0_usbd_cdc.c \
 	stm32l0_usbd_hid.c
 
+SRCS_L072 = $(SRCS) startup_stm32l072xx.S
+OBJS_L072 = $(patsubst %.c,_out/stm32l072xx/%.o,$(filter-out %.S,$(SRCS_L072))) $(patsubst %.S,_out/stm32l072xx/%.o,$(filter-out %.c,$(SRCS_L072)))
+
 SRCS_L082 = $(SRCS) startup_stm32l082xx.S
-OBJS_L082 = $(patsubst %.c,_out/stm32l082/%.o,$(filter-out %.S,$(SRCS_L082))) $(patsubst %.S,_out/stm32l082/%.o,$(filter-out %.c,$(SRCS_L082)))
+OBJS_L082 = $(patsubst %.c,_out/stm32l082xx/%.o,$(filter-out %.S,$(SRCS_L082))) $(patsubst %.S,_out/stm32l082xx/%.o,$(filter-out %.c,$(SRCS_L082)))
 
-all:: libstm32l082.a
+all:: libstm32l072xx.a libstm32l082xx.a
 
-libstm32l082.a:: $(OBJS_L082)
+libstm32l072xx.a:: $(OBJS_L072)
 	$(AR) rcs $@ $^
 
-_out/stm32l082/%.o: %.c
+_out/stm32l072xx/%.o: %.c
+	-@mkdir -p $(dir $@)
+	$(CC) -DSTM32L072xx $(CFLAGS) -c $< -o $@
+
+_out/stm32l072xx/%.o: %.S
+	-@mkdir -p $(dir $@)
+	$(CC) -DSTM32L072xx $(ASFLAGS) -c $< -o $@
+
+libstm32l082xx.a:: $(OBJS_L082)
+	$(AR) rcs $@ $^
+
+_out/stm32l082xx/%.o: %.c
 	-@mkdir -p $(dir $@)
 	$(CC) -DSTM32L082xx $(CFLAGS) -c $< -o $@
 
-_out/stm32l082/%.o: %.S
+_out/stm32l082xx/%.o: %.S
 	-@mkdir -p $(dir $@)
 	$(CC) -DSTM32L082xx $(ASFLAGS) -c $< -o $@
 
 clean::
-	rm -rf libstm32l082.a _out
+	rm -rf libstm32l072xx.a libstm32l082xx.a _out
 
+-include $(OBJS_L072:.o=.d)
 -include $(OBJS_L082:.o=.d)
 
