@@ -100,7 +100,11 @@ void receiveCallback(void)
 
 void joinCallback(void)
 {
-    if (LoRaWAN.joined())
+    if (!LoRaWAN.joined())
+    {
+	LoRaWAN.joinOTAA(appEui, appKey, devEui);
+    }
+    else
     {
         Serial.println("JOINED");
 

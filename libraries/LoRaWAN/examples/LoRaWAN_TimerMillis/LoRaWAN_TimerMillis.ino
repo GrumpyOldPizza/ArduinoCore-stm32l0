@@ -22,14 +22,21 @@ TimerMillis transmitTimer;
 
 void transmitCallback(void)
 {
-    if (!LoRaWAN.busy() && LoRaWAN.joined())
+    if (!LoRaWAN.busy())
     {
-        LoRaWAN.beginPacket();
-        LoRaWAN.write(0xef);
-        LoRaWAN.write(0xbe);
-        LoRaWAN.write(0xad);
-        LoRaWAN.write(0xde);
-        LoRaWAN.endPacket();
+        if (!LoRaWAN.joined())
+        {
+            LoRaWAN.joinOTAA(appEui, appKey, devEui);
+        }
+        else
+        {
+            LoRaWAN.beginPacket();
+            LoRaWAN.write(0xef);
+            LoRaWAN.write(0xbe);
+            LoRaWAN.write(0xad);
+            LoRaWAN.write(0xde);
+            LoRaWAN.endPacket();
+        }
     }
 }
 

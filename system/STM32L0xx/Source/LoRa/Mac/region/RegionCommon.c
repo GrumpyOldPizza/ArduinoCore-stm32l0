@@ -1,22 +1,33 @@
-/*
- / _____)             _              | |
-( (____  _____ ____ _| |_ _____  ____| |__
- \____ \| ___ |    (_   _) ___ |/ ___)  _ \
- _____) ) ____| | | || |_| ____( (___| | | |
-(______/|_____)_|_|_| \__)_____)\____)_| |_|
-    (C)2013 Semtech
- ___ _____ _   ___ _  _____ ___  ___  ___ ___
-/ __|_   _/_\ / __| |/ / __/ _ \| _ \/ __| __|
-\__ \ | |/ _ \ (__| ' <| _| (_) |   / (__| _|
-|___/ |_/_/ \_\___|_|\_\_| \___/|_|_\\___|___|
-embedded.connectivity.solutions===============
-
-Description: LoRa MAC common region implementation
-
-License: Revised BSD License, see LICENSE.TXT file include in the project
-
-Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jaeckle ( STACKFORCE )
-*/
+/*!
+ * \file      RegionCommon.c
+ *
+ * \brief     LoRa MAC common region implementation
+ *
+ * \copyright Revised BSD License, see section \ref LICENSE.
+ *
+ * \code
+ *                ______                              _
+ *               / _____)             _              | |
+ *              ( (____  _____ ____ _| |_ _____  ____| |__
+ *               \____ \| ___ |    (_   _) ___ |/ ___)  _ \
+ *               _____) ) ____| | | || |_| ____( (___| | | |
+ *              (______/|_____)_|_|_| \__)_____)\____)_| |_|
+ *              (C)2013-2017 Semtech
+ *
+ *               ___ _____ _   ___ _  _____ ___  ___  ___ ___
+ *              / __|_   _/_\ / __| |/ / __/ _ \| _ \/ __| __|
+ *              \__ \ | |/ _ \ (__| ' <| _| (_) |   / (__| _|
+ *              |___/ |_/_/ \_\___|_|\_\_| \___/|_|_\\___|___|
+ *              embedded.connectivity.solutions===============
+ *
+ * \endcode
+ *
+ * \author    Miguel Luis ( Semtech )
+ *
+ * \author    Gregory Cristian ( Semtech )
+ *
+ * \author    Daniel Jaeckle ( STACKFORCE )
+ */
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -29,15 +40,37 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jae
 #include "utilities.h"
 
 #include "LoRaMac.h"
+#include "Region.h"
 #include "RegionCommon.h"
 
+/*!
+ * LoRaMac channels
+ */
+ChannelParams_t RegionChannels[16];
 
+/*!
+ * LoRaMac bands
+ */
+Band_t RegionBands[LORA_MAX_NB_BANDS];
+
+/*!
+ * LoRaMac channels mask
+ */
+uint16_t RegionChannelsMask[(LORA_MAX_NB_CHANNELS +15) / 16];
+
+/*!
+ * LoRaMac channels default mask
+ */
+uint16_t RegionChannelsDefaultMask[(LORA_MAX_NB_CHANNELS +15) / 16];
+
+/*!
+ * LoRaMac channels mask remaining
+ */
+uint16_t RegionChannelsMaskRemaining[(LORA_MAX_NB_CHANNELS +15) / 16];
 
 #define BACKOFF_DC_1_HOUR       100
 #define BACKOFF_DC_10_HOURS     1000
 #define BACKOFF_DC_24_HOURS     10000
-
-
 
 static uint8_t CountChannels( uint16_t mask, uint8_t nbBits )
 {
@@ -52,8 +85,6 @@ static uint8_t CountChannels( uint16_t mask, uint8_t nbBits )
     }
     return nbActiveBits;
 }
-
-
 
 uint16_t RegionCommonGetJoinDc( TimerTime_t elapsedTime )
 {
@@ -74,7 +105,7 @@ uint16_t RegionCommonGetJoinDc( TimerTime_t elapsedTime )
     return dutyCycle;
 }
 
-bool RegionCommonChanVerifyDr( uint8_t nbChannels, uint16_t* channelsMask, int8_t dr, int8_t minDr, int8_t maxDr, ChannelParams_t* channels )
+bool RegionCommonChanVerifyDr( uint8_t nbChannels, uint16_t* channelsMask, int8_t dr, int8_t minDr, int8_t maxDr, const ChannelParams_t* channels )
 {
     if( RegionCommonValueInRange( dr, minDr, maxDr ) == 0 )
     {
@@ -283,8 +314,8 @@ uint8_t RegionCommonLinkAdrReqVerifyParams( RegionCommonLinkAdrReqVerifyParams_t
     if( status == 0x07 )
     {
         if( nbRepetitions == 0 )
-        { // Keep the current one
-            nbRepetitions = verifyParams->CurrentNbRep;
+        { // Restore the default value according to the LoRaWAN specification
+            nbRepetitions = 1;
         }
     }
 

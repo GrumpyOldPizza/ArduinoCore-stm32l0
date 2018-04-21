@@ -13,6 +13,7 @@ LoRaWAN		KEYWORD1
 #######################################
 
 begin		KEYWORD2
+stop		KEYWORD2
 joinOTAA	KEYWORD2
 joinABP		KEYWORD2
 joined		KEYWORD2
@@ -29,8 +30,8 @@ read		KEYWORD2
 peek		KEYWORD2
 flush		KEYWORD2
 remotePort	KEYWORD2
-packetRSSI	KEYWORD2
-packetSNR	KEYWORD2
+lastRSSI	KEYWORD2
+lastSNR		KEYWORD2
 linkCheck	KEYWORD2
 linkMargin	KEYWORD2
 linkGateways	KEYWORD2
@@ -45,12 +46,12 @@ getUpLinkCounter	KEYWORD2
 getDownLinkCounter	KEYWORD2
 setJoinDelay1	KEYWORD2
 setJoinDelay2	KEYWORD2
-setJoinRetries	KEYWORD2
 setPublicNetwork	KEYWORD2
-setAdrEnable	KEYWORD2
+setADR		KEYWORD2
 setDataRate	KEYWORD2
 setTxPower	KEYWORD2
-setConfirmRetries	KEYWORD2
+setRetries	KEYWORD2
+setRepeat	KEYWORD2
 setReceiveDelay	KEYWORD2
 setRX2Channel	KEYWORD2
 setSubBand	KEYWORD2
@@ -60,7 +61,6 @@ enableChannel	KEYWORD2
 disableChannel	KEYWORD2
 setAntennaGain	KEYWORD2
 setDutyCycle	KEYWORD2
-setReceiveWindows	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
@@ -69,8 +69,8 @@ setReceiveWindows	KEYWORD2
 AS923		LITERAL1
 AU915		LITERAL1
 EU868		LITERAL1
-KR920		LITERAL1
 IN865		LITERAL1
+KR920		LITERAL1
 US915		LITERAL1
 
 

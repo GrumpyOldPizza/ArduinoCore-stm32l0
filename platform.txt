@@ -71,10 +71,6 @@ build.usb_flags=-DUSB_VID={build.vid} -DUSB_PID={build.pid} -DUSB_DID={build.did
 # ---------
 build.dosfs_flags=-DDOSFS_SDCARD={build.dosfs_sdcard} -DDOSFS_SFLASH={build.dosfs_sflash}
 
-# REGION Flags
-# ---------
-build.regions_flags=-DLORAWAN_REGIONS={build.regions}
-
 # Compile patterns
 # ----------------
 

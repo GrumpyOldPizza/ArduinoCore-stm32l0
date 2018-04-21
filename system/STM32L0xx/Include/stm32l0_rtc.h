@@ -99,6 +99,7 @@ extern void stm32l0_rtc_timer_create(stm32l0_rtc_timer_t *timer, stm32l0_rtc_tim
 extern bool stm32l0_rtc_timer_destroy(stm32l0_rtc_timer_t *timer);
 extern bool stm32l0_rtc_timer_start(stm32l0_rtc_timer_t *timer, uint32_t seconds, uint16_t subseconds, bool absolute);
 extern bool stm32l0_rtc_timer_stop(stm32l0_rtc_timer_t *timer);
+extern bool stm32l0_rtc_timer_done(stm32l0_rtc_timer_t *timer);
 
 extern void stm32l0_rtc_wakeup_start(uint32_t timeout, stm32l0_rtc_callback_t callback, void *context);
 extern void stm32l0_rtc_wakeup_stop(void);

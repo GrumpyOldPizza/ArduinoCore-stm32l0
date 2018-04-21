@@ -66,6 +66,15 @@ void TimerStop( TimerEvent_t *obj );
 void TimerReset( TimerEvent_t *obj );
 
 /*!
+ * \brief Check is a timer is running
+ *
+ * \param [IN] obj Structure containing the timer object parameters
+ *
+ * \retval bool returns if timer is runnung
+ */
+bool TimerIsRunning( TimerEvent_t *obj );
+
+/*!
  * \brief Set timer new timeout value
  *
  * \param [IN] obj   Structure containing the timer object parameters

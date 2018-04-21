@@ -12,7 +12,7 @@
  *               \____ \| ___ |    (_   _) ___ |/ ___)  _ \
  *               _____) ) ____| | | || |_| ____( (___| | | |
  *              (______/|_____)_|_|_| \__)_____)\____)_| |_|
- *              (C)2013 Semtech
+ *              (C)2013-2017 Semtech
  *
  *               ___ _____ _   ___ _  _____ ___  ___  ___ ___
  *              / __|_   _/_\ / __| |/ / __/ _ \| _ \/ __| __|
@@ -52,8 +52,9 @@
 #ifndef __REGION_H__
 #define __REGION_H__
 
-
-
+#include <stdint.h>
+#include <stdbool.h>
+#include "timer.h"
 
 /*!
  * Macro to compute bit of a channel index.
@@ -647,14 +648,6 @@ typedef enum ePhyAttribute
      */
     PHY_DEF_ANTENNA_GAIN,
     /*!
-     * Value for the number of join trials.
-     */
-    PHY_NB_JOIN_TRIALS,
-    /*!
-     * Default value for the number of join trials.
-     */
-    PHY_DEF_NB_JOIN_TRIALS,
-    /*!
      * Next lower datarate.
      */
     PHY_NEXT_LOWER_TX_DR
@@ -666,13 +659,19 @@ typedef enum ePhyAttribute
 typedef enum eInitType
 {
     /*!
-     * Performs an initialization and overwrites all existing data.
+     * Initializes the region specific data to defaults, according to the
+     * LoRaWAN specification.
      */
     INIT_TYPE_INIT,
     /*!
-     * Restores default channels only.
+     * Restores default channels defined by the LoRaWAN specification only.
      */
-    INIT_TYPE_RESTORE
+    INIT_TYPE_RESTORE,
+    /*!
+     * Initializes the region specific data to the defaults which were set by
+     * the application.
+     */
+    INIT_TYPE_APP_DEFAULTS
 }InitType_t;
 
 typedef enum eChannelsMask
@@ -707,7 +706,7 @@ typedef union uPhyParam
     /*!
      * Pointer to the channels.
      */
-    ChannelParams_t* Channels;
+    const ChannelParams_t* Channels;
 }PhyParam_t;
 
 /*!
@@ -771,10 +770,6 @@ typedef union uVerifyParams
      * Set to true, if the duty cycle is enabled, otherwise false.
      */
     bool DutyCycle;
-    /*!
-     * The number of join trials.
-     */
-    uint8_t NbJoinTrials;
     /*!
      * Datarate to verify.
      */
@@ -902,9 +897,9 @@ typedef struct sRxConfigParams
      */
     bool RxContinuous;
     /*!
-     * Sets the RX window. 0: RX window 1, 1: RX window 2.
+     * Sets the RX window.
      */
-    bool Window;
+    LoRaMacRxSlot_t RxSlot;
 }RxConfigParams_t;
 
 /*!
@@ -1042,17 +1037,6 @@ typedef struct sDlChannelReqParams
 }DlChannelReqParams_t;
 
 /*!
- * Parameter structure for the function RegionAlternateDr.
- */
-typedef struct sAlternateDrParams
-{
-    /*!
-     * Number of trials.
-     */
-    uint16_t NbTrials;
-}AlternateDrParams_t;
-
-/*!
  * Parameter structure for the function RegionCalcBackOff.
  */
 typedef struct sCalcBackOffParams
@@ -1118,7 +1102,7 @@ typedef struct sChannelAddParams
     /*!
      * Pointer to the new channel to add.
      */
-    ChannelParams_t* NewChannel;
+    const ChannelParams_t* NewChannel;
     /*!
      * Channel id to add.
      */
@@ -1239,9 +1223,9 @@ struct sLoRaMacRegion
      * Rx window precise timing
      *
      * For more details please consult the following document, chapter 3.1.2.
-     * http://www.semtech.com/images/datasheet/SX1272_settings_for_LoRaWAN_v2.0.pdf
+     * https://www.semtech.com/uploads/documents/SX1272_settings_for_LoRaWAN_v2.0.pdf
      * or
-     * http://www.semtech.com/images/datasheet/SX1276_settings_for_LoRaWAN_v2.0.pdf
+     * https://www.semtech.com/uploads/documents/SX1276_settings_for_LoRaWAN_v2.0.pdf
      *
      *                 Downlink start: T = Tx + 1s (+/- 20 us)
      *                            |
@@ -1273,20 +1257,20 @@ struct sLoRaMacRegion
      *
      * Minimal value of RxWindowTimeout must be 5 symbols which implies that the system always tolerates at least an error of 1.5 * tSymbol
      */
-     /*!
-      * Computes the Rx window timeout and offset.
-      *
-      * \param [IN] datarate     Rx window datarate index to be used
-      *
-      * \param [IN] minRxSymbols Minimum required number of symbols to detect an Rx frame.
-      *
-      * \param [IN] rxError      System maximum timing error of the receiver. In milliseconds
-      *                          The receiver will turn on in a [-rxError : +rxError] ms
-      *                          interval around RxOffset
-      *
-      * \param [OUT]rxConfigParams Returns updated WindowTimeout and WindowOffset fields.
-      */
-    void  ( *ComputeRxWindowParameters )( int8_t datarate, uint8_t minRxSymbols, uint32_t rxError, RxConfigParams_t *rxConfigParams );
+    /*!
+     * Computes the Rx window timeout and offset.
+     *
+     * \param [IN] datarate     Rx window datarate index to be used
+     *
+     * \param [IN] minRxSymbols Minimum required number of symbols to detect an Rx frame.
+     *
+     * \param [IN] rxError      System maximum timing error of the receiver. In milliseconds
+     *                          The receiver will turn on in a [-rxError : +rxError] ms
+     *                          interval around RxOffset
+     *
+     * \param [OUT]rxConfigParams Returns updated WindowTimeout and WindowOffset fields.
+     */
+    void ( *ComputeRxWindowParameters )( int8_t datarate, uint8_t minRxSymbols, uint32_t rxError, RxConfigParams_t *rxConfigParams );
 
     /*!
      * \brief Configuration of the RX windows.
@@ -1311,7 +1295,7 @@ struct sLoRaMacRegion
      * \retval Returns true, if the configuration was applied successfully.
      */
     bool ( *TxConfig )( TxConfigParams_t* txConfig, int8_t* txPower, TimerTime_t* txTimeOnAir );
-    
+
     /*!
      * \brief The function processes a Link ADR Request.
      *
@@ -1370,11 +1354,11 @@ struct sLoRaMacRegion
     /*!
      * \brief Alternates the datarate of the channel for the join request.
      *
-     * \param [IN] alternateDr Pointer to the function parameters.
+     * \param [IN] currentDr Current datarate.
      *
      * \retval Datarate to apply.
      */
-    int8_t ( *AlternateDr )( AlternateDrParams_t* alternateDr );
+    int8_t ( *AlternateDr )( int8_t currentDr );
 
     /*!
      * \brief Calculates the back-off time.
@@ -1395,7 +1379,7 @@ struct sLoRaMacRegion
      *
      * \retval Function status [1: OK, 0: Unable to find a channel on the current datarate].
      */
-    bool ( *NextChannel )( NextChanParams_t* nextChanParams, uint8_t* channel, TimerTime_t* time, TimerTime_t* aggregatedTimeOff );
+    LoRaMacStatus_t ( *NextChannel )( NextChanParams_t* nextChanParams, uint8_t* channel, TimerTime_t* time, TimerTime_t* aggregatedTimeOff );
 
     /*!
      * \brief Adds a channel.
@@ -1413,7 +1397,7 @@ struct sLoRaMacRegion
      *
      * \retval Returns true, if the channel was removed successfully.
      */
-    bool ( *ChannelsRemove )( ChannelRemoveParams_t* channelRemove );
+    bool ( *ChannelRemove )( ChannelRemoveParams_t* channelRemove );
 
     /*!
      * \brief Sets the radio into continuous wave mode.

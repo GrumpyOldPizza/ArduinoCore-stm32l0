@@ -644,7 +644,7 @@ static void stm32l0_rtc_timer_insert(stm32l0_rtc_timer_t *timer, int32_t seconds
         }
         
         timer->next = NULL;
-        timer->previous = NULL;
+        timer->previous = (void*)~0; // leave as not done
         timer->seconds = 0;
         timer->subseconds = 0;
     }
@@ -857,6 +857,14 @@ bool stm32l0_rtc_timer_start(stm32l0_rtc_timer_t *timer, uint32_t seconds, uint1
         if (success)
         {
             success = armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)stm32l0_rtc_timer_insert_2, (void*)timer, seconds);
+
+	    if (success)
+	    {
+		if (timer->next == NULL)
+		{
+		    timer->previous = (void*)~0;
+		}
+	    }
         }
     }
 
@@ -882,6 +890,11 @@ bool stm32l0_rtc_timer_stop(stm32l0_rtc_timer_t *timer)
     }
 
     return success;
+}
+
+bool stm32l0_rtc_timer_done(stm32l0_rtc_timer_t *timer)
+{
+    return (timer->previous == NULL) || !((uint32_t)timer->callback & 1);
 }
 
 void stm32l0_rtc_wakeup_start(uint32_t timeout, stm32l0_rtc_callback_t callback, void *context)

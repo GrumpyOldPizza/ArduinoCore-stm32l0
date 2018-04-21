@@ -323,11 +323,11 @@ struct Radio_s
      */
     void    ( *SetPublicNetwork )( bool enable );
     /*!
-     * \brief   Service to get the radio wake-up time.
+     * \brief Gets the time required for the board plus radio to get out of sleep.[ms]
      *
-     * \retval  Value of the radio wake-up time.
+     * \retval time Radio plus board wakeup time in ms.
      */
-    uint32_t ( *GetRadioWakeUpTime ) ( void );
+    uint32_t  ( *GetWakeupTime )( void );
 };
 
 /*!

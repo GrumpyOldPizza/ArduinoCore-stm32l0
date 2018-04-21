@@ -6,8 +6,8 @@
  *  AS923
  *  AU915
  *  EU868
- *  KR920
  *  IN865
+ *  KR920
  *  US915
  *
  *  Also please check with the LoRaWAN_OTAA_<band>.ino examples for 
@@ -30,20 +30,26 @@ void setup( void )
 {
     LoRaWAN.begin(US915);
     LoRaWAN.setSubBand(2);
-    LoRaWAN.joinOTAA(appEui, appKey, devEui);
 }
 
 void loop( void )
 {
-    delay(10000);
-
-    if (!LoRaWAN.busy() && LoRaWAN.joined())
+    if (!LoRaWAN.busy())
     {
-        LoRaWAN.beginPacket();
-        LoRaWAN.write(0xef);
-        LoRaWAN.write(0xbe);
-        LoRaWAN.write(0xad);
-        LoRaWAN.write(0xde);
-        LoRaWAN.endPacket();
+        if (!LoRaWAN.joined())
+        {
+            LoRaWAN.joinOTAA(appEui, appKey, devEui);
+        }
+        else
+        {
+            LoRaWAN.beginPacket();
+            LoRaWAN.write(0xef);
+            LoRaWAN.write(0xbe);
+            LoRaWAN.write(0xad);
+            LoRaWAN.write(0xde);
+            LoRaWAN.endPacket();
+        }
     }
+
+    delay(10000);
 }

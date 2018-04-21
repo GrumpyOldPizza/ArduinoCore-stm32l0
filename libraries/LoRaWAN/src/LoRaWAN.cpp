@@ -36,6 +36,59 @@ extern "C" {
 #include "LoRaMacTest.h"
 }
 
+#define REGION_AS923 0
+#define REGION_AU915 1
+#define REGION_CN470 2
+#define REGION_CN779 3
+#define REGION_EU433 4
+#define REGION_EU868 5
+#define REGION_IN865 6
+#define REGION_KR920 7
+#define REGION_US915 8
+
+struct LoRaWANBand {
+    uint8_t id;
+    uint8_t xlateTxPower[11];
+    const LoRaMacRegion_t *region;
+};
+
+const struct LoRaWANBand AS923 = {
+    REGION_AS923,
+    { 16, 14, 12, 10,  8,  6,  4,  2,  0,  0,  0 },
+    &LoRaMacRegionAS923,
+};
+
+const struct LoRaWANBand AU915 = {
+    REGION_AU915,
+    { 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10 },
+    &LoRaMacRegionAU915,
+};
+
+const struct LoRaWANBand EU868 = {
+    REGION_EU868,
+    { 16, 14, 12, 10,  8,  6,  4,  2,  0,  0,  0 },
+    &LoRaMacRegionEU868,
+};
+
+const struct LoRaWANBand IN865 = {
+    REGION_IN865,
+    { 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10 },
+    &LoRaMacRegionIN865,
+};
+
+const struct LoRaWANBand KR920 = {
+    REGION_KR920,
+    { 14, 12, 10,  8,  6,  4,  2,  0,  0,  0,  0 },
+    &LoRaMacRegionKR920,
+};
+
+const struct LoRaWANBand US915 = {
+    REGION_US915,
+    { 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10 },
+    &LoRaMacRegionUS915,
+};
+
+
 static void BoardGetUniqueId(uint8_t *DevEui)
 {
     uint32_t UID[3];
@@ -333,7 +386,7 @@ static uint8_t LoRaWANGetBatteryLevel()
 
 LoRaWANClass::LoRaWANClass()
 {
-    _initialized = false;
+    _Band = NULL;
 
     _tx_port = 1;
     _tx_active = false;
@@ -346,8 +399,8 @@ LoRaWANClass::LoRaWANClass()
     _rx_gateways = 0;
     _rx_ack = 0;
 
-    _JoinRetries = 3;
-    _ConfirmRetries = 8;
+    _Retries = 8;
+    _Repeat = 1;
 
     _PublicNetwork = true;
     _AdrEnable = true;
@@ -357,80 +410,7 @@ LoRaWANClass::LoRaWANClass()
     _session.Joined = LORAWAN_JOINED_NONE;
 }
 
-static const LoRaMacRegion_t *LoRaWANRegions[] = {
-#if (LORAWAN_REGIONS & 0x00000001)
-    &LoRaMacRegionEU868,
-#else
-    NULL,
-#endif
-#if (LORAWAN_REGIONS & 0x00000002)
-    &LoRaMacRegionUS915,
-#else
-    NULL,
-#endif
-#if (LORAWAN_REGIONS & 0x00000004)
-    &LoRaMacRegionAU915,
-#else
-    NULL,
-#endif
-#if (LORAWAN_REGIONS & 0x00000008)
-    &LoRaMacRegionAS923,
-#else
-    NULL,
-#endif
-#if (LORAWAN_REGIONS & 0x00000010)
-    &LoRaMacRegionKR920,
-#else
-    NULL,
-#endif
-#if (LORAWAN_REGIONS & 0x00000020)
-    &LoRaMacRegionIN865,
-#else
-    NULL,
-#endif
-};
-
-static const uint8_t LoRaWANTxPowerEU868[11] = { 16, 14, 12, 10,  8,  6,  4,  2,  0,  0,  0 };
-static const uint8_t LoRaWANTxPowerUS915[11] = { 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10 };
-static const uint8_t LoRaWANTxPowerAU915[11] = { 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10 };
-static const uint8_t LoRaWANTxPowerAS923[11] = { 16, 14, 12, 10,  8,  6,  4,  2,  0,  0,  0 };
-static const uint8_t LoRaWANTxPowerKR920[11] = { 14, 12, 10,  8,  6,  4,  2,  0,  0,  0,  0 };
-static const uint8_t LoRaWANTxPowerIN865[11] = { 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10 };
-
-static const uint8_t *LoRaWANTxPower[] = {
-#if (LORAWAN_REGIONS & 0x00000001)
-    LoRaWANTxPowerEU868,
-#else
-    NULL,
-#endif
-#if (LORAWAN_REGIONS & 0x00000002)
-    LoRaWANTxPowerUS915,
-#else
-    NULL,
-#endif
-#if (LORAWAN_REGIONS & 0x00000004)
-    LoRaWANTxPowerAU915,
-#else
-    NULL,
-#endif
-#if (LORAWAN_REGIONS & 0x00000008)
-    LoRaWANTxPowerAS923,
-#else
-    NULL,
-#endif
-#if (LORAWAN_REGIONS & 0x00000010)
-    LoRaWANTxPowerKR920,
-#else
-    NULL,
-#endif
-#if (LORAWAN_REGIONS & 0x00000020)
-    LoRaWANTxPowerIN865,
-#else
-    NULL,
-#endif
-};
-
-int LoRaWANClass::begin(LoRaWANBand band)
+int LoRaWANClass::begin(const struct LoRaWANBand &band)
 {
     MibRequestConfirm_t mibReq;
 
@@ -438,6 +418,7 @@ int LoRaWANClass::begin(LoRaWANBand band)
         LoRaWANClass::__McpsConfirm,
         LoRaWANClass::__McpsIndication,
         LoRaWANClass::__MlmeConfirm,
+        LoRaWANClass::__MlmeIndication,
     };
 
     static const LoRaMacCallback_t LoRaWANCallbacks = {
@@ -448,13 +429,9 @@ int LoRaWANClass::begin(LoRaWANBand band)
         return 0;
     }
 
-    if (!LoRaWANRegions[band]) {
-	return 0;
-    }
+    _Band = &band;
 
-    _Band = band;
-
-    LoRaMacInitialization(&LoRaWANPrimitives, &LoRaWANCallbacks, LoRaWANRegions[band]);
+    LoRaMacInitialization(&LoRaWANPrimitives, &LoRaWANCallbacks, _Band->region);
 
     mibReq.Type = MIB_PUBLIC_NETWORK;
     mibReq.Param.EnablePublicNetwork = _PublicNetwork;
@@ -480,8 +457,6 @@ int LoRaWANClass::begin(LoRaWANBand band)
     mibReq.Param.ChannelsTxPower = _TxPower;
     LoRaMacMibSetRequestConfirm(&mibReq);
 
-    _initialized = true;
-
     return 1;
 }
 
@@ -504,7 +479,7 @@ int LoRaWANClass::joinOTAA(const char *appEui, const char *appKey, const char *d
 {
     MlmeReq_t mlmeReq;
 
-    if (!_initialized) {
+    if (!_Band) {
         return 0;
     }
 
@@ -531,7 +506,7 @@ int LoRaWANClass::joinOTAA(const char *appEui, const char *appKey, const char *d
     mlmeReq.Req.Join.DevEui = _session.DevEui;
     mlmeReq.Req.Join.AppEui = _session.AppEui;
     mlmeReq.Req.Join.AppKey = _session.AppKey;
-    mlmeReq.Req.Join.NbTrials = 1 + _JoinRetries;
+    mlmeReq.Req.Join.Datarate = _DataRate;
 
     if (LoRaWANMlmeRequest(&mlmeReq) != LORAMAC_STATUS_OK) {
         return 0;
@@ -552,7 +527,7 @@ int LoRaWANClass::joinABP(const char *devAddr, const char *nwkSKey, const char *
 {
     MibRequestConfirm_t mibReq;
     
-    if (!_initialized) {
+    if (!_Band) {
         return 0;
     }
 
@@ -727,7 +702,7 @@ int LoRaWANClass::endPacket(bool confirm)
                 mcpsReq.Req.Confirmed.fPort = _tx_port;
                 mcpsReq.Req.Confirmed.fBuffer = &_tx_data[0];
                 mcpsReq.Req.Confirmed.fBufferSize = _tx_size;
-                mcpsReq.Req.Confirmed.NbTrials = 1 + _ConfirmRetries;
+                mcpsReq.Req.Confirmed.NbTrials = 1 + _Retries;
                 mcpsReq.Req.Confirmed.Datarate = _DataRate;
             }
             else
@@ -1085,12 +1060,20 @@ int LoRaWANClass::getMaxPayloadSize()
 
 unsigned int LoRaWANClass::getDataRate()
 {
+    if (!_Band) {
+	return 0;
+    }
+	
     return _session.DataRate;
 }
 
 unsigned int LoRaWANClass::getTxPower()
 {
-    return LoRaWANTxPower[_Band][_session.TxPower];
+    if (!_Band) {
+	return 0;
+    }
+
+    return _Band->xlateTxPower[_session.TxPower];
 }
 
 unsigned long LoRaWANClass::getUpLinkCounter()
@@ -1107,7 +1090,7 @@ int LoRaWANClass::setJoinDelay1(unsigned int delay)
 {
     MibRequestConfirm_t mibReq;
 
-    if (!_initialized) {
+    if (!_Band) {
         return 0;
     }
 
@@ -1133,7 +1116,7 @@ int LoRaWANClass::setJoinDelay2(unsigned int delay)
 {
     MibRequestConfirm_t mibReq;
 
-    if (!_initialized) {
+    if (!_Band) {
         return 0;
     }
 
@@ -1155,26 +1138,11 @@ int LoRaWANClass::setJoinDelay2(unsigned int delay)
     return 1;
 }
 
-int LoRaWANClass::setJoinRetries(unsigned int n)
-{
-    if (!_initialized) {
-        return 0;
-    }
-
-    if (n > 255) {
-        return 0;
-    }
-
-    _JoinRetries = n;
-
-    return 1;
-}
-
 int LoRaWANClass::setPublicNetwork(bool enable)
 {
     MibRequestConfirm_t mibReq;
 
-    if (!_initialized) {
+    if (!_Band) {
         return 0;
     }
 
@@ -1198,7 +1166,7 @@ int LoRaWANClass::setADR(bool enable)
 {
     MibRequestConfirm_t mibReq;
 
-    if (!_initialized) {
+    if (!_Band) {
         return 0;
     }
 
@@ -1232,7 +1200,7 @@ int LoRaWANClass::setDataRate(unsigned int datarate)
 {
     MibRequestConfirm_t mibReq;
 
-    if (!_initialized) {
+    if (!_Band) {
         return 0;
     }
 
@@ -1267,7 +1235,7 @@ int LoRaWANClass::setTxPower(unsigned int power)
     unsigned int txPower;
     MibRequestConfirm_t mibReq;
 
-    if (!_initialized) {
+    if (!_Band) {
         return 0;
     }
 
@@ -1276,7 +1244,7 @@ int LoRaWANClass::setTxPower(unsigned int power)
     }
     
     for (txPower = 10; txPower > 0; txPower--) {
-        if (LoRaWANTxPower[_Band][txPower] >= power) {
+        if (_Band->xlateTxPower[txPower] >= power) {
             break;
         }
     }
@@ -1303,9 +1271,9 @@ int LoRaWANClass::setTxPower(unsigned int power)
     return 1;
 }
 
-int LoRaWANClass::setConfirmRetries(unsigned int n)
+int LoRaWANClass::setRetries(unsigned int n)
 {
-    if (!_initialized) {
+    if (!_Band) {
         return 0;
     }
 
@@ -1313,7 +1281,31 @@ int LoRaWANClass::setConfirmRetries(unsigned int n)
         return 0;
     }
 
-    _ConfirmRetries = n;
+    _Retries = n;
+
+    return 1;
+}
+
+int LoRaWANClass::setRepeat(unsigned int n)
+{
+    MibRequestConfirm_t mibReq;
+
+    if (!_Band) {
+        return 0;
+    }
+
+    if (n > 15) {
+        return 0;
+    }
+
+    mibReq.Type = MIB_CHANNELS_NB_REP;
+    mibReq.Param.ChannelNbRep = n;
+        
+    if (LoRaWANMibSetRequestConfirm(&mibReq) != LORAMAC_STATUS_OK) {
+	return 0;
+    }
+    
+    _Repeat = n;
 
     return 1;
 }
@@ -1322,7 +1314,7 @@ int LoRaWANClass::setReceiveDelay(unsigned int delay)
 {
     MibRequestConfirm_t mibReq;
 
-    if (!_initialized) {
+    if (!_Band) {
         return 0;
     }
 
@@ -1355,7 +1347,7 @@ int LoRaWANClass::setRX2Channel(unsigned long frequency, unsigned int datarate)
 {
     MibRequestConfirm_t mibReq;
 
-    if (!_initialized) {
+    if (!_Band) {
         return 0;
     }
 
@@ -1380,7 +1372,7 @@ int LoRaWANClass::setSubBand(unsigned int subband)
     unsigned int group;
     MibRequestConfirm_t mibReq;
     
-    if (!_initialized) {
+    if (!_Band) {
         return 0;
     }
 
@@ -1388,7 +1380,7 @@ int LoRaWANClass::setSubBand(unsigned int subband)
         return 0;
     }
 
-    if (!((_Band == AU915) || (_Band == US915))) {
+    if (!((_Band->id == REGION_AU915) || (_Band->id == REGION_US915))) {
         return 0;
     }
 
@@ -1421,11 +1413,13 @@ int LoRaWANClass::setSubBand(unsigned int subband)
         return 0;
     }
 
-    mibReq.Type = MIB_CHANNELS_MASK;
-    mibReq.Param.ChannelsMask = ChannelsMask;
+    if (_session.Joined == LORAWAN_JOINED_NONE) {
+	mibReq.Type = MIB_CHANNELS_MASK;
+	mibReq.Param.ChannelsMask = ChannelsMask;
 
-    if (LoRaWANMibSetRequestConfirm(&mibReq) != LORAMAC_STATUS_OK) {
-        return 0;
+	if (LoRaWANMibSetRequestConfirm(&mibReq) != LORAMAC_STATUS_OK) {
+	    return 0;
+	}
     }
 
     return 1;
@@ -1435,11 +1429,11 @@ int LoRaWANClass::addChannel(unsigned int index, unsigned long frequency, unsign
 {
     ChannelParams_t params;
 
-    if (!_initialized) {
+    if (!_Band) {
         return 0;
     }
 
-    if ((_Band == AU915) || (_Band == US915)) {
+    if ((_Band->id == REGION_AU915) || (_Band->id == REGION_US915)) {
         return 0;
     }
 
@@ -1471,11 +1465,11 @@ int LoRaWANClass::addChannel(unsigned int index, unsigned long frequency, unsign
 
 int LoRaWANClass::removeChannel(unsigned int index)
 {
-    if (!_initialized) {
+    if (!_Band) {
         return 0;
     }
 
-    if ((_Band == AU915) || (_Band == US915)) {
+    if ((_Band->id == REGION_AU915) || (_Band->id == REGION_US915)) {
         return 0;
     }
 
@@ -1504,7 +1498,7 @@ int LoRaWANClass::enableChannel(unsigned int index)
     uint16_t ChannelsMask[(LORA_MAX_NB_CHANNELS + 15) / 16];
     MibRequestConfirm_t mibReq;
 
-    if (!_initialized) {
+    if (!_Band) {
         return 0;
     }
 
@@ -1519,7 +1513,7 @@ int LoRaWANClass::enableChannel(unsigned int index)
     // KR920: index == 0..15
     // US915: index == 0..71
 
-    if ((_Band == AU915) || (_Band == US915)) {
+    if ((_Band->id == REGION_AU915) || (_Band->id == REGION_US915)) {
         if (index > 71) {
             return 0;
         }
@@ -1554,7 +1548,7 @@ int LoRaWANClass::disableChannel(unsigned int index)
     uint16_t ChannelsMask[(LORA_MAX_NB_CHANNELS +15) / 16];
     MibRequestConfirm_t mibReq;
 
-    if (!_initialized) {
+    if (!_Band) {
         return 0;
     }
 
@@ -1569,7 +1563,7 @@ int LoRaWANClass::disableChannel(unsigned int index)
     // KR920: index == 0..15
     // US915: index == 0..71
 
-    if ((_Band == AU915) || (_Band == US915)) {
+    if ((_Band->id == REGION_AU915) || (_Band->id == REGION_US915)) {
         if (index > 71) {
             return 0;
         }
@@ -1603,7 +1597,7 @@ int LoRaWANClass::setAntennaGain(float gain)
 {
     MibRequestConfirm_t mibReq;
 
-    if (!_initialized) {
+    if (!_Band) {
         return 0;
     }
 
@@ -1623,7 +1617,7 @@ int LoRaWANClass::setAntennaGain(float gain)
 
 int LoRaWANClass::setDutyCycle(bool enable)
 {
-    if (!_initialized) {
+    if (!_Band) {
         return 0;
     }
 
@@ -1631,26 +1625,11 @@ int LoRaWANClass::setDutyCycle(bool enable)
         return 0;
     }
 
-    if (!((_Band == EU868) || (_Band == IN865))) {
+    if (!((_Band->id == REGION_EU868) || (_Band->id == REGION_IN865))) {
         return 0;
     }
 
     LoRaMacTestSetDutyCycleOn(enable);
-
-    return 1;
-}
-
-int LoRaWANClass::setReceiveWindows(bool enable)
-{
-    if (!_initialized) {
-        return 0;
-    }
-
-    if (_tx_busy) {
-        return 0;
-    }
-
-    LoRaMacTestRxWindowsOn(enable);
 
     return 1;
 }
@@ -1667,7 +1646,7 @@ void LoRaWANClass::__McpsResend()
         mcpsReq.Req.Confirmed.fPort = LoRaWAN._tx_port;
         mcpsReq.Req.Confirmed.fBuffer = &LoRaWAN._tx_data[0];
         mcpsReq.Req.Confirmed.fBufferSize = LoRaWAN._tx_size;
-        mcpsReq.Req.Confirmed.NbTrials = 1 + LoRaWAN._ConfirmRetries;
+        mcpsReq.Req.Confirmed.NbTrials = 1 + LoRaWAN._Retries;
         mcpsReq.Req.Confirmed.Datarate = LoRaWAN._DataRate;
     }
     else
@@ -1867,6 +1846,11 @@ void LoRaWANClass::__MlmeConfirm( MlmeConfirm_t *mlmeConfirm )
     default:
         break;
     }
+}
+
+void LoRaWANClass::__MlmeIndication( MlmeIndication_t *mlmeIndication )
+{
+    (void)mlmeIndication;
 }
 
 LoRaWANClass LoRaWAN;

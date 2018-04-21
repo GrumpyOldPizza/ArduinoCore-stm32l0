@@ -170,11 +170,11 @@ void SX1276WriteBuffer( uint8_t addr, uint8_t *buffer, uint8_t size );
 void SX1276ReadBuffer( uint8_t addr, uint8_t *buffer, uint8_t size );
 
 /*!
- * \brief   Service to get the radio wake-up time.
+ * \brief Gets the time required for the board plus radio to get out of sleep.[ms]
  *
- * \retval  Value of the radio wake-up time.
+ * \retval time Radio plus board wakeup time in ms.
  */
-uint32_t SX1276GetRadioWakeUpTime( void );
+uint32_t SX1276GetWakeupTime( void );
 
 /*!
  * Radio hardware and global parameters

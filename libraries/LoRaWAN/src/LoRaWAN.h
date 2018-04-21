@@ -53,21 +53,19 @@ typedef struct {
     uint8_t  AppSKey[16];
 } LoRaWANSession;
 
-typedef enum {
-    EU868 = 0,
-    US915,
-    AU915,
-    AS923,
-    KR920,
-    IN865,
-} LoRaWANBand;
+extern const struct LoRaWANBand AS923;
+extern const struct LoRaWANBand AU915;
+extern const struct LoRaWANBand EU868;
+extern const struct LoRaWANBand IN865;
+extern const struct LoRaWANBand KR920;
+extern const struct LoRaWANBand US915;
 
 class LoRaWANClass : public Stream
 {
 public:
     LoRaWANClass();
 
-    int begin(LoRaWANBand band);
+    int begin(const struct LoRaWANBand &band);
     void stop();
 
     int joinOTAA(const char *appEui, const char *appKey, const char *devEui);
@@ -125,13 +123,13 @@ public:
 
     int setJoinDelay1(unsigned int delay);
     int setJoinDelay2(unsigned int delay);
-    int setJoinRetries(unsigned int n);
 
     int setPublicNetwork(bool enable);
     int setADR(bool enable);
     int setDataRate(unsigned int datarate);
     int setTxPower(unsigned int power); // 2dm to 20dbm 
-    int setConfirmRetries(unsigned int n);
+    int setRetries(unsigned int n);
+    int setRepeat(unsigned int n);
 
     int setReceiveDelay(unsigned int delay);
     int setRX2Channel(unsigned long frequency, unsigned int datarate);
@@ -143,10 +141,9 @@ public:
     int setAntennaGain(float gain);
 
     int setDutyCycle(bool enable);
-    int setReceiveWindows(bool enable);
  
 private:
-    uint8_t           _initialized;
+    const struct LoRaWANBand *_Band;
 
     uint8_t           _rx_data[LORAWAN_RX_BUFFER_SIZE];
     volatile uint16_t _rx_read;
@@ -170,14 +167,12 @@ private:
     volatile uint8_t  _tx_ack;
     volatile uint8_t  _tx_busy;
 
-    uint8_t           _JoinRetries;
-    uint8_t           _ConfirmRetries;
-
-    uint8_t           _Band;
     uint8_t           _PublicNetwork;
     uint8_t           _AdrEnable;
     uint8_t           _DataRate;
     uint8_t           _TxPower;
+    uint8_t           _Retries;
+    uint8_t           _Repeat;
 
     LoRaWANSession    _session;
 
@@ -189,6 +184,7 @@ private:
     static void __McpsConfirm(struct sMcpsConfirm*);
     static void __McpsIndication(struct sMcpsIndication*);
     static void __MlmeConfirm(struct sMlmeConfirm*);
+    static void __MlmeIndication(struct sMlmeIndication*);
 };
 
 extern LoRaWANClass LoRaWAN;

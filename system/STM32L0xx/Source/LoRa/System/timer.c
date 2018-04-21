@@ -50,6 +50,11 @@ void TimerReset( TimerEvent_t *obj )
     TimerStart( obj );
 }
 
+bool TimerIsRunning( TimerEvent_t *obj )
+{
+    return !stm32l0_rtc_timer_done(&obj->rtc_timer);
+}
+
 void TimerSetValue( TimerEvent_t *obj, uint32_t value )
 {
     TimerStop( obj );

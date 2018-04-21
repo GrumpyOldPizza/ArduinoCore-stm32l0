@@ -24,33 +24,39 @@ void setup( void )
 
     LoRaWAN.begin(US915);
     LoRaWAN.setSubBand(2);
-    LoRaWAN.joinOTAA(appEui, appKey, devEui);
 }
 
 void loop( void )
 {
-    delay(10000);
-
-    if (!LoRaWAN.busy() && LoRaWAN.joined())
+    if (!LoRaWAN.busy())
     {
-        LoRaWAN.beginPacket();
-        LoRaWAN.write(0xef);
-        LoRaWAN.write(0xbe);
-        LoRaWAN.write(0xad);
-        LoRaWAN.write(0xde);
-        LoRaWAN.endPacket(true);
-
-        while (LoRaWAN.busy())
+        if (!LoRaWAN.joined())
         {
-        }
-
-        if (LoRaWAN.confirmed())
-        {
-            Serial.println("ACK ");
+            LoRaWAN.joinOTAA(appEui, appKey, devEui);
         }
         else
         {
-            Serial.println("NACK");
+            LoRaWAN.beginPacket();
+            LoRaWAN.write(0xef);
+            LoRaWAN.write(0xbe);
+            LoRaWAN.write(0xad);
+            LoRaWAN.write(0xde);
+            LoRaWAN.endPacket(true);
+            
+            while (LoRaWAN.busy())
+            {
+            }
+            
+            if (LoRaWAN.confirmed())
+            {
+                Serial.println("ACK ");
+            }
+            else
+            {
+                Serial.println("NACK");
+            }
         }
     }
+
+    delay(10000);
 }

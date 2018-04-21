@@ -1,21 +1,32 @@
-/*
- / _____)             _              | |
-( (____  _____ ____ _| |_ _____  ____| |__
- \____ \| ___ |    (_   _) ___ |/ ___)  _ \
- _____) ) ____| | | || |_| ____( (___| | | |
-(______/|_____)_|_|_| \__)_____)\____)_| |_|
-    (C)2013 Semtech
- ___ _____ _   ___ _  _____ ___  ___  ___ ___
-/ __|_   _/_\ / __| |/ / __/ _ \| _ \/ __| __|
-\__ \ | |/ _ \ (__| ' <| _| (_) |   / (__| _|
-|___/ |_/_/ \_\___|_|\_\_| \___/|_|_\\___|___|
-embedded.connectivity.solutions===============
-
-Description: LoRa MAC region US915 implementation
-
-License: Revised BSD License, see LICENSE.TXT file include in the project
-
-Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jaeckle ( STACKFORCE )
+/*!
+ * \file      RegionUS915.c
+ *
+ * \brief     Region implementation for US915
+ *
+ * \copyright Revised BSD License, see section \ref LICENSE.
+ *
+ * \code
+ *                ______                              _
+ *               / _____)             _              | |
+ *              ( (____  _____ ____ _| |_ _____  ____| |__
+ *               \____ \| ___ |    (_   _) ___ |/ ___)  _ \
+ *               _____) ) ____| | | || |_| ____( (___| | | |
+ *              (______/|_____)_|_|_| \__)_____)\____)_| |_|
+ *              (C)2013-2017 Semtech
+ *
+ *               ___ _____ _   ___ _  _____ ___  ___  ___ ___
+ *              / __|_   _/_\ / __| |/ / __/ _ \| _ \/ __| __|
+ *              \__ \ | |/ _ \ (__| ' <| _| (_) |   / (__| _|
+ *              |___/ |_/_/ \_\___|_|\_\_| \___/|_|_\\___|___|
+ *              embedded.connectivity.solutions===============
+ *
+ * \endcode
+ *
+ * \author    Miguel Luis ( Semtech )
+ *
+ * \author    Gregory Cristian ( Semtech )
+ *
+ * \author    Daniel Jaeckle ( STACKFORCE )
 */
 
 #include <stdbool.h>
@@ -34,33 +45,106 @@ Maintainer: Miguel Luis ( Semtech ), Gregory Cristian ( Semtech ) and Daniel Jae
 #include "RegionUS915.h"
 
 // Definitions
-#define CHANNELS_MASK_SIZE              6
+#define CHANNELS_MASK_SIZE              5
 
 // Global attributes
 /*!
  * LoRaMAC channels
  */
-extern ChannelParams_t LoRaMacChannels[US915_MAX_NB_CHANNELS];
+static const ChannelParams_t RegionUS915Channels[US915_MAX_NB_CHANNELS] = {
+    { 902300000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 902500000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 902700000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 902900000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 903100000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 903300000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 903500000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 903700000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 903900000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 904100000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 904300000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 904500000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 904700000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 904900000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 905100000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 905300000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 905500000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 905700000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 905900000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 906100000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 906300000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 906500000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 906700000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 906900000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 907100000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 907300000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 907500000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 907700000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 907900000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 908100000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 908300000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 908500000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 908700000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 908900000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 909100000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 909300000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 909500000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 909700000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 909900000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 910100000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 910300000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 910500000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 910700000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 910900000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 911100000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 911300000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 911500000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 911700000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 911900000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 912100000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 912300000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 912500000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 912700000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 912900000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 913100000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 913300000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 913500000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 913700000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 913900000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 914100000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 914300000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 914500000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 914700000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 914900000, 0, { ( DR_3 << 4 ) | DR_0 }, 0 },
+    { 903000000, 0, { ( DR_4 << 4 ) | DR_4 }, 0 },
+    { 904600000, 0, { ( DR_4 << 4 ) | DR_4 }, 0 },
+    { 906200000, 0, { ( DR_4 << 4 ) | DR_4 }, 0 },
+    { 907800000, 0, { ( DR_4 << 4 ) | DR_4 }, 0 },
+    { 909400000, 0, { ( DR_4 << 4 ) | DR_4 }, 0 },
+    { 911000000, 0, { ( DR_4 << 4 ) | DR_4 }, 0 },
+    { 912600000, 0, { ( DR_4 << 4 ) | DR_4 }, 0 },
+    { 914200000, 0, { ( DR_4 << 4 ) | DR_4 }, 0 },
+};
 
 /*!
  * LoRaMac bands
  */
-extern Band_t LoRaMacBands[US915_MAX_NB_BANDS];
+extern Band_t RegionBands[US915_MAX_NB_BANDS];
 
 /*!
  * LoRaMac channels mask
  */
-extern uint16_t LoRaMacChannelsMask[CHANNELS_MASK_SIZE];
+extern uint16_t RegionChannelsMask[CHANNELS_MASK_SIZE];
 
 /*!
  * LoRaMac channels remaining
  */
-extern uint16_t LoRaMacChannelsMaskRemaining[CHANNELS_MASK_SIZE];
+extern uint16_t RegionChannelsMaskRemaining[CHANNELS_MASK_SIZE];
 
 /*!
  * LoRaMac channels default mask
  */
-extern uint16_t LoRaMacChannelsDefaultMask[CHANNELS_MASK_SIZE];
+extern uint16_t RegionChannelsDefaultMask[CHANNELS_MASK_SIZE];
 
 // Static functions
 static int8_t GetNextLowerTxDr( int8_t dr, int8_t minDr )
@@ -113,7 +197,7 @@ static int8_t LimitTxPower( int8_t txPower, int8_t maxBandTxPower, int8_t datara
     return txPowerResult;
 }
 
-static uint8_t CountNbOfEnabledChannels( uint8_t datarate, uint16_t* channelsMask, ChannelParams_t* channels, Band_t* bands, uint8_t* enabledChannels, uint8_t* delayTx )
+static uint8_t CountNbOfEnabledChannels( uint8_t datarate, uint16_t* channelsMask, const ChannelParams_t* channels, Band_t* bands, uint8_t* enabledChannels, uint8_t* delayTx )
 {
     uint8_t nbEnabledChannels = 0;
     uint8_t delayTransmission = 0;
@@ -147,7 +231,7 @@ static uint8_t CountNbOfEnabledChannels( uint8_t datarate, uint16_t* channelsMas
     return nbEnabledChannels;
 }
 
-static PhyParam_t RegionUS915GetPhyParam( GetPhyParams_t* getPhy )
+PhyParam_t RegionUS915GetPhyParam( GetPhyParams_t* getPhy )
 {
     PhyParam_t phyParam = { 0 };
 
@@ -245,12 +329,12 @@ static PhyParam_t RegionUS915GetPhyParam( GetPhyParams_t* getPhy )
         }
         case PHY_CHANNELS_MASK:
         {
-            phyParam.ChannelsMask = LoRaMacChannelsMask;
+            phyParam.ChannelsMask = RegionChannelsMask;
             break;
         }
         case PHY_CHANNELS_DEFAULT_MASK:
         {
-            phyParam.ChannelsMask = LoRaMacChannelsDefaultMask;
+            phyParam.ChannelsMask = RegionChannelsDefaultMask;
             break;
         }
         case PHY_MAX_NB_CHANNELS:
@@ -260,7 +344,7 @@ static PhyParam_t RegionUS915GetPhyParam( GetPhyParams_t* getPhy )
         }
         case PHY_CHANNELS:
         {
-            phyParam.Channels = LoRaMacChannels;
+            phyParam.Channels = RegionUS915Channels;
             break;
         }
         case PHY_DEF_UPLINK_DWELL_TIME:
@@ -275,12 +359,6 @@ static PhyParam_t RegionUS915GetPhyParam( GetPhyParams_t* getPhy )
             phyParam.fValue = 0;
             break;
         }
-        case PHY_NB_JOIN_TRIALS:
-        case PHY_DEF_NB_JOIN_TRIALS:
-        {
-            phyParam.Value = 2;
-            break;
-        }
         default:
         {
             break;
@@ -290,60 +368,70 @@ static PhyParam_t RegionUS915GetPhyParam( GetPhyParams_t* getPhy )
     return phyParam;
 }
 
-static void RegionUS915SetBandTxDone( SetBandTxDoneParams_t* txDone )
+void RegionUS915SetBandTxDone( SetBandTxDoneParams_t* txDone )
 {
-    RegionCommonSetBandTxDone( txDone->Joined, &LoRaMacBands[LoRaMacChannels[txDone->Channel].Band], txDone->LastTxDoneTime );
+    RegionCommonSetBandTxDone( txDone->Joined, &RegionBands[RegionUS915Channels[txDone->Channel].Band], txDone->LastTxDoneTime );
 }
 
-static void RegionUS915InitDefaults( InitType_t type )
+void RegionUS915InitDefaults( InitType_t type )
 {
     switch( type )
     {
         case INIT_TYPE_INIT:
         {
-	    // Bands
-	    LoRaMacBands[0] = ( Band_t )US915_BAND0;
-
+#if 0
             // Channels
             // 125 kHz channels
             for( uint8_t i = 0; i < US915_MAX_NB_CHANNELS - 8; i++ )
             {
-                LoRaMacChannels[i].Frequency = 902300000 + i * 200000;
-                LoRaMacChannels[i].DrRange.Value = ( DR_3 << 4 ) | DR_0;
-                LoRaMacChannels[i].Band = 0;
+                RegionUS915Channels[i].Frequency = 902300000 + i * 200000;
+                RegionUS915Channels[i].DrRange.Value = ( DR_3 << 4 ) | DR_0;
+                RegionUS915Channels[i].Band = 0;
             }
             // 500 kHz channels
             for( uint8_t i = US915_MAX_NB_CHANNELS - 8; i < US915_MAX_NB_CHANNELS; i++ )
             {
-                LoRaMacChannels[i].Frequency = 903000000 + ( i - ( US915_MAX_NB_CHANNELS - 8 ) ) * 1600000;
-                LoRaMacChannels[i].DrRange.Value = ( DR_4 << 4 ) | DR_4;
-                LoRaMacChannels[i].Band = 0;
+                RegionUS915Channels[i].Frequency = 903000000 + ( i - ( US915_MAX_NB_CHANNELS - 8 ) ) * 1600000;
+                RegionUS915Channels[i].DrRange.Value = ( DR_4 << 4 ) | DR_4;
+                RegionUS915Channels[i].Band = 0;
             }
+#endif
+
+	    // Bands
+	    RegionBands[0] = ( Band_t )US915_BAND0;
 
             // ChannelsMask
-            LoRaMacChannelsDefaultMask[0] = 0xFFFF;
-            LoRaMacChannelsDefaultMask[1] = 0xFFFF;
-            LoRaMacChannelsDefaultMask[2] = 0xFFFF;
-            LoRaMacChannelsDefaultMask[3] = 0xFFFF;
-            LoRaMacChannelsDefaultMask[4] = 0x00FF;
-            LoRaMacChannelsDefaultMask[5] = 0x0000;
+            RegionChannelsDefaultMask[0] = 0xFFFF;
+            RegionChannelsDefaultMask[1] = 0xFFFF;
+            RegionChannelsDefaultMask[2] = 0xFFFF;
+            RegionChannelsDefaultMask[3] = 0xFFFF;
+            RegionChannelsDefaultMask[4] = 0x00FF;
 
             // Copy channels default mask
-            RegionCommonChanMaskCopy( LoRaMacChannelsMask, LoRaMacChannelsDefaultMask, 6 );
+            RegionCommonChanMaskCopy( RegionChannelsMask, RegionChannelsDefaultMask, 5 );
 
             // Copy into channels mask remaining
-            RegionCommonChanMaskCopy( LoRaMacChannelsMaskRemaining, LoRaMacChannelsMask, 6 );
+            RegionCommonChanMaskCopy( RegionChannelsMaskRemaining, RegionChannelsMask, 5 );
             break;
         }
         case INIT_TYPE_RESTORE:
         {
             // Copy channels default mask
-            RegionCommonChanMaskCopy( LoRaMacChannelsMask, LoRaMacChannelsDefaultMask, 6 );
+            RegionCommonChanMaskCopy( RegionChannelsMask, RegionChannelsDefaultMask, 5 );
 
-            for( uint8_t i = 0; i < 6; i++ )
+            for( uint8_t i = 0; i < 5; i++ )
             { // Copy-And the channels mask
-                LoRaMacChannelsMaskRemaining[i] &= LoRaMacChannelsMask[i];
+                RegionChannelsMaskRemaining[i] &= RegionChannelsMask[i];
             }
+            break;
+        }
+        case INIT_TYPE_APP_DEFAULTS:
+        {
+            // Copy channels default mask
+            RegionCommonChanMaskCopy( RegionChannelsMask, RegionChannelsDefaultMask, 5 );
+
+            // Copy into channels mask remaining
+            RegionCommonChanMaskCopy( RegionChannelsMaskRemaining, RegionChannelsMask, 5 );
             break;
         }
         default:
@@ -353,7 +441,7 @@ static void RegionUS915InitDefaults( InitType_t type )
     }
 }
 
-static bool RegionUS915Verify( VerifyParams_t* verify, PhyAttribute_t phyAttribute )
+bool RegionUS915Verify( VerifyParams_t* verify, PhyAttribute_t phyAttribute )
 {
     switch( phyAttribute )
     {
@@ -379,26 +467,17 @@ static bool RegionUS915Verify( VerifyParams_t* verify, PhyAttribute_t phyAttribu
         {
             return US915_DUTY_CYCLE_ENABLED;
         }
-        case PHY_NB_JOIN_TRIALS:
-        {
-            if( verify->NbJoinTrials < 2 )
-            {
-                return false;
-            }
-            break;
-        }
         default:
             return false;
     }
-    return true;
 }
 
-static void RegionUS915ApplyCFList( ApplyCFListParams_t* applyCFList )
+void RegionUS915ApplyCFList( ApplyCFListParams_t* applyCFList )
 {
     return;
 }
 
-static bool RegionUS915ChanMaskSet( ChanMaskSetParams_t* chanMaskSet )
+bool RegionUS915ChanMaskSet( ChanMaskSetParams_t* chanMaskSet )
 {
     uint8_t nbChannels = RegionCommonCountChannels( chanMaskSet->ChannelsMaskIn, 0, 4 );
 
@@ -413,25 +492,17 @@ static bool RegionUS915ChanMaskSet( ChanMaskSetParams_t* chanMaskSet )
     {
         case CHANNELS_MASK:
         {
-            for( uint8_t i = 0; i < 6; i++ )
-            {
-		if (chanMaskSet->ChannelsMaskIn[i] & ~LoRaMacChannelsDefaultMask[i])
-		{
-		    return false;
-		}
-            }
+            RegionCommonChanMaskCopy( RegionChannelsMask, chanMaskSet->ChannelsMaskIn, 5 );
 
-            RegionCommonChanMaskCopy( LoRaMacChannelsMask, chanMaskSet->ChannelsMaskIn, 6 );
-
-            for( uint8_t i = 0; i < 6; i++ )
+            for( uint8_t i = 0; i < 5; i++ )
             { // Copy-And the channels mask
-                LoRaMacChannelsMaskRemaining[i] &= LoRaMacChannelsMask[i];
+                RegionChannelsMaskRemaining[i] &= RegionChannelsMask[i];
             }
             break;
         }
         case CHANNELS_DEFAULT_MASK:
         {
-            RegionCommonChanMaskCopy( LoRaMacChannelsDefaultMask, chanMaskSet->ChannelsMaskIn, 6 );
+            RegionCommonChanMaskCopy( RegionChannelsDefaultMask, chanMaskSet->ChannelsMaskIn, 5 );
             break;
         }
         default:
@@ -440,7 +511,7 @@ static bool RegionUS915ChanMaskSet( ChanMaskSetParams_t* chanMaskSet )
     return true;
 }
 
-static bool RegionUS915AdrNext( AdrNextParams_t* adrNext, int8_t* drOut, int8_t* txPowOut, uint32_t* adrAckCounter )
+bool RegionUS915AdrNext( AdrNextParams_t* adrNext, int8_t* drOut, int8_t* txPowOut, uint32_t* adrAckCounter )
 {
     bool adrAckReq = false;
     int8_t datarate = adrNext->Datarate;
@@ -487,12 +558,11 @@ static bool RegionUS915AdrNext( AdrNextParams_t* adrNext, int8_t* drOut, int8_t*
                         if( adrNext->UpdateChanMask == true )
                         {
                             // Re-enable default channels
-			    LoRaMacChannelsMask[0] = LoRaMacChannelsDefaultMask[0];
-			    LoRaMacChannelsMask[1] = LoRaMacChannelsDefaultMask[1];
-                            LoRaMacChannelsMask[2] = LoRaMacChannelsDefaultMask[2];
-                            LoRaMacChannelsMask[3] = LoRaMacChannelsDefaultMask[3];
-                            LoRaMacChannelsMask[4] = LoRaMacChannelsDefaultMask[4];
-                            LoRaMacChannelsMask[5] = LoRaMacChannelsDefaultMask[5];
+                            RegionChannelsMask[0] = RegionChannelsDefaultMask[0];
+                            RegionChannelsMask[1] = RegionChannelsDefaultMask[1];
+                            RegionChannelsMask[2] = RegionChannelsDefaultMask[2];
+                            RegionChannelsMask[3] = RegionChannelsDefaultMask[3];
+                            RegionChannelsMask[4] = RegionChannelsDefaultMask[4];
                         }
                     }
                 }
@@ -505,7 +575,7 @@ static bool RegionUS915AdrNext( AdrNextParams_t* adrNext, int8_t* drOut, int8_t*
     return adrAckReq;
 }
 
-static void RegionUS915ComputeRxWindowParameters( int8_t datarate, uint8_t minRxSymbols, uint32_t rxError, RxConfigParams_t *rxConfigParams )
+void RegionUS915ComputeRxWindowParameters( int8_t datarate, uint8_t minRxSymbols, uint32_t rxError, RxConfigParams_t *rxConfigParams )
 {
     double tSymbol = 0.0;
 
@@ -515,10 +585,10 @@ static void RegionUS915ComputeRxWindowParameters( int8_t datarate, uint8_t minRx
 
     tSymbol = RegionCommonComputeSymbolTimeLoRa( DataratesUS915[rxConfigParams->Datarate], BandwidthsUS915[rxConfigParams->Datarate] );
 
-    RegionCommonComputeRxWindowParameters( tSymbol, minRxSymbols, rxError, Radio.GetRadioWakeUpTime(), &rxConfigParams->WindowTimeout, &rxConfigParams->WindowOffset );
+    RegionCommonComputeRxWindowParameters( tSymbol, minRxSymbols, rxError, Radio.GetWakeupTime( ), &rxConfigParams->WindowTimeout, &rxConfigParams->WindowOffset );
 }
 
-static bool RegionUS915RxConfig( RxConfigParams_t* rxConfig, int8_t* datarate )
+bool RegionUS915RxConfig( RxConfigParams_t* rxConfig, int8_t* datarate )
 {
     int8_t dr = rxConfig->Datarate;
     uint8_t maxPayload = 0;
@@ -530,7 +600,7 @@ static bool RegionUS915RxConfig( RxConfigParams_t* rxConfig, int8_t* datarate )
         return false;
     }
 
-    if( rxConfig->Window == 0 )
+    if( rxConfig->RxSlot == RX_SLOT_WIN_1 )
     {
         // Apply window 1 frequency
         frequency = US915_FIRST_RX1_CHANNEL + ( rxConfig->Channel % 8 ) * US915_STEPWIDTH_RX1_CHANNEL;
@@ -558,10 +628,10 @@ static bool RegionUS915RxConfig( RxConfigParams_t* rxConfig, int8_t* datarate )
     return true;
 }
 
-static bool RegionUS915TxConfig( TxConfigParams_t* txConfig, int8_t* txPower, TimerTime_t* txTimeOnAir )
+bool RegionUS915TxConfig( TxConfigParams_t* txConfig, int8_t* txPower, TimerTime_t* txTimeOnAir )
 {
     int8_t phyDr = DataratesUS915[txConfig->Datarate];
-    int8_t txPowerLimited = LimitTxPower( txConfig->TxPower, LoRaMacBands[LoRaMacChannels[txConfig->Channel].Band].TxMaxPower, txConfig->Datarate, LoRaMacChannelsMask );
+    int8_t txPowerLimited = LimitTxPower( txConfig->TxPower, RegionBands[RegionUS915Channels[txConfig->Channel].Band].TxMaxPower, txConfig->Datarate, RegionChannelsMask );
     uint32_t bandwidth = GetBandwidth( txConfig->Datarate );
     int8_t phyTxPower = 0;
 
@@ -569,7 +639,7 @@ static bool RegionUS915TxConfig( TxConfigParams_t* txConfig, int8_t* txPower, Ti
     phyTxPower = RegionCommonComputeTxPower( txPowerLimited, US915_DEFAULT_MAX_ERP, 0 );
 
     // Setup the radio frequency
-    Radio.SetChannel( LoRaMacChannels[txConfig->Channel].Frequency );
+    Radio.SetChannel( RegionUS915Channels[txConfig->Channel].Frequency );
 
     Radio.SetTxConfig( MODEM_LORA, phyTxPower, 0, bandwidth, phyDr, 1, 8, false, true, 0, 0, false, 3000 );
 
@@ -582,19 +652,19 @@ static bool RegionUS915TxConfig( TxConfigParams_t* txConfig, int8_t* txPower, Ti
     return true;
 }
 
-static uint8_t RegionUS915LinkAdrReq( LinkAdrReqParams_t* linkAdrReq, int8_t* drOut, int8_t* txPowOut, uint8_t* nbRepOut, uint8_t* nbBytesParsed )
+uint8_t RegionUS915LinkAdrReq( LinkAdrReqParams_t* linkAdrReq, int8_t* drOut, int8_t* txPowOut, uint8_t* nbRepOut, uint8_t* nbBytesParsed )
 {
     uint8_t status = 0x07;
     RegionCommonLinkAdrParams_t linkAdrParams;
     uint8_t nextIndex = 0;
     uint8_t bytesProcessed = 0;
-    uint16_t channelsMask[6] = { 0, 0, 0, 0, 0, 0 };
+    uint16_t channelsMask[5] = { 0, 0, 0, 0, 0 };
     GetPhyParams_t getPhy;
     PhyParam_t phyParam;
     RegionCommonLinkAdrReqVerifyParams_t linkAdrVerifyParams;
 
     // Initialize local copy of channels mask
-    RegionCommonChanMaskCopy( channelsMask, LoRaMacChannelsMask, 6 );
+    RegionCommonChanMaskCopy( channelsMask, RegionChannelsMask, 5 );
 
     while( bytesProcessed < linkAdrReq->PayloadSize )
     {
@@ -651,14 +721,6 @@ static uint8_t RegionUS915LinkAdrReq( LinkAdrReqParams_t* linkAdrReq, int8_t* dr
         status &= 0xFE; // Channel mask KO
     }
 
-    for( uint8_t i = 0; i < 6; i++ )
-    {
-	if (channelsMask[i] & ~LoRaMacChannelsDefaultMask[i])
-	{
-	    status &= 0xFE; // Channel mask KO
-	}
-    }
-    
     // Get the minimum possible datarate
     getPhy.Attribute = PHY_MIN_TX_DR;
     getPhy.UplinkDwellTime = linkAdrReq->UplinkDwellTime;
@@ -676,7 +738,7 @@ static uint8_t RegionUS915LinkAdrReq( LinkAdrReqParams_t* linkAdrReq, int8_t* dr
     linkAdrVerifyParams.ChannelsMask = channelsMask;
     linkAdrVerifyParams.MinDatarate = ( int8_t )phyParam.Value;
     linkAdrVerifyParams.MaxDatarate = US915_TX_MAX_DATARATE;
-    linkAdrVerifyParams.Channels = LoRaMacChannels;
+    linkAdrVerifyParams.Channels = RegionUS915Channels;
     linkAdrVerifyParams.MinTxPower = US915_MIN_TX_POWER;
     linkAdrVerifyParams.MaxTxPower = US915_MAX_TX_POWER;
 
@@ -687,14 +749,13 @@ static uint8_t RegionUS915LinkAdrReq( LinkAdrReqParams_t* linkAdrReq, int8_t* dr
     if( status == 0x07 )
     {
         // Copy Mask
-        RegionCommonChanMaskCopy( LoRaMacChannelsMask, channelsMask, 6 );
+        RegionCommonChanMaskCopy( RegionChannelsMask, channelsMask, 5 );
 
-        LoRaMacChannelsMaskRemaining[0] &= LoRaMacChannelsMask[0];
-        LoRaMacChannelsMaskRemaining[1] &= LoRaMacChannelsMask[1];
-        LoRaMacChannelsMaskRemaining[2] &= LoRaMacChannelsMask[2];
-        LoRaMacChannelsMaskRemaining[3] &= LoRaMacChannelsMask[3];
-        LoRaMacChannelsMaskRemaining[4] = LoRaMacChannelsMask[4];
-        LoRaMacChannelsMaskRemaining[5] = LoRaMacChannelsMask[5];
+        RegionChannelsMaskRemaining[0] &= RegionChannelsMask[0];
+        RegionChannelsMaskRemaining[1] &= RegionChannelsMask[1];
+        RegionChannelsMaskRemaining[2] &= RegionChannelsMask[2];
+        RegionChannelsMaskRemaining[3] &= RegionChannelsMask[3];
+        RegionChannelsMaskRemaining[4] = RegionChannelsMask[4];
     }
 
     // Update status variables
@@ -706,7 +767,7 @@ static uint8_t RegionUS915LinkAdrReq( LinkAdrReqParams_t* linkAdrReq, int8_t* dr
     return status;
 }
 
-static uint8_t RegionUS915RxParamSetupReq( RxParamSetupReqParams_t* rxParamSetupReq )
+uint8_t RegionUS915RxParamSetupReq( RxParamSetupReqParams_t* rxParamSetupReq )
 {
     uint8_t status = 0x07;
     uint32_t freq = rxParamSetupReq->Frequency;
@@ -740,46 +801,47 @@ static uint8_t RegionUS915RxParamSetupReq( RxParamSetupReqParams_t* rxParamSetup
     return status;
 }
 
-static uint8_t RegionUS915NewChannelReq( NewChannelReqParams_t* newChannelReq )
+uint8_t RegionUS915NewChannelReq( NewChannelReqParams_t* newChannelReq )
 {
     // Datarate and frequency KO
     return 0;
 }
 
-static int8_t RegionUS915TxParamSetupReq( TxParamSetupReqParams_t* txParamSetupReq )
+int8_t RegionUS915TxParamSetupReq( TxParamSetupReqParams_t* txParamSetupReq )
 {
     return -1;
 }
 
-static uint8_t RegionUS915DlChannelReq( DlChannelReqParams_t* dlChannelReq )
+uint8_t RegionUS915DlChannelReq( DlChannelReqParams_t* dlChannelReq )
 {
     return 0;
 }
 
-static int8_t RegionUS915AlternateDr( AlternateDrParams_t* alternateDr )
+int8_t RegionUS915AlternateDr( int8_t currentDr )
 {
-    int8_t datarate = 0;
+    static int8_t trialsCount = 0;
 
     // Re-enable 500 kHz default channels
-    LoRaMacChannelsMask[4] = LoRaMacChannelsDefaultMask[4];
+    RegionChannelsMask[4] = RegionChannelsDefaultMask[4];
 
-    if( ( alternateDr->NbTrials & 0x01 ) == 0x01 )
+    if( ( trialsCount & 0x01 ) == 0x01 )
     {
-        datarate = DR_4;
+        currentDr = DR_4;
     }
     else
     {
-        datarate = DR_0;
+        currentDr = DR_0;
     }
-    return datarate;
+    trialsCount++;
+    return currentDr;
 }
 
-static void RegionUS915CalcBackOff( CalcBackOffParams_t* calcBackOff )
+void RegionUS915CalcBackOff( CalcBackOffParams_t* calcBackOff )
 {
     RegionCommonCalcBackOffParams_t calcBackOffParams;
 
-    calcBackOffParams.Channels = LoRaMacChannels;
-    calcBackOffParams.Bands = LoRaMacBands;
+    calcBackOffParams.Channels = RegionUS915Channels;
+    calcBackOffParams.Bands = RegionBands;
     calcBackOffParams.LastTxIsJoinRequest = calcBackOff->LastTxIsJoinRequest;
     calcBackOffParams.Joined = calcBackOff->Joined;
     calcBackOffParams.DutyCycleEnabled = calcBackOff->DutyCycleEnabled;
@@ -790,7 +852,7 @@ static void RegionUS915CalcBackOff( CalcBackOffParams_t* calcBackOff )
     RegionCommonCalcBackOff( &calcBackOffParams );
 }
 
-static bool RegionUS915NextChannel( NextChanParams_t* nextChanParams, uint8_t* channel, TimerTime_t* time, TimerTime_t* aggregatedTimeOff )
+LoRaMacStatus_t RegionUS915NextChannel( NextChanParams_t* nextChanParams, uint8_t* channel, TimerTime_t* time, TimerTime_t* aggregatedTimeOff )
 {
     uint8_t nbEnabledChannels = 0;
     uint8_t delayTx = 0;
@@ -798,16 +860,16 @@ static bool RegionUS915NextChannel( NextChanParams_t* nextChanParams, uint8_t* c
     TimerTime_t nextTxDelay = 0;
 
     // Count 125kHz channels
-    if( RegionCommonCountChannels( LoRaMacChannelsMaskRemaining, 0, 4 ) == 0 )
+    if( RegionCommonCountChannels( RegionChannelsMaskRemaining, 0, 4 ) == 0 )
     { // Reactivate default channels
-        RegionCommonChanMaskCopy( LoRaMacChannelsMaskRemaining, LoRaMacChannelsMask, 4  );
+        RegionCommonChanMaskCopy( RegionChannelsMaskRemaining, RegionChannelsMask, 4  );
     }
     // Check other channels
     if( nextChanParams->Datarate >= DR_4 )
     {
-        if( ( LoRaMacChannelsMaskRemaining[4] & 0x00FF ) == 0 )
+        if( ( RegionChannelsMaskRemaining[4] & 0x00FF ) == 0 )
         {
-            LoRaMacChannelsMaskRemaining[4] = LoRaMacChannelsMask[4];
+            RegionChannelsMaskRemaining[4] = RegionChannelsMask[4];
         }
     }
 
@@ -817,12 +879,12 @@ static bool RegionUS915NextChannel( NextChanParams_t* nextChanParams, uint8_t* c
         *aggregatedTimeOff = 0;
 
         // Update bands Time OFF
-        nextTxDelay = RegionCommonUpdateBandTimeOff( nextChanParams->Joined, nextChanParams->DutyCycleEnabled, LoRaMacBands, US915_MAX_NB_BANDS );
+        nextTxDelay = RegionCommonUpdateBandTimeOff( nextChanParams->Joined, nextChanParams->DutyCycleEnabled, RegionBands, US915_MAX_NB_BANDS );
 
         // Search how many channels are enabled
         nbEnabledChannels = CountNbOfEnabledChannels( nextChanParams->Datarate,
-                                                      LoRaMacChannelsMaskRemaining, LoRaMacChannels,
-                                                      LoRaMacBands, enabledChannels, &delayTx );
+                                                      RegionChannelsMaskRemaining, RegionUS915Channels,
+                                                      RegionBands, enabledChannels, &delayTx );
     }
     else
     {
@@ -835,10 +897,10 @@ static bool RegionUS915NextChannel( NextChanParams_t* nextChanParams, uint8_t* c
         // We found a valid channel
         *channel = enabledChannels[randr( 0, nbEnabledChannels - 1 )];
         // Disable the channel in the mask
-        RegionCommonChanDisable( LoRaMacChannelsMaskRemaining, *channel, US915_MAX_NB_CHANNELS - 8 );
+        RegionCommonChanDisable( RegionChannelsMaskRemaining, *channel, US915_MAX_NB_CHANNELS - 8 );
 
         *time = 0;
-        return true;
+        return LORAMAC_STATUS_OK;
     }
     else
     {
@@ -846,29 +908,29 @@ static bool RegionUS915NextChannel( NextChanParams_t* nextChanParams, uint8_t* c
         {
             // Delay transmission due to AggregatedTimeOff or to a band time off
             *time = nextTxDelay;
-            return true;
+            return LORAMAC_STATUS_DUTYCYCLE_RESTRICTED;
         }
         // Datarate not supported by any channel
         *time = 0;
-        return false;
+        return LORAMAC_STATUS_NO_CHANNEL_FOUND;
     }
 }
 
-static LoRaMacStatus_t RegionUS915ChannelAdd( ChannelAddParams_t* channelAdd )
+LoRaMacStatus_t RegionUS915ChannelAdd( ChannelAddParams_t* channelAdd )
 {
     return LORAMAC_STATUS_PARAMETER_INVALID;
 }
 
-static bool RegionUS915ChannelsRemove( ChannelRemoveParams_t* channelRemove  )
+bool RegionUS915ChannelRemove( ChannelRemoveParams_t* channelRemove  )
 {
     return LORAMAC_STATUS_PARAMETER_INVALID;
 }
 
-static void RegionUS915SetContinuousWave( ContinuousWaveParams_t* continuousWave )
+void RegionUS915SetContinuousWave( ContinuousWaveParams_t* continuousWave )
 {
-    int8_t txPowerLimited = LimitTxPower( continuousWave->TxPower, LoRaMacBands[LoRaMacChannels[continuousWave->Channel].Band].TxMaxPower, continuousWave->Datarate, LoRaMacChannelsMask );
+    int8_t txPowerLimited = LimitTxPower( continuousWave->TxPower, RegionBands[RegionUS915Channels[continuousWave->Channel].Band].TxMaxPower, continuousWave->Datarate, RegionChannelsMask );
     int8_t phyTxPower = 0;
-    uint32_t frequency = LoRaMacChannels[continuousWave->Channel].Frequency;
+    uint32_t frequency = RegionUS915Channels[continuousWave->Channel].Frequency;
 
     // Calculate physical TX power
     phyTxPower = RegionCommonComputeTxPower( txPowerLimited, US915_DEFAULT_MAX_ERP, 0 );
@@ -876,7 +938,7 @@ static void RegionUS915SetContinuousWave( ContinuousWaveParams_t* continuousWave
     Radio.SetTxContinuousWave( frequency, phyTxPower, continuousWave->Timeout );
 }
 
-static uint8_t RegionUS915ApplyDrOffset( uint8_t downlinkDwellTime, int8_t dr, int8_t drOffset )
+uint8_t RegionUS915ApplyDrOffset( uint8_t downlinkDwellTime, int8_t dr, int8_t drOffset )
 {
     int8_t datarate = DatarateOffsetsUS915[dr][drOffset];
 
@@ -907,7 +969,7 @@ const LoRaMacRegion_t LoRaMacRegionUS915 = {
     RegionUS915CalcBackOff,
     RegionUS915NextChannel,
     RegionUS915ChannelAdd,
-    RegionUS915ChannelsRemove,
+    RegionUS915ChannelRemove,
     RegionUS915SetContinuousWave,
     RegionUS915ApplyDrOffset,
 };

@@ -53,7 +53,7 @@ const struct Radio_s Radio =
     SX1276ReadBuffer,
     SX1276SetMaxPayloadLength,
     SX1276SetPublicNetwork,
-    SX1276GetRadioWakeUpTime
+    SX1276GetWakeupTime
 };
 
 static bool IsLowPower = true;
@@ -411,7 +411,7 @@ void SX1276ReadBuffer( uint8_t addr, uint8_t *buffer, uint8_t size )
     stm32l0_gpio_pin_write(RADIO_NSS, 1);
 }
 
-uint32_t SX1276GetRadioWakeUpTime( void )
+uint32_t SX1276GetWakeupTime( void )
 {
   // return RADIO_WAKEUP_TIME;
   return 4;

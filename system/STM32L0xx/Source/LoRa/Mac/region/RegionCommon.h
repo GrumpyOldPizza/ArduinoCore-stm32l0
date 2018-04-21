@@ -12,7 +12,7 @@
  *               \____ \| ___ |    (_   _) ___ |/ ___)  _ \
  *               _____) ) ____| | | || |_| ____( (___| | | |
  *              (______/|_____)_|_|_| \__)_____)\____)_| |_|
- *              (C)2013 Semtech
+ *              (C)2013-2017 Semtech
  *
  *               ___ _____ _   ___ _  _____ ___  ___  ___ ___
  *              / __|_   _/_\ / __| |/ / __/ _ \| _ \/ __| __|
@@ -112,7 +112,7 @@ typedef struct sRegionCommonLinkAdrReqVerifyParams
     /*!
      * Pointer to the channels.
      */
-    ChannelParams_t* Channels;
+    const ChannelParams_t* Channels;
     /*!
      * The minimum possible TX power.
      */
@@ -128,7 +128,7 @@ typedef struct sRegionCommonCalcBackOffParams
     /*!
      * A pointer to region specific channels.
      */
-    ChannelParams_t* Channels;
+    const ChannelParams_t* Channels;
     /*!
      * A pointer to region specific bands.
      */
@@ -202,7 +202,7 @@ uint8_t RegionCommonValueInRange( int8_t value, int8_t min, int8_t max );
  * \retval Returns true if the datarate is supported, false if not.
  */
 bool RegionCommonChanVerifyDr( uint8_t nbChannels, uint16_t* channelsMask, int8_t dr,
-                            int8_t minDr, int8_t maxDr, ChannelParams_t* channels );
+                            int8_t minDr, int8_t maxDr, const ChannelParams_t* channels );
 
 /*!
  * \brief Disables a channel in a given channels mask.

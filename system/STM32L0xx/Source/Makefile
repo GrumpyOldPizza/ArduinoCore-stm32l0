@@ -41,8 +41,8 @@ SRCS = \
 	./LoRa/Mac/region/RegionCN779.c \
 	./LoRa/Mac/region/RegionEU433.c \
 	./LoRa/Mac/region/RegionEU868.c \
-	./LoRa/Mac/region/RegionKR920.c \
 	./LoRa/Mac/region/RegionIN865.c \
+	./LoRa/Mac/region/RegionKR920.c \
 	./LoRa/Mac/region/RegionUS915.c \
 	./LoRa/Radio/sx1276/sx1276.c \
 	./LoRa/Radio/sx1276/sx1276-board.c \
