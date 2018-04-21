@@ -1,9 +1,20 @@
 # Arduino Core for STM32L0 based boards
 
+## What is it ?
+
+ArduinoCore-stm32l0 is targeted at ultra low power scenarios, sensor hubs, with LoRaWAN connectivity.
+
+
 ## Supported boards
 
 ### Tlera Corp
  * [Grasshopper-STM32L082CZ](https://www.tindie.com/products/TleraCorp/grasshopper-lora-development-board)
+ * [Cricket-STM32L082CZ](https://www.tindie.com/products/TleraCorp/cricket-lorawangnss-asset-tracker)
+ * [Cicada-STM32L082CZ](https://www.tindie.com/products/TleraCorp/lorasensortile)
+
+### STMicroelectronics
+ * B-L072Z-LRWAN1
+
 
 ## Installing
 
