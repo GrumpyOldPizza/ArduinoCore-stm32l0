@@ -36,7 +36,6 @@ extern void EXTI4_15_IRQHandler(void);
 
 typedef struct _stm32l0_exti_device_t {
     uint32_t                events;
-    uint32_t                wakeup;
     uint32_t                mask;
     stm32l0_exti_callback_t callback[16];
     void                    *context[16];
@@ -76,7 +75,6 @@ void stm32l0_exti_configure(unsigned int priority)
     NVIC_EnableIRQ(EXTI4_15_IRQn);
 
     stm32l0_exti_device.events = 0;
-    stm32l0_exti_device.wakeup = 0;
     stm32l0_exti_device.mask = ~0ul;
 }
 
@@ -117,11 +115,6 @@ bool stm32l0_exti_attach(uint16_t pin, uint32_t control, stm32l0_exti_callback_t
         armv6m_atomic_and(&EXTI->FTSR, ~mask);
     }
 
-    if (control & STM32L0_EXTI_CONTROL_WAKEUP)
-    {
-        armv6m_atomic_or(&stm32l0_exti_device.wakeup, mask);
-    }
-    
     armv6m_atomic_or(&stm32l0_exti_device.events, mask);
     armv6m_atomic_or(&EXTI->IMR, (stm32l0_exti_device.events & stm32l0_exti_device.mask));
 
@@ -138,7 +131,6 @@ void stm32l0_exti_detach(uint16_t pin)
 
     armv6m_atomic_and(&EXTI->IMR, ~mask);
     armv6m_atomic_and(&stm32l0_exti_device.events, ~mask);
-    armv6m_atomic_and(&stm32l0_exti_device.wakeup, ~mask);
 }
 
 void stm32l0_exti_block(uint32_t mask)
@@ -164,11 +156,6 @@ void EXTI0_1_IRQHandler(void)
         EXTI->PR = 0x0001;
 
         (*stm32l0_exti_device.callback[0])(stm32l0_exti_device.context[0]);
-
-        if (stm32l0_exti_device.wakeup & 0x0001) 
-        {
-            stm32l0_system_wakeup();
-        }
     }
 
     if (mask & 0x0002)
@@ -176,11 +163,6 @@ void EXTI0_1_IRQHandler(void)
         EXTI->PR = 0x0002;
 
         (*stm32l0_exti_device.callback[1])(stm32l0_exti_device.context[1]);
-
-        if (stm32l0_exti_device.wakeup & 0x0002) 
-        {
-            stm32l0_system_wakeup();
-        }
     }
 }
 
@@ -193,11 +175,6 @@ void EXTI2_3_IRQHandler(void)
         EXTI->PR = 0x0004;
 
         (*stm32l0_exti_device.callback[2])(stm32l0_exti_device.context[2]);
-
-        if (stm32l0_exti_device.wakeup & 0x0004) 
-        {
-            stm32l0_system_wakeup();
-        }
     }
 
     if (mask & 0x0008)
@@ -205,11 +182,6 @@ void EXTI2_3_IRQHandler(void)
         EXTI->PR = 0x0008;
 
         (*stm32l0_exti_device.callback[3])(stm32l0_exti_device.context[3]);
-
-        if (stm32l0_exti_device.wakeup & 0x0008) 
-        {
-            stm32l0_system_wakeup();
-        }
     }
 }
 
@@ -227,11 +199,6 @@ void EXTI4_15_IRQHandler(void)
             mask &= ~bit;
 
             (*stm32l0_exti_device.callback[index])(stm32l0_exti_device.context[index]);
-
-            if (stm32l0_exti_device.wakeup & bit) 
-            {
-                stm32l0_system_wakeup();
-            }
         }
     }
 }

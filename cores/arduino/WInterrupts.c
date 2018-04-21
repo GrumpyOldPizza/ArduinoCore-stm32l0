@@ -51,28 +51,6 @@ void attachInterrupt(uint32_t pin, voidFuncPtr callback, uint32_t mode)
     }
 }
 
-void attachInterruptWakeup(uint32_t pin, voidFuncPtr callback, uint32_t mode)
-{
-    if ((pin >= PINS_COUNT) || !(g_APinDescription[pin].attr & PIN_ATTR_EXTI) || !callback) {
-	return;
-    }
-
-    switch (mode) {
-    
-    case CHANGE:
-      stm32l0_exti_attach(g_APinDescription[pin].pin, (STM32L0_EXTI_CONTROL_EDGE_FALLING | STM32L0_EXTI_CONTROL_EDGE_RISING | STM32L0_EXTI_CONTROL_WAKEUP), (stm32l0_exti_callback_t)callback, NULL);
-	break;
-    
-    case FALLING:
-	stm32l0_exti_attach(g_APinDescription[pin].pin, (STM32L0_EXTI_CONTROL_EDGE_FALLING | STM32L0_EXTI_CONTROL_WAKEUP), (stm32l0_exti_callback_t)callback, NULL);
-	break;
-    
-    case RISING:
-	stm32l0_exti_attach(g_APinDescription[pin].pin, (STM32L0_EXTI_CONTROL_EDGE_RISING | STM32L0_EXTI_CONTROL_WAKEUP), (stm32l0_exti_callback_t)callback, NULL);
-	break;
-    }
-}
-
 /*
  * \brief Turns off the given interrupt.
  */

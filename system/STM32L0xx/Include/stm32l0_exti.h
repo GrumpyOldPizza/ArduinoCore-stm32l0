@@ -39,7 +39,6 @@
 
 #define STM32L0_EXTI_CONTROL_EDGE_FALLING       0x00000001
 #define STM32L0_EXTI_CONTROL_EDGE_RISING        0x00000002
-#define STM32L0_EXTI_CONTROL_WAKEUP             0x00000004
 
 typedef void (*stm32l0_exti_callback_t)(void *context);
 

@@ -36,7 +36,6 @@
 RTCClass::RTCClass()
 {
     _alarm_enable = false;
-    _alarm_wakeup = false;
     _alarm_match = 0;
     _alarm_day = 1;
     _alarm_hours = 0;
@@ -66,15 +65,6 @@ void RTCClass::disableAlarm()
 void RTCClass::attachInterrupt(void(*callback)(void))
 {
     _alarm_callback = callback;
-    _alarm_wakeup = false;
-
-    SyncAlarm();
-}
-
-void RTCClass::attachInterruptWakeup(void(*callback)(void))
-{
-    _alarm_callback = callback;
-    _alarm_wakeup = true;
 
     SyncAlarm();
 }
@@ -385,12 +375,6 @@ void RTCClass::_alarmCallback(class RTCClass *self)
 {
     if (self->_alarm_callback) {
 	(*self->_alarm_callback)();
-
-	if (self->_alarm_wakeup) {
-	    stm32l0_system_wakeup();
-	}
-    } else {
-	stm32l0_system_wakeup();
     }
 }
 

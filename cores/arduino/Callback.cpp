@@ -45,7 +45,6 @@ bool Callback::queue() {
     if (_callback) {
 	return armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)_callback, _context, 0);
     } else {
-	stm32l0_system_wakeup();
 	return false;
     }
 }
@@ -53,8 +52,6 @@ bool Callback::queue() {
 void Callback::call() {
     if (_callback) {
 	(*_callback)(_context);
-    } else {
-	stm32l0_system_wakeup();
     }
 }
 
