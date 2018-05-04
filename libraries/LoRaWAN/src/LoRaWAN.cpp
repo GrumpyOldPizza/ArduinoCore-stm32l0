@@ -147,7 +147,7 @@ static uint32_t ConvertString(uint8_t *out, uint32_t size, const char *cp)
     return size;
 }
 
-static LoRaMacStatus_t LoRaWANQueryTxPossible( uint8_t size, LoRaMacTxInfo_t* txInfo )
+static LoRaMacStatus_t LoRaWANQueryTxPossible( uint8_t size, int8_t datarate, LoRaMacTxInfo_t* txInfo )
 {
     IRQn_Type irq;
 
@@ -155,13 +155,13 @@ static LoRaMacStatus_t LoRaWANQueryTxPossible( uint8_t size, LoRaMacTxInfo_t* tx
 
     if (irq == Reset_IRQn)
     {
-        return (LoRaMacStatus_t)armv6m_svcall_2((uint32_t)&LoRaMacQueryTxPossible, (uint32_t)size, (uint32_t)txInfo);
+      return (LoRaMacStatus_t)armv6m_svcall_3((uint32_t)&LoRaMacQueryTxPossible, (uint32_t)size, (uint32_t)datarate, (uint32_t)txInfo);
     }
     else
     {
         if ((irq == SVC_IRQn) || (irq == PendSV_IRQn))
         {
-            return LoRaMacQueryTxPossible(size, txInfo);
+	  return LoRaMacQueryTxPossible(size, datarate, txInfo);
         }
         else
         {
@@ -667,7 +667,7 @@ int LoRaWANClass::endPacket(bool confirm)
     }
     else
     {
-        if (LoRaWANQueryTxPossible(_tx_size, &txInfo) != LORAMAC_STATUS_OK)
+	if (LoRaWANQueryTxPossible(_tx_size, _DataRate, &txInfo) != LORAMAC_STATUS_OK)
         {
             if (_tx_size > txInfo.CurrentPayloadSize)
             {
@@ -1053,7 +1053,7 @@ int LoRaWANClass::getMaxPayloadSize()
 {
     LoRaMacTxInfo_t txInfo;
 
-    LoRaWANQueryTxPossible(0, &txInfo);
+    LoRaWANQueryTxPossible(0, _DataRate, &txInfo);
 
     return txInfo.CurrentPayloadSize;
 }

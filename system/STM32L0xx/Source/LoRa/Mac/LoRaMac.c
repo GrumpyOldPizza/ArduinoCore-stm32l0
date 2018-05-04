@@ -2536,12 +2536,12 @@ LoRaMacStatus_t LoRaMacInitialization( const LoRaMacPrimitives_t *primitives, co
     return LORAMAC_STATUS_OK;
 }
 
-LoRaMacStatus_t LoRaMacQueryTxPossible( uint8_t size, LoRaMacTxInfo_t* txInfo )
+LoRaMacStatus_t LoRaMacQueryTxPossible( uint8_t size, int8_t datarate, LoRaMacTxInfo_t* txInfo )
 {
     AdrNextParams_t adrNext;
     GetPhyParams_t getPhy;
     PhyParam_t phyParam;
-    int8_t datarate = LoRaMacParamsDefaults.ChannelsDatarate;
+    VerifyParams_t verify;
     int8_t txPower = LoRaMacParamsDefaults.ChannelsTxPower;
     uint8_t fOptLen = MacCommandsBufferIndex + MacCommandsBufferToRepeatIndex;
 
@@ -2550,17 +2550,44 @@ LoRaMacStatus_t LoRaMacQueryTxPossible( uint8_t size, LoRaMacTxInfo_t* txInfo )
         return LORAMAC_STATUS_PARAMETER_INVALID;
     }
 
-    // Setup ADR request
-    adrNext.UpdateChanMask = false;
-    adrNext.AdrEnabled = AdrCtrlOn;
-    adrNext.AdrAckCounter = AdrAckCounter;
-    adrNext.Datarate = LoRaMacParams.ChannelsDatarate;
-    adrNext.TxPower = LoRaMacParams.ChannelsTxPower;
-    adrNext.UplinkDwellTime = LoRaMacParams.UplinkDwellTime;
+    if( AdrCtrlOn == false )
+    {
+	// Get the minimum possible datarate
+	getPhy.Attribute = PHY_MIN_TX_DR;
+	getPhy.UplinkDwellTime = LoRaMacParams.UplinkDwellTime;
+	phyParam = LoRaMacRegion->GetPhyParam( &getPhy );
+	// Apply the minimum possible datarate.
+	// Some regions have limitations for the minimum datarate.
+	datarate = MAX( datarate, phyParam.Value );
 
-    // We call the function for information purposes only. We don't want to
-    // apply the datarate, the tx power and the ADR ack counter.
-    LoRaMacRegion->AdrNext( &adrNext, &datarate, &txPower, &AdrAckCounter );
+	verify.DatarateParams.Datarate = datarate;
+	verify.DatarateParams.UplinkDwellTime = LoRaMacParams.UplinkDwellTime;
+	  
+	if( LoRaMacRegion->Verify( &verify, PHY_TX_DR ) == true )
+	{
+	    datarate = verify.DatarateParams.Datarate;
+	}
+	else
+	{
+	    return LORAMAC_STATUS_PARAMETER_INVALID;
+	}
+    }
+    else
+    {
+	datarate = LoRaMacParamsDefaults.ChannelsDatarate;
+
+	// Setup ADR request
+	adrNext.UpdateChanMask = false;
+	adrNext.AdrEnabled = AdrCtrlOn;
+	adrNext.AdrAckCounter = AdrAckCounter;
+	adrNext.Datarate = LoRaMacParams.ChannelsDatarate;
+	adrNext.TxPower = LoRaMacParams.ChannelsTxPower;
+	adrNext.UplinkDwellTime = LoRaMacParams.UplinkDwellTime;
+	
+	// We call the function for information purposes only. We don't want to
+	// apply the datarate, the tx power and the ADR ack counter.
+	LoRaMacRegion->AdrNext( &adrNext, &datarate, &txPower, &AdrAckCounter );
+    }
 
     // Setup PHY request
     getPhy.UplinkDwellTime = LoRaMacParams.UplinkDwellTime;

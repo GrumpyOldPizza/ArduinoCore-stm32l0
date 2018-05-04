@@ -1779,6 +1779,8 @@ LoRaMacStatus_t LoRaMacInitialization( const LoRaMacPrimitives_t *primitives, co
  *
  * \param   [IN] size - Size of applicative payload to be send next
  *
+ * \param   [IN] datarate - uplink datarate, if ADR is off
+ *
  * \param   [OUT] txInfo - The structure \ref LoRaMacTxInfo_t contains
  *                         information about the actual maximum payload possible
  *                         ( according to the configured datarate or the next
@@ -1795,7 +1797,7 @@ LoRaMacStatus_t LoRaMacInitialization( const LoRaMacPrimitives_t *primitives, co
  *          In case the query is valid, and the LoRaMAC is able to send the frame,
  *          the function returns \ref LORAMAC_STATUS_OK.
  */
-LoRaMacStatus_t LoRaMacQueryTxPossible( uint8_t size, LoRaMacTxInfo_t* txInfo );
+LoRaMacStatus_t LoRaMacQueryTxPossible( uint8_t size, int8_t datarate, LoRaMacTxInfo_t* txInfo );
 
 /*!
  * \brief   LoRaMAC channel add service
