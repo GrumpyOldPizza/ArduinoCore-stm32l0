@@ -36,8 +36,33 @@
 extern "C" {
 #endif
 
-extern bool stm32l0_eeprom_write(uint32_t address, const uint8_t *data, uint32_t count);
-extern bool stm32l0_eeprom_read(uint32_t address, uint8_t *data, uint32_t count);
+#define STM32L0_EEPROM_STATUS_NONE               0
+#define STM32L0_EEPROM_STATUS_BUSY               1
+#define STM32L0_EEPROM_STATUS_SUCCESS            2
+#define STM32L0_EEPROM_STATUS_FAIL               3
+
+#define STM32L0_EEPROM_CONTROL_ERASE             1
+#define STM32L0_EEPROM_CONTROL_PROGRAM           2
+#define STM32L0_EEPROM_CONTROL_READ              3
+
+typedef void (*stm32l0_eeprom_done_callback_t)(void *context);
+
+typedef struct _stm32l0_eeprom_transaction_t {
+    volatile uint8_t                     status;
+    uint8_t                              control;
+    uint16_t                             count;
+    uint32_t                             address;
+    uint8_t                              *data;
+    stm32l0_eeprom_done_callback_t       callback;
+    void                                 *context;
+    struct _stm32l0_eeprom_transaction_t *next;
+} stm32l0_eeprom_transaction_t;
+
+extern void __stm32l0_eeprom_initialize(void);
+
+extern bool stm32l0_eeprom_enqueue(stm32l0_eeprom_transaction_t *transaction);
+extern void stm32l0_eeprom_acquire(void);
+extern void stm32l0_eeprom_release(void);
 
 #ifdef __cplusplus
 }

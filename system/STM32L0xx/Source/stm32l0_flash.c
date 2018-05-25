@@ -31,6 +31,11 @@
 
 #include "stm32l0_flash.h"
 
+static void __empty() { }
+
+void stm32l0_eeprom_acquire(void) __attribute__ ((weak, alias("__empty")));
+void stm32l0_eeprom_release(void) __attribute__ ((weak, alias("__empty")));
+
 static __attribute__((optimize("O3"), section(".ramfunc.stm32l0_flash_do_erase"), long_call)) void stm32l0_flash_do_erase(uint32_t address)
 {
     *((volatile uint32_t*)address) = 0;
@@ -73,37 +78,49 @@ void stm32l0_flash_lock(void)
 
     __disable_irq();
 
-    FLASH->PECR |= FLASH_PECR_PRGLOCK;
     FLASH->PECR |= FLASH_PECR_PELOCK;
+    FLASH->PECR |= FLASH_PECR_PRGLOCK;
 
     __set_PRIMASK(primask);
+
+    stm32l0_eeprom_release();
 }
 
 bool stm32l0_flash_unlock(void)
 {
     uint32_t primask;
 
-    if (!(FLASH->PECR & FLASH_PECR_PRGLOCK))
-    {
-        return true;
-    }
+    stm32l0_eeprom_acquire();
 
     primask = __get_PRIMASK();
 
     __disable_irq();
 
-    FLASH->PEKEYR  = 0x89abcdef;
-    FLASH->PEKEYR  = 0x02030405;
+    if (FLASH->PECR & FLASH_PECR_PELOCK)
+    {
+	FLASH->PEKEYR  = 0x89abcdef;
+	FLASH->PEKEYR  = 0x02030405;
+    }
 
     if (!(FLASH->PECR & FLASH_PECR_PELOCK))
     {
-        FLASH->PRGKEYR = 0x8c9daebf;
-        FLASH->PRGKEYR = 0x13141516;
+	if (FLASH->PECR & FLASH_PECR_PRGLOCK)
+	{
+	    FLASH->PRGKEYR = 0x8c9daebf;
+	    FLASH->PRGKEYR = 0x13141516;
+	}
     }
 
     __set_PRIMASK(primask);
 
-    return !!(FLASH->PECR & FLASH_PECR_PRGLOCK);
+    if (FLASH->PECR & FLASH_PECR_PRGLOCK)
+    {
+	stm32l0_eeprom_release();
+
+	return false;
+    }
+
+    return true;
 }
 
 bool stm32l0_flash_erase(uint32_t address, uint32_t count)

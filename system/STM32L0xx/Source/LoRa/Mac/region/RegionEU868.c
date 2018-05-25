@@ -493,46 +493,48 @@ bool RegionEU868AdrNext( AdrNextParams_t* adrNext, int8_t* drOut, int8_t* txPowO
     // Report back the adr ack counter
     *adrAckCounter = adrNext->AdrAckCounter;
 
+    adrAckReq = false;
+
     if( adrNext->AdrEnabled == true )
     {
-        if( datarate == EU868_TX_MIN_DATARATE )
-        {
-            *adrAckCounter = 0;
-            adrAckReq = false;
-        }
-        else
+	if( adrNext->AdrAckCounter < ( EU868_ADR_ACK_LIMIT + 18 * EU868_ADR_ACK_DELAY ) )
         {
             if( adrNext->AdrAckCounter >= EU868_ADR_ACK_LIMIT )
             {
                 adrAckReq = true;
-                txPower = EU868_MAX_TX_POWER;
             }
-            else
-            {
-                adrAckReq = false;
-            }
+	    
             if( adrNext->AdrAckCounter >= ( EU868_ADR_ACK_LIMIT + EU868_ADR_ACK_DELAY ) )
             {
                 if( ( adrNext->AdrAckCounter % EU868_ADR_ACK_DELAY ) == 1 )
                 {
-                    // Decrease the datarate
-                    getPhy.Attribute = PHY_NEXT_LOWER_TX_DR;
-                    getPhy.Datarate = datarate;
-                    getPhy.UplinkDwellTime = adrNext->UplinkDwellTime;
-                    phyParam = RegionEU868GetPhyParam( &getPhy );
-                    datarate = phyParam.Value;
+		    if( txPower != EU868_MAX_TX_POWER )
+		    {
+			// Increase the txPower
+			txPower = EU868_MAX_TX_POWER;
+		    }
+		    else if( datarate != EU868_TX_MIN_DATARATE )
+		    {
+			// Decrease the datarate
+			getPhy.Attribute = PHY_NEXT_LOWER_TX_DR;
+			getPhy.Datarate = datarate;
+			getPhy.UplinkDwellTime = adrNext->UplinkDwellTime;
+			phyParam = RegionEU868GetPhyParam( &getPhy );
+			datarate = phyParam.Value;
+		    }
+		    else
+		    {
+			*adrAckCounter = ( EU868_ADR_ACK_LIMIT + 18 * EU868_ADR_ACK_DELAY );
 
-                    if( datarate == EU868_TX_MIN_DATARATE )
-                    {
-                        // We must set adrAckReq to false as soon as we reach the lowest datarate
-                        adrAckReq = false;
-                        if( adrNext->UpdateChanMask == true )
-                        {
-                            // Re-enable default channels
+			// We must set adrAckReq to false as soon as we reach the lowest datarate
+			adrAckReq = false;
+			if( adrNext->UpdateChanMask == true )
+			{
+			    // Re-enable default channels
                             RegionChannelsMask[0] |= RegionChannelsDefaultMask[0];
-                        }
-                    }
-                }
+			}
+		    }
+		}
             }
         }
     }
@@ -900,8 +902,8 @@ LoRaMacStatus_t RegionEU868NextChannel( NextChanParams_t* nextChanParams, uint8_
 
     if( nextChanParams->AggrTimeOff <= TimerGetElapsedTime( nextChanParams->LastAggrTx ) )
     {
-        // Reset Aggregated time off
-        *aggregatedTimeOff = 0;
+	// Reset Aggregated time off
+	*aggregatedTimeOff = 0;
 
         // Update bands Time OFF
         nextTxDelay = RegionCommonUpdateBandTimeOff( nextChanParams->Joined, nextChanParams->DutyCycleEnabled, RegionBands, EU868_MAX_NB_BANDS );
@@ -919,9 +921,11 @@ LoRaMacStatus_t RegionEU868NextChannel( NextChanParams_t* nextChanParams, uint8_
 
     if( nbEnabledChannels > 0 )
     {
-        // We found a valid channel
-        *channel = enabledChannels[randr( 0, nbEnabledChannels - 1 )];
-
+	if( channel )
+	{
+	    // We found a valid channel
+	    *channel = enabledChannels[randr( 0, nbEnabledChannels - 1 )];
+	}
         *time = 0;
         return LORAMAC_STATUS_OK;
     }
@@ -933,8 +937,11 @@ LoRaMacStatus_t RegionEU868NextChannel( NextChanParams_t* nextChanParams, uint8_
             *time = nextTxDelay;
             return LORAMAC_STATUS_DUTYCYCLE_RESTRICTED;
         }
-        // Datarate not supported by any channel, restore defaults
-        RegionChannelsMask[0] |= RegionChannelsDefaultMask[0];
+	if( channel )
+	{
+	    // Datarate not supported by any channel, restore defaults
+	    RegionChannelsMask[0] |= RegionChannelsDefaultMask[0];
+	}
         *time = 0;
         return LORAMAC_STATUS_NO_CHANNEL_FOUND;
     }

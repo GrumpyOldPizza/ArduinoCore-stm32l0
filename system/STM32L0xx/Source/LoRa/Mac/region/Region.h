@@ -1370,7 +1370,8 @@ struct sLoRaMacRegion
     /*!
      * \brief Searches and set the next random available channel
      *
-     * \param [OUT] channel Next channel to use for TX.
+     * \param [OUT] channel Next channel to use for TX. If NULL then this
+     *              is a query only, and the channel does not get commited.
      *
      * \param [OUT] time Time to wait for the next transmission according to the duty
      *              cycle.

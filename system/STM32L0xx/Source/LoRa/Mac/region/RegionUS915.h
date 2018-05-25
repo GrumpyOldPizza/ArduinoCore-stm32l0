@@ -98,7 +98,7 @@
 /*!
  * Default Max ERP
  */
-#define US915_DEFAULT_MAX_ERP                      30.0f
+#define US915_DEFAULT_MAX_ERP                       30.0f
 
 /*!
  * ADR Ack limit

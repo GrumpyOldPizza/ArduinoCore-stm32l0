@@ -115,6 +115,11 @@ static uint8_t LoRaMacAppSKey[] =
 static uint16_t LoRaMacDevNonce;
 
 /*!
+ * Application nonce ( 3 bytes )
+ */
+static uint16_t LoRaMacAppNonce;
+
+/*!
  * Network ID ( 3 bytes )
  */
 static uint32_t LoRaMacNetID;
@@ -256,7 +261,6 @@ static uint8_t ChannelsNbRepCounter = 0;
 
 /*!
  * Maximum duty cycle
- * \remark Possibility to shutdown the device.
  */
 static uint8_t MaxDCycle = 0;
 
@@ -420,6 +424,11 @@ static LoRaMacRxSlot_t RxSlot;
 LoRaMacFlags_t LoRaMacFlags;
 
 /*!
+ * LoRaMac delayed tx handling for JOIN_REQ and packet tx
+ */
+uint32_t LoRaMacTxDelay = 0;
+
+/*!
  * \brief Function to be executed on Radio Tx Done event
  */
 static void OnRadioTxDone( void );
@@ -563,7 +572,7 @@ static bool ValidatePayloadLength( uint8_t lenN, int8_t datarate, uint8_t fOptsL
 /*!
  * \brief Decodes MAC commands in the fOpts field and in the payload
  */
-static void ProcessMacCommands( uint8_t *payload, uint8_t macIndex, uint8_t commandsSize, uint8_t snr );
+static void ProcessMacCommands( uint8_t *payload, uint8_t macIndex, uint8_t commandsSize, int8_t snr );
 
 /*!
  * \brief LoRaMAC layer generic send frame
@@ -788,6 +797,7 @@ static void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t
     McpsIndication.BufferSize = 0;
     McpsIndication.RxData = false;
     McpsIndication.AckReceived = false;
+    McpsIndication.ParamsUpdated = false;
     McpsIndication.DownLinkCounter = 0;
     McpsIndication.McpsIndication = MCPS_UNCONFIRMED;
 
@@ -819,6 +829,10 @@ static void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t
             if( micRx == mic )
             {
                 LoRaMacJoinComputeSKeys( LoRaMacAppKey, LoRaMacRxPayload + 1, LoRaMacDevNonce, LoRaMacNwkSKey, LoRaMacAppSKey );
+
+		LoRaMacAppNonce = ( uint32_t )LoRaMacRxPayload[1];
+                LoRaMacAppNonce |= ( ( uint32_t )LoRaMacRxPayload[2] << 8 );
+                LoRaMacAppNonce |= ( ( uint32_t )LoRaMacRxPayload[3] << 16 );
 
                 LoRaMacNetID = ( uint32_t )LoRaMacRxPayload[4];
                 LoRaMacNetID |= ( ( uint32_t )LoRaMacRxPayload[5] << 8 );
@@ -1781,7 +1795,7 @@ static uint8_t ParseMacCommandsToRepeat( uint8_t* cmdBufIn, uint8_t length, uint
     return cmdCount;
 }
 
-static void ProcessMacCommands( uint8_t *payload, uint8_t macIndex, uint8_t commandsSize, uint8_t snr )
+static void ProcessMacCommands( uint8_t *payload, uint8_t macIndex, uint8_t commandsSize, int8_t snr )
 {
     uint8_t status = 0;
 
@@ -1821,6 +1835,7 @@ static void ProcessMacCommands( uint8_t *payload, uint8_t macIndex, uint8_t comm
                         LoRaMacParams.ChannelsDatarate = linkAdrDatarate;
                         LoRaMacParams.ChannelsTxPower = linkAdrTxPower;
                         LoRaMacParams.ChannelsNbRep = linkAdrNbRep;
+			McpsIndication.ParamsUpdated = true;
                     }
 
                     // Add the answers to the buffer
@@ -1833,8 +1848,9 @@ static void ProcessMacCommands( uint8_t *payload, uint8_t macIndex, uint8_t comm
                 }
                 break;
             case SRV_MAC_DUTY_CYCLE_REQ:
-                MaxDCycle = payload[macIndex++];
+ 	        MaxDCycle = payload[macIndex++] & 0x0F;;
                 AggregatedDCycle = 1 << MaxDCycle;
+		McpsIndication.ParamsUpdated = true;
                 AddMacCommand( MOTE_MAC_DUTY_CYCLE_ANS, 0, 0 );
                 break;
             case SRV_MAC_RX_PARAM_SETUP_REQ:
@@ -1859,6 +1875,7 @@ static void ProcessMacCommands( uint8_t *payload, uint8_t macIndex, uint8_t comm
                         LoRaMacParams.Rx2Channel.Datarate = rxParamSetupReq.Datarate;
                         LoRaMacParams.Rx2Channel.Frequency = rxParamSetupReq.Frequency;
                         LoRaMacParams.Rx1DrOffset = rxParamSetupReq.DrOffset;
+			McpsIndication.ParamsUpdated = true;
                     }
                     AddMacCommand( MOTE_MAC_RX_PARAM_SETUP_ANS, status, 0 );
                 }
@@ -1870,7 +1887,7 @@ static void ProcessMacCommands( uint8_t *payload, uint8_t macIndex, uint8_t comm
                     {
                         batteryLevel = LoRaMacCallbacks->GetBatteryLevel( );
                     }
-                    AddMacCommand( MOTE_MAC_DEV_STATUS_ANS, batteryLevel, snr & 0x3F);
+                    AddMacCommand( MOTE_MAC_DEV_STATUS_ANS, batteryLevel, ((snr > 0) ? ((snr < 0x3F) ? snr : 0x3F) : 0) );
                     break;
                 }
             case SRV_MAC_NEW_CHANNEL_REQ:
@@ -1891,6 +1908,10 @@ static void ProcessMacCommands( uint8_t *payload, uint8_t macIndex, uint8_t comm
 
                     status = LoRaMacRegion->NewChannelReq( &newChannelReq );
 
+		    if( ( status & 0x03 ) == 0x03 )
+		    {
+			McpsIndication.ParamsUpdated = true;
+		    }
                     AddMacCommand( MOTE_MAC_NEW_CHANNEL_ANS, status, 0 );
                 }
                 break;
@@ -1904,6 +1925,7 @@ static void ProcessMacCommands( uint8_t *payload, uint8_t macIndex, uint8_t comm
                     }
                     LoRaMacParams.ReceiveDelay1 = delay * 1000;
                     LoRaMacParams.ReceiveDelay2 = LoRaMacParams.ReceiveDelay1 + 1000;
+		    McpsIndication.ParamsUpdated = true;
                     AddMacCommand( MOTE_MAC_RX_TIMING_SETUP_ANS, 0, 0 );
                 }
                 break;
@@ -1932,6 +1954,7 @@ static void ProcessMacCommands( uint8_t *payload, uint8_t macIndex, uint8_t comm
                         LoRaMacParams.UplinkDwellTime = txParamSetupReq.UplinkDwellTime;
                         LoRaMacParams.DownlinkDwellTime = txParamSetupReq.DownlinkDwellTime;
                         LoRaMacParams.MaxEirp = LoRaMacMaxEirpTable[txParamSetupReq.MaxEirp];
+			McpsIndication.ParamsUpdated = true;
                         // Add command response
                         AddMacCommand( MOTE_MAC_TX_PARAM_SETUP_ANS, 0, 0 );
                     }
@@ -1950,6 +1973,10 @@ static void ProcessMacCommands( uint8_t *payload, uint8_t macIndex, uint8_t comm
 
                     status = LoRaMacRegion->DlChannelReq( &dlChannelReq );
 
+		    if( ( status & 0x03 ) == 0x03 )
+		    {
+			McpsIndication.ParamsUpdated = true;
+		    }
                     AddMacCommand( MOTE_MAC_DL_CHANNEL_ANS, status, 0 );
                 }
                 break;
@@ -1986,8 +2013,8 @@ LoRaMacStatus_t Send( LoRaMacHeader_t *macHdr, uint8_t fPort, void *fBuffer, uin
     McpsConfirm.AckReceived = false;
     McpsConfirm.UpLinkCounter = UpLinkCounter;
 
-    // Schedule frame, do not allow delayed transmissions
-    status = ScheduleTx( false );
+    // Schedule frame, do not allow delayed transmissions other than for a JOIN_REQ
+    status = ScheduleTx( LoRaMacTxDelay );
 
     return status;
 }
@@ -1998,11 +2025,6 @@ static LoRaMacStatus_t ScheduleTx( bool allowDelayedTx )
     TimerTime_t dutyCycleTimeOff = 0;
     NextChanParams_t nextChan;
 
-    // Check if the device is off
-    if( MaxDCycle == 255 )
-    {
-        return LORAMAC_STATUS_DEVICE_OFF;
-    }
     if( MaxDCycle == 0 )
     {
         AggregatedTimeOff = 0;
@@ -2189,8 +2211,6 @@ LoRaMacStatus_t PrepareFrame( LoRaMacHeader_t *macHdr, LoRaMacFrameCtrl_t *fCtrl
             memcpyr( LoRaMacBuffer + LoRaMacBufferPktLen, LoRaMacDevEui, 8 );
             LoRaMacBufferPktLen += 8;
 
-            LoRaMacDevNonce = Radio.Random( );
-
             LoRaMacBuffer[LoRaMacBufferPktLen++] = LoRaMacDevNonce & 0xFF;
             LoRaMacBuffer[LoRaMacBufferPktLen++] = ( LoRaMacDevNonce >> 8 ) & 0xFF;
 
@@ -2344,8 +2364,8 @@ LoRaMacStatus_t SendFrameOnChannel( uint8_t channel )
     McpsConfirm.Channel = channel;
 
     // Store the time on air
-    McpsConfirm.TxTimeOnAir = TxTimeOnAir;
-    MlmeConfirm.TxTimeOnAir = TxTimeOnAir;
+    McpsConfirm.TxTimeOnAir += TxTimeOnAir;
+    MlmeConfirm.TxTimeOnAir += TxTimeOnAir;
 
     // Starts the MAC layer status check timer
     TimerSetValue( &MacStateCheckTimer, MAC_STATE_CHECK_TIMEOUT );
@@ -2542,7 +2562,10 @@ LoRaMacStatus_t LoRaMacQueryTxPossible( uint8_t size, int8_t datarate, LoRaMacTx
     GetPhyParams_t getPhy;
     PhyParam_t phyParam;
     VerifyParams_t verify;
+    NextChanParams_t nextChan;
     int8_t txPower = LoRaMacParamsDefaults.ChannelsTxPower;
+    TimerTime_t txDelay = 0;
+    uint32_t adrAckCounter;
     uint8_t fOptLen = MacCommandsBufferIndex + MacCommandsBufferToRepeatIndex;
 
     if( txInfo == NULL )
@@ -2586,8 +2609,30 @@ LoRaMacStatus_t LoRaMacQueryTxPossible( uint8_t size, int8_t datarate, LoRaMacTx
 	
 	// We call the function for information purposes only. We don't want to
 	// apply the datarate, the tx power and the ADR ack counter.
-	LoRaMacRegion->AdrNext( &adrNext, &datarate, &txPower, &AdrAckCounter );
+	LoRaMacRegion->AdrNext( &adrNext, &datarate, &txPower, &adrAckCounter );
     }
+
+    txInfo->Datarate = datarate;
+    txInfo->TxPower = txPower;
+
+    if( MaxDCycle == 0 )
+    {
+        AggregatedTimeOff = 0;
+    }
+
+    // Update Backoff
+    CalculateBackOff( LastTxChannel );
+
+    nextChan.AggrTimeOff = AggregatedTimeOff;
+    nextChan.Datarate = datarate;
+    nextChan.DutyCycleEnabled = DutyCycleOn;
+    nextChan.Joined = IsLoRaMacNetworkJoined;
+    nextChan.LastAggrTx = AggregatedLastTxDoneTime;
+
+    // Select channel
+    LoRaMacRegion->NextChannel( &nextChan, NULL, &txDelay, &AggregatedTimeOff );
+
+    txInfo->TxDelay = txDelay;
 
     // Setup PHY request
     getPhy.UplinkDwellTime = LoRaMacParams.UplinkDwellTime;
@@ -2653,6 +2698,11 @@ LoRaMacStatus_t LoRaMacMibGetRequestConfirm( MibRequestConfirm_t *mibGet )
             mibGet->Param.AdrEnable = AdrCtrlOn;
             break;
         }
+        case MIB_APP_NONCE:
+        {
+            mibGet->Param.AppNonce = LoRaMacAppNonce;
+            break;
+        }
         case MIB_NET_ID:
         {
             mibGet->Param.NetID = LoRaMacNetID;
@@ -2689,6 +2739,16 @@ LoRaMacStatus_t LoRaMacMibGetRequestConfirm( MibRequestConfirm_t *mibGet )
             phyParam = LoRaMacRegion->GetPhyParam( &getPhy );
 
             mibGet->Param.ChannelList = phyParam.Channels;
+            break;
+        }
+        case MIB_RX1_DR_OFFSET:
+        {
+            mibGet->Param.Rx1DrOffset = LoRaMacParams.Rx1DrOffset;
+            break;
+        }
+        case MIB_RX1_DEFAULT_DR_OFFSET:
+        {
+            mibGet->Param.Rx1DefaultDrOffset = LoRaMacParamsDefaults.Rx1DrOffset;
             break;
         }
         case MIB_RX2_CHANNEL:
@@ -2790,6 +2850,36 @@ LoRaMacStatus_t LoRaMacMibGetRequestConfirm( MibRequestConfirm_t *mibGet )
         case MIB_MIN_RX_SYMBOLS:
         {
             mibGet->Param.MinRxSymbols = LoRaMacParams.MinRxSymbols;
+            break;
+        }
+        case MIB_UPLINK_DWELL_TIME:
+        {
+            mibGet->Param.UplinkDwellTime = LoRaMacParams.UplinkDwellTime;
+            break;
+        }
+        case MIB_DEFAULT_UPLINK_DWELL_TIME:
+        {
+            mibGet->Param.DefaultUplinkDwellTime = LoRaMacParamsDefaults.UplinkDwellTime;
+            break;
+        }
+        case MIB_DOWNLINK_DWELL_TIME:
+        {
+            mibGet->Param.DownlinkDwellTime = LoRaMacParams.DownlinkDwellTime;
+            break;
+        }
+        case MIB_DEFAULT_DOWNLINK_DWELL_TIME:
+        {
+            mibGet->Param.DefaultDownlinkDwellTime = LoRaMacParamsDefaults.DownlinkDwellTime;
+            break;
+        }
+        case MIB_MAX_EIRP:
+        {
+            mibGet->Param.MaxEirp = LoRaMacParams.MaxEirp;
+            break;
+        }
+        case MIB_DEFAULT_MAX_EIRP:
+        {
+            mibGet->Param.DefaultMaxEirp = LoRaMacParamsDefaults.MaxEirp;
             break;
         }
         case MIB_ANTENNA_GAIN:
@@ -2913,9 +3003,19 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
         }
         case MIB_REPEATER_SUPPORT:
         {
-             RepeaterSupport = mibSet->Param.EnableRepeaterSupport;
+            RepeaterSupport = mibSet->Param.EnableRepeaterSupport;
             break;
         }
+        case MIB_RX1_DR_OFFSET:
+	{
+	    LoRaMacParams.Rx1DrOffset = mibSet->Param.Rx1DrOffset;
+	    break;
+	}
+        case MIB_RX1_DEFAULT_DR_OFFSET:
+	{
+	    LoRaMacParamsDefaults.Rx1DrOffset = mibSet->Param.Rx1DrOffset;
+	    break;
+	}
         case MIB_RX2_CHANNEL:
         {
             verify.DatarateParams.Datarate = mibSet->Param.Rx2Channel.Datarate;
@@ -3098,6 +3198,36 @@ LoRaMacStatus_t LoRaMacMibSetRequestConfirm( MibRequestConfirm_t *mibSet )
             LoRaMacParams.MinRxSymbols = LoRaMacParamsDefaults.MinRxSymbols = mibSet->Param.MinRxSymbols;
             break;
         }
+        case MIB_UPLINK_DWELL_TIME:
+        {
+            LoRaMacParams.UplinkDwellTime = mibSet->Param.UplinkDwellTime;
+            break;
+        }
+        case MIB_DEFAULT_UPLINK_DWELL_TIME:
+        {
+            LoRaMacParamsDefaults.UplinkDwellTime = mibSet->Param.DefaultUplinkDwellTime;
+            break;
+        }
+        case MIB_DOWNLINK_DWELL_TIME:
+        {
+            LoRaMacParams.DownlinkDwellTime = mibSet->Param.DownlinkDwellTime;
+            break;
+        }
+        case MIB_DEFAULT_DOWNLINK_DWELL_TIME:
+        {
+            LoRaMacParamsDefaults.DownlinkDwellTime = mibSet->Param.DefaultDownlinkDwellTime;
+            break;
+        }
+        case MIB_MAX_EIRP:
+        {
+            LoRaMacParams.MaxEirp = mibSet->Param.MaxEirp;
+            break;
+        }
+        case MIB_DEFAULT_MAX_EIRP:
+        {
+            LoRaMacParamsDefaults.MaxEirp = mibSet->Param.DefaultMaxEirp;
+            break;
+        }
         case MIB_ANTENNA_GAIN:
         {
             LoRaMacParams.AntennaGain = mibSet->Param.AntennaGain;
@@ -3272,6 +3402,7 @@ LoRaMacStatus_t LoRaMacMlmeRequest( MlmeReq_t *mlmeRequest )
             LoRaMacDevEui = mlmeRequest->Req.Join.DevEui;
             LoRaMacAppEui = mlmeRequest->Req.Join.AppEui;
             LoRaMacAppKey = mlmeRequest->Req.Join.AppKey;
+            LoRaMacDevNonce = mlmeRequest->Req.Join.DevNonce;
             LoRaMacParams.ChannelsDatarate = LoRaMacRegion->AlternateDr( mlmeRequest->Req.Join.Datarate );;
 
             // Setup header information

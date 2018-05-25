@@ -500,51 +500,53 @@ bool RegionCN470AdrNext( AdrNextParams_t* adrNext, int8_t* drOut, int8_t* txPowO
     // Report back the adr ack counter
     *adrAckCounter = adrNext->AdrAckCounter;
 
+    adrAckReq = false;
+
     if( adrNext->AdrEnabled == true )
     {
-        if( datarate == CN470_TX_MIN_DATARATE )
-        {
-            *adrAckCounter = 0;
-            adrAckReq = false;
-        }
-        else
+	if( adrNext->AdrAckCounter < ( CN470_ADR_ACK_LIMIT + 18 * CN470_ADR_ACK_DELAY ) )
         {
             if( adrNext->AdrAckCounter >= CN470_ADR_ACK_LIMIT )
             {
                 adrAckReq = true;
-                txPower = CN470_MAX_TX_POWER;
             }
-            else
-            {
-                adrAckReq = false;
-            }
+	    
             if( adrNext->AdrAckCounter >= ( CN470_ADR_ACK_LIMIT + CN470_ADR_ACK_DELAY ) )
             {
                 if( ( adrNext->AdrAckCounter % CN470_ADR_ACK_DELAY ) == 1 )
                 {
-                    // Decrease the datarate
-                    getPhy.Attribute = PHY_NEXT_LOWER_TX_DR;
-                    getPhy.Datarate = datarate;
-                    getPhy.UplinkDwellTime = adrNext->UplinkDwellTime;
-                    phyParam = RegionCN470GetPhyParam( &getPhy );
-                    datarate = phyParam.Value;
+		    if( txPower != CN470_MAX_TX_POWER )
+		    {
+			// Increase the txPower
+			txPower = CN470_MAX_TX_POWER;
+		    }
+		    else if( datarate != CN470_TX_MIN_DATARATE )
+		    {
+			// Decrease the datarate
+			getPhy.Attribute = PHY_NEXT_LOWER_TX_DR;
+			getPhy.Datarate = datarate;
+			getPhy.UplinkDwellTime = adrNext->UplinkDwellTime;
+			phyParam = RegionCN470GetPhyParam( &getPhy );
+			datarate = phyParam.Value;
+		    }
+		    else
+		    {
+			*adrAckCounter = ( CN470_ADR_ACK_LIMIT + 18 * CN470_ADR_ACK_DELAY );
 
-                    if( datarate == CN470_TX_MIN_DATARATE )
-                    {
-                        // We must set adrAckReq to false as soon as we reach the lowest datarate
-                        adrAckReq = false;
-                        if( adrNext->UpdateChanMask == true )
-                        {
-                            // Re-enable default channels
-                            RegionChannelsMask[0] = RegionChannelsDefaultMask[0];
-                            RegionChannelsMask[1] = RegionChannelsDefaultMask[1];
-                            RegionChannelsMask[2] = RegionChannelsDefaultMask[2];
-                            RegionChannelsMask[3] = RegionChannelsDefaultMask[3];
-                            RegionChannelsMask[4] = RegionChannelsDefaultMask[4];
+			// We must set adrAckReq to false as soon as we reach the lowest datarate
+			adrAckReq = false;
+			if( adrNext->UpdateChanMask == true )
+			{
+			    // Re-enable default channels
+			    RegionChannelsMask[0] = RegionChannelsDefaultMask[0];
+			    RegionChannelsMask[1] = RegionChannelsDefaultMask[1];
+			    RegionChannelsMask[2] = RegionChannelsDefaultMask[2];
+			    RegionChannelsMask[3] = RegionChannelsDefaultMask[3];
+			    RegionChannelsMask[4] = RegionChannelsDefaultMask[4];
                             RegionChannelsMask[5] = RegionChannelsDefaultMask[5];
-                        }
-                    }
-                }
+			}
+		    }
+		}
             }
         }
     }
@@ -811,8 +813,8 @@ LoRaMacStatus_t RegionCN470NextChannel( NextChanParams_t* nextChanParams, uint8_
 
     if( nextChanParams->AggrTimeOff <= TimerGetElapsedTime( nextChanParams->LastAggrTx ) )
     {
-        // Reset Aggregated time off
-        *aggregatedTimeOff = 0;
+	// Reset Aggregated time off
+	*aggregatedTimeOff = 0;
 
         // Update bands Time OFF
         nextTxDelay = RegionCommonUpdateBandTimeOff( nextChanParams->Joined, nextChanParams->DutyCycleEnabled, RegionBands, CN470_MAX_NB_BANDS );
@@ -830,9 +832,11 @@ LoRaMacStatus_t RegionCN470NextChannel( NextChanParams_t* nextChanParams, uint8_
 
     if( nbEnabledChannels > 0 )
     {
-        // We found a valid channel
-        *channel = enabledChannels[randr( 0, nbEnabledChannels - 1 )];
-
+	if ( channel )
+	{
+	    // We found a valid channel
+	    *channel = enabledChannels[randr( 0, nbEnabledChannels - 1 )];
+	}
         *time = 0;
         return LORAMAC_STATUS_OK;
     }

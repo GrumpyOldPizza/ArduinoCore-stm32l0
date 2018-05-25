@@ -1,9 +1,9 @@
-/* Use a TimerMillis object to schedule transissions in the background.
+/* Simple OTAA join via commissioning in EEPROM
  *  
- *  Idea is to start a periodic timer, where every 10 seconds a packet
- *  is send to the gateway in the background. The main "loop()" could
- *  be reading sensors in the forground, or use STM32L0.stop() to enter
- *  STOP mode.
+ *  The code below assumes that you first saved the commissioning data
+ *  in EEPROM via the LoRaWAN_Save_Commissioning.ino example. They key
+ *  idea that you can moves the euis/keys out of the main sketch.
+ *  
  *  
  *  In setup() below please replace the argument to LoRaWAN.begin()
  *  with your appropriate region specific band:
@@ -32,15 +32,23 @@
  */
 
 #include "LoRaWAN.h"
-#include "TimerMillis.h"
 
-const char *appEui = "0101010101010101";
-const char *appKey = "2B7E151628AED2A6ABF7158809CF4F3C";
-const char *devEui = "0101010101010101";
+void setup( void )
+{
+    Serial.begin(9600);
+    
+    while (!Serial) { }
 
-TimerMillis transmitTimer;
+    LoRaWAN.begin(US915);
+    // LoRaWAN.setSubBand(2);
+    // LoRaWAN.setDutyCycle(false);
+    // LoRaWAN.setAntennaGain(2.0);
+    LoRaWAN.joinOTAA();
 
-void transmitCallback(void)
+    Serial.println("JOIN( )");
+}
+
+void loop( void )
 {
     if (LoRaWAN.joined() && !LoRaWAN.busy())
     {
@@ -48,7 +56,6 @@ void transmitCallback(void)
         Serial.print("TimeOnAir: ");
         Serial.print(LoRaWAN.getTimeOnAir());
         Serial.print(", NextTxTime: ");
-        Serial.print("NextTxTime: ");
         Serial.print(LoRaWAN.getNextTxTime());
         Serial.print(", MaxPayloadSize: ");
         Serial.print(LoRaWAN.getMaxPayloadSize());
@@ -69,26 +76,6 @@ void transmitCallback(void)
         LoRaWAN.write(0xde);
         LoRaWAN.endPacket();
     }
-}
 
-
-void setup( void )
-{
-    Serial.begin(9600);
-    
-    while (!Serial) { }
-
-    LoRaWAN.begin(US915);
-    // LoRaWAN.setSubBand(2);
-    // LoRaWAN.setDutyCycle(false);
-    // LoRaWAN.setAntennaGain(2.0);
-    LoRaWAN.joinOTAA(appEui, appKey, devEui);
-
-    Serial.println("JOIN( )");
-
-    transmitTimer.start(transmitCallback, 0, 10000);
-}
-
-void loop( void )
-{
+    delay(10000);
 }

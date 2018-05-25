@@ -1,9 +1,18 @@
-/* Use a TimerMillis object to schedule transissions in the background.
+/* BatteryLevel update to reflect the real device battery level.
  *  
- *  Idea is to start a periodic timer, where every 10 seconds a packet
- *  is send to the gateway in the background. The main "loop()" could
- *  be reading sensors in the forground, or use STM32L0.stop() to enter
- *  STOP mode.
+ *  LoRaWAN has essentially a range from 1 to 254 that reflects
+ *  true battery measurements, plus a special value to cover
+ *  the case of an external power source. The gateway can use
+ *  those values to control ADR and/or DownLinks.
+ *
+ *    LORAWAN_BATTERY_LEVEL_EXTERNAL 0
+ *    LORAWAN_BATTERY_LEVEL_EMPTY    1
+ *    LORAWAN_BATTERY_LEVEL_FULL     254
+ *    LORAWAN_BATTERY_LEVEL_UNKOWN   255
+ *
+ *  The code below really just toggles between external power source
+ *  via USB and UNKOWN.
+ *  
  *  
  *  In setup() below please replace the argument to LoRaWAN.begin()
  *  with your appropriate region specific band:
@@ -31,24 +40,45 @@
  * This example code is in the public domain.
  */
 
+#include "STM32L0.h"
 #include "LoRaWAN.h"
-#include "TimerMillis.h"
 
 const char *appEui = "0101010101010101";
 const char *appKey = "2B7E151628AED2A6ABF7158809CF4F3C";
 const char *devEui = "0101010101010101";
 
-TimerMillis transmitTimer;
+void setup( void )
+{
+    Serial.begin(9600);
+    
+    while (!Serial) { }
 
-void transmitCallback(void)
+    LoRaWAN.begin(US915);
+    // LoRaWAN.setSubBand(2);
+    // LoRaWAN.setDutyCycle(false);
+    // LoRaWAN.setAntennaGain(2.0);
+    LoRaWAN.joinOTAA(appEui, appKey, devEui);
+
+    Serial.println("JOIN( )");
+}
+
+void loop( void )
 {
     if (LoRaWAN.joined() && !LoRaWAN.busy())
     {
+        if (STM32L0.getVBUS()) 
+        {
+            LoRaWAN.setBatteryLevel(LORAWAN_BATTERY_LEVEL_EXTERNAL);
+        }
+        else
+        {
+            LoRaWAN.setBatteryLevel(LORAWAN_BATTERY_LEVEL_UNKNOWN);
+        }
+
         Serial.print("TRANSMIT( ");
         Serial.print("TimeOnAir: ");
         Serial.print(LoRaWAN.getTimeOnAir());
         Serial.print(", NextTxTime: ");
-        Serial.print("NextTxTime: ");
         Serial.print(LoRaWAN.getNextTxTime());
         Serial.print(", MaxPayloadSize: ");
         Serial.print(LoRaWAN.getMaxPayloadSize());
@@ -69,26 +99,6 @@ void transmitCallback(void)
         LoRaWAN.write(0xde);
         LoRaWAN.endPacket();
     }
-}
 
-
-void setup( void )
-{
-    Serial.begin(9600);
-    
-    while (!Serial) { }
-
-    LoRaWAN.begin(US915);
-    // LoRaWAN.setSubBand(2);
-    // LoRaWAN.setDutyCycle(false);
-    // LoRaWAN.setAntennaGain(2.0);
-    LoRaWAN.joinOTAA(appEui, appKey, devEui);
-
-    Serial.println("JOIN( )");
-
-    transmitTimer.start(transmitCallback, 0, 10000);
-}
-
-void loop( void )
-{
+    delay(10000);
 }

@@ -43,8 +43,6 @@
 #define STM32L0_CONFIG_CHANNEL_VBAT       STM32L0_ADC_CHANNEL_5
 #define STM32L0_CONFIG_VBAT_SMP           40000
 #define STM32L0_CONFIG_VBAT_SCALE         ((float)1.27)
-#define STM32L0_CONFIG_VBAT_EMPTY         ((float)3.3)
-#define STM32L0_CONFIG_VBAT_FULL          ((float)4.2)
 
 #define STM32L0_CONFIG_SFLASH_DATA_START  (256 * 1024)
 

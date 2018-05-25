@@ -29,6 +29,7 @@
 #include "armv6m.h"
 #include "stm32l0_gpio.h"
 #include "stm32l0_rtc.h"
+#include "stm32l0_eeprom.h"
 #include "stm32l0_system.h"
 
 #undef abs
@@ -605,6 +606,7 @@ void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, ui
 
     __stm32l0_gpio_initialize();
     __stm32l0_rtc_initialize();
+    __stm32l0_eeprom_initialize();
 
     stm32l0_system_sysclk_configure(hclk, pclk1, pclk2);
 
@@ -1744,3 +1746,7 @@ void stm32l0_system_dfu(void)
 
     stm32l0_system_reset();
 }
+
+static void __empty() { }
+
+void __stm32l0_eeprom_initialize(void) __attribute__ ((weak, alias("__empty")));

@@ -146,6 +146,21 @@ extern uint16_t RegionChannelsMaskRemaining[CHANNELS_MASK_SIZE];
  */
 extern uint16_t RegionChannelsDefaultMask[CHANNELS_MASK_SIZE];
 
+
+static const uint8_t RegionAU915Priorities[AU915_MAX_NB_CHANNELS] = {
+    0, 18, 36, 54,  9, 27, 45, 63, 
+    1, 19, 37, 55, 10, 28, 46, 64, 
+    2, 20, 38, 56, 11, 29, 47, 65, 
+    3, 21, 39, 57, 12, 30, 48, 66, 
+    4, 22, 40, 58, 13, 31, 49, 67, 
+    5, 23, 41, 59, 14, 32, 50, 68, 
+    6, 24, 42, 60, 15, 33, 51, 69, 
+    7, 25, 43, 61, 16, 34, 52, 70, 
+    8, 17, 26, 35, 44, 53, 62, 71, 
+};
+
+static int8_t lastJoinChannel = -1;
+
 // Static functions
 static int8_t GetNextLowerTxDr( int8_t dr, int8_t minDr )
 {
@@ -514,53 +529,57 @@ bool RegionAU915AdrNext( AdrNextParams_t* adrNext, int8_t* drOut, int8_t* txPowO
     // Report back the adr ack counter
     *adrAckCounter = adrNext->AdrAckCounter;
 
+    adrAckReq = false;
+
     if( adrNext->AdrEnabled == true )
     {
-        if( datarate == AU915_TX_MIN_DATARATE )
-        {
-            *adrAckCounter = 0;
-            adrAckReq = false;
-        }
-        else
+	if( adrNext->AdrAckCounter < ( AU915_ADR_ACK_LIMIT + 18 * AU915_ADR_ACK_DELAY ) )
         {
             if( adrNext->AdrAckCounter >= AU915_ADR_ACK_LIMIT )
             {
                 adrAckReq = true;
-                txPower = AU915_MAX_TX_POWER;
             }
-            else
-            {
-                adrAckReq = false;
-            }
+	    
             if( adrNext->AdrAckCounter >= ( AU915_ADR_ACK_LIMIT + AU915_ADR_ACK_DELAY ) )
             {
                 if( ( adrNext->AdrAckCounter % AU915_ADR_ACK_DELAY ) == 1 )
                 {
-                    // Decrease the datarate
-                    getPhy.Attribute = PHY_NEXT_LOWER_TX_DR;
-                    getPhy.Datarate = datarate;
-                    getPhy.UplinkDwellTime = adrNext->UplinkDwellTime;
-                    phyParam = RegionAU915GetPhyParam( &getPhy );
-                    datarate = phyParam.Value;
+		    if( txPower != AU915_MAX_TX_POWER )
+		    {
+			// Increase the txPower
+			txPower = AU915_MAX_TX_POWER;
+		    }
+		    else if( datarate != AU915_TX_MIN_DATARATE )
+		    {
+			// Decrease the datarate
+			getPhy.Attribute = PHY_NEXT_LOWER_TX_DR;
+			getPhy.Datarate = datarate;
+			getPhy.UplinkDwellTime = adrNext->UplinkDwellTime;
+			phyParam = RegionAU915GetPhyParam( &getPhy );
+			datarate = phyParam.Value;
+		    }
+		    else
+		    {
+			*adrAckCounter = ( AU915_ADR_ACK_LIMIT + 18 * AU915_ADR_ACK_DELAY );
 
-                    if( datarate == AU915_TX_MIN_DATARATE )
-                    {
-                        // We must set adrAckReq to false as soon as we reach the lowest datarate
-                        adrAckReq = false;
-                        if( adrNext->UpdateChanMask == true )
-                        {
-                            // Re-enable default channels
-                            RegionChannelsMask[0] = RegionChannelsDefaultMask[0];
-                            RegionChannelsMask[1] = RegionChannelsDefaultMask[1];
-                            RegionChannelsMask[2] = RegionChannelsDefaultMask[2];
-                            RegionChannelsMask[3] = RegionChannelsDefaultMask[3];
-                            RegionChannelsMask[4] = RegionChannelsDefaultMask[4];
-                        }
-                    }
-                }
+			// We must set adrAckReq to false as soon as we reach the lowest datarate
+			adrAckReq = false;
+			if( adrNext->UpdateChanMask == true )
+			{
+			    // Re-enable default channels
+			    RegionChannelsMask[0] = RegionChannelsDefaultMask[0];
+			    RegionChannelsMask[1] = RegionChannelsDefaultMask[1];
+			    RegionChannelsMask[2] = RegionChannelsDefaultMask[2];
+			    RegionChannelsMask[3] = RegionChannelsDefaultMask[3];
+			    RegionChannelsMask[4] = RegionChannelsDefaultMask[4];
+			}
+		    }
+		}
             }
         }
     }
+
+
 
     *drOut = datarate;
     *txPowOut = txPower;
@@ -811,12 +830,17 @@ uint8_t RegionAU915DlChannelReq( DlChannelReqParams_t* dlChannelReq )
 
 int8_t RegionAU915AlternateDr( int8_t currentDr )
 {
-    static int8_t trialsCount = 0;
+    static int16_t trialsCount = 0;
+
+    if (lastJoinChannel < 0)
+    {
+	trialsCount = 0;
+    }
 
     // Re-enable 500 kHz default channels
     RegionChannelsMask[4] = RegionChannelsDefaultMask[4];
 
-    if( ( trialsCount & 0x01 ) == 0x01 )
+    if( ( trialsCount % 9 ) == 8 )
     {
         currentDr = DR_6;
     }
@@ -849,6 +873,7 @@ LoRaMacStatus_t RegionAU915NextChannel( NextChanParams_t* nextChanParams, uint8_
     uint8_t nbEnabledChannels = 0;
     uint8_t delayTx = 0;
     uint8_t enabledChannels[AU915_MAX_NB_CHANNELS] = { 0 };
+    uint8_t priority;
     TimerTime_t nextTxDelay = 0;
 
     // Count 125kHz channels
@@ -867,8 +892,8 @@ LoRaMacStatus_t RegionAU915NextChannel( NextChanParams_t* nextChanParams, uint8_
 
     if( nextChanParams->AggrTimeOff <= TimerGetElapsedTime( nextChanParams->LastAggrTx ) )
     {
-        // Reset Aggregated time off
-        *aggregatedTimeOff = 0;
+	// Reset Aggregated time off
+	*aggregatedTimeOff = 0;
 
         // Update bands Time OFF
         nextTxDelay = RegionCommonUpdateBandTimeOff( nextChanParams->Joined, nextChanParams->DutyCycleEnabled, RegionBands, AU915_MAX_NB_BANDS );
@@ -886,11 +911,61 @@ LoRaMacStatus_t RegionAU915NextChannel( NextChanParams_t* nextChanParams, uint8_
 
     if( nbEnabledChannels > 0 )
     {
-        // We found a valid channel
-        *channel = enabledChannels[randr( 0, nbEnabledChannels - 1 )];
-        // Disable the channel in the mask
-        RegionCommonChanDisable( RegionChannelsMaskRemaining, *channel, AU915_MAX_NB_CHANNELS - 8 );
+	if( channel )
+	{
+	    // We found a valid channel
+	    if( nextChanParams->Joined )
+	    {
+		if (lastJoinChannel >= 0)
+		{
+		    *channel = lastJoinChannel;
 
+		    lastJoinChannel = -1;
+		}
+		else
+		{
+		    *channel = enabledChannels[randr( 0, nbEnabledChannels - 1 )];
+		}
+	    }
+	    else
+	    {
+		priority = AU915_MAX_NB_CHANNELS;
+
+		if (lastJoinChannel >= 0)
+		{
+		    for( uint8_t i = 0; i < nbEnabledChannels; i++ )
+		    {
+			if( RegionAU915Priorities[lastJoinChannel] < RegionAU915Priorities[enabledChannels[i]] )
+			{
+			    if( priority > RegionAU915Priorities[enabledChannels[i]] ) 
+			    {
+				priority = RegionAU915Priorities[enabledChannels[i]];
+				
+				*channel = enabledChannels[i];
+			    }
+			}
+		    }
+		}
+
+		if( priority == AU915_MAX_NB_CHANNELS )
+		{
+		    for( uint8_t i = 0; i < nbEnabledChannels; i++ )
+		    {
+			if( priority > RegionAU915Priorities[enabledChannels[i]] ) 
+			{
+			    priority = RegionAU915Priorities[enabledChannels[i]];
+			    
+			    *channel = enabledChannels[i];
+			}
+		    }
+		}
+
+		lastJoinChannel = *channel;
+	    }
+
+	    // Disable the channel in the mask
+	    RegionCommonChanDisable( RegionChannelsMaskRemaining, *channel, AU915_MAX_NB_CHANNELS - 8 );
+	}
         *time = 0;
         return LORAMAC_STATUS_OK;
     }

@@ -26,7 +26,6 @@ void setup( void )
     while (GNSS.busy()) { }
 
     LoRaWAN.begin(US915);
-    LoRaWAN.setSubBand(1);
     LoRaWAN.joinOTAA(appEui, appKey, devEui);
 }
 

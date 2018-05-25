@@ -37,7 +37,7 @@ uint8_t eeprom_read_byte(const uint8_t *address)
 {
     uint8_t data;
 
-    stm32l0_eeprom_read((uint32_t)address, (uint8_t*)&data, sizeof(data));
+    eeprom_read_block((void*)&data, address, sizeof(data));
 
     return data;
 }
@@ -46,7 +46,7 @@ uint16_t eeprom_read_word(const uint16_t *address)
 {
     uint16_t data;
 
-    stm32l0_eeprom_read((uint32_t)address, (uint8_t*)&data, sizeof(data));
+    eeprom_read_block((void*)&data, address, sizeof(data));
 
     return data;
 }
@@ -55,7 +55,7 @@ uint32_t eeprom_read_dword(const uint32_t *address)
 {
     uint32_t data;
 
-    stm32l0_eeprom_read((uint32_t)address, (uint8_t*)&data, sizeof(data));
+    eeprom_read_block((void*)&data, address, sizeof(data));
 
     return data;
 }
@@ -64,39 +64,67 @@ float eeprom_read_float(const float *address)
 {
     float data;
 
-    stm32l0_eeprom_read((uint32_t)address, (uint8_t*)&data, sizeof(data));
+    eeprom_read_block((void*)&data, address, sizeof(data));
 
     return data;
 }
 
 void eeprom_read_block(void *data, const void *address, uint32_t count)
 {
-    stm32l0_eeprom_read((uint32_t)address, (uint8_t*)data, count);
+    stm32l0_eeprom_transaction_t transaction;
+
+    transaction.status = STM32L0_EEPROM_STATUS_BUSY;
+    transaction.control = STM32L0_EEPROM_CONTROL_READ;
+    transaction.count = count;
+    transaction.address = (uint32_t)address;
+    transaction.data = data;
+    transaction.callback = NULL;
+    transaction.context = NULL;
+
+    stm32l0_eeprom_enqueue(&transaction);
+
+    while (transaction.status == STM32L0_EEPROM_STATUS_BUSY)
+    {
+    }
 }
 
 void eeprom_write_byte(uint8_t *address, uint8_t data)
 {
-    stm32l0_eeprom_write((uint32_t)address, (const uint8_t*)&data, sizeof(data));
+    eeprom_write_block((const void*)&data, address, sizeof(data));
 }
 
 void eeprom_write_word(uint16_t *address, uint16_t data)
 {
-    stm32l0_eeprom_write((uint32_t)address, (const uint8_t*)&data, sizeof(data));
+    eeprom_write_block((const void*)&data, address, sizeof(data));
 }
 
 void eeprom_write_dword(uint32_t *address, uint32_t data)
 {
-    stm32l0_eeprom_write((uint32_t)address, (const uint8_t*)&data, sizeof(data));
+    eeprom_write_block((const void*)&data, address, sizeof(data));
 }
 
 void eeprom_write_float(float *address, float data)
 {
-    stm32l0_eeprom_write((uint32_t)address, (const uint8_t*)&data, sizeof(data));
+    eeprom_write_block((const void*)&data, address, sizeof(data));
 }
 
 void eeprom_write_block(const void *data, void *address, uint32_t count)
 {
-    stm32l0_eeprom_write((uint32_t)address, (const uint8_t*)data, count);
+    stm32l0_eeprom_transaction_t transaction;
+
+    transaction.status = STM32L0_EEPROM_STATUS_BUSY;
+    transaction.control = STM32L0_EEPROM_CONTROL_PROGRAM;
+    transaction.count = count;
+    transaction.address = (uint32_t)address;
+    transaction.data = (void*)data;
+    transaction.callback = NULL;
+    transaction.context = NULL;
+
+    stm32l0_eeprom_enqueue(&transaction);
+
+    while (transaction.status == STM32L0_EEPROM_STATUS_BUSY)
+    {
+    }
 }
 
 int eeprom_is_ready(void)

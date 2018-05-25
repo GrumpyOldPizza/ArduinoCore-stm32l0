@@ -122,7 +122,7 @@ typedef union uDrRange
     /*!
      * Byte-access to the bits
      */
-    int8_t Value;
+    uint8_t Value;
     /*!
      * Structure to store the minimum and the maximum datarate
      */
@@ -135,7 +135,7 @@ typedef union uDrRange
          *
          * The allowed ranges are region specific. Please refer to \ref DR_0 to \ref DR_15 for details.
          */
-        int8_t Min : 4;
+        uint8_t Min : 4;
         /*!
          * Maximum data rate
          *
@@ -143,7 +143,7 @@ typedef union uDrRange
          *
          * The allowed ranges are region specific. Please refer to \ref DR_0 to \ref DR_15 for details.
          */
-        int8_t Max : 4;
+        uint8_t Max : 4;
     }Fields;
 }DrRange_t;
 
@@ -923,7 +923,7 @@ typedef struct sMcpsIndication
     /*!
      * Snr of the received packet
      */
-    uint8_t Snr;
+    int8_t Snr;
     /*!
      * Receive window
      */
@@ -932,6 +932,10 @@ typedef struct sMcpsIndication
      * Set if an acknowledgement was received
      */
     bool AckReceived;
+    /*!
+     * Set if an update to network confiugation was received
+     */
+    bool ParamsUpdated;
     /*!
      * The downlink counter value for the received frame
      */
@@ -1016,6 +1020,10 @@ typedef struct sMlmeReqJoin
      * LoRaWAN Specification V1.0.2, chapter 6.2.2
      */
     uint8_t *AppKey;
+    /*!
+     * DevNonce used for join request.
+     */
+    uint16_t DevNonce;
     /*!
      * Datarate used for join request.
      */
@@ -1111,38 +1119,48 @@ typedef struct sMlmeIndication
  *
  * The following table lists the MIB parameters and the related attributes:
  *
- * Attribute                         | Get | Set
- * --------------------------------- | :-: | :-:
- * \ref MIB_DEVICE_CLASS             | YES | YES
- * \ref MIB_NETWORK_JOINED           | YES | YES
- * \ref MIB_ADR                      | YES | YES
- * \ref MIB_NET_ID                   | YES | YES
- * \ref MIB_DEV_ADDR                 | YES | YES
- * \ref MIB_NWK_SKEY                 | YES | YES
- * \ref MIB_APP_SKEY                 | YES | YES
- * \ref MIB_PUBLIC_NETWORK           | YES | YES
- * \ref MIB_REPEATER_SUPPORT         | YES | YES
- * \ref MIB_CHANNELS                 | YES | NO
- * \ref MIB_RX2_CHANNEL              | YES | YES
- * \ref MIB_CHANNELS_MASK            | YES | YES
- * \ref MIB_CHANNELS_DEFAULT_MASK    | YES | YES
- * \ref MIB_CHANNELS_NB_REP          | YES | YES
- * \ref MIB_MAX_RX_WINDOW_DURATION   | YES | YES
- * \ref MIB_RECEIVE_DELAY_1          | YES | YES
- * \ref MIB_RECEIVE_DELAY_2          | YES | YES
- * \ref MIB_JOIN_ACCEPT_DELAY_1      | YES | YES
- * \ref MIB_JOIN_ACCEPT_DELAY_2      | YES | YES
- * \ref MIB_CHANNELS_DATARATE        | YES | YES
- * \ref MIB_CHANNELS_DEFAULT_DATARATE| YES | YES
- * \ref MIB_CHANNELS_TX_POWER        | YES | YES
- * \ref MIB_CHANNELS_DEFAULT_TX_POWER| YES | YES
- * \ref MIB_UPLINK_COUNTER           | YES | YES
- * \ref MIB_DOWNLINK_COUNTER         | YES | YES
- * \ref MIB_MULTICAST_CHANNEL        | YES | NO
- * \ref MIB_SYSTEM_MAX_RX_ERROR      | YES | YES
- * \ref MIB_MIN_RX_SYMBOLS           | YES | YES
- * \ref MIB_ANTENNA_GAIN             | YES | YES
- * \ref MIB_DEFAULT_ANTENNA_GAIN     | YES | YES
+ * Attribute                           | Get | Set
+ * ----------------------------------- | :-: | :-:
+ * \ref MIB_DEVICE_CLASS               | YES | YES
+ * \ref MIB_NETWORK_JOINED             | YES | YES
+ * \ref MIB_ADR                        | YES | YES
+ * \ref MIB_APP_NONCE                  | YES | NO
+ * \ref MIB_NET_ID                     | YES | YES
+ * \ref MIB_DEV_ADDR                   | YES | YES
+ * \ref MIB_NWK_SKEY                   | YES | YES
+ * \ref MIB_APP_SKEY                   | YES | YES
+ * \ref MIB_PUBLIC_NETWORK             | YES | YES
+ * \ref MIB_REPEATER_SUPPORT           | YES | YES
+ * \ref MIB_CHANNELS                   | YES | NO
+ * \ref MIB_RX1_DR_OFFSET              | YES | YES
+ * \ref MIB_RX1_DEFAULT_DR_OFFSET      | YES | YES
+ * \ref MIB_RX2_CHANNEL                | YES | YES
+ * \ref MIB_RX2_DEFAULT_CHANNEL        | YES | YES
+ * \ref MIB_CHANNELS_MASK              | YES | YES
+ * \ref MIB_CHANNELS_DEFAULT_MASK      | YES | YES
+ * \ref MIB_CHANNELS_NB_REP            | YES | YES
+ * \ref MIB_MAX_RX_WINDOW_DURATION     | YES | YES
+ * \ref MIB_RECEIVE_DELAY_1            | YES | YES
+ * \ref MIB_RECEIVE_DELAY_2            | YES | YES
+ * \ref MIB_JOIN_ACCEPT_DELAY_1        | YES | YES
+ * \ref MIB_JOIN_ACCEPT_DELAY_2        | YES | YES
+ * \ref MIB_CHANNELS_DATARATE          | YES | YES
+ * \ref MIB_CHANNELS_DEFAULT_DATARATE  | YES | YES
+ * \ref MIB_CHANNELS_TX_POWER          | YES | YES
+ * \ref MIB_CHANNELS_DEFAULT_TX_POWER  | YES | YES
+ * \ref MIB_UPLINK_COUNTER             | YES | YES
+ * \ref MIB_DOWNLINK_COUNTER           | YES | YES
+ * \ref MIB_MULTICAST_CHANNEL          | YES | NO
+ * \ref MIB_SYSTEM_MAX_RX_ERROR        | YES | YES
+ * \ref MIB_MIN_RX_SYMBOLS             | YES | YES
+ * \ref MIB_UPLINK_DWELL_TIME          | YES | YES
+ * \ref MIB_DEFAULT_UPLINK_DWELL_TIME  | YES | YES
+ * \ref MIB_DOWNLINK_DWELL_TIME        | YES | YES
+ * \ref MIB_DEFAULT_DOWNLINK_DWELL_TIME| YES | YES
+ * \ref MIB_MAX_EIRP                   | YES | YES
+ * \ref MIB_DEFAULT_MAX_EIRP           | YES | YES
+ * \ref MIB_ANTENNA_GAIN               | YES | YES
+ * \ref MIB_DEFAULT_ANTENNA_GAIN       | YES | YES
  *
  * The following table provides links to the function implementations of the
  * related MIB primitives:
@@ -1174,6 +1192,12 @@ typedef enum eMib
      * [true: ADR enabled, false: ADR disabled]
      */
     MIB_ADR,
+    /*!
+     * Application nonce
+     *
+     * LoRaWAN Specification V1.0.2, chapter 6.1.1
+     */
+    MIB_APP_NONCE,
     /*!
      * Network identifier
      *
@@ -1222,6 +1246,18 @@ typedef enum eMib
      * LoRaWAN Regional Parameters V1.0.2rB
      */
     MIB_CHANNELS,
+    /*!
+     * Set datarate offset for window 1
+     *
+     * LoRaWAN Specification V1.0.2, chapter 3.3.1
+     */
+    MIB_RX1_DR_OFFSET,
+    /*!
+     * Set datarate offset for window 1
+     *
+     * LoRaWAN Specification V1.0.2, chapter 3.3.1
+     */
+    MIB_RX1_DEFAULT_DR_OFFSET,
     /*!
      * Set receive window 2 channel
      *
@@ -1344,6 +1380,30 @@ typedef enum eMib
      */
     MIB_MIN_RX_SYMBOLS,
     /*!
+     * Uplink dwell time
+     */
+    MIB_UPLINK_DWELL_TIME,
+    /*!
+     * Default uplink dwell time
+     */
+    MIB_DEFAULT_UPLINK_DWELL_TIME,
+    /*!
+     * Downlink dwell time
+     */
+    MIB_DOWNLINK_DWELL_TIME,
+    /*!
+     * Default downlink dwell time
+     */
+    MIB_DEFAULT_DOWNLINK_DWELL_TIME,
+    /*!
+     * MaxEIRP
+     */
+    MIB_MAX_EIRP,
+    /*!
+     * Default MaxEIRP
+     */
+    MIB_DEFAULT_MAX_EIRP,
+    /*!
      * Antenna gain of the node. Default value is region specific.
      * The antenna gain is used to calculate the TX power of the node.
      * The formula is:
@@ -1382,6 +1442,12 @@ typedef union uMibParam
      * Related MIB type: \ref MIB_ADR
      */
     bool AdrEnable;
+    /*!
+     * Application Nonce
+     *
+     * Related MIB type: \ref MIB_APP_NONCE
+     */
+    uint32_t AppNonce;
     /*!
      * Network identifier
      *
@@ -1424,6 +1490,18 @@ typedef union uMibParam
      * Related MIB type: \ref MIB_CHANNELS
      */
     const ChannelParams_t* ChannelList;
+     /*!
+      * Datarate offset for the receive window 1
+      *
+      * Related MIB type: \ref MIB_RX1_DR_OFFSET
+      */
+    uint8_t Rx1DrOffset;
+     /*!
+      * Datarate offset for the receive window 1
+      *
+      * Related MIB type: \ref MIB_RX1_DEFAULT_DR_OFFSET
+      */
+    uint8_t Rx1DefaultDrOffset;
      /*!
      * Channel for the receive window 2
      *
@@ -1539,6 +1617,42 @@ typedef union uMibParam
      */
     uint8_t MinRxSymbols;
     /*!
+     * Uplink dwell time
+     *
+     * Related MIB type: \ref MIB_UPLINK_DWELL_TIME
+     */
+    uint8_t UplinkDwellTime;
+    /*!
+     * Default uplink dwell time
+     *
+     * Related MIB type: \ref MIB_DEFAULT_UPLINK_DWELL_TIME
+     */
+    uint8_t DefaultUplinkDwellTime;
+    /*!
+     * Downlink dwell time
+     *
+     * Related MIB type: \ref MIB_DOWNLINK_DWELL_TIME
+     */
+    uint8_t DownlinkDwellTime;
+    /*!
+     * Default downlink dwell time
+     *
+     * Related MIB type: \ref MIB_DEFAULT_DOWNLINK_DWELL_TIME
+     */
+    uint8_t DefaultDownlinkDwellTime;
+    /*!
+     * MaxEIRP
+     *
+     * Related MIB type: \ref MIB_MAX_ERIP
+     */
+    float MaxEirp;
+    /*!
+     * Default MaxEIRP
+     *
+     * Related MIB type: \ref MIB_DEFAULT_MAX_ERIP
+     */
+    float DefaultMaxEirp;
+    /*!
      * Antenna gain
      *
      * Related MIB type: \ref MIB_ANTENNA_GAIN
@@ -1581,6 +1695,18 @@ typedef struct sLoRaMacTxInfo
      * The current payload size, dependent on the current datarate
      */
     uint8_t CurrentPayloadSize;
+    /*!
+     * Current data rate
+     */
+    int8_t Datarate;
+    /*!
+     * Current TX power
+     */
+    int8_t TxPower;
+    /*!
+     * Current TX delay
+     */
+    TimerTime_t TxDelay;
 }LoRaMacTxInfo_t;
 
 /*!
