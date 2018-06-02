@@ -8,17 +8,17 @@ ArduinoCore-stm32l0 is targeted at ultra low power scenarios, sensor hubs, with 
 ## Supported boards
 
 ### Tlera Corp
- * [Grasshopper-STM32L082CZ](https://www.tindie.com/products/TleraCorp/grasshopper-lora-development-board)
- * [Cricket-STM32L082CZ](https://www.tindie.com/products/TleraCorp/cricket-lorawangnss-asset-tracker)
- * [Cicada-STM32L082CZ](https://www.tindie.com/products/TleraCorp/lorasensortile)
+ * [Grasshopper-L082CZ](https://www.tindie.com/products/TleraCorp/grasshopper-lora-development-board)
+ * [Cricket-L082CZ](https://www.tindie.com/products/TleraCorp/cricket-lorawangnss-asset-tracker)
+ * [Cicada-L082CZ](https://www.tindie.com/products/TleraCorp/lorasensortile)
 
 ### STMicroelectronics
- * B-L072Z-LRWAN1
+ * [B-L072Z-LRWAN1](http://www.st.com/en/evaluation-tools/b-l072z-lrwan1.html)
 
 
 ## Installing
 
-### Board Manager (NOT SUPPORTED YET !!! See "From git" in the interim)
+### Board Manager
 
  1. [Download and install the Arduino IDE](https://www.arduino.cc/en/Main/Software) (at least version v1.6.8)
  2. Start the Arduino IDE
@@ -54,6 +54,11 @@ ArduinoCore-stm32l0 is targeted at ultra low power scenarios, sensor hubs, with 
  2. Right-click on ```dpinst_x86.exe``` (32 bit Windows) or ```dpinst_amd64.exe``` (64 bit Windows) and select ```Run as administrator```
  3. Click on ```Install this driver software anyway``` at the ```Windows Security``` popup as the driver is unsigned
 
+###### ST-LINK V2.1 driver setup for NUCLEO boards
+
+ 1. Plugin NUCLEO board
+ 2. Download and install [ST-Link USB Drivers](http://www.st.com/en/embedded-software/stsw-link009.html)
+
 ### From git
 
  1. Follow steps from Board Manager section above
@@ -71,5 +76,5 @@ ArduinoCore-stm32l0 is targeted at ultra low power scenarios, sensor hubs, with 
 
 ## Credits
 
-This core is based on the [Arduino SAMD Core](https://github.com/arduino/ArduinoCore-samd)
+This core is based on and compatible with the [Arduino SAMD Core](https://github.com/arduino/ArduinoCore-samd)
 
