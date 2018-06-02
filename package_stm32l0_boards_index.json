@@ -19,8 +19,8 @@
           },
           "url": "https://github.com/grumpyoldpizza/ArduinoCore-stm32l0/archive/0.0.1.tar.gz",
           "archiveFileName": "ArduinoCore-stm32l0-0.0.1.tar.gz",
-          "checksum": "MD5:ffb385db84bcbc24c859393c0602b035",
-          "size": "22782908",
+          "checksum": "MD5:45895399fde606eed599a64a3b857a7b",
+          "size": "8803913",
           "boards": [
             {"name": "Grasshopper-L082CZ"},
             {"name": "Cricket-L082CZ"},
