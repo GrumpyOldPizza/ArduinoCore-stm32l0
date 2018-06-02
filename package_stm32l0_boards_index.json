@@ -1,0 +1,43 @@
+{
+  "packages": [
+    {
+      "name": "TlraCorp",
+      "maintainer": "Tlera Corp",
+      "websiteURL": "https://github.com/grumpyoldpizza/ArduinoCore-stm32l0",
+      "email": "grumpyoldpizza@gmail.com",
+      "help": {
+        "online": "https://github.com/grumpyoldpizza/ArduinoCore-stm32l0/issues"
+      },
+      "platforms": [
+        {
+          "name": "Tlera Corp STM32L0 Boards",
+          "architecture": "stm32l0",
+          "version": "0.0.1",
+          "category": "Contributed",
+          "help": {
+            "online": "https://github.com/grumpyoldpizza/ArduinoCore-stm32l0/issues"
+          },
+          "url": "https://github.com/grumpyoldpizza/ArduinoCore-stm32l0/archive/0.0.1.tar.gz",
+          "archiveFileName": "ArduinoCore-stm32l0-0.0.1.tar.gz",
+          "checksum": "MD5:ffb385db84bcbc24c859393c0602b035",
+          "size": "22782908",
+          "boards": [
+            {"name": "Grasshopper-L082CZ"},
+            {"name": "Cricket-L082CZ"},
+            {"name": "Cicada-L082CZ"},
+            {"name": "B-L072Z-LRWAN1"},
+          ],
+          "toolsDependencies": [
+            {
+              "packager": "arduino",
+              "name": "arm-none-eabi-gcc",
+              "version": "4.8.3-2014q1"
+            }
+          ]
+        },
+      ],
+      "tools":[
+      ]
+    }
+  ]
+}
