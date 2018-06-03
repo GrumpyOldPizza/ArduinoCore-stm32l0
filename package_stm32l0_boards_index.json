@@ -10,7 +10,7 @@
       },
       "platforms": [
         {
-          "name": "Tlera Corp STM32L0 Boards",
+          "name": "Tlera Corp STM32L0 (32-bits ARM Cortex-M0+) Boards",
           "architecture": "stm32l0",
           "version": "0.0.1",
           "category": "Contributed",
@@ -34,7 +34,7 @@
               "version": "4.8.3-2014q1"
             }
           ]
-        },
+        }
       ],
       "tools":[
       ]
