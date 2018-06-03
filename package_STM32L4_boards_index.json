@@ -1,0 +1,157 @@
+{
+  "packages": [
+    {
+      "name": "grumpyoldpizza",
+      "maintainer": "Tlera Corp",
+      "websiteURL": "https://github.com/grumpyoldpizza/arduino-STM32L4",
+      "email": "grumpyoldpizza@gmail.com",
+      "help": {
+        "online": "https://github.com/grumpyoldpizza/arduino-STM32L4/issues"
+      },
+      "platforms": [
+        {
+          "name": "STM32L4 Boards",
+          "architecture": "stm32l4",
+          "version": "0.0.22",
+          "category": "Contributed",
+          "help": {
+            "online": "https://github.com/grumpyoldpizza/arduino-STM32L4/issues"
+          },
+          "url": "https://github.com/grumpyoldpizza/arduino-STM32L4/archive/0.0.22.tar.gz",
+          "archiveFileName": "arduino-STM32L4-0.0.22.tar.gz",
+          "checksum": "MD5:ffb385db84bcbc24c859393c0602b035",
+          "size": "22782908",
+          "boards": [
+            {"name": "Dragonfly-L476RE"},
+            {"name": "Butterfly-L433CC"},
+            {"name": "Ladybug-L432KC"},
+            {"name": "NUCLEO-L432KC"},
+            {"name": "NUCLEO-L476RG"}
+          ],
+          "toolsDependencies": [
+            {
+              "packager": "arduino",
+              "name": "arm-none-eabi-gcc",
+              "version": "4.8.3-2014q1"
+            }
+          ]
+        },
+
+        {
+          "name": "STM32L4 Boards",
+          "architecture": "stm32l4",
+          "version": "0.0.23",
+          "category": "Contributed",
+          "help": {
+            "online": "https://github.com/grumpyoldpizza/arduino-STM32L4/issues"
+          },
+          "url": "https://github.com/grumpyoldpizza/arduino-STM32L4/archive/0.0.23.tar.gz",
+          "archiveFileName": "arduino-STM32L4-0.0.23.tar.gz",
+          "checksum": "MD5:28653f9a69a52d45ee1f474416b844de",
+          "size": "15129983",
+          "boards": [
+            {"name": "Dragonfly-L476RE"},
+            {"name": "Butterfly-L433CC"},
+            {"name": "Ladybug-L432KC"},
+            {"name": "NUCLEO-L432KC"},
+            {"name": "NUCLEO-L476RG"}
+          ],
+          "toolsDependencies": [
+            {
+              "packager": "arduino",
+              "name": "arm-none-eabi-gcc",
+              "version": "4.8.3-2014q1"
+            }
+          ]
+        },
+
+        {
+          "name": "STM32L4 Boards",
+          "architecture": "stm32l4",
+          "version": "0.0.24",
+          "category": "Contributed",
+          "help": {
+            "online": "https://github.com/grumpyoldpizza/arduino-STM32L4/issues"
+          },
+          "url": "https://github.com/grumpyoldpizza/arduino-STM32L4/archive/0.0.24.tar.gz",
+          "archiveFileName": "arduino-STM32L4-0.0.24.tar.gz",
+          "checksum": "MD5:c5c4fea09d70a4ed2cf4fd05db289bf1",
+          "size": "15130712",
+          "boards": [
+            {"name": "Dragonfly-L476RE"},
+            {"name": "Butterfly-L433CC"},
+            {"name": "Ladybug-L432KC"},
+            {"name": "NUCLEO-L432KC"},
+            {"name": "NUCLEO-L476RG"}
+          ],
+          "toolsDependencies": [
+            {
+              "packager": "arduino",
+              "name": "arm-none-eabi-gcc",
+              "version": "4.8.3-2014q1"
+            }
+          ]
+        },
+
+        {
+          "name": "STM32L4 Boards",
+          "architecture": "stm32l4",
+          "version": "0.0.25",
+          "category": "Contributed",
+          "help": {
+            "online": "https://github.com/grumpyoldpizza/arduino-STM32L4/issues"
+          },
+          "url": "https://github.com/grumpyoldpizza/arduino-STM32L4/archive/0.0.25.tar.gz",
+          "archiveFileName": "arduino-STM32L4-0.0.25.tar.gz",
+          "checksum": "MD5:98e1c456bf1b6fedf4868dc8cab710ca",
+          "size": "15109726",
+          "boards": [
+            {"name": "Dragonfly-L476RE"},
+            {"name": "Butterfly-L433CC"},
+            {"name": "Ladybug-L432KC"},
+            {"name": "NUCLEO-L432KC"},
+            {"name": "NUCLEO-L476RG"}
+          ],
+          "toolsDependencies": [
+            {
+              "packager": "arduino",
+              "name": "arm-none-eabi-gcc",
+              "version": "4.8.3-2014q1"
+            }
+          ]
+        },
+
+        {
+          "name": "STM32L4 Boards",
+          "architecture": "stm32l4",
+          "version": "0.0.26",
+          "category": "Contributed",
+          "help": {
+            "online": "https://github.com/grumpyoldpizza/arduino-STM32L4/issues"
+          },
+          "url": "https://github.com/grumpyoldpizza/arduino-STM32L4/archive/0.0.26.tar.gz",
+          "archiveFileName": "arduino-STM32L4-0.0.26.tar.gz",
+          "checksum": "MD5:d6f44c80169b64cad06a31c12976e67c",
+          "size": "15115442",
+          "boards": [
+            {"name": "Dragonfly-L476RE"},
+            {"name": "Butterfly-L433CC"},
+            {"name": "Ladybug-L432KC"},
+            {"name": "NUCLEO-L432KC"},
+            {"name": "NUCLEO-L476RG"}
+          ],
+          "toolsDependencies": [
+            {
+              "packager": "arduino",
+              "name": "arm-none-eabi-gcc",
+              "version": "4.8.3-2014q1"
+            }
+          ]
+        }
+
+      ],
+      "tools":[
+      ]
+    }
+  ]
+}
