@@ -14,13 +14,10 @@
           "architecture": "stm32l0",
           "version": "0.0.1",
           "category": "Contributed",
-          "help": {
-            "online": "https://github.com/grumpyoldpizza/ArduinoCore-stm32l0/issues"
-          },
           "url": "https://github.com/grumpyoldpizza/ArduinoCore-stm32l0/archive/0.0.1.tar.gz",
           "archiveFileName": "ArduinoCore-stm32l0-0.0.1.tar.gz",
-          "checksum": "MD5:45895399fde606eed599a64a3b857a7b",
-          "size": "8803913",
+          "checksum": "MD5:d4d9c1235cf9796cbc5cbca28b164cd1",
+          "size": "8804237",
           "boards": [
             {"name": "Grasshopper-L082CZ"},
             {"name": "Cricket-L082CZ"},
