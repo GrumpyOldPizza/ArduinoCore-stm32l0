@@ -1,7 +1,7 @@
 {
   "packages": [
     {
-      "name": "TlraCorp",
+      "name": "TleraCorp",
       "maintainer": "Tlera Corp",
       "websiteURL": "https://github.com/grumpyoldpizza/ArduinoCore-stm32l0",
       "email": "grumpyoldpizza@gmail.com",
@@ -10,14 +10,14 @@
       },
       "platforms": [
         {
-          "name": "Tlera Corp STM32L0 (32-bits ARM Cortex-M0+) Boards",
+          "name": "Tlera Corp STM32L0 Boards",
           "architecture": "stm32l0",
-          "version": "0.0.2",
+          "version": "0.0.3",
           "category": "Contributed",
-          "url": "https://github.com/grumpyoldpizza/ArduinoCore-stm32l0/archive/0.0.2.tar.gz",
-          "archiveFileName": "ArduinoCore-stm32l0-0.0.2.tar.gz",
-          "checksum": "MD5:d4d9c1235cf9796cbc5cbca28b164cd1",
-          "size": "8804237",
+          "url": "https://github.com/grumpyoldpizza/ArduinoCore-stm32l0/archive/0.0.3.tar.gz",
+          "archiveFileName": "ArduinoCore-stm32l0-0.0.3.tar.gz",
+          "checksum": "MD5:a72afbc167c04e4370f84e552ebb1216",
+          "size": "8803939",
           "boards": [
             {"name": "Grasshopper-L082CZ"},
             {"name": "Cricket-L082CZ"},
