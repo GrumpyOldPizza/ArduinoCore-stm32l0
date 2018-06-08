@@ -668,14 +668,17 @@ int LoRaWANClass::joinABP()
 int LoRaWANClass::joinABP(const char *devAddr, const char *nwkSKey, const char *appSKey)
 {
     LoRaWANCommissioning commissioning;
+    uint8_t DevAddr[4];
 
     if (!_Band) {
         return 0;
     }
 
-    if (!ConvertString((uint8_t*)&commissioning.DevAddr, 4, devAddr)) {
+    if (!ConvertString((uint8_t*)&DevAddr, 4, devAddr)) {
         return 0;
     }
+
+    commissioning.DevAddr = (DevAddr[0] << 24) | (DevAddr[1] << 16) | (DevAddr[2] << 8) | (DevAddr[3] << 0);
 
     if (!ConvertString(commissioning.NwkSKey, 16, nwkSKey)) {
         return 0;
@@ -1122,15 +1125,18 @@ int LoRaWANClass::setDevEui(const char *devEui)
 int LoRaWANClass::setDevAddr(const char *devAddr)
 {
     LoRaWANCommissioning commissioning;
+    uint8_t DevAddr[4];
     
     _loadCommissioning(&commissioning);
 
     memset((uint8_t*)&commissioning.DevAddr, 0, 4);
 
     if (devAddr != NULL) {
-        if (!ConvertString((uint8_t*)&commissioning.DevAddr, 4, devAddr)) {
+        if (!ConvertString((uint8_t*)&DevAddr, 4, devAddr)) {
             return 0;
         }
+
+	commissioning.DevAddr = (DevAddr[0] << 24) | (DevAddr[1] << 16) | (DevAddr[2] << 8) | (DevAddr[3] << 0);
     }
 
     return _storeCommissioning(&commissioning);
