@@ -126,13 +126,11 @@ void STM32L0Class::sleep(uint32_t timeout)
 
 void STM32L0Class::stop(uint32_t timeout)
 {
-#if !defined(ARDUINO_STM32L0_B_L072Z_LRWAN1)
     if (g_swdStatus == 0) {
 	stm32l0_system_swd_disable();
 
 	g_swdStatus = 2;
     }
-#endif
 
     stm32l0_system_sleep(STM32L0_SYSTEM_POLICY_STOP, timeout);
 }

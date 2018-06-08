@@ -57,6 +57,14 @@ extern "C" {
 #define ADC_CHANNEL_5          5
 #define ADC_CHANNEL_6          6
 #define ADC_CHANNEL_7          7
+#define ADC_CHANNEL_8          8
+#define ADC_CHANNEL_9          9
+#define ADC_CHANNEL_10         10
+#define ADC_CHANNEL_11         11
+#define ADC_CHANNEL_12         12
+#define ADC_CHANNEL_13         13
+#define ADC_CHANNEL_14         14
+#define ADC_CHANNEL_15         15
 #define ADC_CHANNEL_NONE       255
 
 /* Types used for the table below */

@@ -263,3 +263,104 @@ B-L072Z-LRWAN1.menu.opt.o3=Fastest
 B-L072Z-LRWAN1.menu.opt.o3.build.flags.optimize=-O3
 B-L072Z-LRWAN1.menu.opt.o3.build.flags.ldspecs=
 
+
+
+# ST P-NUCLEO-LRWAN1
+# ---------------------------------------
+P-NUCLEO-LRWAN1.name=P-NUCLEO-LRWAN1
+P-NUCLEO-LRWAN1.vid.0=0x0483
+P-NUCLEO-LRWAN1.pid.0=0x374b
+
+P-NUCLEO-LRWAN1.upload.tool=stm32l0_openocd
+P-NUCLEO-LRWAN1.upload.protocol=stlink
+P-NUCLEO-LRWAN1.upload.maximum_size=196608
+P-NUCLEO-LRWAN1.upload.maximum_data_size=20480
+P-NUCLEO-LRWAN1.upload.use_1200bps_touch=true
+P-NUCLEO-LRWAN1.upload.wait_for_upload_port=false
+P-NUCLEO-LRWAN1.upload.native_usb=false
+
+P-NUCLEO-LRWAN1.build.mcu=cortex-m0plus
+P-NUCLEO-LRWAN1.build.f_cpu=32000000L
+P-NUCLEO-LRWAN1.build.board=STM32L0_NUCLEO
+P-NUCLEO-LRWAN1.build.arch=stm32l0
+P-NUCLEO-LRWAN1.build.core=arduino
+P-NUCLEO-LRWAN1.build.vid=0x0483
+P-NUCLEO-LRWAN1.build.pid=0x374b
+P-NUCLEO-LRWAN1.build.did=0xffff
+P-NUCLEO-LRWAN1.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+P-NUCLEO-LRWAN1.build.ldscript=linker_scripts/STM32L073RZ_FLASH.ld
+P-NUCLEO-LRWAN1.build.openocdscript=openocd_scripts/p-nucleo-lrwan1.cfg
+P-NUCLEO-LRWAN1.build.variant=STM32L073RZ-P-NUCLEO-LRWAN1
+P-NUCLEO-LRWAN1.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l072xx -larm_cortexM0l_math
+P-NUCLEO-LRWAN1.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
+
+P-NUCLEO-LRWAN1.menu.speed.32=32 MHz
+P-NUCLEO-LRWAN1.menu.speed.32.build.f_cpu=32000000L
+P-NUCLEO-LRWAN1.menu.speed.16=16 MHz
+P-NUCLEO-LRWAN1.menu.speed.16.build.f_cpu=16000000L
+P-NUCLEO-LRWAN1.menu.speed.4=4.2 MHz
+P-NUCLEO-LRWAN1.menu.speed.4.build.f_cpu=4200000L
+
+P-NUCLEO-LRWAN1.menu.opt.os=Smallest Code
+P-NUCLEO-LRWAN1.menu.opt.os.build.flags.optimize=-Os
+P-NUCLEO-LRWAN1.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
+P-NUCLEO-LRWAN1.menu.opt.o1=Fast
+P-NUCLEO-LRWAN1.menu.opt.o1.build.flags.optimize=-O1
+P-NUCLEO-LRWAN1.menu.opt.o1.build.flags.ldspecs=
+P-NUCLEO-LRWAN1.menu.opt.o2=Faster
+P-NUCLEO-LRWAN1.menu.opt.o2.build.flags.optimize=-O2
+P-NUCLEO-LRWAN1.menu.opt.o2.build.flags.ldspecs=
+P-NUCLEO-LRWAN1.menu.opt.o3=Fastest
+P-NUCLEO-LRWAN1.menu.opt.o3.build.flags.optimize=-O3
+P-NUCLEO-LRWAN1.menu.opt.o3.build.flags.ldspecs=
+
+
+# ST NUCLEO-L073RZ
+# ---------------------------------------
+NUCLEO-L073RZ.name=NUCLEO-L073RZ
+NUCLEO-L073RZ.vid.0=0x0483
+NUCLEO-L073RZ.pid.0=0x374b
+
+NUCLEO-L073RZ.upload.tool=stm32l0_openocd
+NUCLEO-L073RZ.upload.protocol=stlink
+NUCLEO-L073RZ.upload.maximum_size=196608
+NUCLEO-L073RZ.upload.maximum_data_size=20480
+NUCLEO-L073RZ.upload.use_1200bps_touch=true
+NUCLEO-L073RZ.upload.wait_for_upload_port=false
+NUCLEO-L073RZ.upload.native_usb=false
+
+NUCLEO-L073RZ.build.mcu=cortex-m0plus
+NUCLEO-L073RZ.build.f_cpu=32000000L
+NUCLEO-L073RZ.build.board=STM32L0_NUCLEO
+NUCLEO-L073RZ.build.arch=stm32l0
+NUCLEO-L073RZ.build.core=arduino
+NUCLEO-L073RZ.build.vid=0x0483
+NUCLEO-L073RZ.build.pid=0x374b
+NUCLEO-L073RZ.build.did=0xffff
+NUCLEO-L073RZ.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+NUCLEO-L073RZ.build.ldscript=linker_scripts/STM32L073RZ_FLASH.ld
+NUCLEO-L073RZ.build.openocdscript=openocd_scripts/stm32l073rz_nucleo.cfg
+NUCLEO-L073RZ.build.variant=STM32L073RZ-NUCLEO
+NUCLEO-L073RZ.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l072xx -larm_cortexM0l_math
+NUCLEO-L073RZ.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
+
+NUCLEO-L073RZ.menu.speed.32=32 MHz
+NUCLEO-L073RZ.menu.speed.32.build.f_cpu=32000000L
+NUCLEO-L073RZ.menu.speed.16=16 MHz
+NUCLEO-L073RZ.menu.speed.16.build.f_cpu=16000000L
+NUCLEO-L073RZ.menu.speed.4=4.2 MHz
+NUCLEO-L073RZ.menu.speed.4.build.f_cpu=4200000L
+
+NUCLEO-L073RZ.menu.opt.os=Smallest Code
+NUCLEO-L073RZ.menu.opt.os.build.flags.optimize=-Os
+NUCLEO-L073RZ.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
+NUCLEO-L073RZ.menu.opt.o1=Fast
+NUCLEO-L073RZ.menu.opt.o1.build.flags.optimize=-O1
+NUCLEO-L073RZ.menu.opt.o1.build.flags.ldspecs=
+NUCLEO-L073RZ.menu.opt.o2=Faster
+NUCLEO-L073RZ.menu.opt.o2.build.flags.optimize=-O2
+NUCLEO-L073RZ.menu.opt.o2.build.flags.ldspecs=
+NUCLEO-L073RZ.menu.opt.o3=Fastest
+NUCLEO-L073RZ.menu.opt.o3.build.flags.optimize=-O3
+NUCLEO-L073RZ.menu.opt.o3.build.flags.ldspecs=
+
