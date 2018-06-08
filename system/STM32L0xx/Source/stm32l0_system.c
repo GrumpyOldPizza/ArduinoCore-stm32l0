@@ -1481,7 +1481,7 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t timeout)
                     }
 
                     stm32l0_gpio_save(&gpio_state);
-                    
+
                     RCC->APB1ENR |= RCC_APB1ENR_PWREN;
                     
                     /* The lowpower voltage regulator adds 3.3uS wakeup time, plus it prevents HSIKERON, 
@@ -1500,7 +1500,7 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t timeout)
                         
                         PWR->CR |= (PWR_CR_FWU | PWR_CR_ULP);
                     }
-                    
+
                     /* Clear WUF flag */
                     PWR->CR |= PWR_CR_CWUF;
                     
@@ -1589,7 +1589,7 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t timeout)
                     }
                     
                     RCC->APB1ENR &= ~RCC_APB1ENR_PWREN;
-                    
+
                     stm32l0_gpio_restore(&gpio_state);
 
                     for (entry = stm32l0_system_device.notify; entry; entry = entry->next)

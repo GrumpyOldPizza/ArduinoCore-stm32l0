@@ -35,6 +35,7 @@
 bool stm32l0_random(uint8_t *data, uint32_t count)
 {
     uint32_t rng_data;
+    bool success = false;
 
     stm32l0_system_hsi48_enable();
     stm32l0_system_periph_enable(STM32L0_SYSTEM_PERIPH_RNG);
@@ -47,7 +48,7 @@ bool stm32l0_random(uint8_t *data, uint32_t count)
         {
             if (RNG->SR & (RNG_SR_CECS | RNG_SR_SECS))
             {
-                return false;
+                goto bailout;
             }
         }
 
@@ -84,11 +85,13 @@ bool stm32l0_random(uint8_t *data, uint32_t count)
         }
     }
     
+    success = true;
 
+bailout:
     RNG->CR &= ~RNG_CR_RNGEN;
     
     stm32l0_system_periph_disable(STM32L0_SYSTEM_PERIPH_RNG);
     stm32l0_system_hsi48_disable();
 
-    return true;
+    return success;
 }

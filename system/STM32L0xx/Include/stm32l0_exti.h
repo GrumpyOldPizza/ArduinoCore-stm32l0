@@ -45,6 +45,7 @@ typedef void (*stm32l0_exti_callback_t)(void *context);
 extern void stm32l0_exti_configure(unsigned int priority);
 extern bool stm32l0_exti_attach(uint16_t pin, uint32_t control, stm32l0_exti_callback_t callback, void *context);
 extern void stm32l0_exti_detach(uint16_t pin);
+extern bool stm32l0_exti_control(uint16_t pin, uint32_t control);
 extern void stm32l0_exti_block(uint32_t mask);
 extern void stm32l0_exti_unblock(uint32_t mask);
 

@@ -1,7 +1,7 @@
 /*!
- * \file      sx1276.h
+ * \file      sx1272.h
  *
- * \brief     SX1276 driver implementation
+ * \brief     SX1272 driver implementation
  *
  * \copyright Revised BSD License, see section \ref LICENSE.
  *
@@ -20,8 +20,8 @@
  *
  * \author    Gregory Cristian ( Semtech )
  */
-#ifndef __SX1276_H__
-#define __SX1276_H__
+#ifndef __SX1272_H__
+#define __SX1272_H__
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -30,8 +30,8 @@
 #include "stm32l0_lptim.h"
 #include "stm32l0_spi.h"
 #include "radio.h"
-#include "sx1276Regs-Fsk.h"
-#include "sx1276Regs-LoRa.h"
+#include "sx1272Regs-Fsk.h"
+#include "sx1272Regs-LoRa.h"
 
 /*!
  * Radio wake-up time from sleep
@@ -150,12 +150,12 @@ typedef struct
 /*!
  * Radio hardware and global parameters
  */
-typedef struct SX1276_s
+typedef struct SX1272_s
 {
     uint16_t        RadioNss;
     stm32l0_spi_t   RadioSpi;
     RadioSettings_t Settings;
-}SX1276_t;
+}SX1272_t;
 
 /*!
  * Hardware IO IRQ callback function definition
@@ -163,7 +163,7 @@ typedef struct SX1276_s
 typedef void ( DioIrqHandler )( void );
 
 /*!
- * SX1276 definitions
+ * SX1272 definitions
  */
 #define XTAL_FREQ                                   32000000
 #define FREQ_STEP                                   61.03515625
@@ -183,28 +183,28 @@ typedef void ( DioIrqHandler )( void );
  * \param [IN] events Structure containing the driver callback functions
  * \param [IN] freq Channel RF frequency for rx calibration
  */
-void SX1276Init( RadioEvents_t *events, uint32_t freq );
+void SX1272Init( RadioEvents_t *events, uint32_t freq );
 
 /*!
  * Return current radio status
  *
  * \param status Radio status.[RF_IDLE, RF_RX_RUNNING, RF_TX_RUNNING]
  */
-RadioState_t SX1276GetStatus( void );
+RadioState_t SX1272GetStatus( void );
 
 /*!
  * \brief Configures the radio with the given modem
  *
  * \param [IN] modem Modem to be used [0: FSK, 1: LoRa]
  */
-void SX1276SetModem( RadioModems_t modem );
+void SX1272SetModem( RadioModems_t modem );
 
 /*!
  * \brief Sets the channel configuration
  *
  * \param [IN] freq         Channel RF frequency
  */
-void SX1276SetChannel( uint32_t freq );
+void SX1272SetChannel( uint32_t freq );
 
 /*!
  * \brief Checks if the channel is free for the given time
@@ -216,24 +216,22 @@ void SX1276SetChannel( uint32_t freq );
  *
  * \retval isFree         [true: Channel is free, false: Channel is not free]
  */
-bool SX1276IsChannelFree( RadioModems_t modem, uint32_t freq, int16_t rssiThresh, uint32_t maxCarrierSenseTime );
+bool SX1272IsChannelFree( RadioModems_t modem, uint32_t freq, int16_t rssiThresh, uint32_t maxCarrierSenseTime );
 
 /*!
  * \brief Generates a 32 bits random value based on the RSSI readings
  *
  * \remark This function sets the radio in LoRa modem mode and disables
  *         all interrupts.
- *         After calling this function either SX1276SetRxConfig or
- *         SX1276SetTxConfig functions must be called.
+ *         After calling this function either SX1272SetRxConfig or
+ *         SX1272SetTxConfig functions must be called.
  *
  * \retval randomValue    32 bits random value
  */
-uint32_t SX1276Random( void );
+uint32_t SX1272Random( void );
 
 /*!
  * \brief Sets the reception parameters
- *
- * \remark When using LoRa modem only bandwidths 125, 250 and 500 kHz are supported
  *
  * \param [IN] modem        Radio modem to be used [0: FSK, 1: LoRa]
  * \param [IN] bandwidth    Sets the bandwidth
@@ -271,7 +269,7 @@ uint32_t SX1276Random( void );
  * \param [IN] rxContinuous Sets the reception in continuous mode
  *                          [false: single mode, true: continuous mode]
  */
-void SX1276SetRxConfig( RadioModems_t modem, uint32_t bandwidth,
+void SX1272SetRxConfig( RadioModems_t modem, uint32_t bandwidth,
                          uint32_t datarate, uint8_t coderate,
                          uint32_t bandwidthAfc, uint16_t preambleLen,
                          uint16_t symbTimeout, bool fixLen,
@@ -281,8 +279,6 @@ void SX1276SetRxConfig( RadioModems_t modem, uint32_t bandwidth,
 
 /*!
  * \brief Sets the transmission parameters
- *
- * \remark When using LoRa modem only bandwidths 125, 250 and 500 kHz are supported
  *
  * \param [IN] modem        Radio modem to be used [0: FSK, 1: LoRa]
  * \param [IN] power        Sets the output power [dBm]
@@ -316,7 +312,7 @@ void SX1276SetRxConfig( RadioModems_t modem, uint32_t bandwidth,
  *                          LoRa: [0: not inverted, 1: inverted]
  * \param [IN] timeout      Transmission timeout [ms]
  */
-void SX1276SetTxConfig( RadioModems_t modem, int8_t power, uint32_t fdev,
+void SX1272SetTxConfig( RadioModems_t modem, int8_t power, uint32_t fdev,
                         uint32_t bandwidth, uint32_t datarate,
                         uint8_t coderate, uint16_t preambleLen,
                         bool fixLen, bool crcOn, bool freqHopOn,
@@ -332,7 +328,7 @@ void SX1276SetTxConfig( RadioModems_t modem, int8_t power, uint32_t fdev,
  *
  * \retval airTime        Computed airTime (ms) for the given packet payload length
  */
-uint32_t SX1276GetTimeOnAir( RadioModems_t modem, uint8_t pktLen );
+uint32_t SX1272GetTimeOnAir( RadioModems_t modem, uint8_t pktLen );
 
 /*!
  * \brief Sends the buffer of size. Prepares the packet to be sent and sets
@@ -341,28 +337,28 @@ uint32_t SX1276GetTimeOnAir( RadioModems_t modem, uint8_t pktLen );
  * \param [IN]: buffer     Buffer pointer
  * \param [IN]: size       Buffer size
  */
-void SX1276Send( uint8_t *buffer, uint8_t size );
+void SX1272Send( uint8_t *buffer, uint8_t size );
 
 /*!
  * \brief Sets the radio in sleep mode
  */
-void SX1276SetSleep( void );
+void SX1272SetSleep( void );
 
 /*!
  * \brief Sets the radio in standby mode
  */
-void SX1276SetStby( void );
+void SX1272SetStby( void );
 
 /*!
  * \brief Sets the radio in reception mode for the given time
  * \param [IN] timeout Reception timeout [ms] [0: continuous, others timeout]
  */
-void SX1276SetRx( uint32_t timeout );
+void SX1272SetRx( uint32_t timeout );
 
 /*!
  * \brief Start a Channel Activity Detection
  */
-void SX1276StartCad( void );
+void SX1272StartCad( void );
 
 /*!
  * \brief Sets the radio in continuous wave transmission mode
@@ -371,31 +367,31 @@ void SX1276StartCad( void );
  * \param [IN]: power      Sets the output power [dBm]
  * \param [IN]: time       Transmission mode timeout [s]
  */
-void SX1276SetTxContinuousWave( uint32_t freq, int8_t power, uint16_t time );
+void SX1272SetTxContinuousWave( uint32_t freq, int8_t power, uint16_t time );
 
 /*!
  * \brief Reads the current RSSI value
  *
  * \retval rssiValue Current RSSI value in [dBm]
  */
-int16_t SX1276ReadRssi( void );
+int16_t SX1272ReadRssi( void );
 
 /*!
  * \brief Delays execution for a timeout in millies
  *
  * \param [IN] timeout
  */
-void SX1276Delay( uint32_t timeout );
+void SX1272Delay( uint32_t timeout );
 
 /*!
  * \brief Acquires the SPI interface
  */
-void SX1276Acquire( void );
+void SX1272Acquire( void );
 
 /*!
  * \brief Releases the SPI interface
  */
-void SX1276Release( void );
+void SX1272Release( void );
 
 /*!
  * \brief Writes the radio register at the specified address
@@ -403,7 +399,7 @@ void SX1276Release( void );
  * \param [IN]: addr Register address
  * \param [IN]: data New register value
  */
-void SX1276Write( uint8_t addr, uint8_t data );
+void SX1272Write( uint8_t addr, uint8_t data );
 
 /*!
  * \brief Reads the radio register at the specified address
@@ -411,7 +407,7 @@ void SX1276Write( uint8_t addr, uint8_t data );
  * \param [IN]: addr Register address
  * \retval data Register value
  */
-uint8_t SX1276Read( uint8_t addr );
+uint8_t SX1272Read( uint8_t addr );
 
 /*!
  * \brief Writes multiple radio registers starting at address
@@ -420,7 +416,7 @@ uint8_t SX1276Read( uint8_t addr );
  * \param [IN] buffer Buffer containing the new register's values
  * \param [IN] size   Number of registers to be written
  */
-void SX1276WriteBuffer( uint8_t addr, uint8_t *buffer, uint8_t size );
+void SX1272WriteBuffer( uint8_t addr, uint8_t *buffer, uint8_t size );
 
 /*!
  * \brief Reads multiple radio registers starting at address
@@ -429,7 +425,7 @@ void SX1276WriteBuffer( uint8_t addr, uint8_t *buffer, uint8_t size );
  * \param [OUT] buffer Buffer where to copy the registers data
  * \param [IN] size Number of registers to be read
  */
-void SX1276ReadBuffer( uint8_t addr, uint8_t *buffer, uint8_t size );
+void SX1272ReadBuffer( uint8_t addr, uint8_t *buffer, uint8_t size );
 
 /*!
  * \brief Sets the maximum payload length.
@@ -437,7 +433,7 @@ void SX1276ReadBuffer( uint8_t addr, uint8_t *buffer, uint8_t size );
  * \param [IN] modem      Radio modem to be used [0: FSK, 1: LoRa]
  * \param [IN] max        Maximum payload length in bytes
  */
-void SX1276SetMaxPayloadLength( RadioModems_t modem, uint8_t max );
+void SX1272SetMaxPayloadLength( RadioModems_t modem, uint8_t max );
 
 /*!
  * \brief Sets the network to public or private. Updates the sync byte.
@@ -446,7 +442,7 @@ void SX1276SetMaxPayloadLength( RadioModems_t modem, uint8_t max );
  *
  * \param [IN] enable if true, it enables a public network
  */
-void SX1276SetPublicNetwork( bool enable );
+void SX1272SetPublicNetwork( bool enable );
 
 /*!
  * \brief Sets the SyncWord for FSK modem
@@ -454,56 +450,56 @@ void SX1276SetPublicNetwork( bool enable );
  * \param [IN] data Buffer containing the sync word data
  * \param [IN] size Number of bytes in sync word
  */
-void SX1276SetSyncWord( uint8_t *data, uint8_t size );
+void SX1272SetSyncWord( uint8_t *data, uint8_t size );
 
 /*!
  * \brief Sets the modulation shaping for FSK modem.
  *
  * \param [IN] modulation [0: FSK, 1: GFSK_BT_1_0, 2: GFSK_BT_0_5, 3: GFSK_BT_0_3, 4: OOK ]
  */
-void SX1276SetModulation( uint8_t modulation );
+void SX1272SetModulation( uint8_t modulation );
 
 /*!
  * \brief Enables/Disables AFC for FSK modem
  *
  * \param [IN] enable if true, AFC is enabled
  */
-void SX1276SetAfc( bool enable );
+void SX1272SetAfc( bool enable );
 
 /*!
  * \brief Sets the DcFree encoding/decoding for FSK modem.
  *
  * \param [IN] dcFree [0: none, 1: manchester, 2: whitening]
  */
-void SX1276SetDcFree( uint8_t dcFree );
+void SX1272SetDcFree( uint8_t dcFree );
 
 /*!
  * \brief Sets the CrcType (CCITT/IBM) for FSK modem.
  *
  * \param [IN] crcType [0: CCITT, 1: IBM]
  */
-void SX1276SetCrcType( uint8_t crcType );
+void SX1272SetCrcType( uint8_t crcType );
 
 /*!
  * \brief Sets the address filtering for FSK modem.
  *
  * \param [IN] addressFiltering address filtering [0: none, 1: node address, 2: node and broadcast address]
  */
-void SX1276SetAddressFiltering( uint8_t addressFiltering );
+void SX1272SetAddressFiltering( uint8_t addressFiltering );
 
 /*!
  * \brief Sets the NodeAddress for FSK modem
  *
  * \param [IN] address NodeAddress
  */
-void SX1276SetNodeAddress( uint8_t address );
+void SX1272SetNodeAddress( uint8_t address );
 
 /*!
  * \brief Sets the BroadcastAddress for FSK modem
  *
  * \param [IN] address BroadcastAddress
  */
-void SX1276SetBroadcastAddress( uint8_t address );
+void SX1272SetBroadcastAddress( uint8_t address );
 
 /*!
  * \brief Sets the OOK Floor Threshold for FSK modem
@@ -511,56 +507,56 @@ void SX1276SetBroadcastAddress( uint8_t address );
  * \param [IN] threshold [dBm]
  */
  
-void SX1276SetOokFloorThreshold( uint8_t threshold );
+void SX1272SetOokFloorThreshold( uint8_t threshold );
 
 /*!
  * \brief Sets the LNA boost
  *
  * \param [IN] enable
  */
-void SX1276SetLnaBoost( bool enable );
+void SX1272SetLnaBoost( bool enable );
 
 /*!
  * \brief Sets the CLKOUT rate on DIO5
  *
  * \param [IN] rate [0: 32MHz, 1: 16MHz, 2: 8MHz, 3: 4MHz, 4: 2MHz, 5: 1MHz, 7: OFF]
  */
-void SX1276SetClockRate( uint8_t rate );
+void SX1272SetClockRate( uint8_t rate );
 
 /*!
  * \brief Gets the time required for the board plus radio to get out of sleep.[ms]
  *
  * \retval time Radio plus board wakeup time in ms.
  */
-uint32_t SX1276GetWakeupTime( void );
+uint32_t SX1272GetWakeupTime( void );
 
 /*
- * SX1276 DIO IRQ callback functions prototype
+ * SX1272 DIO IRQ callback functions prototype
  */
 
 /*!
  * \brief DIO 0 IRQ callback
  */
-void SX1276OnDio0Irq( void );
+void SX1272OnDio0Irq( void );
 
 /*!
  * \brief DIO 1 IRQ callback
  */
-void SX1276OnDio1Irq( void );
+void SX1272OnDio1Irq( void );
 
 /*!
  * \brief DIO 2 IRQ callback
  */
-void SX1276OnDio2Irq( void );
+void SX1272OnDio2Irq( void );
 
 /*!
  * \brief DIO 3 IRQ callback
  */
-void SX1276OnDio3Irq( void );
+void SX1272OnDio3Irq( void );
 
 /*!
  * \brief DIO 4 IRQ callback
  */
-void SX1276OnDio4Irq( void );
+void SX1272OnDio4Irq( void );
 
-#endif // __SX1276_H__
+#endif // __SX1272_H__

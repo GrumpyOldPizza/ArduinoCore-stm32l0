@@ -13,10 +13,12 @@ DEFINES  =
 INCLUDES = \
 	-I../../../system/CMSIS/Include \
 	-I../../../system/CMSIS/Device/ST/STM32L0xx/Include \
+	-I../../../system/STM32L0xx/Source/LoRa/Boards \
 	-I../../../system/STM32L0xx/Source/LoRa/Crypto \
 	-I../../../system/STM32L0xx/Source/LoRa/Mac \
 	-I../../../system/STM32L0xx/Source/LoRa/Mac/region \
 	-I../../../system/STM32L0xx/Source/LoRa/Radio \
+	-I../../../system/STM32L0xx/Source/LoRa/Radio/sx1272 \
 	-I../../../system/STM32L0xx/Source/LoRa/Radio/sx1276 \
 	-I../../../system/STM32L0xx/Source/LoRa/System \
 	-I../../../system/STM32L0xx/Source/LoRa/Utilities \
@@ -30,6 +32,8 @@ INCLUDES = \
 	-I. 
 
 SRCS = \
+	./LoRa/Boards/cmwx1zzabz-board.c \
+	./LoRa/Boards/sx1272mb2das-board.c \
 	./LoRa/Crypto/aes.c \
 	./LoRa/Crypto/cmac.c \
 	./LoRa/Mac/LoRaMac.c \
@@ -44,8 +48,8 @@ SRCS = \
 	./LoRa/Mac/region/RegionIN865.c \
 	./LoRa/Mac/region/RegionKR920.c \
 	./LoRa/Mac/region/RegionUS915.c \
+	./LoRa/Radio/sx1272/sx1272.c \
 	./LoRa/Radio/sx1276/sx1276.c \
-	./LoRa/Radio/sx1276/sx1276-board.c \
 	./LoRa/System/timer.c \
 	./LoRa/Utilities/utilities.c \
 	./USB/Class/CDC/Src/usbd_cdc.c \

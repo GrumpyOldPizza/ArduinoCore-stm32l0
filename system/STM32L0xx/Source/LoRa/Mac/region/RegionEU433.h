@@ -222,6 +222,11 @@
 #define EU433_JOIN_CHANNELS                         ( uint16_t )( LC( 1 ) | LC( 2 ) | LC( 3 ) )
 
 /*!
+ * RX calibration channel frequency.
+ */
+#define EU433_RX_CAL_FREQ                           434000000
+
+/*!
  * Data rates table definition
  */
 static const uint8_t DataratesEU433[] = { 12, 11, 10,  9,  8,  7,  7, 50 };

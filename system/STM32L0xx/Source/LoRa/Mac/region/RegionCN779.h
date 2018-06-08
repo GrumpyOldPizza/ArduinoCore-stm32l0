@@ -186,7 +186,6 @@
  * Second reception window channel datarate definition.
  */
 #define CN779_RX_WND_2_DR                           DR_0
-
 /*!
  * LoRaMac maximum number of bands
  */
@@ -219,6 +218,11 @@
  * LoRaMac channels which are allowed for the join procedure
  */
 #define CN779_JOIN_CHANNELS                         ( uint16_t )( LC( 1 ) | LC( 2 ) | LC( 3 ) )
+
+/*!
+ * RX calibration channel frequency.
+ */
+#define CN779_RX_CAL_FREQ                           783000000
 
 /*!
  * Data rates table definition

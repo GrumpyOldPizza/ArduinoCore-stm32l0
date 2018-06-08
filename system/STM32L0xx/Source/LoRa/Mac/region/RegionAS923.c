@@ -335,6 +335,11 @@ PhyParam_t RegionAS923GetPhyParam( GetPhyParams_t* getPhy )
             phyParam.fValue = AS923_DEFAULT_ANTENNA_GAIN;
             break;
         }
+        case PHY_RX_CALIBRATION_FREQUENCY:
+        {
+            phyParam.Value = AS923_RX_CAL_FREQ;
+            break;
+        }
         default:
         {
             break;
@@ -359,8 +364,8 @@ void RegionAS923InitDefaults( InitType_t type )
             RegionChannels[0] = ( ChannelParams_t ) AS923_LC1;
             RegionChannels[1] = ( ChannelParams_t ) AS923_LC2;
 
-	    // Bands
-	    RegionBands[0] = ( Band_t) AS923_BAND0;
+            // Bands
+            RegionBands[0] = ( Band_t) AS923_BAND0;
 
             // Initialize the channels default mask
             RegionChannelsDefaultMask[0] = LC( 1 ) + LC( 2 );
@@ -530,44 +535,44 @@ bool RegionAS923AdrNext( AdrNextParams_t* adrNext, int8_t* drOut, int8_t* txPowO
 
     if( adrNext->AdrEnabled == true )
     {
-	if( adrNext->AdrAckCounter < ( AS923_ADR_ACK_LIMIT + 18 * AS923_ADR_ACK_DELAY ) )
+        if( adrNext->AdrAckCounter < ( AS923_ADR_ACK_LIMIT + 18 * AS923_ADR_ACK_DELAY ) )
         {
             if( adrNext->AdrAckCounter >= AS923_ADR_ACK_LIMIT )
             {
                 adrAckReq = true;
             }
-	    
+            
             if( adrNext->AdrAckCounter >= ( AS923_ADR_ACK_LIMIT + AS923_ADR_ACK_DELAY ) )
             {
                 if( ( adrNext->AdrAckCounter % AS923_ADR_ACK_DELAY ) == 1 )
                 {
-		    if (txPower != AS923_MAX_TX_POWER)
-		    {
-			// Increase the txPower
-			txPower = AS923_MAX_TX_POWER;
-		    }
-		    else if ( datarate != minTxDatarate )
-		    {
-			// Decrease the datarate
-			getPhy.Attribute = PHY_NEXT_LOWER_TX_DR;
-			getPhy.Datarate = datarate;
-			getPhy.UplinkDwellTime = adrNext->UplinkDwellTime;
-			phyParam = RegionAS923GetPhyParam( &getPhy );
-			datarate = phyParam.Value;
-		    }
-		    else
-		    {
-			*adrAckCounter = ( AS923_ADR_ACK_LIMIT + 18 * AS923_ADR_ACK_DELAY );
+                    if (txPower != AS923_MAX_TX_POWER)
+                    {
+                        // Increase the txPower
+                        txPower = AS923_MAX_TX_POWER;
+                    }
+                    else if ( datarate != minTxDatarate )
+                    {
+                        // Decrease the datarate
+                        getPhy.Attribute = PHY_NEXT_LOWER_TX_DR;
+                        getPhy.Datarate = datarate;
+                        getPhy.UplinkDwellTime = adrNext->UplinkDwellTime;
+                        phyParam = RegionAS923GetPhyParam( &getPhy );
+                        datarate = phyParam.Value;
+                    }
+                    else
+                    {
+                        *adrAckCounter = ( AS923_ADR_ACK_LIMIT + 18 * AS923_ADR_ACK_DELAY );
 
-			// We must set adrAckReq to false as soon as we reach the lowest datarate
-			adrAckReq = false;
-			if( adrNext->UpdateChanMask == true )
-			{
-			    // Re-enable default channels
-			    RegionChannelsMask[0] |= RegionChannelsDefaultMask[0];
-			}
-		    }
-		}
+                        // We must set adrAckReq to false as soon as we reach the lowest datarate
+                        adrAckReq = false;
+                        if( adrNext->UpdateChanMask == true )
+                        {
+                            // Re-enable default channels
+                            RegionChannelsMask[0] |= RegionChannelsDefaultMask[0];
+                        }
+                    }
+                }
             }
         }
     }
@@ -938,8 +943,8 @@ LoRaMacStatus_t RegionAS923NextChannel( NextChanParams_t* nextChanParams, uint8_
 
     if( nextChanParams->AggrTimeOff <= TimerGetElapsedTime( nextChanParams->LastAggrTx ) )
     {
-	// Reset Aggregated time off
-	*aggregatedTimeOff = 0;
+        // Reset Aggregated time off
+        *aggregatedTimeOff = 0;
 
         // Update bands Time OFF
         nextTxDelay = RegionCommonUpdateBandTimeOff( nextChanParams->Joined, nextChanParams->DutyCycleEnabled, RegionBands, AS923_MAX_NB_BANDS );
@@ -957,30 +962,30 @@ LoRaMacStatus_t RegionAS923NextChannel( NextChanParams_t* nextChanParams, uint8_
 
     if( nbEnabledChannels > 0 )
     {
-	if( channel )
-	{
-	    for( uint8_t  i = 0, j = randr( 0, nbEnabledChannels - 1 ); i < AS923_MAX_NB_CHANNELS; i++ )
-	    {
-		channelNext = enabledChannels[j];
-		j = ( j + 1 ) % nbEnabledChannels;
-		
-		// Perform carrier sense for AS923_CARRIER_SENSE_TIME
-		// If the channel is free, we can stop the LBT mechanism
-		if( Radio.IsChannelFree( MODEM_LORA, RegionChannels[channelNext].Frequency, AS923_RSSI_FREE_TH, AS923_CARRIER_SENSE_TIME ) == true )
-		{
-		    // Free channel found
-		    *channel = channelNext;
-		    *time = 0;
-		    return LORAMAC_STATUS_OK;
-		}
-	    }
-	    return LORAMAC_STATUS_NO_FREE_CHANNEL_FOUND;
-	}
-	else
-	{
-	    *time = 0;
-	    return LORAMAC_STATUS_OK;
-	}
+        if( channel )
+        {
+            for( uint8_t  i = 0, j = randr( 0, nbEnabledChannels - 1 ); i < AS923_MAX_NB_CHANNELS; i++ )
+            {
+                channelNext = enabledChannels[j];
+                j = ( j + 1 ) % nbEnabledChannels;
+                
+                // Perform carrier sense for AS923_CARRIER_SENSE_TIME
+                // If the channel is free, we can stop the LBT mechanism
+                if( Radio.IsChannelFree( MODEM_LORA, RegionChannels[channelNext].Frequency, AS923_RSSI_FREE_TH, AS923_CARRIER_SENSE_TIME ) == true )
+                {
+                    // Free channel found
+                    *channel = channelNext;
+                    *time = 0;
+                    return LORAMAC_STATUS_OK;
+                }
+            }
+            return LORAMAC_STATUS_NO_FREE_CHANNEL_FOUND;
+        }
+        else
+        {
+            *time = 0;
+            return LORAMAC_STATUS_OK;
+        }
     }
     else
     {
@@ -990,11 +995,11 @@ LoRaMacStatus_t RegionAS923NextChannel( NextChanParams_t* nextChanParams, uint8_
             *time = nextTxDelay;
             return LORAMAC_STATUS_DUTYCYCLE_RESTRICTED;
         }
-	if( channel )
-	{
-	    // Datarate not supported by any channel, restore defaults
-	    RegionChannelsMask[0] |= RegionChannelsDefaultMask[0];
-	}
+        if( channel )
+        {
+            // Datarate not supported by any channel, restore defaults
+            RegionChannelsMask[0] |= RegionChannelsDefaultMask[0];
+        }
         *time = 0;
         return LORAMAC_STATUS_NO_CHANNEL_FOUND;
     }
@@ -1081,7 +1086,7 @@ bool RegionAS923ChannelRemove( ChannelRemoveParams_t* channelRemove  )
 
     if( id >= AS923_MAX_NB_CHANNELS )
     {
-	return false;
+        return false;
     }
 
     if( RegionChannelsDefaultMask[0] & ( 1 << id ) )

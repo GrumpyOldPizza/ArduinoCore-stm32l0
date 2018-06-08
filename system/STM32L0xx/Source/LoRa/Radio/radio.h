@@ -1,19 +1,30 @@
-/*
- / _____)             _              | |
-( (____  _____ ____ _| |_ _____  ____| |__
- \____ \| ___ |    (_   _) ___ |/ ___)  _ \
- _____) ) ____| | | || |_| ____( (___| | | |
-(______/|_____)_|_|_| \__)_____)\____)_| |_|
-    (C)2013 Semtech
-
-Description: Generic radio driver definition
-
-License: Revised BSD License, see LICENSE.TXT file include in the project
-
-Maintainer: Miguel Luis and Gregory Cristian
-*/
+/*!
+ * \file      radio.h
+ *
+ * \brief     Radio driver API definition
+ *
+ * \copyright Revised BSD License, see section \ref LICENSE.
+ *
+ * \code
+ *                ______                              _
+ *               / _____)             _              | |
+ *              ( (____  _____ ____ _| |_ _____  ____| |__
+ *               \____ \| ___ |    (_   _) ___ |/ ___)  _ \
+ *               _____) ) ____| | | || |_| ____( (___| | | |
+ *              (______/|_____)_|_|_| \__)_____)\____)_| |_|
+ *              (C)2013-2017 Semtech
+ *
+ * \endcode
+ *
+ * \author    Miguel Luis ( Semtech )
+ *
+ * \author    Gregory Cristian ( Semtech )
+ */
 #ifndef __RADIO_H__
 #define __RADIO_H__
+
+#include <stdint.h>
+#include <stdbool.h>
 
 /*!
  * Radio driver supported modems
@@ -91,8 +102,9 @@ struct Radio_s
      * \brief Initializes the radio
      *
      * \param [IN] events Structure containing the driver callback functions
+     * \param [IN] freq Channel RF frequency for rx calibration
      */
-    void    ( *Init )( RadioEvents_t *events );
+    void    ( *Init )( RadioEvents_t *events, uint32_t freq );
     /*!
      * Return current radio status
      *
@@ -276,7 +288,7 @@ struct Radio_s
      *
      * \retval rssiValue Current RSSI value in [dBm]
      */
-    int16_t ( *Rssi )( RadioModems_t modem );
+    int16_t ( *Rssi )( void );
     /*!
      * \brief Writes the radio register at the specified address
      *
@@ -322,6 +334,73 @@ struct Radio_s
      * \param [IN] enable if true, it enables a public network
      */
     void    ( *SetPublicNetwork )( bool enable );
+    /*!
+     * \brief Sets the SyncWord for FSK modem
+     *
+     * \param [IN] data Buffer containing the sync word data
+     * \param [IN] size Number of bytes in sync word
+     */
+    void    ( *SetSyncWord )( uint8_t *data, uint8_t size );
+    /*!
+     * \brief Sets the modulation shaping for FSK modem.
+     *
+     * \param [IN] modulation [0: FSK, 1: GFSK_BT_1_0, 2: GFSK_BT_0_5, 3: GFSK_BT_0_3, 4: OOK ]
+     */
+    void    ( *SetModulation )( uint8_t modulation );
+    /*!
+     * \brief Enables/Disables AFC for FSK
+     *
+     * \param [IN] enable if true, AFC is enabled
+     */
+    void    ( *SetAfc )( bool enable );
+    /*!
+     * \brief Sets the DcFree encoding/decoding for FSK modem.
+     *
+     * \param [IN] dcFree [0: none, 1: manchester, 2: whitening]
+     */
+    void    ( *SetDcFree )( uint8_t dcFree );
+    /*!
+     * \brief Sets the CrcType (CCITT/IBM) for FSK modem.
+     *
+     * \param [IN] crcType [0: CCITT, 1: IBM]
+     */
+    void    ( *SetCrcType )( uint8_t crcType );
+    /*!
+     * \brief Sets the address filtering for FSK modem.
+     *
+     * \param [IN] addressFiltering address filtering [0: none, 1: node address, 2: node and broadcast address]
+     */
+    void    ( *SetAddressFiltering )( uint8_t addressFiltering );
+    /*!
+     * \brief Sets the NodeAddress for FSK modem
+     *
+     * \param [IN] address NodeAddress
+     */
+    void    ( *SetNodeAddress )( uint8_t address );
+    /*!
+     * \brief Sets the BroadcastAddress for FSK modem
+     *
+     * \param [IN] address BroadcastAddress
+     */
+    void    ( *SetBoardcastAddress )( uint8_t address );
+    /*!
+     * \brief Sets the OOK Floor Threshold for FSK modem
+     *
+     * \param [IN] threshold [dBm]
+     */
+    void    ( *SetOokFloorThreshold )( uint8_t threshold );
+    /*!
+     * \brief Sets the LNA boost
+     *
+     * \param [IN] enable
+     */
+    void    ( *SetLnaBoost )( bool enable );
+    /*!
+     * \brief Sets the CLKOUT rate on DIO5
+     *
+     * \param [IN] rate [0: 32MHz, 1: 16MHz, 2: 8MHz, 3: 4MHz, 4: 2MHz, 5: 1MHz, 7: OFF]
+     */
+    void    ( *SetClockRate )( uint8_t rate );
     /*!
      * \brief Gets the time required for the board plus radio to get out of sleep.[ms]
      *

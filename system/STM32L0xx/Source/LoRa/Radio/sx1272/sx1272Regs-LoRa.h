@@ -1,7 +1,7 @@
 /*!
- * \file      sx1276Regs-LoRa.h
+ * \file      sx1272Regs-LoRa.h
  *
- * \brief     SX1276 LoRa modem registers and bits definitions
+ * \brief     SX1272 LoRa modem registers and bits definitions
  *
  * \copyright Revised BSD License, see section \ref LICENSE.
  *
@@ -20,12 +20,12 @@
  *
  * \author    Gregory Cristian ( Semtech )
  */
-#ifndef __SX1276_REGS_LORA_H__
-#define __SX1276_REGS_LORA_H__
+#ifndef __SX1272_REGS_LORA_H__
+#define __SX1272_REGS_LORA_H__
 
 /*!
  * ============================================================================
- * SX1276 Internal registers Address
+ * SX1272 Internal registers Address
  * ============================================================================
  */
 #define REG_LR_FIFO                                 0x00
@@ -66,19 +66,14 @@
 #define REG_LR_PAYLOADMAXLENGTH                     0x23
 #define REG_LR_HOPPERIOD                            0x24
 #define REG_LR_FIFORXBYTEADDR                       0x25
-#define REG_LR_MODEMCONFIG3                         0x26
 #define REG_LR_FEIMSB                               0x28
 #define REG_LR_FEIMID                               0x29
 #define REG_LR_FEILSB                               0x2A
 #define REG_LR_RSSIWIDEBAND                         0x2C
-#define REG_LR_TEST2F                               0x2F
-#define REG_LR_TEST30                               0x30
 #define REG_LR_DETECTOPTIMIZE                       0x31
 #define REG_LR_INVERTIQ                             0x33
-#define REG_LR_TEST36                               0x36
 #define REG_LR_DETECTIONTHRESHOLD                   0x37
 #define REG_LR_SYNCWORD                             0x39
-#define REG_LR_TEST3A                               0x3A
 #define REG_LR_INVERTIQ2                            0x3B
 
 // end of documented register in datasheet
@@ -88,20 +83,20 @@
 // Version
 #define REG_LR_VERSION                              0x42
 // Additional settings
-#define REG_LR_PLLHOP                               0x44
-#define REG_LR_TCXO                                 0x4B
-#define REG_LR_PADAC                                0x4D
-#define REG_LR_FORMERTEMP                           0x5B
-#define REG_LR_BITRATEFRAC                          0x5D
-#define REG_LR_AGCREF                               0x61
-#define REG_LR_AGCTHRESH1                           0x62
-#define REG_LR_AGCTHRESH2                           0x63
-#define REG_LR_AGCTHRESH3                           0x64
-#define REG_LR_PLL                                  0x70
+#define REG_LR_AGCREF                               0x43
+#define REG_LR_AGCTHRESH1                           0x44
+#define REG_LR_AGCTHRESH2                           0x45
+#define REG_LR_AGCTHRESH3                           0x46
+#define REG_LR_PLLHOP                               0x4B
+#define REG_LR_TCXO                                 0x58
+#define REG_LR_PADAC                                0x5A
+#define REG_LR_PLL                                  0x5C
+#define REG_LR_PLLLOWPN                             0x5E
+#define REG_LR_FORMERTEMP                           0x6C
 
 /*!
  * ============================================================================
- * SX1276 LoRa bits control definition
+ * SX1272 LoRa bits control definition
  * ============================================================================
  */
 
@@ -120,10 +115,6 @@
 #define RFLR_OPMODE_ACCESSSHAREDREG_ENABLE          0x40
 #define RFLR_OPMODE_ACCESSSHAREDREG_DISABLE         0x00 // Default
 
-#define RFLR_OPMODE_FREQMODE_ACCESS_MASK            0xF7
-#define RFLR_OPMODE_FREQMODE_ACCESS_LF              0x08 // Default
-#define RFLR_OPMODE_FREQMODE_ACCESS_HF              0x00
-
 #define RFLR_OPMODE_MASK                            0xF8
 #define RFLR_OPMODE_SLEEP                           0x00
 #define RFLR_OPMODE_STANDBY                         0x01 // Default
@@ -138,9 +129,9 @@
 /*!
  * RegFrf (MHz)
  */
-#define RFLR_FRFMSB_434_MHZ                         0x6C // Default
-#define RFLR_FRFMID_434_MHZ                         0x80 // Default
-#define RFLR_FRFLSB_434_MHZ                         0x00 // Default
+#define RFLR_FRFMSB_915_MHZ                         0xE4  // Default
+#define RFLR_FRFMID_915_MHZ                         0xC0  // Default
+#define RFLR_FRFLSB_915_MHZ                         0x00  // Default
 
 /*!
  * RegPaConfig
@@ -149,16 +140,14 @@
 #define RFLR_PACONFIG_PASELECT_PABOOST              0x80
 #define RFLR_PACONFIG_PASELECT_RFO                  0x00 // Default
 
-#define RFLR_PACONFIG_MAX_POWER_MASK                0x8F
-
 #define RFLR_PACONFIG_OUTPUTPOWER_MASK              0xF0
 
 /*!
  * RegPaRamp
  */
-#define RFLR_PARAMP_TXBANDFORCE_MASK                0xEF
-#define RFLR_PARAMP_TXBANDFORCE_BAND_SEL            0x10
-#define RFLR_PARAMP_TXBANDFORCE_AUTO                0x00 // Default
+#define RFLR_PARAMP_LOWPNTXPLL_MASK                 0xE0
+#define RFLR_PARAMP_LOWPNTXPLL_OFF                  0x10 // Default
+#define RFLR_PARAMP_LOWPNTXPLL_ON                   0x00
 
 #define RFLR_PARAMP_MASK                            0xF0
 #define RFLR_PARAMP_3400_US                         0x00
@@ -226,12 +215,9 @@
 #define RFLR_LNA_GAIN_G5                            0xA0
 #define RFLR_LNA_GAIN_G6                            0xC0
 
-#define RFLR_LNA_BOOST_LF_MASK                      0xE7
-#define RFLR_LNA_BOOST_LF_DEFAULT                   0x00 // Default
-
-#define RFLR_LNA_BOOST_HF_MASK                      0xFC
-#define RFLR_LNA_BOOST_HF_OFF                       0x00 // Default
-#define RFLR_LNA_BOOST_HF_ON                        0x03
+#define RFLR_LNA_BOOST_MASK                         0xFC
+#define RFLR_LNA_BOOST_OFF                          0x00 // Default
+#define RFLR_LNA_BOOST_ON                           0x03
 
 /*!
  * RegFifoAddrPtr
@@ -330,27 +316,28 @@
 /*!
  * RegModemConfig1
  */
-#define RFLR_MODEMCONFIG1_BW_MASK                   0x0F
-#define RFLR_MODEMCONFIG1_BW_7_81_KHZ               0x00
-#define RFLR_MODEMCONFIG1_BW_10_41_KHZ              0x10
-#define RFLR_MODEMCONFIG1_BW_15_62_KHZ              0x20
-#define RFLR_MODEMCONFIG1_BW_20_83_KHZ              0x30
-#define RFLR_MODEMCONFIG1_BW_31_25_KHZ              0x40
-#define RFLR_MODEMCONFIG1_BW_41_66_KHZ              0x50
-#define RFLR_MODEMCONFIG1_BW_62_50_KHZ              0x60
-#define RFLR_MODEMCONFIG1_BW_125_KHZ                0x70 // Default
-#define RFLR_MODEMCONFIG1_BW_250_KHZ                0x80
-#define RFLR_MODEMCONFIG1_BW_500_KHZ                0x90
+#define RFLR_MODEMCONFIG1_BW_MASK                   0x3F
+#define RFLR_MODEMCONFIG1_BW_125_KHZ                0x00 // Default
+#define RFLR_MODEMCONFIG1_BW_250_KHZ                0x40
+#define RFLR_MODEMCONFIG1_BW_500_KHZ                0x80
 
-#define RFLR_MODEMCONFIG1_CODINGRATE_MASK           0xF1
-#define RFLR_MODEMCONFIG1_CODINGRATE_4_5            0x02
-#define RFLR_MODEMCONFIG1_CODINGRATE_4_6            0x04 // Default
-#define RFLR_MODEMCONFIG1_CODINGRATE_4_7            0x06
-#define RFLR_MODEMCONFIG1_CODINGRATE_4_8            0x08
+#define RFLR_MODEMCONFIG1_CODINGRATE_MASK           0xC7
+#define RFLR_MODEMCONFIG1_CODINGRATE_4_5            0x08
+#define RFLR_MODEMCONFIG1_CODINGRATE_4_6            0x10 // Default
+#define RFLR_MODEMCONFIG1_CODINGRATE_4_7            0x18
+#define RFLR_MODEMCONFIG1_CODINGRATE_4_8            0x20
 
-#define RFLR_MODEMCONFIG1_IMPLICITHEADER_MASK       0xFE
-#define RFLR_MODEMCONFIG1_IMPLICITHEADER_ON         0x01
+#define RFLR_MODEMCONFIG1_IMPLICITHEADER_MASK       0xFB
+#define RFLR_MODEMCONFIG1_IMPLICITHEADER_ON         0x04
 #define RFLR_MODEMCONFIG1_IMPLICITHEADER_OFF        0x00 // Default
+
+#define RFLR_MODEMCONFIG1_RXPAYLOADCRC_MASK         0xFD
+#define RFLR_MODEMCONFIG1_RXPAYLOADCRC_ON           0x02
+#define RFLR_MODEMCONFIG1_RXPAYLOADCRC_OFF          0x00 // Default
+
+#define RFLR_MODEMCONFIG1_LOWDATARATEOPTIMIZE_MASK  0xFE
+#define RFLR_MODEMCONFIG1_LOWDATARATEOPTIMIZE_ON    0x01
+#define RFLR_MODEMCONFIG1_LOWDATARATEOPTIMIZE_OFF   0x00 // Default
 
 /*!
  * RegModemConfig2
@@ -368,9 +355,9 @@
 #define RFLR_MODEMCONFIG2_TXCONTINUOUSMODE_ON       0x08
 #define RFLR_MODEMCONFIG2_TXCONTINUOUSMODE_OFF      0x00
 
-#define RFLR_MODEMCONFIG2_RXPAYLOADCRC_MASK         0xFB
-#define RFLR_MODEMCONFIG2_RXPAYLOADCRC_ON           0x04
-#define RFLR_MODEMCONFIG2_RXPAYLOADCRC_OFF          0x00 // Default
+#define RFLR_MODEMCONFIG2_AGCAUTO_MASK              0xFB
+#define RFLR_MODEMCONFIG2_AGCAUTO_ON                0x04 // Default
+#define RFLR_MODEMCONFIG2_AGCAUTO_OFF               0x00
 
 #define RFLR_MODEMCONFIG2_SYMBTIMEOUTMSB_MASK       0xFC
 #define RFLR_MODEMCONFIG2_SYMBTIMEOUTMSB            0x00 // Default
@@ -408,17 +395,6 @@
 /*!
  * RegFifoRxByteAddr (Read Only)
  */
-
-/*!
- * RegModemConfig3
- */
-#define RFLR_MODEMCONFIG3_LOWDATARATEOPTIMIZE_MASK  0xF7
-#define RFLR_MODEMCONFIG3_LOWDATARATEOPTIMIZE_ON    0x08
-#define RFLR_MODEMCONFIG3_LOWDATARATEOPTIMIZE_OFF   0x00 // Default
-
-#define RFLR_MODEMCONFIG3_AGCAUTO_MASK              0xFB
-#define RFLR_MODEMCONFIG3_AGCAUTO_ON                0x04 // Default
-#define RFLR_MODEMCONFIG3_AGCAUTO_OFF               0x00
 
 /*!
  * RegFeiMsb (Read Only)
@@ -516,6 +492,22 @@
  */
 
 /*!
+ * RegAgcRef
+ */
+
+/*!
+ * RegAgcThresh1
+ */
+
+/*!
+ * RegAgcThresh2
+ */
+
+/*!
+ * RegAgcThresh3
+ */
+
+/*!
  * RegPllHop
  */
 #define RFLR_PLLHOP_FASTHOP_MASK                    0x7F
@@ -537,37 +529,25 @@
 #define RFLR_PADAC_20DBM_OFF                        0x04  // Default
 
 /*!
+ * RegPll
+ */
+#define RFLR_PLL_BANDWIDTH_MASK                     0x3F
+#define RFLR_PLL_BANDWIDTH_75                       0x00
+#define RFLR_PLL_BANDWIDTH_150                      0x40
+#define RFLR_PLL_BANDWIDTH_225                      0x80
+#define RFLR_PLL_BANDWIDTH_300                      0xC0  // Default
+
+/*!
+ * RegPllLowPn
+ */
+#define RFLR_PLLLOWPN_BANDWIDTH_MASK                0x3F
+#define RFLR_PLLLOWPN_BANDWIDTH_75                  0x00
+#define RFLR_PLLLOWPN_BANDWIDTH_150                 0x40
+#define RFLR_PLLLOWPN_BANDWIDTH_225                 0x80
+#define RFLR_PLLLOWPN_BANDWIDTH_300                 0xC0  // Default
+
+/*!
  * RegFormerTemp
  */
 
-/*!
- * RegBitrateFrac
- */
-#define RF_BITRATEFRAC_MASK                         0xF0
-
-/*!
- * RegAgcRef
- */
-
-/*!
- * RegAgcThresh1
- */
-
-/*!
- * RegAgcThresh2
- */
-
-/*!
- * RegAgcThresh3
- */
-
-/*!
- * RegPll
- */
-#define RF_PLL_BANDWIDTH_MASK                       0x3F
-#define RF_PLL_BANDWIDTH_75                         0x00
-#define RF_PLL_BANDWIDTH_150                        0x40
-#define RF_PLL_BANDWIDTH_225                        0x80
-#define RF_PLL_BANDWIDTH_300                        0xC0  // Default
-
-#endif // __SX1276_REGS_LORA_H__
+#endif // __SX1272_REGS_LORA_H__

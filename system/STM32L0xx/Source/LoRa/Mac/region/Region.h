@@ -648,6 +648,10 @@ typedef enum ePhyAttribute
      */
     PHY_DEF_ANTENNA_GAIN,
     /*!
+     * Default calibration frequency.
+     */
+    PHY_RX_CALIBRATION_FREQUENCY,
+    /*!
      * Next lower datarate.
      */
     PHY_NEXT_LOWER_TX_DR

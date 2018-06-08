@@ -52,10 +52,10 @@ void stm32l0_lptim_configure(unsigned int priority)
     NVIC_EnableIRQ(LPTIM1_IRQn);
 }
 
-void stm32l0_lptim_start(uint32_t timeout, stm32l0_lptim_callback_t callback, void *context)
+bool stm32l0_lptim_start(uint32_t timeout, stm32l0_lptim_callback_t callback, void *context)
 {
     uint32_t period, presc;
-
+    
     if (stm32l0_lptim_device.state == STM32L0_LPTIM_STATE_NONE)
     {
         stm32l0_system_periph_enable(STM32L0_SYSTEM_PERIPH_LPTIM1);
@@ -70,21 +70,29 @@ void stm32l0_lptim_start(uint32_t timeout, stm32l0_lptim_callback_t callback, vo
     stm32l0_lptim_device.callback = callback;
     stm32l0_lptim_device.context = context;
 
-    if (timeout > 65536 * 128)
+    if (timeout <= 65536)
     {
-        period = 65536 * 128;
-        presc = LPTIM_CFGR_PRESC;
+	period = timeout;
+	presc = 0;
     }
     else
     {
-        period = timeout;
-        presc = 0;
+	if (timeout > 65536 * 128)
+	{
+	    period = 65536 * 128;
+	    presc = LPTIM_CFGR_PRESC_0 | LPTIM_CFGR_PRESC_1 | LPTIM_CFGR_PRESC_2;;
+	}
+	else
+	{
+	    period = timeout;
+	    presc = 0;
     
-        while (period > 65536)
-        {
-            period >>= 1;
-            presc += LPTIM_CFGR_PRESC_0;
-        }
+	    while (period > 65536)
+	    {
+		period = (period + 1) / 2;
+		presc += LPTIM_CFGR_PRESC_0;
+	    }
+	}
     }
 
     stm32l0_lptim_device.state = STM32L0_LPTIM_STATE_TIMEOUT;
@@ -96,15 +104,25 @@ void stm32l0_lptim_start(uint32_t timeout, stm32l0_lptim_callback_t callback, vo
     LPTIM1->CR |= LPTIM_CR_ENABLE;
     LPTIM1->ARR = period -1;
     LPTIM1->CR |= LPTIM_CR_SNGSTRT;
+
+    return true;
 }
 
-void stm32l0_lptim_stop(void)
+uint32_t stm32l0_lptim_stop(void)
 {
+    uint32_t count;
+
     armv6m_atomic_and(&LPTIM1->CR, ~LPTIM_CR_ENABLE);
+
+    LPTIM1->ICR = LPTIM_ICR_ARRMCF;
+
+    count = (LPTIM1->CNT & 0xffff) << ((LPTIM1->CFGR & LPTIM_CFGR_PRESC_Msk) >> LPTIM_CFGR_PRESC_Pos);
 
     stm32l0_system_periph_enable(STM32L0_SYSTEM_PERIPH_LPTIM1);
 
     stm32l0_lptim_device.state = STM32L0_LPTIM_STATE_NONE;
+
+    return count;
 }
 
 bool stm32l0_lptim_done(void)
@@ -114,17 +132,20 @@ bool stm32l0_lptim_done(void)
 
 void LPTIM1_IRQHandler(void)
 {
-    LPTIM1->ICR = LPTIM_ICR_ARRMCF;
-
-    stm32l0_lptim_device.state = STM32L0_LPTIM_STATE_READY;
-
-    if (stm32l0_lptim_device.callback)
+    if (LPTIM1->ISR & LPTIM_ISR_ARRM)
     {
-        (*stm32l0_lptim_device.callback)(stm32l0_lptim_device.context);
-    }
-
-    if (stm32l0_lptim_device.state == STM32L0_LPTIM_STATE_READY)
-    {
-        stm32l0_lptim_stop();
+	LPTIM1->ICR = LPTIM_ICR_ARRMCF;
+	
+	stm32l0_lptim_device.state = STM32L0_LPTIM_STATE_READY;
+	
+	if (stm32l0_lptim_device.callback)
+	{
+	    (*stm32l0_lptim_device.callback)(stm32l0_lptim_device.context);
+	}
+	
+	if (stm32l0_lptim_device.state == STM32L0_LPTIM_STATE_READY)
+	{
+	    stm32l0_lptim_stop();
+	}
     }
 }

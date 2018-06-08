@@ -243,6 +243,11 @@
 #define EU868_JOIN_CHANNELS                         ( uint16_t )( LC( 1 ) | LC( 2 ) | LC( 3 ) )
 
 /*!
+ * RX calibration channel frequency.
+ */
+#define EU868_RX_CAL_FREQ                           868000000
+
+/*!
  * Data rates table definition
  */
 static const uint8_t DataratesEU868[]  = { 12, 11, 10,  9,  8,  7,  7, 50 };

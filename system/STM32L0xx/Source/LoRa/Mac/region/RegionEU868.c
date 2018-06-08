@@ -321,6 +321,11 @@ PhyParam_t RegionEU868GetPhyParam( GetPhyParams_t* getPhy )
             phyParam.fValue = EU868_DEFAULT_ANTENNA_GAIN;
             break;
         }
+        case PHY_RX_CALIBRATION_FREQUENCY:
+        {
+            phyParam.Value = EU868_RX_CAL_FREQ;
+            break;
+        }
         default:
         {
             break;
@@ -346,12 +351,12 @@ void RegionEU868InitDefaults( InitType_t type )
             RegionChannels[1] = ( ChannelParams_t ) EU868_LC2;
             RegionChannels[2] = ( ChannelParams_t ) EU868_LC3;
 
-	    // Bands
-	    RegionBands[0] = ( Band_t ) EU868_BAND0;
-	    RegionBands[1] = ( Band_t ) EU868_BAND1;
-	    RegionBands[2] = ( Band_t ) EU868_BAND2;
-	    RegionBands[3] = ( Band_t ) EU868_BAND3;
-	    RegionBands[4] = ( Band_t ) EU868_BAND4;
+            // Bands
+            RegionBands[0] = ( Band_t ) EU868_BAND0;
+            RegionBands[1] = ( Band_t ) EU868_BAND1;
+            RegionBands[2] = ( Band_t ) EU868_BAND2;
+            RegionBands[3] = ( Band_t ) EU868_BAND3;
+            RegionBands[4] = ( Band_t ) EU868_BAND4;
 
             // Initialize the channels default mask
             RegionChannelsDefaultMask[0] = LC( 1 ) + LC( 2 ) + LC( 3 );
@@ -497,44 +502,44 @@ bool RegionEU868AdrNext( AdrNextParams_t* adrNext, int8_t* drOut, int8_t* txPowO
 
     if( adrNext->AdrEnabled == true )
     {
-	if( adrNext->AdrAckCounter < ( EU868_ADR_ACK_LIMIT + 18 * EU868_ADR_ACK_DELAY ) )
+        if( adrNext->AdrAckCounter < ( EU868_ADR_ACK_LIMIT + 18 * EU868_ADR_ACK_DELAY ) )
         {
             if( adrNext->AdrAckCounter >= EU868_ADR_ACK_LIMIT )
             {
                 adrAckReq = true;
             }
-	    
+            
             if( adrNext->AdrAckCounter >= ( EU868_ADR_ACK_LIMIT + EU868_ADR_ACK_DELAY ) )
             {
                 if( ( adrNext->AdrAckCounter % EU868_ADR_ACK_DELAY ) == 1 )
                 {
-		    if( txPower != EU868_MAX_TX_POWER )
-		    {
-			// Increase the txPower
-			txPower = EU868_MAX_TX_POWER;
-		    }
-		    else if( datarate != EU868_TX_MIN_DATARATE )
-		    {
-			// Decrease the datarate
-			getPhy.Attribute = PHY_NEXT_LOWER_TX_DR;
-			getPhy.Datarate = datarate;
-			getPhy.UplinkDwellTime = adrNext->UplinkDwellTime;
-			phyParam = RegionEU868GetPhyParam( &getPhy );
-			datarate = phyParam.Value;
-		    }
-		    else
-		    {
-			*adrAckCounter = ( EU868_ADR_ACK_LIMIT + 18 * EU868_ADR_ACK_DELAY );
+                    if( txPower != EU868_MAX_TX_POWER )
+                    {
+                        // Increase the txPower
+                        txPower = EU868_MAX_TX_POWER;
+                    }
+                    else if( datarate != EU868_TX_MIN_DATARATE )
+                    {
+                        // Decrease the datarate
+                        getPhy.Attribute = PHY_NEXT_LOWER_TX_DR;
+                        getPhy.Datarate = datarate;
+                        getPhy.UplinkDwellTime = adrNext->UplinkDwellTime;
+                        phyParam = RegionEU868GetPhyParam( &getPhy );
+                        datarate = phyParam.Value;
+                    }
+                    else
+                    {
+                        *adrAckCounter = ( EU868_ADR_ACK_LIMIT + 18 * EU868_ADR_ACK_DELAY );
 
-			// We must set adrAckReq to false as soon as we reach the lowest datarate
-			adrAckReq = false;
-			if( adrNext->UpdateChanMask == true )
-			{
-			    // Re-enable default channels
+                        // We must set adrAckReq to false as soon as we reach the lowest datarate
+                        adrAckReq = false;
+                        if( adrNext->UpdateChanMask == true )
+                        {
+                            // Re-enable default channels
                             RegionChannelsMask[0] |= RegionChannelsDefaultMask[0];
-			}
-		    }
-		}
+                        }
+                    }
+                }
             }
         }
     }
@@ -902,8 +907,8 @@ LoRaMacStatus_t RegionEU868NextChannel( NextChanParams_t* nextChanParams, uint8_
 
     if( nextChanParams->AggrTimeOff <= TimerGetElapsedTime( nextChanParams->LastAggrTx ) )
     {
-	// Reset Aggregated time off
-	*aggregatedTimeOff = 0;
+        // Reset Aggregated time off
+        *aggregatedTimeOff = 0;
 
         // Update bands Time OFF
         nextTxDelay = RegionCommonUpdateBandTimeOff( nextChanParams->Joined, nextChanParams->DutyCycleEnabled, RegionBands, EU868_MAX_NB_BANDS );
@@ -921,11 +926,11 @@ LoRaMacStatus_t RegionEU868NextChannel( NextChanParams_t* nextChanParams, uint8_
 
     if( nbEnabledChannels > 0 )
     {
-	if( channel )
-	{
-	    // We found a valid channel
-	    *channel = enabledChannels[randr( 0, nbEnabledChannels - 1 )];
-	}
+        if( channel )
+        {
+            // We found a valid channel
+            *channel = enabledChannels[randr( 0, nbEnabledChannels - 1 )];
+        }
         *time = 0;
         return LORAMAC_STATUS_OK;
     }
@@ -937,11 +942,11 @@ LoRaMacStatus_t RegionEU868NextChannel( NextChanParams_t* nextChanParams, uint8_
             *time = nextTxDelay;
             return LORAMAC_STATUS_DUTYCYCLE_RESTRICTED;
         }
-	if( channel )
-	{
-	    // Datarate not supported by any channel, restore defaults
-	    RegionChannelsMask[0] |= RegionChannelsDefaultMask[0];
-	}
+        if( channel )
+        {
+            // Datarate not supported by any channel, restore defaults
+            RegionChannelsMask[0] |= RegionChannelsDefaultMask[0];
+        }
         *time = 0;
         return LORAMAC_STATUS_NO_CHANNEL_FOUND;
     }
@@ -1028,7 +1033,7 @@ bool RegionEU868ChannelRemove( ChannelRemoveParams_t* channelRemove  )
 
     if( id >= EU868_MAX_NB_CHANNELS )
     {
-	return false;
+        return false;
     }
 
     if( RegionChannelsDefaultMask[0] & ( 1 << id ) )

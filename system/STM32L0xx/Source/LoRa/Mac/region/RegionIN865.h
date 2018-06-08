@@ -217,6 +217,10 @@
  * LoRaMac channels which are allowed for the join procedure
  */
 #define IN865_JOIN_CHANNELS                         ( uint16_t )( LC( 1 ) | LC( 2 ) | LC( 3 ) )
+/*!
+ * RX calibration channel frequency.
+ */
+#define IN865_RX_CAL_FREQ                           866000000
 
 /*!
  * Data rates table definition

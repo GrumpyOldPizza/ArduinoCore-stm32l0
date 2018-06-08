@@ -133,6 +133,40 @@ void stm32l0_exti_detach(uint16_t pin)
     armv6m_atomic_and(&stm32l0_exti_device.events, ~mask);
 }
 
+bool stm32l0_exti_control(uint16_t pin, uint32_t control)
+{
+    unsigned int mask, index;
+
+    index = (pin & STM32L0_GPIO_PIN_INDEX_MASK) >> STM32L0_GPIO_PIN_INDEX_SHIFT;
+
+    mask = 1ul << index;
+
+    if (stm32l0_exti_device.events & mask)
+    {
+        return false;
+    }
+
+    if (control & STM32L0_EXTI_CONTROL_EDGE_RISING)
+    {
+        armv6m_atomic_or(&EXTI->RTSR, mask);
+    }
+    else
+    {
+        armv6m_atomic_and(&EXTI->RTSR, ~mask);
+    }
+    
+    if (control & STM32L0_EXTI_CONTROL_EDGE_FALLING)
+    {
+        armv6m_atomic_or(&EXTI->FTSR, mask);
+    }
+    else
+    {
+        armv6m_atomic_and(&EXTI->FTSR, ~mask);
+    }
+
+    return true;
+}
+
 void stm32l0_exti_block(uint32_t mask)
 {
     armv6m_atomic_and(&stm32l0_exti_device.mask, ~mask);

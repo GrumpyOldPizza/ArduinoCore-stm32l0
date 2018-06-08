@@ -300,6 +300,11 @@ PhyParam_t RegionIN865GetPhyParam( GetPhyParams_t* getPhy )
             phyParam.fValue = IN865_DEFAULT_ANTENNA_GAIN;
             break;
         }
+        case PHY_RX_CALIBRATION_FREQUENCY:
+        {
+            phyParam.Value = IN865_RX_CAL_FREQ;
+            break;
+        }
         default:
         {
             break;
@@ -325,8 +330,8 @@ void RegionIN865InitDefaults( InitType_t type )
             RegionChannels[1] = ( ChannelParams_t ) IN865_LC2;
             RegionChannels[2] = ( ChannelParams_t ) IN865_LC3;
 
-	    // Bands
-	    RegionBands[0] = ( Band_t ) IN865_BAND0;
+            // Bands
+            RegionBands[0] = ( Band_t ) IN865_BAND0;
 
             // Initialize the channels default mask
             RegionChannelsDefaultMask[0] = LC( 1 ) + LC( 2 ) + LC( 3 );
@@ -486,44 +491,44 @@ bool RegionIN865AdrNext( AdrNextParams_t* adrNext, int8_t* drOut, int8_t* txPowO
 
     if( adrNext->AdrEnabled == true )
     {
-	if( adrNext->AdrAckCounter < ( IN865_ADR_ACK_LIMIT + 18 * IN865_ADR_ACK_DELAY ) )
+        if( adrNext->AdrAckCounter < ( IN865_ADR_ACK_LIMIT + 18 * IN865_ADR_ACK_DELAY ) )
         {
             if( adrNext->AdrAckCounter >= IN865_ADR_ACK_LIMIT )
             {
                 adrAckReq = true;
             }
-	    
+            
             if( adrNext->AdrAckCounter >= ( IN865_ADR_ACK_LIMIT + IN865_ADR_ACK_DELAY ) )
             {
                 if( ( adrNext->AdrAckCounter % IN865_ADR_ACK_DELAY ) == 1 )
                 {
-		    if( txPower != IN865_MAX_TX_POWER )
-		    {
-			// Increase the txPower
-			txPower = IN865_MAX_TX_POWER;
-		    }
-		    else if( datarate != IN865_TX_MIN_DATARATE )
-		    {
-			// Decrease the datarate
-			getPhy.Attribute = PHY_NEXT_LOWER_TX_DR;
-			getPhy.Datarate = datarate;
-			getPhy.UplinkDwellTime = adrNext->UplinkDwellTime;
-			phyParam = RegionIN865GetPhyParam( &getPhy );
-			datarate = phyParam.Value;
-		    }
-		    else
-		    {
-			*adrAckCounter = ( IN865_ADR_ACK_LIMIT + 18 * IN865_ADR_ACK_DELAY );
+                    if( txPower != IN865_MAX_TX_POWER )
+                    {
+                        // Increase the txPower
+                        txPower = IN865_MAX_TX_POWER;
+                    }
+                    else if( datarate != IN865_TX_MIN_DATARATE )
+                    {
+                        // Decrease the datarate
+                        getPhy.Attribute = PHY_NEXT_LOWER_TX_DR;
+                        getPhy.Datarate = datarate;
+                        getPhy.UplinkDwellTime = adrNext->UplinkDwellTime;
+                        phyParam = RegionIN865GetPhyParam( &getPhy );
+                        datarate = phyParam.Value;
+                    }
+                    else
+                    {
+                        *adrAckCounter = ( IN865_ADR_ACK_LIMIT + 18 * IN865_ADR_ACK_DELAY );
 
-			// We must set adrAckReq to false as soon as we reach the lowest datarate
-			adrAckReq = false;
-			if( adrNext->UpdateChanMask == true )
-			{
-			    // Re-enable default channels
+                        // We must set adrAckReq to false as soon as we reach the lowest datarate
+                        adrAckReq = false;
+                        if( adrNext->UpdateChanMask == true )
+                        {
+                            // Re-enable default channels
                             RegionChannelsMask[0] |= RegionChannelsDefaultMask[0];
-			}
-		    }
-		}
+                        }
+                    }
+                }
             }
         }
     }
@@ -897,8 +902,8 @@ LoRaMacStatus_t RegionIN865NextChannel( NextChanParams_t* nextChanParams, uint8_
 
     if( nextChanParams->AggrTimeOff <= TimerGetElapsedTime( nextChanParams->LastAggrTx ) )
     {
-	// Reset Aggregated time off
-	*aggregatedTimeOff = 0;
+        // Reset Aggregated time off
+        *aggregatedTimeOff = 0;
 
         // Update bands Time OFF
         nextTxDelay = RegionCommonUpdateBandTimeOff( nextChanParams->Joined, nextChanParams->DutyCycleEnabled, RegionBands, IN865_MAX_NB_BANDS );
@@ -916,11 +921,11 @@ LoRaMacStatus_t RegionIN865NextChannel( NextChanParams_t* nextChanParams, uint8_
 
     if( nbEnabledChannels > 0 )
     {
-	if( channel )
-	{
-	    // We found a valid channel
-	    *channel = enabledChannels[randr( 0, nbEnabledChannels - 1 )];
-	}
+        if( channel )
+        {
+            // We found a valid channel
+            *channel = enabledChannels[randr( 0, nbEnabledChannels - 1 )];
+        }
         *time = 0;
         return LORAMAC_STATUS_OK;
     }
@@ -932,11 +937,11 @@ LoRaMacStatus_t RegionIN865NextChannel( NextChanParams_t* nextChanParams, uint8_
             *time = nextTxDelay;
             return LORAMAC_STATUS_DUTYCYCLE_RESTRICTED;
         }
-	if( channel )
-	{
-	    // Datarate not supported by any channel, restore defaults
-	    RegionChannelsMask[0] |= RegionChannelsDefaultMask[0];
-	}
+        if( channel )
+        {
+            // Datarate not supported by any channel, restore defaults
+            RegionChannelsMask[0] |= RegionChannelsDefaultMask[0];
+        }
         *time = 0;
         return LORAMAC_STATUS_NO_CHANNEL_FOUND;
     }
@@ -1023,7 +1028,7 @@ bool RegionIN865ChannelRemove( ChannelRemoveParams_t* channelRemove  )
 
     if( id >= IN865_MAX_NB_CHANNELS )
     {
-	return false;
+        return false;
     }
 
     if( RegionChannelsDefaultMask[0] & ( 1 << id ) )

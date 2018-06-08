@@ -239,6 +239,11 @@
 #define AS923_CARRIER_SENSE_TIME                    6
 
 /*!
+ * RX calibration channel frequency.
+ */
+#define AS923_RX_CAL_FREQ                           923000000
+
+/*!
  * Data rates table definition
  */
 static const uint8_t DataratesAS923[]  = { 12, 11, 10,  9,  8,  7, 7, 50 };

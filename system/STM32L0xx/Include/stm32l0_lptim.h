@@ -39,8 +39,8 @@ extern "C" {
 typedef void (*stm32l0_lptim_callback_t)(void *context);
 
 extern void stm32l0_lptim_configure(unsigned int priority);
-extern void stm32l0_lptim_start(uint32_t timeout, stm32l0_lptim_callback_t callback, void *context);
-extern void stm32l0_lptim_stop(void);
+extern bool stm32l0_lptim_start(uint32_t timeout, stm32l0_lptim_callback_t callback, void *context);
+extern uint32_t stm32l0_lptim_stop(void);
 extern bool stm32l0_lptim_done(void);
 
 #ifdef __cplusplus

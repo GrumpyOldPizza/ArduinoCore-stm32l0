@@ -291,7 +291,7 @@ uint8_t RegionCommonLinkAdrReqVerifyParams( RegionCommonLinkAdrReqVerifyParams_t
         // Get the current datarate, tx power and NbRep
         datarate = verifyParams->CurrentDatarate;
         txPower = verifyParams->CurrentTxPower;
-	nbRepetitions = verifyParams->CurrentNbRep;
+        nbRepetitions = verifyParams->CurrentNbRep;
     }
 
     if( status != 0 )

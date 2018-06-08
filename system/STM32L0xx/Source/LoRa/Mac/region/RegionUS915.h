@@ -192,6 +192,11 @@
 #define US915_STEPWIDTH_RX1_CHANNEL                 ( (uint32_t) 600000 )
 
 /*!
+ * RX calibration channel frequency.
+ */
+#define US915_RX_CAL_FREQ                           925400000
+
+/*!
  * Data rates table definition
  */
 static const uint8_t DataratesUS915[]  = { 10, 9, 8,  7,  8,  0,  0, 0, 12, 11, 10, 9, 8, 7, 0, 0 };

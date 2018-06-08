@@ -197,6 +197,11 @@
 #define CN470_STEPWIDTH_RX1_CHANNEL                 ( (uint32_t) 200000 )
 
 /*!
+ * RX calibration channel frequency.
+ */
+#define CN470_RX_CAL_FREQ                           505000000
+
+/*!
  * Data rates table definition
  */
 static const uint8_t DataratesCN470[]  = { 12, 11, 10,  9,  8,  7 };

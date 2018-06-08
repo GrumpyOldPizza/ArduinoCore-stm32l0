@@ -319,6 +319,11 @@ PhyParam_t RegionKR920GetPhyParam( GetPhyParams_t* getPhy )
             phyParam.fValue = KR920_DEFAULT_ANTENNA_GAIN;
             break;
         }
+        case PHY_RX_CALIBRATION_FREQUENCY:
+        {
+            phyParam.Value = KR920_RX_CAL_FREQ;
+            break;
+        }
         default:
         {
             break;
@@ -344,8 +349,8 @@ void RegionKR920InitDefaults( InitType_t type )
             RegionChannels[1] = ( ChannelParams_t ) KR920_LC2;
             RegionChannels[2] = ( ChannelParams_t ) KR920_LC3;
 
-	    // Bands
-	    RegionBands[0] = ( Band_t) KR920_BAND0;
+            // Bands
+            RegionBands[0] = ( Band_t) KR920_BAND0;
 
             // Initialize the channels default mask
             RegionChannelsDefaultMask[0] = LC( 1 ) + LC( 2 ) + LC( 3 );
@@ -491,44 +496,44 @@ bool RegionKR920AdrNext( AdrNextParams_t* adrNext, int8_t* drOut, int8_t* txPowO
 
     if( adrNext->AdrEnabled == true )
     {
-	if( adrNext->AdrAckCounter < ( KR920_ADR_ACK_LIMIT + 18 * KR920_ADR_ACK_DELAY ) )
+        if( adrNext->AdrAckCounter < ( KR920_ADR_ACK_LIMIT + 18 * KR920_ADR_ACK_DELAY ) )
         {
             if( adrNext->AdrAckCounter >= KR920_ADR_ACK_LIMIT )
             {
                 adrAckReq = true;
             }
-	    
+            
             if( adrNext->AdrAckCounter >= ( KR920_ADR_ACK_LIMIT + KR920_ADR_ACK_DELAY ) )
             {
                 if( ( adrNext->AdrAckCounter % KR920_ADR_ACK_DELAY ) == 1 )
                 {
-		    if( txPower != KR920_MAX_TX_POWER )
-		    {
-			// Increase the txPower
-			txPower = KR920_MAX_TX_POWER;
-		    }
-		    else if( datarate != KR920_TX_MIN_DATARATE )
-		    {
-			// Decrease the datarate
-			getPhy.Attribute = PHY_NEXT_LOWER_TX_DR;
-			getPhy.Datarate = datarate;
-			getPhy.UplinkDwellTime = adrNext->UplinkDwellTime;
-			phyParam = RegionKR920GetPhyParam( &getPhy );
-			datarate = phyParam.Value;
-		    }
-		    else
-		    {
-			*adrAckCounter = ( KR920_ADR_ACK_LIMIT + 18 * KR920_ADR_ACK_DELAY );
+                    if( txPower != KR920_MAX_TX_POWER )
+                    {
+                        // Increase the txPower
+                        txPower = KR920_MAX_TX_POWER;
+                    }
+                    else if( datarate != KR920_TX_MIN_DATARATE )
+                    {
+                        // Decrease the datarate
+                        getPhy.Attribute = PHY_NEXT_LOWER_TX_DR;
+                        getPhy.Datarate = datarate;
+                        getPhy.UplinkDwellTime = adrNext->UplinkDwellTime;
+                        phyParam = RegionKR920GetPhyParam( &getPhy );
+                        datarate = phyParam.Value;
+                    }
+                    else
+                    {
+                        *adrAckCounter = ( KR920_ADR_ACK_LIMIT + 18 * KR920_ADR_ACK_DELAY );
 
-			// We must set adrAckReq to false as soon as we reach the lowest datarate
-			adrAckReq = false;
-			if( adrNext->UpdateChanMask == true )
-			{
-			    // Re-enable default channels
+                        // We must set adrAckReq to false as soon as we reach the lowest datarate
+                        adrAckReq = false;
+                        if( adrNext->UpdateChanMask == true )
+                        {
+                            // Re-enable default channels
                             RegionChannelsMask[0] |= RegionChannelsDefaultMask[0];
-			}
-		    }
-		}
+                        }
+                    }
+                }
             }
         }
     }
@@ -865,8 +870,8 @@ LoRaMacStatus_t RegionKR920NextChannel( NextChanParams_t* nextChanParams, uint8_
 
     if( nextChanParams->AggrTimeOff <= TimerGetElapsedTime( nextChanParams->LastAggrTx ) )
     {
-	// Reset Aggregated time off
-	*aggregatedTimeOff = 0;
+        // Reset Aggregated time off
+        *aggregatedTimeOff = 0;
 
         // Update bands Time OFF
         nextTxDelay = RegionCommonUpdateBandTimeOff( nextChanParams->Joined, nextChanParams->DutyCycleEnabled, RegionBands, KR920_MAX_NB_BANDS );
@@ -884,30 +889,30 @@ LoRaMacStatus_t RegionKR920NextChannel( NextChanParams_t* nextChanParams, uint8_
 
     if( nbEnabledChannels > 0 )
     {
-	if( channel )
-	{
-	    for( uint8_t  i = 0, j = randr( 0, nbEnabledChannels - 1 ); i < KR920_MAX_NB_CHANNELS; i++ )
-	    {
-		channelNext = enabledChannels[j];
-		j = ( j + 1 ) % nbEnabledChannels;
-		
-		// Perform carrier sense for KR920_CARRIER_SENSE_TIME
-		// If the channel is free, we can stop the LBT mechanism
-		if( Radio.IsChannelFree( MODEM_LORA, RegionChannels[channelNext].Frequency, KR920_RSSI_FREE_TH, KR920_CARRIER_SENSE_TIME ) == true )
-		{
-		    // Free channel found
-		    *channel = channelNext;
-		    *time = 0;
-		    return LORAMAC_STATUS_OK;
-		}
-	    }
-	    return LORAMAC_STATUS_NO_FREE_CHANNEL_FOUND;
-	}
-	else
-	{
-	    *time = 0;
-	    return LORAMAC_STATUS_OK;
-	}
+        if( channel )
+        {
+            for( uint8_t  i = 0, j = randr( 0, nbEnabledChannels - 1 ); i < KR920_MAX_NB_CHANNELS; i++ )
+            {
+                channelNext = enabledChannels[j];
+                j = ( j + 1 ) % nbEnabledChannels;
+                
+                // Perform carrier sense for KR920_CARRIER_SENSE_TIME
+                // If the channel is free, we can stop the LBT mechanism
+                if( Radio.IsChannelFree( MODEM_LORA, RegionChannels[channelNext].Frequency, KR920_RSSI_FREE_TH, KR920_CARRIER_SENSE_TIME ) == true )
+                {
+                    // Free channel found
+                    *channel = channelNext;
+                    *time = 0;
+                    return LORAMAC_STATUS_OK;
+                }
+            }
+            return LORAMAC_STATUS_NO_FREE_CHANNEL_FOUND;
+        }
+        else
+        {
+            *time = 0;
+            return LORAMAC_STATUS_OK;
+        }
     }
     else
     {
@@ -917,11 +922,11 @@ LoRaMacStatus_t RegionKR920NextChannel( NextChanParams_t* nextChanParams, uint8_
             *time = nextTxDelay;
             return LORAMAC_STATUS_DUTYCYCLE_RESTRICTED;
         }
-	if( channel )
-	{
-	    // Datarate not supported by any channel, restore defaults
-	    RegionChannelsMask[0] |= RegionChannelsDefaultMask[0];
-	}
+        if( channel )
+        {
+            // Datarate not supported by any channel, restore defaults
+            RegionChannelsMask[0] |= RegionChannelsDefaultMask[0];
+        }
         *time = 0;
         return LORAMAC_STATUS_NO_CHANNEL_FOUND;
     }
@@ -999,7 +1004,7 @@ bool RegionKR920ChannelRemove( ChannelRemoveParams_t* channelRemove  )
 
     if( id >= KR920_MAX_NB_CHANNELS )
     {
-	return false;
+        return false;
     }
 
     if( RegionChannelsDefaultMask[0] & ( 1 << id ) )

@@ -371,6 +371,11 @@ PhyParam_t RegionCN470GetPhyParam( GetPhyParams_t* getPhy )
             phyParam.fValue = CN470_DEFAULT_ANTENNA_GAIN;
             break;
         }
+        case PHY_RX_CALIBRATION_FREQUENCY:
+        {
+            phyParam.Value = CN470_RX_CAL_FREQ;
+            break;
+        }
         default:
         {
             break;
@@ -402,8 +407,8 @@ void RegionCN470InitDefaults( InitType_t type )
             }
 #endif
 
-	    // Bands
-	    RegionBands[0] = ( Band_t )CN470_BAND0;
+            // Bands
+            RegionBands[0] = ( Band_t )CN470_BAND0;
 
             // Initialize the channels default mask
             RegionChannelsDefaultMask[0] = 0xFFFF;
@@ -504,49 +509,49 @@ bool RegionCN470AdrNext( AdrNextParams_t* adrNext, int8_t* drOut, int8_t* txPowO
 
     if( adrNext->AdrEnabled == true )
     {
-	if( adrNext->AdrAckCounter < ( CN470_ADR_ACK_LIMIT + 18 * CN470_ADR_ACK_DELAY ) )
+        if( adrNext->AdrAckCounter < ( CN470_ADR_ACK_LIMIT + 18 * CN470_ADR_ACK_DELAY ) )
         {
             if( adrNext->AdrAckCounter >= CN470_ADR_ACK_LIMIT )
             {
                 adrAckReq = true;
             }
-	    
+            
             if( adrNext->AdrAckCounter >= ( CN470_ADR_ACK_LIMIT + CN470_ADR_ACK_DELAY ) )
             {
                 if( ( adrNext->AdrAckCounter % CN470_ADR_ACK_DELAY ) == 1 )
                 {
-		    if( txPower != CN470_MAX_TX_POWER )
-		    {
-			// Increase the txPower
-			txPower = CN470_MAX_TX_POWER;
-		    }
-		    else if( datarate != CN470_TX_MIN_DATARATE )
-		    {
-			// Decrease the datarate
-			getPhy.Attribute = PHY_NEXT_LOWER_TX_DR;
-			getPhy.Datarate = datarate;
-			getPhy.UplinkDwellTime = adrNext->UplinkDwellTime;
-			phyParam = RegionCN470GetPhyParam( &getPhy );
-			datarate = phyParam.Value;
-		    }
-		    else
-		    {
-			*adrAckCounter = ( CN470_ADR_ACK_LIMIT + 18 * CN470_ADR_ACK_DELAY );
+                    if( txPower != CN470_MAX_TX_POWER )
+                    {
+                        // Increase the txPower
+                        txPower = CN470_MAX_TX_POWER;
+                    }
+                    else if( datarate != CN470_TX_MIN_DATARATE )
+                    {
+                        // Decrease the datarate
+                        getPhy.Attribute = PHY_NEXT_LOWER_TX_DR;
+                        getPhy.Datarate = datarate;
+                        getPhy.UplinkDwellTime = adrNext->UplinkDwellTime;
+                        phyParam = RegionCN470GetPhyParam( &getPhy );
+                        datarate = phyParam.Value;
+                    }
+                    else
+                    {
+                        *adrAckCounter = ( CN470_ADR_ACK_LIMIT + 18 * CN470_ADR_ACK_DELAY );
 
-			// We must set adrAckReq to false as soon as we reach the lowest datarate
-			adrAckReq = false;
-			if( adrNext->UpdateChanMask == true )
-			{
-			    // Re-enable default channels
-			    RegionChannelsMask[0] = RegionChannelsDefaultMask[0];
-			    RegionChannelsMask[1] = RegionChannelsDefaultMask[1];
-			    RegionChannelsMask[2] = RegionChannelsDefaultMask[2];
-			    RegionChannelsMask[3] = RegionChannelsDefaultMask[3];
-			    RegionChannelsMask[4] = RegionChannelsDefaultMask[4];
+                        // We must set adrAckReq to false as soon as we reach the lowest datarate
+                        adrAckReq = false;
+                        if( adrNext->UpdateChanMask == true )
+                        {
+                            // Re-enable default channels
+                            RegionChannelsMask[0] = RegionChannelsDefaultMask[0];
+                            RegionChannelsMask[1] = RegionChannelsDefaultMask[1];
+                            RegionChannelsMask[2] = RegionChannelsDefaultMask[2];
+                            RegionChannelsMask[3] = RegionChannelsDefaultMask[3];
+                            RegionChannelsMask[4] = RegionChannelsDefaultMask[4];
                             RegionChannelsMask[5] = RegionChannelsDefaultMask[5];
-			}
-		    }
-		}
+                        }
+                    }
+                }
             }
         }
     }
@@ -813,8 +818,8 @@ LoRaMacStatus_t RegionCN470NextChannel( NextChanParams_t* nextChanParams, uint8_
 
     if( nextChanParams->AggrTimeOff <= TimerGetElapsedTime( nextChanParams->LastAggrTx ) )
     {
-	// Reset Aggregated time off
-	*aggregatedTimeOff = 0;
+        // Reset Aggregated time off
+        *aggregatedTimeOff = 0;
 
         // Update bands Time OFF
         nextTxDelay = RegionCommonUpdateBandTimeOff( nextChanParams->Joined, nextChanParams->DutyCycleEnabled, RegionBands, CN470_MAX_NB_BANDS );
@@ -832,11 +837,11 @@ LoRaMacStatus_t RegionCN470NextChannel( NextChanParams_t* nextChanParams, uint8_
 
     if( nbEnabledChannels > 0 )
     {
-	if ( channel )
-	{
-	    // We found a valid channel
-	    *channel = enabledChannels[randr( 0, nbEnabledChannels - 1 )];
-	}
+        if ( channel )
+        {
+            // We found a valid channel
+            *channel = enabledChannels[randr( 0, nbEnabledChannels - 1 )];
+        }
         *time = 0;
         return LORAMAC_STATUS_OK;
     }
