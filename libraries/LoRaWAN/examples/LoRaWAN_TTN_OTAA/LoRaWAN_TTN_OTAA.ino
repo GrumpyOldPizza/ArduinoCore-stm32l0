@@ -51,7 +51,6 @@ void setup( void )
 #if defined(REGION_EU868)
     LoRaWAN.begin(EU868);
     LoRaWAN.addChannel(1, 868300000, 0, 6);
-    LoRaWAN.setRX2Channel(869525000, 3);
 #endif
 
 #if defined(REGION_IN865)
