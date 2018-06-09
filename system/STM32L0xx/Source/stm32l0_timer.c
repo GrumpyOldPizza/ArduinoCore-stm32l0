@@ -33,9 +33,13 @@
 #include "stm32l0_system.h"
 
 extern void TIM2_IRQHandler(void);
+#if defined(STM32L072xx) || defined(STM32L082xx)
 extern void TIM3_IRQHandler(void);
+#endif /* STM32L072xx || STM32L082xx */
 extern void TIM6_DAC_IRQHandler(void);
+#if defined(STM32L072xx) || defined(STM32L082xx)
 extern void TIM7_IRQHandler(void);
+#endif /* STM32L072xx || STM32L082xx */
 extern void TIM21_IRQHandler(void);
 extern void TIM22_IRQHandler(void);
 
@@ -47,18 +51,26 @@ static stm32l0_timer_device_t stm32l0_timer_device;
 
 static TIM_TypeDef * const stm32l0_timer_xlate_TIM[STM32L0_TIMER_INSTANCE_COUNT] = {
     TIM2,
+#if defined(STM32L072xx) || defined(STM32L082xx)
     TIM3,
+#endif /* STM32L072xx || STM32L082xx */
     TIM6,
+#if defined(STM32L072xx) || defined(STM32L082xx)
     TIM7,
+#endif /* STM32L072xx || STM32L082xx */
     TIM21,
     TIM22,
 };
 
 static const IRQn_Type stm32l0_timer_xlate_IRQn[STM32L0_TIMER_INSTANCE_COUNT] = {
     TIM2_IRQn,
+#if defined(STM32L072xx) || defined(STM32L082xx)
     TIM3_IRQn,
+#endif /* STM32L072xx || STM32L082xx */
     TIM6_DAC_IRQn,
+#if defined(STM32L072xx) || defined(STM32L082xx)
     TIM7_IRQn,
+#endif /* STM32L072xx || STM32L082xx */
     TIM21_IRQn,
     TIM22_IRQn,
 };
@@ -152,10 +164,15 @@ uint32_t stm32l0_timer_clock(stm32l0_timer_t *timer)
 
     hclk = stm32l0_system_hclk();
 
-    if ((timer->instance == STM32L0_TIMER_INSTANCE_TIM2) ||
-        (timer->instance == STM32L0_TIMER_INSTANCE_TIM3) ||
-        (timer->instance == STM32L0_TIMER_INSTANCE_TIM6) ||
-        (timer->instance == STM32L0_TIMER_INSTANCE_TIM7))
+    if ((timer->instance == STM32L0_TIMER_INSTANCE_TIM2)
+#if defined(STM32L072xx) || defined(STM32L082xx)
+        || (timer->instance == STM32L0_TIMER_INSTANCE_TIM3)
+#endif /* STM32L072xx || STM32L082xx */
+        || (timer->instance == STM32L0_TIMER_INSTANCE_TIM6)
+#if defined(STM32L072xx) || defined(STM32L082xx)
+        || (timer->instance == STM32L0_TIMER_INSTANCE_TIM7)
+#endif /* STM32L072xx || STM32L082xx */
+	)
     {
         pclk = stm32l0_system_pclk1();
     }
@@ -546,20 +563,28 @@ void TIM2_IRQHandler(void)
     stm32l0_timer_interrupt(stm32l0_timer_device.instances[STM32L0_TIMER_INSTANCE_TIM2]);
 }
 
+#if defined(STM32L072xx) || defined(STM32L082xx)
+
 void TIM3_IRQHandler(void)
 {
     stm32l0_timer_interrupt(stm32l0_timer_device.instances[STM32L0_TIMER_INSTANCE_TIM3]);
 }
+
+#endif /* STM32L072xx || STM32L082xx */
 
 void TIM6_DAC_IRQHandler(void)
 {
     stm32l0_timer_interrupt(stm32l0_timer_device.instances[STM32L0_TIMER_INSTANCE_TIM6]);
 }
 
+#if defined(STM32L072xx) || defined(STM32L082xx)
+
 void TIM7_IRQHandler(void)
 {
     stm32l0_timer_interrupt(stm32l0_timer_device.instances[STM32L0_TIMER_INSTANCE_TIM7]);
 }
+
+#endif /* STM32L072xx || STM32L082xx */
 
 void TIM21_IRQHandler(void)
 {

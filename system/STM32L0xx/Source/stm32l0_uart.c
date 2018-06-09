@@ -37,8 +37,14 @@
 
 extern void USART1_IRQHandler(void);
 extern void USART2_IRQHandler(void);
+#if defined(STM32L072xx) || defined(STM32L082xx)
 extern void USART4_5_IRQHandler(void);
+#endif /* STM32L072xx || STM32L082xx */
+#if defined(STM32L082xx)
 extern void AES_RNG_LPUART1_IRQHandler(void);
+#else /* STM32L082xx */
+extern void RNG_LPUART1_IRQHandler(void);
+#endif /* STM32L082xx */
 
 typedef struct _stm32l0_uart_device_t {
     stm32l0_system_notify_t notify;
@@ -71,24 +77,34 @@ static stm32l0_uart_device_t stm32l0_uart_device;
 static USART_TypeDef * const stm32l0_uart_xlate_USART[STM32L0_UART_INSTANCE_COUNT] = {
     USART1,
     USART2,
+#if defined(STM32L072xx) || defined(STM32L082xx)
     USART4,
     USART5,
+#endif /* STM32L072xx || STM32L082xx */
     LPUART1,
 };
 
 static const IRQn_Type stm32l0_uart_xlate_IRQn[STM32L0_UART_INSTANCE_COUNT] = {
     USART1_IRQn,
     USART2_IRQn,
+#if defined(STM32L072xx) || defined(STM32L082xx)
     USART4_5_IRQn,
     USART4_5_IRQn,
+#endif /* STM32L072xx || STM32L082xx */
+#if defined(STM32L082xx)
     AES_RNG_LPUART1_IRQn,
+#else /* STM32L082xx */
+    RNG_LPUART1_IRQn,
+#endif /* STM32L082xx */
 };
 
 static const uint32_t stm32l0_uart_xlate_IMR[STM32L0_UART_INSTANCE_COUNT] = {
     EXTI_IMR_IM25,
     EXTI_IMR_IM26,
+#if defined(STM32L072xx) || defined(STM32L082xx)
     0,
     0,
+#endif /* STM32L072xx || STM32L082xx */
     EXTI_IMR_IM28,
 };
 
@@ -1117,6 +1133,7 @@ bool stm32l0_uart_configure(stm32l0_uart_t *uart, uint32_t baudrate, uint32_t op
         return false;
     }
 
+#if defined(STM32L072xx) || defined(STM32L082xx)
     if (option & STM32L0_UART_OPTION_WAKEUP)
     {
         if ((uart->instance == STM32L0_UART_INSTANCE_USART4) || (uart->instance == STM32L0_UART_INSTANCE_USART5))
@@ -1124,6 +1141,7 @@ bool stm32l0_uart_configure(stm32l0_uart_t *uart, uint32_t baudrate, uint32_t op
             return false;
         }
     }
+#endif /* STM32L072xx || STM32L082xx */
 
     if (uart->state == STM32L0_UART_STATE_BUSY)
     {
@@ -1535,6 +1553,8 @@ void USART2_IRQHandler(void)
     stm32l0_uart_interrupt(stm32l0_uart_device.instances[STM32L0_UART_INSTANCE_USART2]);
 }
 
+#if defined(STM32L072xx) || defined(STM32L082xx)
+
 void USART4_5_IRQHandler(void)
 {
     if (stm32l0_uart_device.instances[STM32L0_UART_INSTANCE_USART4])
@@ -1547,6 +1567,8 @@ void USART4_5_IRQHandler(void)
         stm32l0_uart_interrupt(stm32l0_uart_device.instances[STM32L0_UART_INSTANCE_USART5]);
     }
 }
+
+#endif /* STM32L072xx || STM32L082xx */
 
 #if defined(STM32L082xx)
 

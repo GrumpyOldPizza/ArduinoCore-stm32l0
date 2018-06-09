@@ -39,7 +39,9 @@ extern "C" {
 enum {
     STM32L0_I2C_INSTANCE_I2C1 = 0,
     STM32L0_I2C_INSTANCE_I2C2,
+#if defined(STM32L072xx) || defined(STM32L082xx)
     STM32L0_I2C_INSTANCE_I2C3,
+#endif /* STM32L072xx || STM32L082xx */
     STM32L0_I2C_INSTANCE_COUNT
 };
 

@@ -157,7 +157,7 @@ void USBD_Initialize(uint16_t vid, uint16_t pid, const uint8_t *manufacturer, co
 
     if (usbd_pin_vbus != STM32L0_GPIO_PIN_NONE)
     {
-	stm32l0_rtc_timer_create(&USBD_VBUSTimer, (stm32l0_rtc_callback_t)USBD_VBUSTimeout, NULL);
+	stm32l0_rtc_timer_create(&USBD_VBUSTimer, (stm32l0_rtc_timer_callback_t)USBD_VBUSTimeout, NULL);
 
 	/* Configure USB FS GPIOs */
 	stm32l0_gpio_pin_configure(usbd_pin_vbus, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));

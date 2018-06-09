@@ -66,18 +66,26 @@ static volatile uint32_t * const stm32l0_system_xlate_RSTR[STM32L0_SYSTEM_PERIPH
     &RCC->APB1RSTR,            /* STM32L0_SYSTEM_PERIPH_USB */
     &RCC->APB2RSTR,            /* STM32L0_SYSTEM_PERIPH_USART1 */
     &RCC->APB1RSTR,            /* STM32L0_SYSTEM_PERIPH_USART2 */
+#if defined(STM32L072xx) || defined(STM32L082xx)
     &RCC->APB1RSTR,            /* STM32L0_SYSTEM_PERIPH_USART4 */
     &RCC->APB1RSTR,            /* STM32L0_SYSTEM_PERIPH_USART5 */
+#endif /* STM32L072xx || STM32L082xx */
     &RCC->APB1RSTR,            /* STM32L0_SYSTEM_PERIPH_LPUART1 */
     &RCC->APB1RSTR,            /* STM32L0_SYSTEM_PERIPH_I2C1 */
     &RCC->APB1RSTR,            /* STM32L0_SYSTEM_PERIPH_I2C2 */
+#if defined(STM32L072xx) || defined(STM32L082xx)
     &RCC->APB1RSTR,            /* STM32L0_SYSTEM_PERIPH_I2C3 */
+#endif /* STM32L072xx || STM32L082xx */
     &RCC->APB2RSTR,            /* STM32L0_SYSTEM_PERIPH_SPI1 */
     &RCC->APB1RSTR,            /* STM32L0_SYSTEM_PERIPH_SPI2 */
     &RCC->APB1RSTR,            /* STM32L0_SYSTEM_PERIPH_TIM2 */
+#if defined(STM32L072xx) || defined(STM32L082xx)
     &RCC->APB1RSTR,            /* STM32L0_SYSTEM_PERIPH_TIM3 */
+#endif /* STM32L072xx || STM32L082xx */
     &RCC->APB1RSTR,            /* STM32L0_SYSTEM_PERIPH_TIM6 */
+#if defined(STM32L072xx) || defined(STM32L082xx)
     &RCC->APB1RSTR,            /* STM32L0_SYSTEM_PERIPH_TIM7 */
+#endif /* STM32L072xx || STM32L082xx */
     &RCC->APB2RSTR,            /* STM32L0_SYSTEM_PERIPH_TIM21 */
     &RCC->APB2RSTR,            /* STM32L0_SYSTEM_PERIPH_TIM22 */
     &RCC->APB1RSTR,            /* STM32L0_SYSTEM_PERIPH_LPTIM1 */
@@ -91,18 +99,26 @@ static uint32_t const stm32l0_system_xlate_RSTMSK[STM32L0_SYSTEM_PERIPH_COUNT] =
     RCC_APB1RSTR_USBRST,       /* STM32L0_SYSTEM_PERIPH_USB */
     RCC_APB2RSTR_USART1RST,    /* STM32L0_SYSTEM_PERIPH_USART1 */
     RCC_APB1RSTR_USART2RST,    /* STM32L0_SYSTEM_PERIPH_USART2 */
+#if defined(STM32L072xx) || defined(STM32L082xx)
     RCC_APB1RSTR_USART4RST,    /* STM32L0_SYSTEM_PERIPH_USART4 */
     RCC_APB1RSTR_USART5RST,    /* STM32L0_SYSTEM_PERIPH_USART5 */
+#endif /* STM32L072xx || STM32L082xx */
     RCC_APB1RSTR_LPUART1RST,   /* STM32L0_SYSTEM_PERIPH_LPUART1 */
     RCC_APB1RSTR_I2C1RST,      /* STM32L0_SYSTEM_PERIPH_I2C1 */
     RCC_APB1RSTR_I2C2RST,      /* STM32L0_SYSTEM_PERIPH_I2C2 */
+#if defined(STM32L072xx) || defined(STM32L082xx)
     RCC_APB1RSTR_I2C3RST,      /* STM32L0_SYSTEM_PERIPH_I2C3 */
+#endif /* STM32L072xx || STM32L082xx */
     RCC_APB2RSTR_SPI1RST,      /* STM32L0_SYSTEM_PERIPH_SPI1 */
     RCC_APB1RSTR_SPI2RST,      /* STM32L0_SYSTEM_PERIPH_SPI2 */
     RCC_APB1RSTR_TIM2RST,      /* STM32L0_SYSTEM_PERIPH_TIM2 */
+#if defined(STM32L072xx) || defined(STM32L082xx)
     RCC_APB1RSTR_TIM3RST,      /* STM32L0_SYSTEM_PERIPH_TIM3 */
+#endif /* STM32L072xx || STM32L082xx */
     RCC_APB1RSTR_TIM6RST,      /* STM32L0_SYSTEM_PERIPH_TIM6 */
+#if defined(STM32L072xx) || defined(STM32L082xx)
     RCC_APB1RSTR_TIM7RST,      /* STM32L0_SYSTEM_PERIPH_TIM7 */
+#endif /* STM32L072xx || STM32L082xx */
     RCC_APB2RSTR_TIM21RST,     /* STM32L0_SYSTEM_PERIPH_TIM21 */
     RCC_APB2RSTR_TIM22RST,     /* STM32L0_SYSTEM_PERIPH_TIM22 */
     RCC_APB1RSTR_LPTIM1RST,    /* STM32L0_SYSTEM_PERIPH_LPTIM1 */
@@ -116,18 +132,26 @@ static volatile uint32_t * const stm32l0_system_xlate_ENR[STM32L0_SYSTEM_PERIPH_
     &RCC->APB1ENR,             /* STM32L0_SYSTEM_PERIPH_USB */
     &RCC->APB2ENR,             /* STM32L0_SYSTEM_PERIPH_USART1 */
     &RCC->APB1ENR,             /* STM32L0_SYSTEM_PERIPH_USART2 */
+#if defined(STM32L072xx) || defined(STM32L082xx)
     &RCC->APB1ENR,             /* STM32L0_SYSTEM_PERIPH_USART4 */
     &RCC->APB1ENR,             /* STM32L0_SYSTEM_PERIPH_USART5 */
+#endif /* STM32L072xx || STM32L082xx */
     &RCC->APB1ENR,             /* STM32L0_SYSTEM_PERIPH_LPUART1 */
     &RCC->APB1ENR,             /* STM32L0_SYSTEM_PERIPH_I2C1 */
     &RCC->APB1ENR,             /* STM32L0_SYSTEM_PERIPH_I2C2 */
+#if defined(STM32L072xx) || defined(STM32L082xx)
     &RCC->APB1ENR,             /* STM32L0_SYSTEM_PERIPH_I2C3 */
+#endif /* STM32L072xx || STM32L082xx */
     &RCC->APB2ENR,             /* STM32L0_SYSTEM_PERIPH_SPI1 */
     &RCC->APB1ENR,             /* STM32L0_SYSTEM_PERIPH_SPI2 */
     &RCC->APB1ENR,             /* STM32L0_SYSTEM_PERIPH_TIM2 */
+#if defined(STM32L072xx) || defined(STM32L082xx)
     &RCC->APB1ENR,             /* STM32L0_SYSTEM_PERIPH_TIM3 */
+#endif /* STM32L072xx || STM32L082xx */
     &RCC->APB1ENR,             /* STM32L0_SYSTEM_PERIPH_TIM6 */
+#if defined(STM32L072xx) || defined(STM32L082xx)
     &RCC->APB1ENR,             /* STM32L0_SYSTEM_PERIPH_TIM7 */
+#endif /* STM32L072xx || STM32L082xx */
     &RCC->APB2ENR,             /* STM32L0_SYSTEM_PERIPH_TIM21 */
     &RCC->APB2ENR,             /* STM32L0_SYSTEM_PERIPH_TIM22 */
     &RCC->APB1ENR,             /* STM32L0_SYSTEM_PERIPH_LPTIM1 */
@@ -141,18 +165,26 @@ static uint32_t const stm32l0_system_xlate_ENMSK[STM32L0_SYSTEM_PERIPH_COUNT] = 
     RCC_APB1ENR_USBEN,         /* STM32L0_SYSTEM_PERIPH_USB */
     RCC_APB2ENR_USART1EN,      /* STM32L0_SYSTEM_PERIPH_USART1 */
     RCC_APB1ENR_USART2EN,      /* STM32L0_SYSTEM_PERIPH_USART2 */
+#if defined(STM32L072xx) || defined(STM32L082xx)
     RCC_APB1ENR_USART4EN,      /* STM32L0_SYSTEM_PERIPH_USART4 */
     RCC_APB1ENR_USART5EN,      /* STM32L0_SYSTEM_PERIPH_USART5 */
+#endif /* STM32L072xx || STM32L082xx */
     RCC_APB1ENR_LPUART1EN,     /* STM32L0_SYSTEM_PERIPH_LPUART1 */
     RCC_APB1ENR_I2C1EN,        /* STM32L0_SYSTEM_PERIPH_I2C1 */
     RCC_APB1ENR_I2C2EN,        /* STM32L0_SYSTEM_PERIPH_I2C2 */
+#if defined(STM32L072xx) || defined(STM32L082xx)
     RCC_APB1ENR_I2C3EN,        /* STM32L0_SYSTEM_PERIPH_I2C3 */
+#endif /* STM32L072xx || STM32L082xx */
     RCC_APB2ENR_SPI1EN,        /* STM32L0_SYSTEM_PERIPH_SPI1 */
     RCC_APB1ENR_SPI2EN,        /* STM32L0_SYSTEM_PERIPH_SPI2 */
     RCC_APB1ENR_TIM2EN,        /* STM32L0_SYSTEM_PERIPH_TIM2 */
+#if defined(STM32L072xx) || defined(STM32L082xx)
     RCC_APB1ENR_TIM3EN,        /* STM32L0_SYSTEM_PERIPH_TIM3 */
+#endif /* STM32L072xx || STM32L082xx */
     RCC_APB1ENR_TIM6EN,        /* STM32L0_SYSTEM_PERIPH_TIM6 */
+#if defined(STM32L072xx) || defined(STM32L082xx)
     RCC_APB1ENR_TIM7EN,        /* STM32L0_SYSTEM_PERIPH_TIM7 */
+#endif /* STM32L072xx || STM32L082xx */
     RCC_APB2ENR_TIM21EN,       /* STM32L0_SYSTEM_PERIPH_TIM21 */
     RCC_APB2ENR_TIM22EN,       /* STM32L0_SYSTEM_PERIPH_TIM22 */
     RCC_APB1ENR_LPTIM1EN,      /* STM32L0_SYSTEM_PERIPH_LPTIM1 */
@@ -743,7 +775,9 @@ bool stm32l0_system_sysclk_configure(uint32_t hclk, uint32_t pclk1, uint32_t pcl
     if (stm32l0_system_device.lock[STM32L0_SYSTEM_LOCK_CLOCKS] ||
         ((stm32l0_system_device.reference & STM32L0_SYSTEM_REFERENCE_I2C1_FMP) && (sysclk < 32000000)) ||
         ((stm32l0_system_device.reference & STM32L0_SYSTEM_REFERENCE_I2C2_FMP) && (pclk1  < 32000000)) ||
+#if defined(STM32L072xx) || defined(STM32L082xx)
         ((stm32l0_system_device.reference & STM32L0_SYSTEM_REFERENCE_I2C3_FMP) && (sysclk < 32000000)) ||
+#endif /* STM32L072xx || STM32L082xx */
         ((stm32l0_system_device.reference & STM32L0_SYSTEM_REFERENCE_I2C2_FM)  && (pclk1  < 16000000)) ||
         ((stm32l0_system_device.reference & STM32L0_SYSTEM_REFERENCE_I2C2_SM)  && (pclk1  <  4000000)) ||
         ((stm32l0_system_device.reference & STM32L0_SYSTEM_REFERENCE_USB)      && (pclk1  < 16000000)))
@@ -1668,10 +1702,12 @@ void stm32l0_system_standby(uint32_t config)
         PWR->CSR |= PWR_CSR_EWUP2;
     }
     
+#if defined(STM32L072xx) || defined(STM32L082xx)
     if (config & STM32L0_SYSTEM_CONFIG_WKUP3)
     {
         PWR->CSR |= PWR_CSR_EWUP3;
     }
+#endif /* STM32L072xx || STM32L082xx */
     
     if (stm32l0_system_device.hsi48)
     {

@@ -37,7 +37,9 @@
 
 extern void I2C1_IRQHandler(void);
 extern void I2C2_IRQHandler(void);
+#if defined(STM32L072xx) || defined(STM32L082xx)
 extern void I2C3_IRQHandler(void);
+#endif /* STM32L072xx || STM32L082xx */
 
 typedef struct _stm32l0_i2c_device_t {
     stm32l0_i2c_t     *instances[STM32L0_I2C_INSTANCE_COUNT];
@@ -67,25 +69,33 @@ static stm32l0_i2c_device_t stm32l0_i2c_device;
 static I2C_TypeDef * const stm32l0_i2c_xlate_I2C[STM32L0_I2C_INSTANCE_COUNT] = {
     I2C1,
     I2C2,
+#if defined(STM32L072xx) || defined(STM32L082xx)
     I2C3,
+#endif /* STM32L072xx || STM32L082xx */
 };
 
 static const IRQn_Type stm32l0_i2c_xlate_IRQn[STM32L0_I2C_INSTANCE_COUNT] = {
     I2C1_IRQn,
     I2C2_IRQn,
+#if defined(STM32L072xx) || defined(STM32L082xx)
     I2C3_IRQn,
+#endif /* STM32L072xx || STM32L082xx */
 };
 
 static const uint32_t stm32l0_i2c_xlate_FMP[STM32L0_I2C_INSTANCE_COUNT] = {
     SYSCFG_CFGR2_I2C1_FMP,
     SYSCFG_CFGR2_I2C2_FMP,
+#if defined(STM32L072xx) || defined(STM32L082xx)
     SYSCFG_CFGR2_I2C3_FMP,
+#endif /* STM32L072xx || STM32L082xx */
 };
 
 static const uint32_t stm32l0_i2c_xlate_IMR[STM32L0_I2C_INSTANCE_COUNT] = {
     EXTI_IMR_IM23,
     0,
+#if defined(STM32L072xx) || defined(STM32L082xx)
     EXTI_IMR_IM24,
+#endif /* STM32L072xx || STM32L082xx */
 };
 
 static void stm32l0_i2c_start(stm32l0_i2c_t *i2c, bool enable)
@@ -1549,8 +1559,12 @@ void I2C2_IRQHandler(void)
     stm32l0_i2c_interrupt(stm32l0_i2c_device.instances[STM32L0_I2C_INSTANCE_I2C2]);
 }
 
+#if defined(STM32L072xx) || defined(STM32L082xx)
+
 void I2C3_IRQHandler(void)
 {
     stm32l0_i2c_interrupt(stm32l0_i2c_device.instances[STM32L0_I2C_INSTANCE_I2C3]);
 }
+
+#endif /* STM32L072xx || STM32L082xx */
 

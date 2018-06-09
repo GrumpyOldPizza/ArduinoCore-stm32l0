@@ -37,13 +37,17 @@ extern "C" {
 #endif
 
 #define STM32L0_DAC_CHANNEL_1                            0x00000001
+#if defined(STM32L072xx) || defined(STM32L082xx)
 #define STM32L0_DAC_CHANNEL_2                            0x00000002
+#endif /* STM32L072xx || STM32L082xx */
 
-#define STM32L0_DAC_CONTROL_MONO                         0x00000000
-#define STM32L0_DAC_CONTROL_STEREO                       0x00000001
 #define STM32L0_DAC_CONTROL_RIGHT_ALIGNED                0x00000000 /* 12 bit LSB */
-#define STM32L0_DAC_CONTROL_LEFT_ALIGNED                 0x00000002 /* 12 bit MSB */
-#define STM32L0_DAC_CONTROL_BYTE_PACKED                  0x00000004 /* 8 bit LSB */
+#define STM32L0_DAC_CONTROL_LEFT_ALIGNED                 0x00000001 /* 12 bit MSB */
+#define STM32L0_DAC_CONTROL_BYTE_PACKED                  0x00000002 /* 8 bit LSB */
+#define STM32L0_DAC_CONTROL_MONO                         0x00000000
+#if defined(STM32L072xx) || defined(STM32L082xx)
+#define STM32L0_DAC_CONTROL_STEREO                       0x00000004
+#endif /* STM32L072xx || STM32L082xx */
 #define STM32L0_DAC_CONTROL_TRIG_MASK                    0x00000038
 #define STM32L0_DAC_CONTROL_TRIG_SHIFT                   3
 #define STM32L0_DAC_CONTROL_TRIG_TIM6                    0x00000000

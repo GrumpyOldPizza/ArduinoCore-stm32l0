@@ -59,11 +59,15 @@
 
 static volatile uint32_t * const stm32l0_dac_xlate_address[] = {
     &DAC->DHR12R1,
-    &DAC->DHR12RD,
     &DAC->DHR12L1,
-    &DAC->DHR12LD,
     &DAC->DHR8R1,
+    0,
+#if defined(STM32L072xx) || defined(STM32L082xx)
+    &DAC->DHR12RD,
+    &DAC->DHR12LD,
     &DAC->DHR8RD,
+    0,
+#endif /* STM32L072xx || STM32L082xx */
 };
 
 #define STM32L0_DAC_STATE_NONE    0
@@ -109,10 +113,12 @@ bool stm32l0_dac_enable(uint32_t channels)
         DAC->CR |= DAC_CR_EN1;
     }
 
+#if defined(STM32L072xx) || defined(STM32L082xx)
     if (channels & STM32L0_DAC_CHANNEL_2)
     {
         DAC->CR |= DAC_CR_EN2;
     }
+#endif /* STM32L072xx || STM32L082xx */
 
     __set_PRIMASK(primask);
     
@@ -137,10 +143,12 @@ bool stm32l0_dac_disable(uint32_t channels)
         DAC->CR &= ~DAC_CR_EN1;
     }
 
+#if defined(STM32L072xx) || defined(STM32L082xx)
     if (channels & STM32L0_DAC_CHANNEL_2)
     {
         DAC->CR &= ~DAC_CR_EN2;
     }
+#endif /* STM32L072xx || STM32L082xx */
 
     stm32l0_dac_device.channels &= ~channels;
 
@@ -163,10 +171,12 @@ void stm32l0_dac_write(uint32_t channels, uint32_t output)
         DAC->DHR12R1 = output;
     }
 
+#if defined(STM32L072xx) || defined(STM32L082xx)
     if (channels & STM32L0_DAC_CHANNEL_2)
     {
         DAC->DHR12R2 = output;
     }
+#endif /* STM32L072xx || STM32L082xx */
 }
 
 bool stm32l0_dac_convert(const void *data, uint32_t count, uint32_t control, stm32l0_dac_done_callback_t callback, void *context)
@@ -191,9 +201,14 @@ bool stm32l0_dac_convert(const void *data, uint32_t count, uint32_t control, stm
         }
         else
         {
+#if defined(STM32L072xx) || defined(STM32L082xx)
             DAC->CR &= ~(DAC_CR_DMAEN1 | DAC_CR_TEN1 | DAC_CR_TSEL1 | DAC_CR_TEN2 | DAC_CR_TSEL2);
+#else /* STM32L072xx || STM32L082xx */
+            DAC->CR &= ~(DAC_CR_DMAEN1 | DAC_CR_TEN1 | DAC_CR_TSEL1);
+#endif /* STM32L072xx || STM32L082xx */
         }
 
+#if defined(STM32L072xx) || defined(STM32L082xx)
         if (control & STM32L0_DAC_CONTROL_STEREO)
         {
             DAC->CR |= (DAC_CR_DMAEN1 | DAC_CR_TEN1 | DAC_CR_TEN2 |
@@ -201,6 +216,7 @@ bool stm32l0_dac_convert(const void *data, uint32_t count, uint32_t control, stm
                         (((control & STM32L0_DAC_CONTROL_TRIG_MASK) >> STM32L0_DAC_CONTROL_TRIG_SHIFT) << DAC_CR_TSEL2_Pos));
         }
         else
+#endif /* STM32L072xx || STM32L082xx */
         {
             DAC->CR |= (DAC_CR_DMAEN1 | DAC_CR_TEN1 |
                         (((control & STM32L0_DAC_CONTROL_TRIG_MASK) >> STM32L0_DAC_CONTROL_TRIG_SHIFT) << DAC_CR_TSEL1_Pos));
@@ -209,6 +225,7 @@ bool stm32l0_dac_convert(const void *data, uint32_t count, uint32_t control, stm
         stm32l0_dac_device.control = control;
     }
 
+#if defined(STM32L072xx) || defined(STM32L082xx)
     if (control & STM32L0_DAC_CONTROL_STEREO)
     {
         if (control & STM32L0_DAC_CONTROL_BYTE_PACKED)
@@ -223,6 +240,7 @@ bool stm32l0_dac_convert(const void *data, uint32_t count, uint32_t control, stm
         }
     }
     else
+#endif /* STM32L072xx || STM32L082xx */
     {
         if (control & STM32L0_DAC_CONTROL_BYTE_PACKED)
         {
@@ -254,6 +272,7 @@ void stm32l0_dac_cancel(void)
 
         stm32l0_dac_device.state = STM32L0_DAC_STATE_DONE;
 
+#if defined(STM32L072xx) || defined(STM32L082xx)
         if (stm32l0_dac_device.control & STM32L0_DAC_CONTROL_STEREO)
         {
             if (stm32l0_dac_device.control & STM32L0_DAC_CONTROL_BYTE_PACKED)
@@ -266,6 +285,7 @@ void stm32l0_dac_cancel(void)
             }
         }
         else
+#endif /* STM32L072xx || STM32L082xx */
         {
             if (!(stm32l0_dac_device.control & STM32L0_DAC_CONTROL_BYTE_PACKED))
             {
@@ -277,7 +297,11 @@ void stm32l0_dac_cancel(void)
 
         if (stm32l0_dac_device.state == STM32L0_DAC_STATE_DONE)
         {
+#if defined(STM32L072xx) || defined(STM32L082xx)
             DAC->CR &= ~(DAC_CR_DMAEN1 | DAC_CR_TEN1 | DAC_CR_TSEL1 | DAC_CR_TEN2 | DAC_CR_TSEL2);
+#else /* STM32L072xx || STM32L082xx */
+            DAC->CR &= ~(DAC_CR_DMAEN1 | DAC_CR_TEN1 | DAC_CR_TSEL1);
+#endif /* STM32L072xx || STM32L082xx */
 
             stm32l0_dma_disable(STM32L0_DMA_CHANNEL_DMA1_CH2_DAC1);
 

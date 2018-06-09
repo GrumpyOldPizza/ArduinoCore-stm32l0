@@ -41,18 +41,26 @@ enum {
     STM32L0_SYSTEM_PERIPH_USB,
     STM32L0_SYSTEM_PERIPH_USART1,
     STM32L0_SYSTEM_PERIPH_USART2,
+#if defined(STM32L072xx) || defined(STM32L082xx)
     STM32L0_SYSTEM_PERIPH_USART4,
     STM32L0_SYSTEM_PERIPH_USART5,
+#endif /* STM32L072xx || STM32L082xx */
     STM32L0_SYSTEM_PERIPH_LPUART1,
     STM32L0_SYSTEM_PERIPH_I2C1,
     STM32L0_SYSTEM_PERIPH_I2C2,
+#if defined(STM32L072xx) || defined(STM32L082xx)
     STM32L0_SYSTEM_PERIPH_I2C3,
+#endif /* STM32L072xx || STM32L082xx */
     STM32L0_SYSTEM_PERIPH_SPI1,
     STM32L0_SYSTEM_PERIPH_SPI2,
     STM32L0_SYSTEM_PERIPH_TIM2,
+#if defined(STM32L072xx) || defined(STM32L082xx)
     STM32L0_SYSTEM_PERIPH_TIM3,
+#endif /* STM32L072xx || STM32L082xx */
     STM32L0_SYSTEM_PERIPH_TIM6,
+#if defined(STM32L072xx) || defined(STM32L082xx)
     STM32L0_SYSTEM_PERIPH_TIM7,
+#endif /* STM32L072xx || STM32L082xx */
     STM32L0_SYSTEM_PERIPH_TIM21,
     STM32L0_SYSTEM_PERIPH_TIM22,
     STM32L0_SYSTEM_PERIPH_LPTIM1,
@@ -86,7 +94,9 @@ enum {
 
 #define STM32L0_SYSTEM_REFERENCE_I2C1_FMP      0x00000001  /* force sysclk >= 32MHz */
 #define STM32L0_SYSTEM_REFERENCE_I2C2_FMP      0x00000002  /* force pclk1  >= 32MHz */
+#if defined(STM32L072xx) || defined(STM32L082xx)
 #define STM32L0_SYSTEM_REFERENCE_I2C3_FMP      0x00000004  /* force sysclk >= 32MHz */
+#endif /* STM32L072xx || STM32L082xx */
 #define STM32L0_SYSTEM_REFERENCE_I2C2_FM       0x00000008  /* force pclk1  >= 16MHz */
 #define STM32L0_SYSTEM_REFERENCE_I2C2_SM       0x00000010  /* force pclk1  >=  4MHz */
 #define STM32L0_SYSTEM_REFERENCE_USB           0x00000020  /* force pclk1  >= 16MHz */
@@ -130,8 +140,9 @@ typedef struct _stm32l0_system_notify_t {
 
 #define STM32L0_SYSTEM_CONFIG_WKUP1            0x00000001
 #define STM32L0_SYSTEM_CONFIG_WKUP2            0x00000002
+#if defined(STM32L072xx) || defined(STM32L082xx)
 #define STM32L0_SYSTEM_CONFIG_WKUP3            0x00000004
-
+#endif /* STM32L072xx || STM32L082xx */
 
 /* This bit is documented in the reference manuals,
  * but is not part of the CMSIS/Device headers. Turns out

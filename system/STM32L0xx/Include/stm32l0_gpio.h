@@ -63,6 +63,63 @@
 #define STM32L0_GPIO_PARK_PULLDOWN              0x0100
 #define STM32L0_GPIO_PARK_HIZ                   0x0180
 
+#if defined(STM32L052xx)
+
+#define STM32L0_GPIO_PIN_PA0                    0x00
+#define STM32L0_GPIO_PIN_PA1                    0x01
+#define STM32L0_GPIO_PIN_PA2                    0x02
+#define STM32L0_GPIO_PIN_PA3                    0x03
+#define STM32L0_GPIO_PIN_PA4                    0x04
+#define STM32L0_GPIO_PIN_PA5                    0x05
+#define STM32L0_GPIO_PIN_PA6                    0x06
+#define STM32L0_GPIO_PIN_PA7                    0x07
+#define STM32L0_GPIO_PIN_PA8                    0x08
+#define STM32L0_GPIO_PIN_PA9                    0x09
+#define STM32L0_GPIO_PIN_PA10                   0x0a
+#define STM32L0_GPIO_PIN_PA11                   0x0b
+#define STM32L0_GPIO_PIN_PA12                   0x0c
+#define STM32L0_GPIO_PIN_PA13                   0x0d
+#define STM32L0_GPIO_PIN_PA14                   0x0e
+#define STM32L0_GPIO_PIN_PA15                   0x0f
+#define STM32L0_GPIO_PIN_PB0                    0x10
+#define STM32L0_GPIO_PIN_PB1                    0x11
+#define STM32L0_GPIO_PIN_PB2                    0x12
+#define STM32L0_GPIO_PIN_PB3                    0x13
+#define STM32L0_GPIO_PIN_PB4                    0x14
+#define STM32L0_GPIO_PIN_PB5                    0x15
+#define STM32L0_GPIO_PIN_PB6                    0x16
+#define STM32L0_GPIO_PIN_PB7                    0x17
+#define STM32L0_GPIO_PIN_PB8                    0x18
+#define STM32L0_GPIO_PIN_PB9                    0x19
+#define STM32L0_GPIO_PIN_PB10                   0x1a
+#define STM32L0_GPIO_PIN_PB11                   0x1b
+#define STM32L0_GPIO_PIN_PB12                   0x1c
+#define STM32L0_GPIO_PIN_PB13                   0x1d
+#define STM32L0_GPIO_PIN_PB14                   0x1e
+#define STM32L0_GPIO_PIN_PB15                   0x1f
+#define STM32L0_GPIO_PIN_PC0                    0x20
+#define STM32L0_GPIO_PIN_PC1                    0x21
+#define STM32L0_GPIO_PIN_PC2                    0x22
+#define STM32L0_GPIO_PIN_PC3                    0x23
+#define STM32L0_GPIO_PIN_PC4                    0x24
+#define STM32L0_GPIO_PIN_PC5                    0x25
+#define STM32L0_GPIO_PIN_PC6                    0x26
+#define STM32L0_GPIO_PIN_PC7                    0x27
+#define STM32L0_GPIO_PIN_PC8                    0x28
+#define STM32L0_GPIO_PIN_PC9                    0x29
+#define STM32L0_GPIO_PIN_PC10                   0x2a
+#define STM32L0_GPIO_PIN_PC11                   0x2b
+#define STM32L0_GPIO_PIN_PC12                   0x2c
+#define STM32L0_GPIO_PIN_PC13                   0x2d
+#define STM32L0_GPIO_PIN_PC14                   0x2e
+#define STM32L0_GPIO_PIN_PC15                   0x2f
+#define STM32L0_GPIO_PIN_PD2                    0x32
+#define STM32L0_GPIO_PIN_PH0                    0x70
+#define STM32L0_GPIO_PIN_PH1                    0x71
+#define STM32L0_GPIO_PIN_NONE                   0xff
+
+#endif /* STM32L052xx */
+
 #if defined(STM32L072xx)
 
 #define STM32L0_GPIO_PIN_PA0                    0x00
@@ -206,6 +263,174 @@
 
 #define STM32L0_GPIO_PIN_IO_MASK                0x00ff
 #define STM32L0_GPIO_PIN_IO_SHIFT               0
+
+#if defined(STM32L052xx)
+
+#define STM32L0_GPIO_PIN_PA8_MCO                0x0008
+#define STM32L0_GPIO_PIN_PA9_MCO                0x0009
+#define STM32L0_GPIO_PIN_PA13_SWDIO             0x000d
+#define STM32L0_GPIO_PIN_PA14_SWCLK             0x000e
+#define STM32L0_GPIO_PIN_PB14_RTC_OUT           0x021e
+#define STM32L0_GPIO_PIN_PB15_RTC_REFIN         0x021f
+
+#define STM32L0_GPIO_PIN_PA8_USART1_CK          0x0408
+#define STM32L0_GPIO_PIN_PA9_USART1_TX          0x0409
+#define STM32L0_GPIO_PIN_PA10_USART1_RX         0x040a
+#define STM32L0_GPIO_PIN_PA11_USART1_CTS        0x040b
+#define STM32L0_GPIO_PIN_PA12_USART1_RTS_DE     0x040c
+#define STM32L0_GPIO_PIN_PB3_USART1_RTS_DE      0x0513
+#define STM32L0_GPIO_PIN_PB4_USART1_CTS         0x0514
+#define STM32L0_GPIO_PIN_PB6_USART1_TX          0x0016
+#define STM32L0_GPIO_PIN_PB7_USART1_RX          0x0017
+
+#define STM32L0_GPIO_PIN_PA0_USART2_CTS         0x0400
+#define STM32L0_GPIO_PIN_PA1_USART2_RTS_DE      0x0401
+#define STM32L0_GPIO_PIN_PA2_USART2_TX          0x0402
+#define STM32L0_GPIO_PIN_PA3_USART2_RX          0x0403
+#define STM32L0_GPIO_PIN_PA4_USART2_CK          0x0404
+#define STM32L0_GPIO_PIN_PA14_USART2_TX         0x040e
+#define STM32L0_GPIO_PIN_PA15_USART2_RX         0x040f
+
+#define STM32L0_GPIO_PIN_PA6_LPUART1_CTS        0x0406
+#define STM32L0_GPIO_PIN_PB1_LPUART1_RTS_DE     0x0411
+#define STM32L0_GPIO_PIN_PB10_LPUART1_TX        0x041a
+#define STM32L0_GPIO_PIN_PB11_LPUART1_RX        0x041b
+#define STM32L0_GPIO_PIN_PB12_LPUART1_RTS_DE    0x021c
+#define STM32L0_GPIO_PIN_PB13_LPUART1_CTS       0x041d
+#define STM32L0_GPIO_PIN_PB14_LPUART1_RTS_DE    0x041e
+#define STM32L0_GPIO_PIN_PC4_LPUART1_TX         0x0224
+#define STM32L0_GPIO_PIN_PC5_LPUART1_RX         0x0225
+#define STM32L0_GPIO_PIN_PC10_LPUART1_TX        0x002a
+#define STM32L0_GPIO_PIN_PC11_LPUART1_RX        0x002b
+#define STM32L0_GPIO_PIN_PD2_LPUART1_RTS_DE     0x0032
+
+#define STM32L0_GPIO_PIN_PB5_I2C1_SMBA          0x0315
+#define STM32L0_GPIO_PIN_PB6_I2C1_SCL           0x0116
+#define STM32L0_GPIO_PIN_PB7_I2C1_SDA           0x0117
+#define STM32L0_GPIO_PIN_PB8_I2C1_SCL           0x0418
+#define STM32L0_GPIO_PIN_PB9_I2C1_SDA           0x0419
+
+#define STM32L0_GPIO_PIN_PB10_I2C2_SCL          0x061a
+#define STM32L0_GPIO_PIN_PB11_I2C2_SDA          0x061b
+#define STM32L0_GPIO_PIN_PB12_I2C2_SMBA         0x051c
+#define STM32L0_GPIO_PIN_PB13_I2C2_SCL          0x051d
+#define STM32L0_GPIO_PIN_PB14_I2C2_SDA          0x051e
+
+#define STM32L0_GPIO_PIN_PA4_SPI1_NSS           0x0004
+#define STM32L0_GPIO_PIN_PA5_SPI1_SCK           0x0005
+#define STM32L0_GPIO_PIN_PA6_SPI1_MISO          0x0006
+#define STM32L0_GPIO_PIN_PA7_SPI1_MOSI          0x0007
+#define STM32L0_GPIO_PIN_PA11_SPI1_MISO         0x000b
+#define STM32L0_GPIO_PIN_PA12_SPI1_MOSI         0x000c
+#define STM32L0_GPIO_PIN_PA15_SPI1_NSS          0x000f
+#define STM32L0_GPIO_PIN_PB3_SPI1_SCK           0x0013
+#define STM32L0_GPIO_PIN_PB4_SPI1_MISO          0x0014
+#define STM32L0_GPIO_PIN_PB5_SPI1_MOSI          0x0015
+
+#define STM32L0_GPIO_PIN_PB9_SPI2_NSS           0x0519
+#define STM32L0_GPIO_PIN_PB10_SPI2_SCK          0x051a
+#define STM32L0_GPIO_PIN_PB12_SPI2_NSS          0x001c
+#define STM32L0_GPIO_PIN_PB13_SPI2_SCK          0x001d
+#define STM32L0_GPIO_PIN_PB14_SPI2_MISO         0x001e
+#define STM32L0_GPIO_PIN_PB15_SPI2_MOSI         0x001f
+#define STM32L0_GPIO_PIN_PC2_SPI2_MISO          0x0222
+#define STM32L0_GPIO_PIN_PC3_SPI2_MOSI          0x0223
+
+#define STM32L0_GPIO_PIN_PB9_I2S2_WS            0x0519
+#define STM32L0_GPIO_PIN_PB12_I2S2_WS           0x001c
+#define STM32L0_GPIO_PIN_PB13_I2S2_CK           0x001d
+#define STM32L0_GPIO_PIN_PB14_I2S2_MCK          0x001e
+#define STM32L0_GPIO_PIN_PB15_I2S2_SD           0x001f
+#define STM32L0_GPIO_PIN_PC2_I2S2_MCK           0x0222
+#define STM32L0_GPIO_PIN_PC3_I2S2_SD            0x0223
+
+#define STM32L0_GPIO_PIN_PA8_USB_CRS_STBC       0x0208
+#define STM32L0_GPIO_PIN_PA13_USB_OE            0x020d
+#define STM32L0_GPIO_PIN_PH0_USB_CRS_SYNC       0x0070
+#define STM32L0_GPIO_PIN_PC9_USB_NOE            0x0229
+
+#define STM32L0_GPIO_PIN_PA0_TIM2_CH1           0x0200
+#define STM32L0_GPIO_PIN_PA0_TIM2_ETR           0x0500
+#define STM32L0_GPIO_PIN_PA1_TIM2_CH2           0x0201
+#define STM32L0_GPIO_PIN_PA2_TIM2_CH3           0x0202
+#define STM32L0_GPIO_PIN_PA3_TIM2_CH4           0x0203
+#define STM32L0_GPIO_PIN_PA5_TIM2_CH1           0x0505
+#define STM32L0_GPIO_PIN_PA5_TIM2_ETR           0x0205
+#define STM32L0_GPIO_PIN_PA15_TIM2_CH1          0x050f
+#define STM32L0_GPIO_PIN_PA15_TIM2_ETR          0x020f
+#define STM32L0_GPIO_PIN_PB3_TIM2_CH2           0x0213
+#define STM32L0_GPIO_PIN_PB10_TIM2_CH3          0x021a
+#define STM32L0_GPIO_PIN_PB11_TIM2_CH4          0x021b
+
+#define STM32L0_GPIO_PIN_PA1_TIM21_ETR          0x0501
+#define STM32L0_GPIO_PIN_PA2_TIM21_CH1          0x0002
+#define STM32L0_GPIO_PIN_PA3_TIM21_CH2          0x0003
+#define STM32L0_GPIO_PIN_PB13_TIM21_CH1         0x061d
+#define STM32L0_GPIO_PIN_PB14_TIM21_CH2         0x061e
+#define STM32L0_GPIO_PIN_PC9_TIM21_ETR          0x0029
+
+#define STM32L0_GPIO_PIN_PA4_TIM22_ETR          0x0504
+#define STM32L0_GPIO_PIN_PA6_TIM22_CH1          0x0506
+#define STM32L0_GPIO_PIN_PA7_TIM22_CH2          0x0507
+#define STM32L0_GPIO_PIN_PB4_TIM22_CH1          0x0414
+#define STM32L0_GPIO_PIN_PB5_TIM22_CH2          0x0415
+#define STM32L0_GPIO_PIN_PC6_TIM22_CH1          0x0026
+#define STM32L0_GPIO_PIN_PC7_TIM22_CH2          0x0027
+#define STM32L0_GPIO_PIN_PC8_TIM22_ETR          0x0028
+
+#define STM32L0_GPIO_PIN_PB2_LPTIM1_OUT         0x0212
+#define STM32L0_GPIO_PIN_PB5_LPTIM1_IN1         0x0215
+#define STM32L0_GPIO_PIN_PB6_LPTIM1_ETR         0x0216
+#define STM32L0_GPIO_PIN_PB7_LPTIM1_IN2         0x0217
+#define STM32L0_GPIO_PIN_PC0_LPTIM1_IN1         0x0020
+#define STM32L0_GPIO_PIN_PC1_LPTIM1_OUT         0x0021
+#define STM32L0_GPIO_PIN_PC2_LPTIM1_IN2         0x0022
+#define STM32L0_GPIO_PIN_PC3_LPTIM1_ETR         0x0023
+
+#define STM32L0_GPIO_PIN_PA0_COMP1_OUT          0x0700
+#define STM32L0_GPIO_PIN_PA6_COMP1_OUT          0x0706
+#define STM32L0_GPIO_PIN_PA11_COMP1_OUT         0x070b
+
+#define STM32L0_GPIO_PIN_PA2_COMP2_OUT          0x0702
+#define STM32L0_GPIO_PIN_PA7_COMP2_OUT          0x0707
+#define STM32L0_GPIO_PIN_PA12_COMP2_OUT         0x070c
+
+#define STM32L0_GPIO_PIN_PA0_TSC_G1_IO1         0x0300
+#define STM32L0_GPIO_PIN_PA1_TSC_G1_IO2         0x0301
+#define STM32L0_GPIO_PIN_PA2_TSC_G1_IO3         0x0302
+#define STM32L0_GPIO_PIN_PA3_TSC_G1_IO4         0x0303
+#define STM32L0_GPIO_PIN_PA4_TSC_G2_IO1         0x0304
+#define STM32L0_GPIO_PIN_PA5_TSC_G2_IO2         0x0305
+#define STM32L0_GPIO_PIN_PA6_TSC_G2_IO3         0x0306
+#define STM32L0_GPIO_PIN_PA7_TSC_G2_IO4         0x0307
+#define STM32L0_GPIO_PIN_PA9_TSC_G4_IO1         0x0309
+#define STM32L0_GPIO_PIN_PA10_TSC_G4_IO2        0x030a
+#define STM32L0_GPIO_PIN_PA11_TSC_G4_IO3        0x030b
+#define STM32L0_GPIO_PIN_PA12_TSC_G4_IO4        0x030c
+#define STM32L0_GPIO_PIN_PB0_TSC_G3_IO2         0x0310
+#define STM32L0_GPIO_PIN_PB1_TSC_G3_IO3         0x0311
+#define STM32L0_GPIO_PIN_PB2_TSC_G3_IO4         0x0312
+#define STM32L0_GPIO_PIN_PB3_TSC_G5_IO1         0x0313
+#define STM32L0_GPIO_PIN_PB4_TSC_G5_IO2         0x0314
+#define STM32L0_GPIO_PIN_PB6_TSC_G5_IO3         0x0316
+#define STM32L0_GPIO_PIN_PB7_TSC_G5_IO4         0x0317
+#define STM32L0_GPIO_PIN_PB8_TSC_SYNC           0x0318
+#define STM32L0_GPIO_PIN_PB10_TSC_SYNC          0x031a
+#define STM32L0_GPIO_PIN_PB11_TSC_G6_IO1        0x031b
+#define STM32L0_GPIO_PIN_PB12_TSC_G6_IO2        0x031c
+#define STM32L0_GPIO_PIN_PB13_TSC_G6_IO3        0x031d
+#define STM32L0_GPIO_PIN_PB14_TSC_G6_IO4        0x031e
+#define STM32L0_GPIO_PIN_PC0_TSC_G7_IO1         0x0320
+#define STM32L0_GPIO_PIN_PC1_TSC_G7_IO2         0x0321
+#define STM32L0_GPIO_PIN_PC2_TSC_G7_IO3         0x0322
+#define STM32L0_GPIO_PIN_PC3_TSC_G7_IO4         0x0323
+#define STM32L0_GPIO_PIN_PC5_TSC_G3_IO1         0x0325
+#define STM32L0_GPIO_PIN_PC6_TSC_G8_IO1         0x0326
+#define STM32L0_GPIO_PIN_PC7_TSC_G8_IO2         0x0327
+#define STM32L0_GPIO_PIN_PC8_TSC_G8_IO3         0x0328
+#define STM32L0_GPIO_PIN_PC9_TSC_G8_IO4         0x0329
+
+#endif /* STM32L052xx */
 
 #if defined(STM32L072xx)
 
@@ -646,6 +871,13 @@
 #define STM32L0_GPIO_PIN_PC2_TSC_G7_IO3         0x0322
 
 #endif /* STM32L082xx */
+
+#if defined(STM32L052xx)
+
+#define STM32L0_GPIO_PORT_COUNT                 6 /* A, B, C, D, H */
+#define STM32L0_GPIO_GROUP_COUNT                8 /* A, B, C, D, E, F, G, H */
+
+#endif /* STM32L052xx */
 
 #if defined(STM32L072xx)
 

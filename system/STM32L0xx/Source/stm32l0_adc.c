@@ -323,6 +323,9 @@ bool stm32l0_adc_convert(void *data, uint32_t count, uint16_t mask, uint16_t smp
         return false;
     }
 
+    hclk = stm32l0_system_hclk();
+    pclk = stm32l0_system_pclk2();
+
     if ((stm32l0_adc_device.state == STM32L0_ADC_STATE_READY) || (stm32l0_adc_device.mask != mask) || (stm32l0_adc_device.smp != smp) || (stm32l0_adc_device.control != control))
     {
         if (((control & STM32L0_ADC_CONTROL_MODE_MASK) >= STM32L0_ADC_CONTROL_MODE_CONTINUOUS_1000000) && (hclk < 32000000))
@@ -402,9 +405,6 @@ bool stm32l0_adc_convert(void *data, uint32_t count, uint16_t mask, uint16_t smp
         }
         else
         {
-            hclk = stm32l0_system_hclk();
-            pclk = stm32l0_system_pclk2();
-
             if ((hclk < 8000000) && (hclk == pclk))
             {
                 adc_cfgr2 = ADC_CFGR2_CKMODE_PCLK_DIV_1;
