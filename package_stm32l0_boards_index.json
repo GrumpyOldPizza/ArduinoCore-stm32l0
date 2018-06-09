@@ -57,6 +57,32 @@
               "version": "4.8.3-2014q1"
             }
           ]
+        },
+
+        {
+          "name": "Tlera Corp STM32L0 Boards",
+          "architecture": "stm32l0",
+          "version": "0.0.5",
+          "category": "Contributed",
+          "url": "https://github.com/grumpyoldpizza/ArduinoCore-stm32l0/archive/0.0.5.tar.gz",
+          "archiveFileName": "ArduinoCore-stm32l0-0.0.5.tar.gz",
+          "checksum": "MD5:ac047a633e9b6960b1b7cb8c6b02bac0",
+          "size": "9064897",
+          "boards": [
+            {"name": "Grasshopper-L082CZ"},
+            {"name": "Cricket-L082CZ"},
+            {"name": "Cicada-L082CZ"},
+            {"name": "B-L072Z-LRWAN1"},
+            {"name": "P-NUCLEO-LRWAN1"},
+            {"name": "NUCLEO-L073RZ"}
+          ],
+          "toolsDependencies": [
+            {
+              "packager": "arduino",
+              "name": "arm-none-eabi-gcc",
+              "version": "4.8.3-2014q1"
+            }
+          ]
         }
 
       ],
