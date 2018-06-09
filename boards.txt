@@ -31,8 +31,8 @@ Grasshopper-L082CZ.build.usb_manufacturer="Tlera Corporation"
 Grasshopper-L082CZ.build.usb_product="Grasshopper"
 Grasshopper-L082CZ.build.extra_flags=-DSTM32L082xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags} {build.dosfs_flags}
 Grasshopper-L082CZ.build.ldscript=linker_scripts/STM32L082CZ_FLASH.ld
-Grasshopper-L082CZ.build.openocdscript=openocd_scripts/stm32l082cz_grasshopper.cfg
-Grasshopper-L082CZ.build.variant=STM32L082CZ-Grasshopper
+Grasshopper-L082CZ.build.openocdscript=openocd_scripts/grasshopper-l082cz.cfg
+Grasshopper-L082CZ.build.variant=Grasshopper-L082CZ
 Grasshopper-L082CZ.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l082xx -larm_cortexM0l_math
 Grasshopper-L082CZ.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
 
@@ -101,8 +101,8 @@ Cricket-L082CZ.build.usb_manufacturer="Tlera Corporation"
 Cricket-L082CZ.build.usb_product="Cricket"
 Cricket-L082CZ.build.extra_flags=-DSTM32L082xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags} {build.dosfs_flags}
 Cricket-L082CZ.build.ldscript=linker_scripts/STM32L082CZ_FLASH.ld
-Cricket-L082CZ.build.openocdscript=openocd_scripts/stm32l082cz_cricket.cfg
-Cricket-L082CZ.build.variant=STM32L082CZ-Cricket
+Cricket-L082CZ.build.openocdscript=openocd_scripts/cricket-l082cz.cfg
+Cricket-L082CZ.build.variant=Cricket-L082CZ
 Cricket-L082CZ.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l082xx -larm_cortexM0l_math
 Cricket-L082CZ.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
 
@@ -170,8 +170,8 @@ Cicada-L082CZ.build.usb_manufacturer="Tlera Corporation"
 Cicada-L082CZ.build.usb_product="Cicada"
 Cicada-L082CZ.build.extra_flags=-DSTM32L082xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags} {build.dosfs_flags}
 Cicada-L082CZ.build.ldscript=linker_scripts/STM32L082CZ_FLASH.ld
-Cicada-L082CZ.build.openocdscript=openocd_scripts/stm32l082cz_cicada.cfg
-Cicada-L082CZ.build.variant=STM32L082CZ-Cicada
+Cicada-L082CZ.build.openocdscript=openocd_scripts/cicada-l082cz.cfg
+Cicada-L082CZ.build.variant=Cicada-L082CZ
 Cicada-L082CZ.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l082xx -larm_cortexM0l_math
 Cicada-L082CZ.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
 
@@ -239,7 +239,7 @@ B-L072Z-LRWAN1.build.did=0xffff
 B-L072Z-LRWAN1.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
 B-L072Z-LRWAN1.build.ldscript=linker_scripts/STM32L072CZ_FLASH.ld
 B-L072Z-LRWAN1.build.openocdscript=openocd_scripts/b-l072z-lrwan1.cfg
-B-L072Z-LRWAN1.build.variant=STM32L072CZ-B-L072Z-LRWAN1
+B-L072Z-LRWAN1.build.variant=B-L072Z-LRWAN1
 B-L072Z-LRWAN1.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l072xx -larm_cortexM0l_math
 B-L072Z-LRWAN1.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
 
@@ -290,7 +290,7 @@ P-NUCLEO-LRWAN1.build.did=0xffff
 P-NUCLEO-LRWAN1.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
 P-NUCLEO-LRWAN1.build.ldscript=linker_scripts/STM32L073RZ_FLASH.ld
 P-NUCLEO-LRWAN1.build.openocdscript=openocd_scripts/p-nucleo-lrwan1.cfg
-P-NUCLEO-LRWAN1.build.variant=STM32L073RZ-P-NUCLEO-LRWAN1
+P-NUCLEO-LRWAN1.build.variant=P-NUCLEO-LRWAN1
 P-NUCLEO-LRWAN1.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l072xx -larm_cortexM0l_math
 P-NUCLEO-LRWAN1.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
 
@@ -339,8 +339,8 @@ NUCLEO-L053R8.build.pid=0x374b
 NUCLEO-L053R8.build.did=0xffff
 NUCLEO-L053R8.build.extra_flags=-DSTM32L052xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
 NUCLEO-L053R8.build.ldscript=linker_scripts/STM32L053R8_FLASH.ld
-NUCLEO-L053R8.build.openocdscript=openocd_scripts/stm32l053r8_nucleo.cfg
-NUCLEO-L053R8.build.variant=STM32L053R8-NUCLEO
+NUCLEO-L053R8.build.openocdscript=openocd_scripts/nucleo-l053r8.cfg
+NUCLEO-L053R8.build.variant=NUCLEO-L053R8
 NUCLEO-L053R8.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l052xx -larm_cortexM0l_math
 NUCLEO-L053R8.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
 
@@ -389,8 +389,8 @@ NUCLEO-L073RZ.build.pid=0x374b
 NUCLEO-L073RZ.build.did=0xffff
 NUCLEO-L073RZ.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
 NUCLEO-L073RZ.build.ldscript=linker_scripts/STM32L073RZ_FLASH.ld
-NUCLEO-L073RZ.build.openocdscript=openocd_scripts/stm32l073rz_nucleo.cfg
-NUCLEO-L073RZ.build.variant=STM32L073RZ-NUCLEO
+NUCLEO-L073RZ.build.openocdscript=openocd_scripts/nucleo-l073rz.cfg
+NUCLEO-L073RZ.build.variant=NUCLEO-L073RZ
 NUCLEO-L073RZ.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l072xx -larm_cortexM0l_math
 NUCLEO-L073RZ.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
 
