@@ -106,14 +106,6 @@ void SX1276SetDio1Edge( bool rising );
 void SX1276SetRfTxPower( int8_t power );
 
 /*!
- * \brief Gets the board PA selection configuration
- *
- * \param [IN] channel Channel frequency in Hz
- * \retval PaSelect RegPaConfig PaSelect value
- */
-uint8_t SX1276GetPaSelect( uint32_t channel, int8_t power );
-
-/*!
  * \brief Checks if the given RF frequency is supported by the hardware
  *
  * \param [IN] frequency RF frequency to be checked

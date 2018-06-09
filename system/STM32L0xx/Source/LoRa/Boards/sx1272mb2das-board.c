@@ -166,68 +166,24 @@ void SX1272SetDio1Edge( bool rising )
 
 void SX1272SetRfTxPower( int8_t power )
 {
-    uint8_t paConfig = 0;
-    uint8_t paDac = 0;
+    uint8_t paConfig, paDac;
 
-    paConfig = SX1272Read( REG_PACONFIG );
-    paDac = SX1272Read( REG_PADAC );
+    paConfig = RF_PACONFIG_PASELECT_RFO;
+    paDac = RF_PADAC_20DBM_OFF;
 
-    paConfig = ( paConfig & RF_PACONFIG_PASELECT_MASK ) | SX1272GetPaSelect( SX1272.Settings.Channel, power );
-
-    if( ( paConfig & RF_PACONFIG_PASELECT_PABOOST ) == RF_PACONFIG_PASELECT_PABOOST )
+    if( power < -1 )
     {
-        if( power > 17 )
-        {
-            paDac = ( paDac & RF_PADAC_20DBM_MASK ) | RF_PADAC_20DBM_ON;
-        }
-        else
-        {
-            paDac = ( paDac & RF_PADAC_20DBM_MASK ) | RF_PADAC_20DBM_OFF;
-        }
-        if( ( paDac & RF_PADAC_20DBM_ON ) == RF_PADAC_20DBM_ON )
-        {
-            if( power < 5 )
-            {
-                power = 5;
-            }
-            if( power > 20 )
-            {
-                power = 20;
-            }
-            paConfig = ( paConfig & RFLR_PACONFIG_OUTPUTPOWER_MASK ) | ( uint8_t )( ( uint16_t )( power - 5 ) & 0x0F );
-        }
-        else
-        {
-            if( power < 2 )
-            {
-                power = 2;
-            }
-            if( power > 17 )
-            {
-                power = 17;
-            }
-            paConfig = ( paConfig & RFLR_PACONFIG_OUTPUTPOWER_MASK ) | ( uint8_t )( ( uint16_t )( power - 2 ) & 0x0F );
-        }
+	power = -1;
     }
-    else
+    if( power > 14 )
     {
-        if( power < -1 )
-        {
-            power = -1;
-        }
-        if( power > 14 )
-        {
-            power = 14;
-        }
-        paConfig = ( paConfig & RFLR_PACONFIG_OUTPUTPOWER_MASK ) | ( uint8_t )( ( uint16_t )( power + 1 ) & 0x0F );
+	power = 14;
     }
+    
+    paConfig = ( paConfig & RF_PACONFIG_OUTPUTPOWER_MASK ) | ( power + 1 );
+
     SX1272Write( REG_PACONFIG, paConfig );
     SX1272Write( REG_PADAC, paDac );
-}
-
-uint8_t SX1272GetPaSelect( uint32_t channel, int8_t power )
-{
-    return RF_PACONFIG_PASELECT_RFO;
 }
 
 bool SX1272CheckRfFrequency( uint32_t frequency )

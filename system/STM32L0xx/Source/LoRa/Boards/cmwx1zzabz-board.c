@@ -231,26 +231,22 @@ void SX1276SetDio1Edge( bool rising )
 
 void SX1276SetRfTxPower( int8_t power )
 {
-    uint8_t paConfig = 0;
-    uint8_t paDac = 0;
+    uint8_t paConfig, paDac;
 
-    paConfig = SX1276Read( REG_PACONFIG );
-    paDac = SX1276Read( REG_PADAC );
+    if ( power > 15 )
+    {
+	paConfig = RF_PACONFIG_PASELECT_PABOOST;
+    }
+    else
+    {
+	paConfig = RF_PACONFIG_PASELECT_RFO;
+    }
 
-    paConfig = ( paConfig & RF_PACONFIG_PASELECT_MASK ) | SX1276GetPaSelect( SX1276.Settings.Channel, power );
-    paConfig = ( paConfig & RF_PACONFIG_MAX_POWER_MASK ) | 0x70;
+    paDac = RF_PADAC_20DBM_OFF;
 
     if( ( paConfig & RF_PACONFIG_PASELECT_PABOOST ) == RF_PACONFIG_PASELECT_PABOOST )
     {
         if( power > 17 )
-        {
-            paDac = ( paDac & RF_PADAC_20DBM_MASK ) | RF_PADAC_20DBM_ON;
-        }
-        else
-        {
-            paDac = ( paDac & RF_PADAC_20DBM_MASK ) | RF_PADAC_20DBM_OFF;
-        }
-        if( ( paDac & RF_PADAC_20DBM_ON ) == RF_PADAC_20DBM_ON )
         {
             if( power < 5 )
             {
@@ -260,7 +256,8 @@ void SX1276SetRfTxPower( int8_t power )
             {
                 power = 20;
             }
-            paConfig = ( paConfig & RF_PACONFIG_OUTPUTPOWER_MASK ) | ( uint8_t )( ( uint16_t )( power - 5 ) & 0x0F );
+            paConfig = ( paConfig & RF_PACONFIG_OUTPUTPOWER_MASK ) | ( power - 5 );
+            paDac = RF_PADAC_20DBM_ON;
         }
         else
         {
@@ -272,33 +269,33 @@ void SX1276SetRfTxPower( int8_t power )
             {
                 power = 17;
             }
-            paConfig = ( paConfig & RF_PACONFIG_OUTPUTPOWER_MASK ) | ( uint8_t )( ( uint16_t )( power - 2 ) & 0x0F );
+            paConfig = ( paConfig & RF_PACONFIG_OUTPUTPOWER_MASK ) | ( power - 2 );
         }
     }
     else
     {
-        if( power < -1 )
-        {
-            power = -1;
-        }
-        if( power > 14 )
-        {
-            power = 14;
-        }
-        paConfig = ( paConfig & RF_PACONFIG_OUTPUTPOWER_MASK ) | ( uint8_t )( ( uint16_t )( power + 1 ) & 0x0F );
+	if( power > 0 )
+	{
+	    if( power > 15 )
+	    {
+		power = 15;
+	    }
+
+            paConfig = ( paConfig & RF_PACONFIG_MAX_POWER_MASK & RF_PACONFIG_OUTPUTPOWER_MASK ) | ( 7 << 4 ) | ( power - 0 );
+	}
+	else
+	{
+	    if( power < -4 )
+	    {
+		power = -4;
+	    }
+
+            paConfig = ( paConfig & RF_PACONFIG_MAX_POWER_MASK & RF_PACONFIG_OUTPUTPOWER_MASK ) | ( 0 << 4 ) | ( power + 4 );
+	}
     }
+
     SX1276Write( REG_PACONFIG, paConfig );
     SX1276Write( REG_PADAC, paDac );
-}
-
-uint8_t SX1276GetPaSelect( uint32_t channel, int8_t power )
-{
-    if ( power > 14 )
-    {
-        return RF_PACONFIG_PASELECT_PABOOST;
-    }
-
-    return RF_PACONFIG_PASELECT_RFO;
 }
 
 bool SX1276CheckRfFrequency( uint32_t frequency )
