@@ -315,6 +315,56 @@ P-NUCLEO-LRWAN1.menu.opt.o3.build.flags.optimize=-O3
 P-NUCLEO-LRWAN1.menu.opt.o3.build.flags.ldspecs=
 
 
+# ST NUCLEO-L053R8
+# ---------------------------------------
+NUCLEO-L053R8.name=NUCLEO-L053R8
+NUCLEO-L053R8.vid.0=0x0483
+NUCLEO-L053R8.pid.0=0x374b
+
+NUCLEO-L053R8.upload.tool=stm32l0_openocd
+NUCLEO-L053R8.upload.protocol=stlink
+NUCLEO-L053R8.upload.maximum_size=65536
+NUCLEO-L053R8.upload.maximum_data_size=8192
+NUCLEO-L053R8.upload.use_1200bps_touch=true
+NUCLEO-L053R8.upload.wait_for_upload_port=false
+NUCLEO-L053R8.upload.native_usb=false
+
+NUCLEO-L053R8.build.mcu=cortex-m0plus
+NUCLEO-L053R8.build.f_cpu=32000000L
+NUCLEO-L053R8.build.board=STM32L0_NUCLEO
+NUCLEO-L053R8.build.arch=stm32l0
+NUCLEO-L053R8.build.core=arduino
+NUCLEO-L053R8.build.vid=0x0483
+NUCLEO-L053R8.build.pid=0x374b
+NUCLEO-L053R8.build.did=0xffff
+NUCLEO-L053R8.build.extra_flags=-DSTM32L052xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+NUCLEO-L053R8.build.ldscript=linker_scripts/STM32L053R8_FLASH.ld
+NUCLEO-L053R8.build.openocdscript=openocd_scripts/stm32l053r8_nucleo.cfg
+NUCLEO-L053R8.build.variant=STM32L053R8-NUCLEO
+NUCLEO-L053R8.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l052xx -larm_cortexM0l_math
+NUCLEO-L053R8.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
+
+NUCLEO-L053R8.menu.speed.32=32 MHz
+NUCLEO-L053R8.menu.speed.32.build.f_cpu=32000000L
+NUCLEO-L053R8.menu.speed.16=16 MHz
+NUCLEO-L053R8.menu.speed.16.build.f_cpu=16000000L
+NUCLEO-L053R8.menu.speed.4=4.2 MHz
+NUCLEO-L053R8.menu.speed.4.build.f_cpu=4200000L
+
+NUCLEO-L053R8.menu.opt.os=Smallest Code
+NUCLEO-L053R8.menu.opt.os.build.flags.optimize=-Os
+NUCLEO-L053R8.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
+NUCLEO-L053R8.menu.opt.o1=Fast
+NUCLEO-L053R8.menu.opt.o1.build.flags.optimize=-O1
+NUCLEO-L053R8.menu.opt.o1.build.flags.ldspecs=
+NUCLEO-L053R8.menu.opt.o2=Faster
+NUCLEO-L053R8.menu.opt.o2.build.flags.optimize=-O2
+NUCLEO-L053R8.menu.opt.o2.build.flags.ldspecs=
+NUCLEO-L053R8.menu.opt.o3=Fastest
+NUCLEO-L053R8.menu.opt.o3.build.flags.optimize=-O3
+NUCLEO-L053R8.menu.opt.o3.build.flags.ldspecs=
+
+
 # ST NUCLEO-L073RZ
 # ---------------------------------------
 NUCLEO-L073RZ.name=NUCLEO-L073RZ

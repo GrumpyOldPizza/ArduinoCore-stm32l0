@@ -82,8 +82,8 @@ extern void __analogWriteDisable(uint32_t pin);
 /*
  * TIM2   PWM
  * TIM3   PWM
- * TIM6   SERVO
- * TIM7   TONE/DAC
+ * TIM6   TONE/DAC
+ * TIM7   SERVO
  * TIM21  HSI16/MSI calibration
  * TIM22  ADC
  */

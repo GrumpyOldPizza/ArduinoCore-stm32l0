@@ -74,7 +74,7 @@ void tone(uint32_t pin, uint32_t frequency, uint32_t duration)
     }
 
     if (stm32l0_tone.state == STM32L0_TIMER_STATE_NONE) {
-	stm32l0_timer_create(&stm32l0_tone, STM32L0_TIMER_INSTANCE_TIM7, STM32L0_TONE_IRQ_PRIORITY, 0);
+	stm32l0_timer_create(&stm32l0_tone, STM32L0_TIMER_INSTANCE_TIM6, STM32L0_TONE_IRQ_PRIORITY, 0);
     }
 
     GPIO_TypeDef *GPIO = (GPIO_TypeDef *)g_APinDescription[pin].GPIO;
