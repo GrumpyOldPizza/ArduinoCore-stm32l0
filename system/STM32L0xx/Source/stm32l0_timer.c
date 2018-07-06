@@ -172,7 +172,7 @@ uint32_t stm32l0_timer_clock(stm32l0_timer_t *timer)
 #if defined(STM32L072xx) || defined(STM32L082xx)
         || (timer->instance == STM32L0_TIMER_INSTANCE_TIM7)
 #endif /* STM32L072xx || STM32L082xx */
-	)
+        )
     {
         pclk = stm32l0_system_pclk1();
     }

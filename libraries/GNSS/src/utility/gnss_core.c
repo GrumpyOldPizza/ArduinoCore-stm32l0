@@ -31,7 +31,6 @@
 
 #include "gnss_api.h"
 #include "stm32l0_rtc.h"
-#include "stm32l0_gpio.h"
 
 /*
  * NOTES:
@@ -226,6 +225,9 @@ typedef struct _ubx_context_t {
 #define GNSS_TX_DATA_SIZE             64 /* UBX SET PERIODIC */
 #define GNSS_TX_TABLE_COUNT           8  /* UBX SET PERIODIC */
 
+#define GNSS_PPS_FAVG                 2  /* min freq avg interval (s) (shift) */
+#define GNSS_PPS_POPCORN              2  /* popcorn spike threshold (shift) */
+
 typedef struct _gnss_device_t {
     uint8_t             mode;
     uint8_t             rate;
@@ -248,6 +250,14 @@ typedef struct _gnss_device_t {
     gnss_location_t     location;
     gnss_satellites_t   satellites;
     volatile uint32_t   command;
+    volatile uint32_t   pps_sequence[2];
+    uint32_t            pps_capture[3];
+    uint32_t            pps_count;
+    int32_t             pps_jitter;
+    uint32_t            pps_seconds;
+    int16_t             pps_tf[3];
+    int8_t              pps_correction;
+    uint8_t             pps_adjust;
     gnss_send_routine_t send_routine;
     const gnss_callbacks_t *callbacks;
     void                *context;
@@ -256,6 +266,7 @@ typedef struct _gnss_device_t {
 static gnss_device_t gnss_device;
 
 static void gnss_send_callback(void);
+static void ubx_wakeup(gnss_device_t *device);
 static void ubx_configure(gnss_device_t *device, unsigned int response, uint32_t command);
 
 /************************************************************************************/
@@ -304,8 +315,15 @@ static int utc_offset_time(const utc_time_t *time, uint16_t week, uint32_t tow)
 
 /************************************************************************************/
 
+#define max(a, b) (((a) > (b)) ? (a) : (b))
+
 static void gnss_location(gnss_device_t *device)
 {
+    uint32_t seconds, pps_seconds;
+    uint16_t subseconds;
+    int16_t pps_subseconds, pps_offset, pps_delta;
+    stm32l0_rtc_calendar_t utc_time;
+
     switch (device->location.type) {
     case GNSS_LOCATION_TYPE_NONE:
         device->location.mask = 0;
@@ -315,7 +333,8 @@ static void gnss_location(gnss_device_t *device)
 
     case GNSS_LOCATION_TYPE_TIME:
         device->location.mask &= (GNSS_LOCATION_MASK_TIME |
-                                  GNSS_LOCATION_MASK_CORRECTION);
+                                  GNSS_LOCATION_MASK_CORRECTION |
+                                  GNSS_LOCATION_MASK_RESOLVED);
 
         device->location.quality = GNSS_LOCATION_QUALITY_NONE;
         break;
@@ -323,6 +342,7 @@ static void gnss_location(gnss_device_t *device)
     case GNSS_LOCATION_TYPE_2D:
         device->location.mask &= (GNSS_LOCATION_MASK_TIME |
                                   GNSS_LOCATION_MASK_CORRECTION |
+                                  GNSS_LOCATION_MASK_RESOLVED |
                                   GNSS_LOCATION_MASK_POSITION |
                                   GNSS_LOCATION_MASK_SPEED |
                                   GNSS_LOCATION_MASK_COURSE |
@@ -341,11 +361,114 @@ static void gnss_location(gnss_device_t *device)
     {
         if (!(device->location.mask & GNSS_LOCATION_MASK_CORRECTION))
         {
-            device->location.correction = 0;
+            device->location.correction = -128;
+
+            device->location.mask &= ~GNSS_LOCATION_MASK_RESOLVED;
+        }
+
+        if (device->location.time.millis == 0)
+        {
+            if (device->pps_sequence[1] != device->pps_sequence[0])
+            {
+                do
+                {
+                    device->pps_sequence[1] = device->pps_sequence[0];
+
+                    stm32l0_rtc_clock_convert(&device->pps_capture[0], &seconds, &subseconds);
+                }
+                while (device->pps_sequence[1] != device->pps_sequence[0]);
+
+                pps_seconds = seconds;
+                pps_subseconds = subseconds;
+
+                if (pps_subseconds >= (32768 >> 1))
+                {
+                    pps_seconds += 1;
+                    pps_subseconds -= 32768;
+                }
+            
+                if ((pps_seconds - device->pps_seconds) > 2)
+                {
+                    device->pps_count = 1;
+                    device->pps_jitter = 0;
+                }
+                else
+                {
+                    device->pps_count++;
+                }
+
+                device->pps_tf[2] = device->pps_tf[1];
+                device->pps_tf[1] = device->pps_tf[0];
+                device->pps_tf[0] = pps_subseconds;
+                device->pps_seconds = pps_seconds;
+
+                /*
+                 * A three-stage median filter is used to help denoise the PPS
+                 * time. The median sample becomes the time offset estimate; the
+                 * difference between the other two samples becomes the time
+                 * dispersion (jitter) estimate.
+                 */
+                if (device->pps_tf[0] > device->pps_tf[1]) {
+                    if (device->pps_tf[1] > device->pps_tf[2]) {
+                        pps_offset = device->pps_tf[1]; /* 0 1 2 */
+                        pps_delta = device->pps_tf[0] - device->pps_tf[2];
+                    } else if (device->pps_tf[2] > device->pps_tf[0]) {
+                        pps_offset = device->pps_tf[0]; /* 2 0 1 */
+                        pps_delta = device->pps_tf[2] - device->pps_tf[1];
+                    } else {
+                        pps_offset = device->pps_tf[2]; /* 0 2 1 */
+                        pps_delta = device->pps_tf[0] - device->pps_tf[1];
+                    }
+                } else {
+                    if (device->pps_tf[1] < device->pps_tf[2]) {
+                        pps_offset = device->pps_tf[1]; /* 2 1 0 */
+                        pps_delta = device->pps_tf[2] - device->pps_tf[0];
+                    } else if (device->pps_tf[2] < device->pps_tf[0]) {
+                        pps_offset = device->pps_tf[0]; /* 1 0 2 */
+                        pps_delta = device->pps_tf[1] - device->pps_tf[2];
+                    } else {
+                        pps_offset = device->pps_tf[2]; /* 1 2 0 */
+                        pps_delta = device->pps_tf[1] - device->pps_tf[0];
+                    }
+                }
+
+                /*
+                 * Nominal jitter is due to PPS signal noise and interrupt
+                 * latency. If it exceeds the popcorn threshold, the sample is
+                 * discarded. otherwise, if so enabled, the time offset is
+                 * updated. We can tolerate a modest loss of data here without
+                 * much degrading time accuracy.
+                 */
+            
+                if (pps_delta <= max(device->pps_jitter << GNSS_PPS_POPCORN, 2 * STM32L0_RTC_PREDIV_A))
+                {
+                    if (device->pps_count >= 3)
+                    {
+                        stm32l0_rtc_set_adjust(-pps_offset);
+
+                        device->pps_adjust = 1;
+                        device->pps_correction = device->location.correction;
+                    }
+                }
+
+                device->pps_jitter += (pps_delta - device->pps_jitter) >> GNSS_PPS_FAVG;
+
+                utc_time.year = (device->location.time.year + 1980) - 2000;
+                utc_time.month = device->location.time.month;
+                utc_time.day = device->location.time.day;
+                utc_time.hours = device->location.time.hours;
+                utc_time.minutes = device->location.time.minutes;
+                utc_time.seconds = device->location.time.seconds;
+                utc_time.subseconds = 0;
+
+                stm32l0_rtc_set_calendar(STM32L0_RTC_CALENDAR_MASK_ALL, &utc_time);
+            }
         }
     }
     else
     {
+        device->pps_sequence[1] = device->pps_sequence[0];
+
         device->location.time.year    = 1980 - 1980;
         device->location.time.month   = 1;
         device->location.time.day     = 6;
@@ -353,7 +476,7 @@ static void gnss_location(gnss_device_t *device)
         device->location.time.minutes = 0;
         device->location.time.seconds = 0;
         device->location.time.millis  = 0;
-        device->location.correction   = 0;
+        device->location.correction   = -128;
 
         device->location.mask = 0;
         device->location.numsv = 0;
@@ -1521,7 +1644,7 @@ static void nmea_end_sentence(gnss_device_t *device)
                                        NMEA_SENTENCE_MASK_GPRMC |
                                        NMEA_SENTENCE_MASK_GLGSA);
         
-        if ((device->seen & expected) == expected)
+        if (expected && ((device->seen & expected) == expected))
         {
             if ((context->status == NMEA_STATUS_DATA_VALID) && (context->navigation != NMEA_NAVIGATION_NONE))
             {
@@ -1553,7 +1676,7 @@ static void nmea_end_sentence(gnss_device_t *device)
         
         expected = device->expected & (NMEA_SENTENCE_MASK_GPGSV | NMEA_SENTENCE_MASK_GLGSV);
         
-        if ((device->seen & NMEA_SENTENCE_MASK_SOLUTION) && ((device->seen & expected) == expected))
+        if ((device->seen & NMEA_SENTENCE_MASK_SOLUTION) && expected && ((device->seen & expected) == expected))
         {
             for (n = 0; n < device->satellites.count; n++)
             {
@@ -1932,6 +2055,8 @@ static void ubx_end_message(gnss_device_t *device, unsigned int message, uint8_t
                 {
                     device->location.time.millis = 0;
                 }
+
+                device->location.mask |= GNSS_LOCATION_MASK_TIME;
             }
             else
             {
@@ -2047,14 +2172,21 @@ static void ubx_end_message(gnss_device_t *device, unsigned int message, uint8_t
                 context->week = week;
                 context->tow = tow;
                 
-                device->location.correction = ubx_data_uint8(data, 10);
+                device->location.correction = ubx_data_int8(data, 10);
+
+                device->location.mask |= GNSS_LOCATION_MASK_CORRECTION;
+
+                if (ubx_data_uint8(data, 11) & 0x04)
+                {
+                    device->location.mask |= GNSS_LOCATION_MASK_RESOLVED;
+                }
             }
             else
             {
                 context->week = 0;
                 context->tow = 0;
 
-                device->location.correction = 0;
+                device->location.correction = -128;
             }
 
             device->seen |= UBX_MESSAGE_MASK_NAV_TIMEGPS;
@@ -2142,18 +2274,18 @@ static void ubx_end_message(gnss_device_t *device, unsigned int message, uint8_t
                                        UBX_MESSAGE_MASK_NAV_PVT |
                                        UBX_MESSAGE_MASK_NAV_TIMEGPS);
         
-        if ((device->seen & expected) == expected)
+        if (expected && ((device->seen & expected) == expected))
         {
             if (context->week && device->location.time.year)
             {
                 if (!(device->seen & UBX_MESSAGE_MASK_NAV_TIMEGPS))
                 {
                     device->location.correction = utc_offset_time(&device->location.time, context->week, context->tow);
-                }
 
-                device->location.mask |= (GNSS_LOCATION_MASK_TIME | GNSS_LOCATION_MASK_CORRECTION);
+                    device->location.mask |= (GNSS_LOCATION_MASK_TIME | GNSS_LOCATION_MASK_CORRECTION);
+                }
             }
-            
+
             gnss_location(device);
             
             device->seen &= ~(UBX_MESSAGE_MASK_NAV_DOP |
@@ -2165,7 +2297,7 @@ static void ubx_end_message(gnss_device_t *device, unsigned int message, uint8_t
         
         expected = device->expected & (UBX_MESSAGE_MASK_NAV_SAT | UBX_MESSAGE_MASK_NAV_SVINFO);
         
-        if ((device->seen & UBX_MESSAGE_MASK_SOLUTION) && ((device->seen & expected) == expected))
+        if ((device->seen & UBX_MESSAGE_MASK_SOLUTION) && expected && ((device->seen & expected) == expected))
         {
             gnss_satellites(device);
             
@@ -2442,8 +2574,8 @@ static const uint8_t ubx_cfg_tp5[] = {
     0x40, 0x42, 0x0f, 0x00,                         /* PULSE LENGTH              */
     0xa0, 0xbb, 0x0d, 0x00,                         /* PULSE LENGTH LOCKED       */
     0x00, 0x00, 0x00, 0x00,                         /* USER DELAY                */
-    0x37, 0x00, 0x00, 0x00,                         /* FLAGS                     */
-    0xdb, 0x06,                                     /* CK_A, CK_B                */
+    0xb7, 0x00, 0x00, 0x00,                         /* FLAGS                     */
+    0x5b, 0x06,                                     /* CK_A, CK_B                */
 };
 
 static const uint8_t ubx_cfg_pm2[] = {
@@ -3083,6 +3215,64 @@ static void ubx_sleep(gnss_device_t *device)
     device->busy = 0;
 }
 
+static void ubx_wakeup(gnss_device_t *device)
+{
+    uint8_t *data;
+    uint32_t nanoseconds;
+    stm32l0_rtc_calendar_t utc_time;
+
+    if (device->ubx.generation >= 4)
+    {
+        if (device->pps_adjust)
+        {
+            stm32l0_rtc_get_calendar(&utc_time);
+
+            nanoseconds = (uint64_t)((uint32_t)utc_time.subseconds * (uint32_t)1000000000) / 32768;
+
+            data = &device->tx_data[0];
+
+            memset(&data[0], 0, sizeof(GNSS_TX_DATA_SIZE));
+        
+            data[ 0] = 0xb5;
+            data[ 1] = 0x62;
+            data[ 2] = 0x13;
+            data[ 3] = 0x40;
+            data[ 4] = 0x18;
+            data[ 5] = 0x00;
+            data[ 6] = 0x10;
+            data[ 7] = 0x00;
+            data[ 8] = 0x00;
+            data[ 9] = device->pps_correction;
+            data[10] = (2000 + utc_time.year) >> 0;
+            data[11] = (2000 + utc_time.year) >> 8;
+            data[12] = utc_time.month;
+            data[13] = utc_time.day;
+            data[14] = utc_time.hours;
+            data[15] = utc_time.minutes;
+            data[16] = utc_time.seconds;
+            data[17] = 0;
+            data[18] = nanoseconds >> 0;
+            data[19] = nanoseconds >> 8;
+            data[20] = nanoseconds >> 16;
+            data[21] = nanoseconds >> 24;
+            data[22] = 0;
+            data[23] = 0;
+            data[24] = 0;
+            data[25] = 0;
+            data[26] = 0;
+            data[27] = 0;
+            data[28] = 0;
+            data[29] = 0;
+                
+            ubx_checksum(device, data);
+
+            ubx_send(device, data);
+
+            device->pps_adjust = 0; // force realign
+        }
+    }
+}
+
 static void ubx_timeout(gnss_device_t *device)
 {
     const uint8_t *data = NULL;
@@ -3115,6 +3305,15 @@ static void gnss_send_callback(void)
     }
 }
 
+void gnss_pps_callback(void)
+{
+    gnss_device_t *device = &gnss_device;
+
+    stm32l0_rtc_clock_capture(&device->pps_capture[0]);
+
+    device->pps_sequence[0]++;
+}
+
 void gnss_receive(const uint8_t *data, uint32_t count)
 {
     gnss_device_t *device = &gnss_device;
@@ -3122,8 +3321,13 @@ void gnss_receive(const uint8_t *data, uint32_t count)
 
     if (device->wakeup)
     {
-        device->busy = 0;
         device->wakeup = 0;
+        device->busy = 0;
+
+        if (device->mode == GNSS_MODE_UBLOX)
+        {
+            ubx_wakeup(device);
+        }
     }
 
     while (count > 0)
@@ -3511,7 +3715,7 @@ bool gnss_set_pps(unsigned int width)
         data[31] = 0x00;
         data[32] = 0x00;
         data[33] = 0x00;
-        data[34] = width ? 0x37 : 0x00;
+        data[34] = width ? 0xb7 : 0x00;
         data[35] = 0x00;
         data[36] = 0x00;
         data[37] = 0x00;
@@ -3519,7 +3723,7 @@ bool gnss_set_pps(unsigned int width)
         ubx_checksum(device, data);
 
         table[0] = ubx_cfg_rxm_continuous;
-        table[1] = ubx_cfg_pm2,
+        table[1] = ubx_cfg_pm2;
         table[2] = &data[0];
         table[3] = ubx_cfg_save;
         table[4] = NULL;
@@ -3668,7 +3872,7 @@ bool gnss_set_platform(unsigned int platform)
         ubx_checksum(device, data);
 
         table[0] = ubx_cfg_rxm_continuous;
-        table[1] = ubx_cfg_pm2,
+        table[1] = ubx_cfg_pm2;
         table[2] = &data[0];
         table[3] = ubx_cfg_save;
         table[4] = NULL;
@@ -3732,7 +3936,7 @@ bool gnss_set_periodic(unsigned int acqTime, unsigned int onTime, unsigned int p
         data[ 8] = acqTime;
         data[ 9] = 0x00;
         data[10] = 0x00;
-        data[11] = 0x01;
+        data[11] = 0x1d;
         data[12] = ((onTime && (updatePeriod > 10000)) ? 0x00 : 0x02);
         data[13] = 0x00;
         data[14] = updatePeriod >> 0;
@@ -3775,7 +3979,7 @@ bool gnss_set_periodic(unsigned int acqTime, unsigned int onTime, unsigned int p
     return true;
 }
 
-bool gnss_sleep(void)
+bool gnss_suspend(void)
 {
     gnss_device_t *device = &gnss_device;
 
@@ -3795,7 +3999,7 @@ bool gnss_sleep(void)
     return true;
 }
 
-bool gnss_wakeup(void)
+bool gnss_resume(void)
 {
     gnss_device_t *device = &gnss_device;
 
@@ -3811,14 +4015,14 @@ bool gnss_wakeup(void)
         if (device->callbacks->enable_callback)
         {
             (*device->callbacks->enable_callback)(device->context);
-
-            device->busy = 1;
-            device->wakeup = 1;
         }
         else
         {
             ubx_table(device, ubx_gnss_wakeup_table);
         }
+
+        device->busy = 1;
+        device->wakeup = 1;
         break;
     }
 

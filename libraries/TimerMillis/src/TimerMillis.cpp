@@ -71,7 +71,7 @@ int TimerMillis::start(Callback callback, uint32_t delay, uint32_t period)
 
     _callback = callback;
 
-    stm32l0_rtc_timer_reference(&seconds, &subseconds);
+    stm32l0_rtc_get_time(&seconds, &subseconds);
     stm32l0_rtc_millis_to_time(delay, &_seconds, &_subseconds);
 
     stm32l0_rtc_time_offset(_seconds, _subseconds, seconds, subseconds, &_seconds, &_subseconds);
@@ -108,7 +108,7 @@ int TimerMillis::restart(uint32_t delay, uint32_t period)
 
     stm32l0_rtc_timer_stop(_timer);
 
-    stm32l0_rtc_timer_reference(&seconds, &subseconds);
+    stm32l0_rtc_get_time(&seconds, &subseconds);
     stm32l0_rtc_millis_to_time(delay, &_seconds, &_subseconds);
 
     stm32l0_rtc_time_offset(_seconds, _subseconds, seconds, subseconds, &_seconds, &_subseconds);

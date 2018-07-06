@@ -44,7 +44,7 @@ GNSSLocation::GNSSLocation()
     _location.time.seconds = 0;
     _location.time.millis  = 0;
     _location.mask         = 0;
-    _location.correction   = 0;
+    _location.correction   = -128;
     _location.type         = 0;
     _location.latitude     = 0;
     _location.longitude    = 0;
@@ -75,6 +75,11 @@ enum GNSSLocation::GNSSfixType GNSSLocation::fixType(void) const
 enum GNSSLocation::GNSSfixQuality GNSSLocation::fixQuality(void) const
 {
     return (enum GNSSLocation::GNSSfixQuality)_location.quality;
+}
+
+bool GNSSLocation::fullyResolved(void) const
+{
+    return !!(_location.mask & GNSS_LOCATION_MASK_RESOLVED);
 }
 
 unsigned int GNSSLocation::satellites(void) const
@@ -117,7 +122,7 @@ uint16_t GNSSLocation::millis(void) const
     return _location.time.millis;
 }
 
-uint8_t GNSSLocation::leapSeconds(void) const
+int8_t GNSSLocation::leapSeconds(void) const
 {
     return _location.correction;
 }
@@ -342,6 +347,11 @@ void GNSSClass::begin(Uart &uart, GNSSmode mode, GNSSrate rate)
     }
 #endif /* defined(STM32L0_CONFIG_PIN_GNSS_ENABLE) */
 
+#if defined(STM32L0_CONFIG_PIN_GNSS_PPS)
+    stm32l0_gpio_pin_configure(STM32L0_CONFIG_PIN_GNSS_PPS, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
+    stm32l0_exti_attach(STM32L0_CONFIG_PIN_GNSS_PPS, STM32L0_EXTI_CONTROL_EDGE_FALLING, (stm32l0_exti_callback_t)ppsCallback, (void*)this);
+#endif
+
     _uart = &uart; 
 
     _uart->begin(9600);
@@ -412,14 +422,34 @@ bool GNSSClass::setPeriodic(unsigned int acqTime, unsigned int onTime, unsigned 
     return (_uart && gnss_set_periodic(acqTime, onTime, period));
 }
 
-bool GNSSClass::sleep()
+bool GNSSClass::suspend()
 {
-    return (_uart && gnss_sleep());
+    if (!(_uart && gnss_suspend()))
+    {
+        return false;
+    }
+
+#if defined(STM32L0_CONFIG_PIN_GNSS_PPS)
+    stm32l0_exti_detach(STM32L0_CONFIG_PIN_GNSS_PPS);
+    stm32l0_gpio_pin_configure(STM32L0_CONFIG_PIN_GNSS_PPS, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
+#endif
+
+    return true;
 }
 
-bool GNSSClass::wakeup()
+bool GNSSClass::resume()
 {
-    return (_uart && gnss_wakeup());
+    if (!(_uart && gnss_resume()))
+    {
+        return false;
+    }
+
+#if defined(STM32L0_CONFIG_PIN_GNSS_PPS)
+    stm32l0_gpio_pin_configure(STM32L0_CONFIG_PIN_GNSS_PPS, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
+    stm32l0_exti_attach(STM32L0_CONFIG_PIN_GNSS_PPS, STM32L0_EXTI_CONTROL_EDGE_FALLING, (stm32l0_exti_callback_t)ppsCallback, (void*)this);
+#endif
+    
+    return true;
 }
 
 bool GNSSClass::busy()
@@ -462,6 +492,16 @@ bool GNSSClass::satellites(GNSSSatellites &satellites)
     return true;
 }
 
+void GNSSClass::enableWakeup()
+{
+    _wakeup = true;
+}
+
+void GNSSClass::disableWakeup()
+{
+    _wakeup = false;
+}
+
 void GNSSClass::onLocation(void(*callback)(void))
 {
     _locationCallback = Callback(callback);
@@ -480,6 +520,16 @@ void GNSSClass::onSatellites(void(*callback)(void))
 void GNSSClass::onSatellites(Callback callback)
 {
     _satellitesCallback = callback;
+}
+
+void GNSSClass::attachInterrupt(void(*callback)(void))
+{
+    _ppsCallback = callback;
+}
+
+void GNSSClass::detachInterrupt()
+{
+    _ppsCallback = NULL;
 }
 
 void GNSSClass::receiveCallback(void)
@@ -540,6 +590,10 @@ void GNSSClass::disableCallback(class GNSSClass *self)
 
 void GNSSClass::locationCallback(class GNSSClass *self, const gnss_location_t *location)
 {
+    if (self->_wakeup) {
+        stm32l0_system_wakeup();
+    }
+
     self->_location_data = *location;
     self->_location_pending = true;
 
@@ -548,10 +602,23 @@ void GNSSClass::locationCallback(class GNSSClass *self, const gnss_location_t *l
 
 void GNSSClass::satellitesCallback(class GNSSClass *self, const gnss_satellites_t *satellites)
 {
+    if (self->_wakeup) {
+        stm32l0_system_wakeup();
+    }
+
     self->_satellites_data = *satellites;
     self->_satellites_pending = true;
 
     self->_satellitesCallback.queue();
+}
+
+void GNSSClass::ppsCallback(class GNSSClass *self)
+{
+    gnss_pps_callback();
+
+    if (self->_ppsCallback) {
+        (*self->_ppsCallback)();
+    }
 }
 
 GNSSClass GNSS;

@@ -78,47 +78,6 @@ void armv6m_systick_disable(void)
     SysTick->CTRL = 0;
 }
 
-void armv6m_systick_sync(uint32_t seconds, uint16_t subseconds)
-{
-    uint32_t cycle;
-
-    SysTick->CTRL = 0;
-
-    if (armv6m_systick_control.clock != SystemCoreClock)
-    {
-        cycle = SystemCoreClock / 8 -1;
-
-        if (armv6m_systick_control.clock)
-        {
-            SysTick->VAL = cycle - (uint32_t)(((uint64_t)(armv6m_systick_control.cycle - SysTick->VAL) * (uint64_t)SystemCoreClock) / (uint64_t)armv6m_systick_control.clock);
-        }
-        else
-        {
-            SysTick->VAL = cycle;
-        }
-
-        armv6m_systick_control.clock = SystemCoreClock;
-        armv6m_systick_control.cycle = cycle;
-
-        /* To get from the current counter to the microsecond offset,
-         * the ((cycle - 1) - Systick->VAL) value is scaled so that the resulting
-         * microseconds fit into the upper 17 bits of a 32bit value. Then
-         * this is post divided by 2^15. That ensures proper scaling.
-         *
-         * For millisconds we can use the upper 7 bits of a 32bit value.
-         */
-
-        armv6m_systick_control.scale[0] = (uint64_t)32768000000ull / (uint64_t)SystemCoreClock;
-        armv6m_systick_control.scale[1] = (uint64_t)33554432000ull / (uint64_t)SystemCoreClock;
-    }
-
-    armv6m_systick_control.micros = 125000 * ((seconds * 8) + (subseconds / 4096));
-    armv6m_systick_control.millis = 125 * ((seconds * 8) + (subseconds / 4096));
-
-    SysTick->LOAD = armv6m_systick_control.cycle - (((subseconds & 4095) * (SystemCoreClock / 64)) / (32768 / 64));
-    SysTick->CTRL = (SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_ENABLE_Msk);
-}
-
 uint32_t armv6m_systick_micros(void)
 {
     uint32_t micros, count;

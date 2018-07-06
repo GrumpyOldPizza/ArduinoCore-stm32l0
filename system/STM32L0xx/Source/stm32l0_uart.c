@@ -1196,12 +1196,12 @@ bool stm32l0_uart_configure(stm32l0_uart_t *uart, uint32_t baudrate, uint32_t op
          * STOP mode. Hence the byte in USART->RDR will be sent directly to
          * DMA and the uart->rx_sequence logic in stm32l0_uart_interrupt()
          * will block STOP mode, till the next IDLE condition.
-	 *
-	 * USART/LPUART can wakeup from STOP with the LowPower Voltage Regulator
-	 * up to 19200 baud. Above that the Main Voltage Regulator has to be used.
-	 * Hence STM32L0_SYSTEM_LOCK_REGULATOR. USART/LPUART wakeup time is 12uS
-	 * with PWR_CR_LPSDSR, opposed to 8.7uS without (11.4uS and 8.1uS in 
-	 * voltage range 1).
+         *
+         * USART/LPUART can wakeup from STOP with the LowPower Voltage Regulator
+         * up to 19200 baud. Above that the Main Voltage Regulator has to be used.
+         * Hence STM32L0_SYSTEM_LOCK_REGULATOR. USART/LPUART wakeup time is 12uS
+         * with PWR_CR_LPSDSR, opposed to 8.7uS without (11.4uS and 8.1uS in 
+         * voltage range 1).
          *
          * Above 38400 baud HSI16 cannot wakeup fast enough to guarantee a proper
          * sampled signal. That means that HSI16 has to be kept alive during STOP

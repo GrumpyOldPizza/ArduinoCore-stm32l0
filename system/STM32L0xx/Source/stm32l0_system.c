@@ -293,7 +293,7 @@ void SystemInit(void)
 
 void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, uint32_t lseclk, uint32_t hseclk, uint32_t option)
 {
-    uint32_t primask, n, count, bkp4r, hsiclk, hsitrim, clk, trim, tc0, tc1;
+    uint32_t primask, n, count, hsiclk, hsitrim, clk, trim, tc0, tc1;
 
     primask = __get_PRIMASK();
 
@@ -339,7 +339,7 @@ void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, ui
         stm32l0_system_device.wakeup = 0;
         
         if (RCC->CSR & (RCC_CSR_LPWRRSTF | RCC_CSR_OBLRSTF))
-        {
+       {
             stm32l0_system_device.reset = STM32L0_SYSTEM_RESET_OTHER;
         }
         
@@ -373,9 +373,7 @@ void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, ui
     stm32l0_system_device.hseclk = hseclk;
     stm32l0_system_device.lsiclk = 37000;
 
-    bkp4r = RTC->BKP4R;
-
-    if ((stm32l0_system_device.reset == STM32L0_SYSTEM_RESET_STANDBY) && (bkp4r & 0x0000ffff))
+    if (stm32l0_system_device.reset == STM32L0_SYSTEM_RESET_STANDBY)
     {
         /* Use saved initialization data from BKP4R when returning from STANDBY to avoid
          * calbibration.
@@ -388,7 +386,7 @@ void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, ui
             stm32l0_system_device.lsi |= 0x80;
         }
 
-        if (bkp4r & 0x00010000)
+        if (RTC->BKP4R & 0x00004000)
         {
             if (option & STM32L0_SYSTEM_OPTION_HSE_BYPASS)
             {
@@ -400,11 +398,9 @@ void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, ui
             stm32l0_system_device.hseclk = 0;
         }
 
-        stm32l0_system_device.lsiclk = (bkp4r & 0x0000ffff);
+        stm32l0_system_device.lsiclk = 29000 + (RTC->BKP4R & 0x00003fff); /* 29k to 45k, typical 37k */
 
-        RCC->ICSCR = ((RCC->ICSCR & ~(RCC_ICSCR_MSITRIM | RCC_ICSCR_HSITRIM)) |
-                      (((bkp4r & 0xff000000) >> 24) << RCC_ICSCR_MSITRIM_Pos) |
-                      (((bkp4r & 0x00f80000) >> 19) << RCC_ICSCR_HSITRIM_Pos));
+        RCC->ICSCR = ((RCC->ICSCR & ~RCC_ICSCR_HSITRIM) | (((RTC->BKP4R & 0x000f8000) >> 15) << RCC_ICSCR_HSITRIM_Pos));
     }
     else
     {
@@ -453,11 +449,13 @@ void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, ui
                 if (++count >= 200000)
                 {
                     stm32l0_system_device.hseclk = 0;
-                    
-                    RCC->CR &= ~RCC_CR_HSEON;
+
+                    RCC->CR &= ~RCC_CR_HSEBYP;
                     break;
                 }
             }
+            
+            RCC->CR &= ~RCC_CR_HSEON;
         }
 
         RCC->CSR |= RCC_CSR_LSION;
@@ -598,22 +596,21 @@ void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, ui
         }
 
         /* Save cablibration to BKP4R for reuse when returning from STANDBY.
+         *
+         * 0x00003fff is lsiclk - 29000
+         * 0x00004000 is HSE present
+         * 0x000f8000 is HSITRIM
+         * 0xfff00000 is RTC subseconds offset
          */
-        bkp4r = stm32l0_system_device.lsiclk & 0x0000ffff;;
+
+        RTC->BKP4R = (RTC->BKP4R & 0xfff00000) | ((stm32l0_system_device.lsiclk - 29000) & 0x00003fff);
 
         if (stm32l0_system_device.hseclk) 
         {
-            bkp4r |= 0x00010000;
+            RTC->BKP4R |= 0x00004000;
         }
 
-        bkp4r |= (((RCC->ICSCR & RCC_ICSCR_HSITRIM) >> RCC_ICSCR_HSITRIM_Pos) << 19);
-        bkp4r |= (((RCC->ICSCR & RCC_ICSCR_MSITRIM) >> RCC_ICSCR_MSITRIM_Pos) << 24);
-
-        /* 0x00020000 is unused.
-         * 0x00040000 is the STM32 BOOTLOADER flag.
-         */
-
-        RTC->BKP4R = bkp4r;
+        RTC->BKP4R |= (((RCC->ICSCR & RCC_ICSCR_HSITRIM) >> RCC_ICSCR_HSITRIM_Pos) << 15);
     }
 
     /* Setup some default sleep mode clock gating.
@@ -650,8 +647,7 @@ void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, ui
 bool stm32l0_system_sysclk_configure(uint32_t hclk, uint32_t pclk1, uint32_t pclk2)
 {
     stm32l0_system_notify_t *entry;
-    uint32_t primask, sysclk, hpre, ppre1, ppre2, msirange, pllmul, plldiv, seconds;
-    uint16_t subseconds;
+    uint32_t primask, sysclk, hpre, ppre1, ppre2, msirange, pllmul, plldiv;
 
     if (hclk < 8000000)
     {
@@ -786,6 +782,8 @@ bool stm32l0_system_sysclk_configure(uint32_t hclk, uint32_t pclk1, uint32_t pcl
         
         return false;
     }
+
+    armv6m_systick_disable();
 
     RCC->APB1ENR |= RCC_APB1ENR_PWREN;
     
@@ -965,9 +963,7 @@ bool stm32l0_system_sysclk_configure(uint32_t hclk, uint32_t pclk1, uint32_t pcl
     stm32l0_system_device.pclk1 = pclk1;
     stm32l0_system_device.pclk2 = pclk2;
 
-    stm32l0_rtc_timer_reference(&seconds, &subseconds);
-
-    armv6m_systick_sync(seconds, subseconds);
+    armv6m_systick_enable();
 
     for (entry = stm32l0_system_device.notify; entry; entry = entry->next)
     {
@@ -1466,8 +1462,7 @@ uint32_t stm32l0_system_policy(uint32_t policy)
 
 void stm32l0_system_sleep(uint32_t policy, uint32_t timeout)
 {
-    uint32_t primask, n_policy, seconds;
-    uint16_t subseconds;
+    uint32_t primask, n_policy;
     stm32l0_gpio_state_t gpio_state;
     stm32l0_system_notify_t *entry;
     
@@ -1633,10 +1628,6 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t timeout)
                             (*entry->callback)(entry->context, STM32L0_SYSTEM_EVENT_STOP_LEAVE);
                         }
                     }
-
-                    stm32l0_rtc_timer_reference(&seconds, &subseconds);
-
-                    armv6m_systick_sync(seconds, subseconds);
                 }
                 else 
                 {

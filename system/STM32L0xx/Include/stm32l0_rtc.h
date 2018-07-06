@@ -43,6 +43,7 @@ extern "C" {
 #define STM32L0_RTC_CALENDAR_MASK_YEAR          0x00000020
 #define STM32L0_RTC_CALENDAR_MASK_TIME          0x00000007
 #define STM32L0_RTC_CALENDAR_MASK_DATE          0x00000038
+#define STM32L0_RTC_CALENDAR_MASK_ALL           0x0000007f
 
 typedef struct __attribute__((aligned(4))) _stm32l0_rtc_calendar_t {
     uint16_t                       subseconds;
@@ -53,18 +54,6 @@ typedef struct __attribute__((aligned(4))) _stm32l0_rtc_calendar_t {
     uint8_t                        month;
     uint8_t                        year;
 } stm32l0_rtc_calendar_t;
-
-#define STM32L0_RTC_ALARM_MATCH_SECONDS         0x00000001
-#define STM32L0_RTC_ALARM_MATCH_MINUTES         0x00000002
-#define STM32L0_RTC_ALARM_MATCH_HOURS           0x00000004
-#define STM32L0_RTC_ALARM_MATCH_DAY             0x00000008
-
-typedef struct __attribute__((aligned(4))) _stm32l0_rtc_alarm_t {
-    uint8_t                         seconds;
-    uint8_t                         minutes;
-    uint8_t                         hours;
-    uint8_t                         day;
-} stm32l0_rtc_alarm_t;
 
 typedef struct _stm32l0_rtc_timer_t stm32l0_rtc_timer_t;
 
@@ -84,17 +73,22 @@ struct _stm32l0_rtc_timer_t {
 extern void __stm32l0_rtc_initialize(void);
 
 extern void stm32l0_rtc_configure(unsigned int priority);
+extern void stm32l0_rtc_clock_capture(uint32_t *p_data);
+extern void stm32l0_rtc_clock_convert(uint32_t *data, uint32_t *p_seconds, uint16_t *p_subseconds);
+extern void stm32l0_rtc_clock_time(uint32_t *p_seconds, uint16_t *p_subseconds);
+extern void stm32l0_rtc_clock_calendar(stm32l0_rtc_calendar_t *p_calendar);
+extern void stm32l0_rtc_get_time(uint32_t *p_seconds, uint16_t *p_subseconds);
 extern void stm32l0_rtc_get_calendar(stm32l0_rtc_calendar_t *p_calendar);
 extern void stm32l0_rtc_set_calendar(unsigned int mask, const stm32l0_rtc_calendar_t *calendar);
 extern uint32_t stm32l0_rtc_get_subseconds(void);
-extern void stm32l0_rtc_adjust_subseconds(int32_t delta);
+extern int32_t stm32l0_rtc_get_adjust(void);
+extern void stm32l0_rtc_set_adjust(int32_t adjust);
 extern int32_t stm32l0_rtc_get_calibration(void);
 extern void stm32l0_rtc_set_calibration(int32_t calibration);
 
-extern void stm32l0_rtc_alarm_attach(unsigned int match, const stm32l0_rtc_alarm_t *alarm, stm32l0_rtc_callback_t callback, void *context);
-extern void stm32l0_rtc_alarm_detach(void);
+extern bool stm32l0_rtc_alarm_start(const stm32l0_rtc_calendar_t *alarm, stm32l0_rtc_callback_t callback, void *context);
+extern void stm32l0_rtc_alarm_stop(void);
 
-extern void stm32l0_rtc_timer_reference(uint32_t *p_seconds, uint16_t *p_subseconds);
 extern void stm32l0_rtc_timer_create(stm32l0_rtc_timer_t *timer, stm32l0_rtc_timer_callback_t callback, void *context);
 extern bool stm32l0_rtc_timer_destroy(stm32l0_rtc_timer_t *timer);
 extern bool stm32l0_rtc_timer_start(stm32l0_rtc_timer_t *timer, uint32_t seconds, uint16_t subseconds, bool absolute);

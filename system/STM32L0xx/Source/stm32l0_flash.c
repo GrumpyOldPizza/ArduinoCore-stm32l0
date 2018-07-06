@@ -98,26 +98,26 @@ bool stm32l0_flash_unlock(void)
 
     if (FLASH->PECR & FLASH_PECR_PELOCK)
     {
-	FLASH->PEKEYR  = 0x89abcdef;
-	FLASH->PEKEYR  = 0x02030405;
+        FLASH->PEKEYR  = 0x89abcdef;
+        FLASH->PEKEYR  = 0x02030405;
     }
 
     if (!(FLASH->PECR & FLASH_PECR_PELOCK))
     {
-	if (FLASH->PECR & FLASH_PECR_PRGLOCK)
-	{
-	    FLASH->PRGKEYR = 0x8c9daebf;
-	    FLASH->PRGKEYR = 0x13141516;
-	}
+        if (FLASH->PECR & FLASH_PECR_PRGLOCK)
+        {
+            FLASH->PRGKEYR = 0x8c9daebf;
+            FLASH->PRGKEYR = 0x13141516;
+        }
     }
 
     __set_PRIMASK(primask);
 
     if (FLASH->PECR & FLASH_PECR_PRGLOCK)
     {
-	stm32l0_eeprom_release();
+        stm32l0_eeprom_release();
 
-	return false;
+        return false;
     }
 
     return true;

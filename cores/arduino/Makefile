@@ -8,7 +8,7 @@ LD       = $(TOOLS)/bin/arm-none-eabi-ld
 CFLAGS   = -mcpu=cortex-m0plus -mthumb -c -g -Os $(WARNINGS) -std=gnu11 -ffunction-sections -fdata-sections -nostdlib -MMD $(EXTRAS) $(DEFINES) $(INCLUDES)
 CXXFLAGS = -mcpu=cortex-m0plus -mthumb -c -g -Os $(WARNINGS) -std=gnu++11 -ffunction-sections -fdata-sections -fno-threadsafe-statics -nostdlib -fno-rtti -fno-exceptions -MMD $(EXTRAS) $(DEFINES) $(INCLUDES)
 ASFLAGS  = -c -g -x assembler-with-cpp $(EXTRAS) $(DEFINES) $(INCLUDES)
-LDFLAGS = -g -Os -mcpu=cortex-m0plus -mthumb -mabi=aapcs -mfloat-abi=soft -Wl,--gc-sections,--no-undefined -T../../variants/STM32L082CZ-Cricket/linker_scripts/STM32L082CZ_FLASH.ld --specs=nano.specs
+LDFLAGS = -g -Os -mcpu=cortex-m0plus -mthumb -mabi=aapcs -mfloat-abi=soft -Wl,--gc-sections,--no-undefined -T../../variants/Cricket-L082CZ/linker_scripts/STM32L082CZ_FLASH.ld --specs=nano.specs
 WARNINGS = -Wall -Wextra -Wno-unused-parameter
 EXTRAS   = -DSTM32L082xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft
 DEFINES  = -D_SYSTEM_CORE_CLOCK_=32000000 -DDOSFS_SDCARD=0 -DDOSFS_SFLASH=1 -DARDUINO_MAKEFILE
@@ -16,7 +16,7 @@ INCLUDES = \
 	-I../../system/CMSIS/Include \
 	-I../../system/CMSIS/Device/ST/STM32L0xx/Include \
 	-I../../system/STM32L0xx/Include \
-	-I../../variants/STM32L082CZ-Cricket \
+	-I../../variants/Cricket-L082CZ \
 	-I../../libraries/CayenneLPP/src \
 	-I../../libraries/DOSFS/src \
 	-I../../libraries/EEPROM/src \
@@ -40,7 +40,7 @@ SRCS = \
 	../../libraries/STM32L0/src/STM32L0.cpp \
 	../../libraries/TimerMillis/src/TimerMillis.cpp \
 	../../libraries/Wire/src/Wire.cpp \
-	../../variants/STM32L082CZ-Cricket/variant.cpp \
+	../../variants/Cricket-L082CZ/variant.cpp \
 	avr/dtostrf.c \
 	avr/eeprom.c \
 	avr/fdevopen.c \
@@ -86,7 +86,7 @@ OBJS = \
 	../../libraries/STM32L0/src/STM32L0.o \
 	../../libraries/TimerMillis/src/TimerMillis.o \
 	../../libraries/Wire/src/Wire.o \
-	../../variants/STM32L082CZ-Cricket/variant.o \
+	../../variants/Cricket-L082CZ/variant.o \
 	avr/dtostrf.o \
 	avr/eeprom.o \
 	avr/fdevopen.o \

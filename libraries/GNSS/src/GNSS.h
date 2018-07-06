@@ -53,6 +53,8 @@ public:
         QUALITY_SIMULATION,
     };
 
+    static const int LEAP_SECONDS_UNDEFINED = -128;
+
     GNSSLocation(const gnss_location_t *location);
     GNSSLocation();
 
@@ -60,6 +62,7 @@ public:
 
     enum GNSSfixType fixType(void) const;
     enum GNSSfixQuality fixQuality(void) const;
+    bool fullyResolved(void) const;
     unsigned int satellites(void) const;
 
     uint16_t year(void) const;
@@ -69,7 +72,7 @@ public:
     uint8_t minutes(void) const;
     uint8_t seconds(void) const;
     uint16_t millis(void) const;
-    uint8_t leapSeconds(void) const;
+    int8_t leapSeconds(void) const;
 
     double latitude(void) const;  // WGS84
     double longitude(void) const; // WGS84
@@ -167,21 +170,28 @@ public:
     bool setAutonomous(bool enable);
     bool setPlatform(GNSSplatform platform);
     bool setPeriodic(unsigned int acqTime, unsigned int onTime, unsigned int period);
-    bool sleep();
-    bool wakeup();
+    bool suspend();
+    bool resume();
     bool busy();
     
     bool location(GNSSLocation &location);
     bool satellites(GNSSSatellites &satellites);
+
+    void enableWakeup();
+    void disableWakeup();
 
     void onLocation(void(*callback)(void));
     void onLocation(Callback callback);
     void onSatellites(void(*callback)(void));
     void onSatellites(Callback callback);
 
+    void attachInterrupt(void(*callback)(void));
+    void detachInterrupt();
+
 private:
     Uart *_uart;
     uint32_t _baudrate;
+    bool _wakeup;
     gnss_location_t _location_data;
     volatile uint32_t _location_pending;
     gnss_satellites_t _satellites_data;
@@ -190,15 +200,18 @@ private:
     Callback _locationCallback;
     Callback _satellitesCallback;
 
+    void (*_ppsCallback)(void);
+    void (*_doneCallback)(void);
+
     void receiveCallback(void);
     void completionCallback(void);
 
-    void (*_doneCallback)(void);
     static void sendRoutine(class GNSSClass*, const uint8_t*, uint32_t, gnss_send_callback_t);
     static void enableCallback(class GNSSClass*);
     static void disableCallback(class GNSSClass*);
     static void locationCallback(class GNSSClass*, const gnss_location_t*);
     static void satellitesCallback(class GNSSClass*, const gnss_satellites_t*);
+    static void ppsCallback(class GNSSClass*);
 };
 
 extern GNSSClass GNSS;

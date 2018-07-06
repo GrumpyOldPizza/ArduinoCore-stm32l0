@@ -84,21 +84,22 @@ typedef struct _utc_time_t {
 
 #define GNSS_LOCATION_MASK_TIME           0x0001
 #define GNSS_LOCATION_MASK_CORRECTION     0x0002
-#define GNSS_LOCATION_MASK_POSITION       0x0004
-#define GNSS_LOCATION_MASK_ALTITUDE       0x0008
-#define GNSS_LOCATION_MASK_SPEED          0x0010
-#define GNSS_LOCATION_MASK_COURSE         0x0020
-#define GNSS_LOCATION_MASK_CLIMB          0x0040
-#define GNSS_LOCATION_MASK_EHPE           0x0080
-#define GNSS_LOCATION_MASK_EVPE           0x0100
-#define GNSS_LOCATION_MASK_PDOP           0x0200
-#define GNSS_LOCATION_MASK_HDOP           0x0400
-#define GNSS_LOCATION_MASK_VDOP           0x0800
+#define GNSS_LOCATION_MASK_RESOLVED       0x0004
+#define GNSS_LOCATION_MASK_POSITION       0x0008
+#define GNSS_LOCATION_MASK_ALTITUDE       0x0010
+#define GNSS_LOCATION_MASK_SPEED          0x0020
+#define GNSS_LOCATION_MASK_COURSE         0x0040
+#define GNSS_LOCATION_MASK_CLIMB          0x0080
+#define GNSS_LOCATION_MASK_EHPE           0x0100
+#define GNSS_LOCATION_MASK_EVPE           0x0200
+#define GNSS_LOCATION_MASK_PDOP           0x0400
+#define GNSS_LOCATION_MASK_HDOP           0x0800
+#define GNSS_LOCATION_MASK_VDOP           0x1000
 
 typedef struct _gnss_location_t {
     utc_time_t     time;             /* UTC date/time                */
     uint16_t       mask;             /*                              */
-    uint8_t        correction;       /* GPS/UTC offset               */
+    int8_t         correction;       /* GPS/UTC offset               */
     uint8_t        type;             /* fix type                     */
     int32_t        latitude;         /* (WGS84) degrees, 1e7         */
     int32_t        longitude;        /* (WGS84) degrees, 1e7         */
@@ -165,6 +166,7 @@ typedef struct {
 
 extern void gnss_initialize(unsigned int mode, unsigned int rate, unsigned int speed, gnss_send_routine_t send_routine, const gnss_callbacks_t *callbacks, void *context);
 extern void gnss_receive(const uint8_t *data, uint32_t count);
+extern void gnss_pps_callback(void);
 extern bool gnss_set_antenna(unsigned int antenna);
 extern bool gnss_set_pps(unsigned int width);
 extern bool gnss_set_constellation(unsigned int mask);
@@ -173,8 +175,8 @@ extern bool gnss_set_qzss(bool enable);
 extern bool gnss_set_autonomous(bool enable);
 extern bool gnss_set_platform(unsigned int platform);
 extern bool gnss_set_periodic(unsigned int acqTime, unsigned int onTime, unsigned int period);
-extern bool gnss_sleep(void);
-extern bool gnss_wakeup(void);
+extern bool gnss_suspend(void);
+extern bool gnss_resume(void);
 extern bool gnss_busy(void);
 
 #ifdef __cplusplus

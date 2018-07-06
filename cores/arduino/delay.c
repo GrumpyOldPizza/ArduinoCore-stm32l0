@@ -31,7 +31,12 @@
 
 unsigned long millis(void) 
 {
-    return armv6m_systick_millis();
+    uint32_t seconds;
+    uint16_t subseconds;
+
+    stm32l0_rtc_get_time(&seconds, &subseconds);
+
+    return (seconds * 1000) + ((subseconds * 1000) / 32768);
 }
 
 unsigned long micros(void) 
@@ -81,11 +86,11 @@ void delay(uint32_t msec)
 	while (msec);
 	
     } else {
-	start = armv6m_systick_millis();
+	start = millis();
 	
 	do
 	{
 	}
-	while ((armv6m_systick_millis() - start) < msec);
+	while ((millis() - start) < msec);
     }
 }

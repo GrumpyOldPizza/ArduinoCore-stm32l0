@@ -74,21 +74,21 @@ extern LoRaMacParams_t LoRaMacParamsDefaults;
 
 #define RTC ((RTC_TypeDef *) RTC_BASE)
 
-#define BKP3R_UPLINK_COUNTER_SHIFT     0
-#define BKP3R_UPLINK_COUNTER_MASK      0x000000ff
-#define BKP3R_DOWNLINK_COUNTER_SHIFT   8
-#define BKP3R_DOWNLINK_COUNTER_MASK    0x0000ff00
-#define BKP3R_DATARATE_SHIFT           16
-#define BKP3R_DATARATE_MASK            0x000f0000
-#define BKP3R_TX_POWER_SHIFT           20
-#define BKP3R_TX_POWER_MASK            0x00f00000
-#define BKP3R_REPEAT_SHIFT             24
-#define BKP3R_REPEAT_MASK              0x0f000000
-#define BKP3R_ADR_ENABLE_SHIFT         28
-#define BKP3R_ADR_ENABLE_MASK          0x10000000
-#define BKP3R_UPLINK_COUNTER_PRESENT   0x20000000
-#define BKP3R_DOWNLINK_COUNTER_PRESENT 0x40000000
-#define BKP3R_ADR_PRESENT              0x80000000
+#define BKP2R_UPLINK_COUNTER_SHIFT     0
+#define BKP2R_UPLINK_COUNTER_MASK      0x000000ff
+#define BKP2R_DOWNLINK_COUNTER_SHIFT   8
+#define BKP2R_DOWNLINK_COUNTER_MASK    0x0000ff00
+#define BKP2R_DATARATE_SHIFT           16
+#define BKP2R_DATARATE_MASK            0x000f0000
+#define BKP2R_TX_POWER_SHIFT           20
+#define BKP2R_TX_POWER_MASK            0x00f00000
+#define BKP2R_REPEAT_SHIFT             24
+#define BKP2R_REPEAT_MASK              0x0f000000
+#define BKP2R_ADR_ENABLE_SHIFT         28
+#define BKP2R_ADR_ENABLE_MASK          0x10000000
+#define BKP2R_UPLINK_COUNTER_PRESENT   0x20000000
+#define BKP2R_DOWNLINK_COUNTER_PRESENT 0x40000000
+#define BKP2R_ADR_PRESENT              0x80000000
 
 static stm32l0_eeprom_transaction_t EEPROMTransaction;
 static uint32_t EEPROMSessionCRC32 = 0;
@@ -557,27 +557,27 @@ int LoRaWANClass::begin(const struct LoRaWANBand &band)
     _DutyCycle = _Band->DutyCycle;
 
     if (_restoreSession()) {
-        if (RTC->BKP3R & BKP3R_UPLINK_COUNTER_PRESENT) {
-            if ((((RTC->BKP3R & BKP3R_UPLINK_COUNTER_MASK) >> BKP3R_UPLINK_COUNTER_SHIFT) ^ _UpLinkCounter) & EEPROM_COUNTER_UPDATE_PERIOD) {
+        if (RTC->BKP2R & BKP2R_UPLINK_COUNTER_PRESENT) {
+            if ((((RTC->BKP2R & BKP2R_UPLINK_COUNTER_MASK) >> BKP2R_UPLINK_COUNTER_SHIFT) ^ _UpLinkCounter) & EEPROM_COUNTER_UPDATE_PERIOD) {
                 _UpLinkCounter += EEPROM_COUNTER_UPDATE_PERIOD;
             }
 
-            _UpLinkCounter = (_UpLinkCounter & ~(EEPROM_COUNTER_UPDATE_PERIOD-1)) | ((RTC->BKP3R >> BKP3R_UPLINK_COUNTER_SHIFT) & (EEPROM_COUNTER_UPDATE_PERIOD-1));
+            _UpLinkCounter = (_UpLinkCounter & ~(EEPROM_COUNTER_UPDATE_PERIOD-1)) | ((RTC->BKP2R >> BKP2R_UPLINK_COUNTER_SHIFT) & (EEPROM_COUNTER_UPDATE_PERIOD-1));
         } else {
             _UpLinkCounter += (EEPROM_COUNTER_UPDATE_PERIOD << 1);
         }
 
-        if (RTC->BKP3R & BKP3R_DOWNLINK_COUNTER_PRESENT) {
-            if ((((RTC->BKP3R & BKP3R_DOWNLINK_COUNTER_MASK) >> BKP3R_DOWNLINK_COUNTER_SHIFT) ^ _DownLinkCounter) & EEPROM_COUNTER_UPDATE_PERIOD) {
+        if (RTC->BKP2R & BKP2R_DOWNLINK_COUNTER_PRESENT) {
+            if ((((RTC->BKP2R & BKP2R_DOWNLINK_COUNTER_MASK) >> BKP2R_DOWNLINK_COUNTER_SHIFT) ^ _DownLinkCounter) & EEPROM_COUNTER_UPDATE_PERIOD) {
                 _DownLinkCounter += EEPROM_COUNTER_UPDATE_PERIOD;
             }
 
-            _DownLinkCounter = (_DownLinkCounter & ~(EEPROM_COUNTER_UPDATE_PERIOD-1)) | ((RTC->BKP3R >> BKP3R_DOWNLINK_COUNTER_SHIFT) & (EEPROM_COUNTER_UPDATE_PERIOD-1));
+            _DownLinkCounter = (_DownLinkCounter & ~(EEPROM_COUNTER_UPDATE_PERIOD-1)) | ((RTC->BKP2R >> BKP2R_DOWNLINK_COUNTER_SHIFT) & (EEPROM_COUNTER_UPDATE_PERIOD-1));
         }
     } else {
         _session.Activation = LORAWAN_ACTIVATION_NONE;
 
-        RTC->BKP3R = 0;
+        RTC->BKP2R = 0;
     }
 
     LoRaMacInitialization(&LoRaMacPrimitives, &LoRaMacCallbacks, _Band->LoRaMacRegion);
@@ -1136,7 +1136,7 @@ int LoRaWANClass::setDevAddr(const char *devAddr)
             return 0;
         }
 
-	commissioning.DevAddr = (DevAddr[0] << 24) | (DevAddr[1] << 16) | (DevAddr[2] << 8) | (DevAddr[3] << 0);
+        commissioning.DevAddr = (DevAddr[0] << 24) | (DevAddr[1] << 16) | (DevAddr[2] << 8) | (DevAddr[3] << 0);
     }
 
     return _storeCommissioning(&commissioning);
@@ -1270,9 +1270,9 @@ float LoRaWANClass::getTxPower()
     LoRaWANQueryTxPossible(0, _DataRate, &txInfo);
 
     if (_Band->Region == LORAWAN_REGION_US915) {
-	return 30.0f - 2 * txInfo.TxPower;
+        return 30.0f - 2 * txInfo.TxPower;
     } else {
-	return LoRaMacParams.MaxEirp - 2 * txInfo.TxPower;
+        return LoRaMacParams.MaxEirp - 2 * txInfo.TxPower;
     }
 }
 
@@ -1446,7 +1446,7 @@ int LoRaWANClass::setADR(bool enable)
     }
 
     if (_AdrEnable && !enable) {
-	_DataRate = LoRaMacParams.ChannelsDatarate;
+        _DataRate = LoRaMacParams.ChannelsDatarate;
     }
 
     _AdrEnable = enable;
@@ -1507,9 +1507,9 @@ int LoRaWANClass::setTxPower(float power)
     }
 
     if (_Band->Region == LORAWAN_REGION_US915) {
-	txPower = (floorf(30.0f - power) + 1) / 2;
+        txPower = (floorf(30.0f - power) + 1) / 2;
     } else {
-	txPower = (floorf(LoRaMacParams.MaxEirp - power) + 1) / 2;
+        txPower = (floorf(LoRaMacParams.MaxEirp - power) + 1) / 2;
     }
 
     mibReq.Type = MIB_CHANNELS_TX_POWER;
@@ -2115,7 +2115,7 @@ int LoRaWANClass::setDutyCycle(bool enable)
     }
 
     if (!LoRaWAN._Band->DutyCycle) {
-	return 0;
+        return 0;
     }
 
     LoRaMacTestSetDutyCycleOn(enable);
@@ -2230,24 +2230,24 @@ bool LoRaWANClass::_restoreSession()
 
 void LoRaWANClass::_saveADR()
 {
-    RTC->BKP3R = ((RTC->BKP3R & ~(BKP3R_DATARATE_MASK | BKP3R_TX_POWER_MASK | BKP3R_REPEAT_MASK | BKP3R_ADR_ENABLE_MASK)) |
-                  ((_AdrEnable ? LoRaMacParams.ChannelsDatarate : _DataRate) << BKP3R_DATARATE_SHIFT) |
-                  (LoRaMacParams.ChannelsTxPower << BKP3R_TX_POWER_SHIFT) |
-                  (LoRaMacParams.ChannelsNbRep << BKP3R_REPEAT_SHIFT) |
-                  (_AdrEnable << BKP3R_ADR_ENABLE_SHIFT) |
-                  BKP3R_ADR_PRESENT);
+    RTC->BKP2R = ((RTC->BKP2R & ~(BKP2R_DATARATE_MASK | BKP2R_TX_POWER_MASK | BKP2R_REPEAT_MASK | BKP2R_ADR_ENABLE_MASK)) |
+                  ((_AdrEnable ? LoRaMacParams.ChannelsDatarate : _DataRate) << BKP2R_DATARATE_SHIFT) |
+                  (LoRaMacParams.ChannelsTxPower << BKP2R_TX_POWER_SHIFT) |
+                  (LoRaMacParams.ChannelsNbRep << BKP2R_REPEAT_SHIFT) |
+                  (_AdrEnable << BKP2R_ADR_ENABLE_SHIFT) |
+                  BKP2R_ADR_PRESENT);
 }
 
 bool LoRaWANClass::_restoreADR()
 {
     MibRequestConfirm_t mibReq;
 
-    if (!(RTC->BKP3R & BKP3R_ADR_PRESENT)) {
+    if (!(RTC->BKP2R & BKP2R_ADR_PRESENT)) {
         return false;
     }
 
-    _AdrEnable = (RTC->BKP3R & BKP3R_ADR_ENABLE_MASK) >> BKP3R_ADR_ENABLE_SHIFT;
-    _DataRate = (RTC->BKP3R & BKP3R_DATARATE_MASK) >> BKP3R_DATARATE_SHIFT;
+    _AdrEnable = (RTC->BKP2R & BKP2R_ADR_ENABLE_MASK) >> BKP2R_ADR_ENABLE_SHIFT;
+    _DataRate = (RTC->BKP2R & BKP2R_DATARATE_MASK) >> BKP2R_DATARATE_SHIFT;
 
     mibReq.Type = MIB_ADR;
     mibReq.Param.AdrEnable = _AdrEnable;
@@ -2262,13 +2262,13 @@ bool LoRaWANClass::_restoreADR()
     }
     
     mibReq.Type = MIB_CHANNELS_TX_POWER;
-    mibReq.Param.ChannelsTxPower = (RTC->BKP3R & BKP3R_TX_POWER_MASK) >> BKP3R_TX_POWER_SHIFT;
+    mibReq.Param.ChannelsTxPower = (RTC->BKP2R & BKP2R_TX_POWER_MASK) >> BKP2R_TX_POWER_SHIFT;
     if (LoRaWANMibSetRequestConfirm(&mibReq) != LORAMAC_STATUS_OK) {
         return false;
     }
     
     mibReq.Type = MIB_CHANNELS_NB_REP;
-    mibReq.Param.ChannelNbRep = (RTC->BKP3R & BKP3R_REPEAT_MASK) >> BKP3R_REPEAT_SHIFT;
+    mibReq.Param.ChannelNbRep = (RTC->BKP2R & BKP2R_REPEAT_MASK) >> BKP2R_REPEAT_SHIFT;
     if (LoRaWANMibSetRequestConfirm(&mibReq) != LORAMAC_STATUS_OK) {
         return false;
     }
@@ -2448,9 +2448,9 @@ void LoRaWANClass::_saveDevNonce()
 
 void LoRaWANClass::_saveUpLinkCounter()
 {
-    RTC->BKP3R = ((RTC->BKP3R & ~BKP3R_UPLINK_COUNTER_MASK) |
-                  ((_UpLinkCounter << BKP3R_UPLINK_COUNTER_SHIFT) & BKP3R_UPLINK_COUNTER_MASK) |
-                  BKP3R_UPLINK_COUNTER_PRESENT);
+    RTC->BKP2R = ((RTC->BKP2R & ~BKP2R_UPLINK_COUNTER_MASK) |
+                  ((_UpLinkCounter << BKP2R_UPLINK_COUNTER_SHIFT) & BKP2R_UPLINK_COUNTER_MASK) |
+                  BKP2R_UPLINK_COUNTER_PRESENT);
 
     if ((EEPROMUpLinkCounter ^ _UpLinkCounter) & ~(EEPROM_COUNTER_UPDATE_PERIOD-1)) {
         if (EEPROMTransaction.status != STM32L0_EEPROM_STATUS_BUSY) {
@@ -2461,9 +2461,9 @@ void LoRaWANClass::_saveUpLinkCounter()
 
 void LoRaWANClass::_saveDownLinkCounter()
 {
-    RTC->BKP3R = ((RTC->BKP3R & ~BKP3R_DOWNLINK_COUNTER_MASK) |
-                  ((_DownLinkCounter << BKP3R_DOWNLINK_COUNTER_SHIFT) & BKP3R_DOWNLINK_COUNTER_MASK) |
-                  BKP3R_DOWNLINK_COUNTER_PRESENT);
+    RTC->BKP2R = ((RTC->BKP2R & ~BKP2R_DOWNLINK_COUNTER_MASK) |
+                  ((_DownLinkCounter << BKP2R_DOWNLINK_COUNTER_SHIFT) & BKP2R_DOWNLINK_COUNTER_MASK) |
+                  BKP2R_DOWNLINK_COUNTER_PRESENT);
 
     if ((EEPROMDownLinkCounter ^ _DownLinkCounter) & ~(EEPROM_COUNTER_UPDATE_PERIOD-1)) {
         if (EEPROMTransaction.status != STM32L0_EEPROM_STATUS_BUSY) {
@@ -2725,7 +2725,7 @@ bool LoRaWANClass::_send()
         _tx_active = false;
         _tx_busy = false;
 
-	_ComplianceTestLinkCheck = 0;
+        _ComplianceTestLinkCheck = 0;
         
         return false;
     }
@@ -2755,7 +2755,7 @@ bool LoRaWANClass::_send()
             if (_ComplianceTestState == 1)
             {
                 tx_size = 2;
-		tx_data = &txData[0];
+                tx_data = &txData[0];
 
                 tx_data[0] = _ComplianceTestCount >> 8;
                 tx_data[1] = _ComplianceTestCount & 0xFF;
@@ -2838,7 +2838,7 @@ bool LoRaWANClass::_send()
         _tx_active = false;
         _tx_busy = false;
 
-	_ComplianceTestLinkCheck = 0;
+        _ComplianceTestLinkCheck = 0;
 
         return false;
     }
@@ -2848,9 +2848,9 @@ bool LoRaWANClass::_send()
     if (_ComplianceTestRunning)
     {
         if (_ComplianceTestLinkCheck) {
-	    _ComplianceTestLinkCheck = 0;
+            _ComplianceTestLinkCheck = 0;
 
-	    _tx_active = tx_active;
+            _tx_active = tx_active;
         }
     }
 
@@ -3056,7 +3056,7 @@ void LoRaWANClass::__McpsConfirm( McpsConfirm_t *mcpsConfirm )
     }
     else
     {
-	LoRaWAN._saveADR();
+        LoRaWAN._saveADR();
 
         if (mcpsConfirm->McpsRequest == MCPS_CONFIRMED)
         {
@@ -3129,7 +3129,7 @@ void LoRaWANClass::__McpsConfirm( McpsConfirm_t *mcpsConfirm )
             {
                 LoRaWAN._ComplianceTestRunning = true;
 
-		LoRaWAN._tx_active = true;
+                LoRaWAN._tx_active = true;
                 
                 armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)LoRaWANClass::__McpsSend, NULL, 0);
             }
@@ -3176,10 +3176,10 @@ void LoRaWANClass::__McpsIndication( McpsIndication_t *mcpsIndication )
 
     if (mcpsIndication->ParamsUpdated) 
     {
-	if (!LoRaWAN._ComplianceTestRunning)
-	{
-	    LoRaWAN._saveADR();
-	}
+        if (!LoRaWAN._ComplianceTestRunning)
+        {
+            LoRaWAN._saveADR();
+        }
 
         if (LoRaWAN._Save)
         {
@@ -3220,7 +3220,7 @@ void LoRaWANClass::__McpsIndication( McpsIndication_t *mcpsIndication )
                     {
                         LoRaWAN._ComplianceTestRunning = true;
 
-			LoRaWAN._tx_active = true;
+                        LoRaWAN._tx_active = true;
 
                         armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)LoRaWANClass::__McpsSend, NULL, 0);
                     }
@@ -3232,9 +3232,9 @@ void LoRaWANClass::__McpsIndication( McpsIndication_t *mcpsIndication )
                     switch(LoRaWAN._ComplianceTestState) {
                     case 0: // Check compliance test disable command (ii)
                         LoRaWAN._ComplianceTestRunning = false;
-			LoRaWAN._ComplianceTestState = 0;
+                        LoRaWAN._ComplianceTestState = 0;
 
-			LoRaWAN._restoreADR();
+                        LoRaWAN._restoreADR();
 
                         if (LoRaWAN._Band->DutyCycle) {
                             LoRaMacTestSetDutyCycleOn(LoRaWAN._DutyCycle);
@@ -3273,9 +3273,9 @@ void LoRaWANClass::__McpsIndication( McpsIndication_t *mcpsIndication )
 
                     case 6: // Disable TestMode and revert back to normal operation (ix)
                         LoRaWAN._ComplianceTestRunning = false;
-			LoRaWAN._ComplianceTestState = 0;
+                        LoRaWAN._ComplianceTestState = 0;
 
-			LoRaWAN._restoreADR();
+                        LoRaWAN._restoreADR();
 
                         if (LoRaWAN._Band->DutyCycle) {
                             LoRaMacTestSetDutyCycleOn(LoRaWAN._DutyCycle);
@@ -3305,12 +3305,12 @@ void LoRaWANClass::__McpsIndication( McpsIndication_t *mcpsIndication )
                         break;
                     }
 
-		    if (LoRaWAN._ComplianceTestState != 4) {
-			LoRaWAN._ComplianceTestState = 1;
-		    }
+                    if (LoRaWAN._ComplianceTestState != 4) {
+                        LoRaWAN._ComplianceTestState = 1;
+                    }
 
                     if (LoRaWAN._ComplianceTestRunning) {
-			LoRaWAN._tx_active = true;
+                        LoRaWAN._tx_active = true;
 
                         armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)LoRaWANClass::__McpsSend, NULL, 0);
                     }
@@ -3487,11 +3487,11 @@ void LoRaWANClass::__MlmeConfirm( MlmeConfirm_t *mlmeConfirm )
             {
                 LoRaWAN._ComplianceTestLinkCheck = 1;
 
-		if (LoRaWAN._ComplianceTestRunning) {
-		    if (!LoRaWAN._tx_active) {
+                if (LoRaWAN._ComplianceTestRunning) {
+                    if (!LoRaWAN._tx_active) {
                         armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)LoRaWANClass::__McpsSend, NULL, 0);
                     }
-		}
+                }
             }
             else
             {

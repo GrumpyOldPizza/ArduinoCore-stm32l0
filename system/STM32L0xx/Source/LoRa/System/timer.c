@@ -68,7 +68,7 @@ TimerTime_t TimerGetCurrentTime( void )
     uint16_t subseconds;
     TimerTime_t currentTime;
 
-    stm32l0_rtc_timer_reference(&seconds, &subseconds);
+    stm32l0_rtc_get_time(&seconds, &subseconds);
 
     currentTime = (seconds * 1000) + ((subseconds * 1000) / 32768);
 
@@ -81,7 +81,7 @@ TimerTime_t TimerGetElapsedTime( TimerTime_t savedTime )
     uint16_t subseconds;
     TimerTime_t currentTime;
 
-    stm32l0_rtc_timer_reference(&seconds, &subseconds);
+    stm32l0_rtc_get_time(&seconds, &subseconds);
 
     currentTime = (seconds * 1000) + ((subseconds * 1000) / 32768);
 

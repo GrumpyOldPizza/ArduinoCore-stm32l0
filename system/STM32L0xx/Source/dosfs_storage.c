@@ -34,6 +34,28 @@
 #include "armv6m.h"
 #include "dosfs_core.h"
 #include "usbd_msc.h"
+#include "stm32l0_rtc.h"
+
+static bool dosfs_storage_delay(void)
+{
+    uint32_t seconds;
+    uint16_t subseconds;
+
+    static bool delay = true;
+
+    if (delay)
+    {
+        stm32l0_rtc_get_time(&seconds, &subseconds);
+
+        if (seconds >= 2)
+        {
+            delay = false;
+        }
+    }
+
+    return delay;
+}
+
 
 static int8_t dosfs_storage_init(uint8_t lun)
 {
@@ -86,7 +108,7 @@ static int8_t dosfs_storage_get_capacity(uint8_t lun, uint32_t *block_num, uint1
         return -1;
     }
 
-    if ((dosfs_device.lock & (DOSFS_DEVICE_LOCK_INIT | DOSFS_DEVICE_LOCK_SFLASH | DOSFS_DEVICE_LOCK_VOLUME | DOSFS_DEVICE_LOCK_EJECTED)) || (armv6m_systick_millis() < 2000))
+    if ((dosfs_device.lock & (DOSFS_DEVICE_LOCK_INIT | DOSFS_DEVICE_LOCK_SFLASH | DOSFS_DEVICE_LOCK_VOLUME | DOSFS_DEVICE_LOCK_EJECTED)) || dosfs_storage_delay())
     {
         return -1;
     }
@@ -111,7 +133,7 @@ static int8_t dosfs_storage_is_ready(uint8_t lun)
         return -1;
     }
 
-    if ((dosfs_device.lock & (DOSFS_DEVICE_LOCK_INIT | DOSFS_DEVICE_LOCK_SFLASH | DOSFS_DEVICE_LOCK_VOLUME | DOSFS_DEVICE_LOCK_EJECTED)) || (armv6m_systick_millis() < 2000))
+    if ((dosfs_device.lock & (DOSFS_DEVICE_LOCK_INIT | DOSFS_DEVICE_LOCK_SFLASH | DOSFS_DEVICE_LOCK_VOLUME | DOSFS_DEVICE_LOCK_EJECTED)) || dosfs_storage_delay())
     {
         return -1;
     }
@@ -146,7 +168,7 @@ static int8_t dosfs_storage_start_stop_unit(uint8_t lun, uint8_t start, uint8_t 
         return -1;
     }
 
-    if ((dosfs_device.lock & (DOSFS_DEVICE_LOCK_INIT | DOSFS_DEVICE_LOCK_SFLASH | DOSFS_DEVICE_LOCK_VOLUME | DOSFS_DEVICE_LOCK_EJECTED)) || (armv6m_systick_millis() < 2000))
+    if ((dosfs_device.lock & (DOSFS_DEVICE_LOCK_INIT | DOSFS_DEVICE_LOCK_SFLASH | DOSFS_DEVICE_LOCK_VOLUME | DOSFS_DEVICE_LOCK_EJECTED)) || dosfs_storage_delay())
     {
         return -1;
     }
@@ -167,7 +189,7 @@ static int8_t dosfs_storage_prevent_allow_medium_removal(uint8_t lun, uint8_t pa
         return -1;
     }
 
-    if ((dosfs_device.lock & (DOSFS_DEVICE_LOCK_INIT | DOSFS_DEVICE_LOCK_SFLASH | DOSFS_DEVICE_LOCK_VOLUME | DOSFS_DEVICE_LOCK_EJECTED)) || (armv6m_systick_millis() < 2000))
+    if ((dosfs_device.lock & (DOSFS_DEVICE_LOCK_INIT | DOSFS_DEVICE_LOCK_SFLASH | DOSFS_DEVICE_LOCK_VOLUME | DOSFS_DEVICE_LOCK_EJECTED)) || dosfs_storage_delay())
     {
         return -1;
     }
@@ -187,7 +209,7 @@ static int8_t dosfs_storage_prevent_allow_medium_removal(uint8_t lun, uint8_t pa
 
 static int8_t dosfs_storage_acquire(uint8_t lun)
 {
-    if ((dosfs_device.lock & (DOSFS_DEVICE_LOCK_INIT | DOSFS_DEVICE_LOCK_SFLASH | DOSFS_DEVICE_LOCK_VOLUME | DOSFS_DEVICE_LOCK_EJECTED)) || (armv6m_systick_millis() < 2000))
+    if ((dosfs_device.lock & (DOSFS_DEVICE_LOCK_INIT | DOSFS_DEVICE_LOCK_SFLASH | DOSFS_DEVICE_LOCK_VOLUME | DOSFS_DEVICE_LOCK_EJECTED)) || dosfs_storage_delay())
     {
         return -1;
     }
