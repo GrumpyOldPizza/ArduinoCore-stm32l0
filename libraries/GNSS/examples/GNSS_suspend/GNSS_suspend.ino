@@ -1,11 +1,13 @@
- #include "GNSS.h"
+#include "GNSS.h"
 #include "STM32L0.h"
+#include "RTC.h"
 #include "TimerMillis.h"
+
 
 bool isPeriodic = false;
 
 unsigned int myAcqTime =  45;
-unsigned int myOnTime  =   5;
+unsigned int myOnTime  =  15;
 unsigned int myPeriod  = 120;
 
 GNSSLocation myLocation;
@@ -13,24 +15,24 @@ GNSSSatellites mySatellites;
 
 volatile bool isTracking = false;
 
-TimerMillis myTimerSleep;
-TimerMillis myTimerWakeup;
+TimerMillis myTimerSuspend;
+TimerMillis myTimerResume;
 
 //#undef Serial
 //#define Serial Serial2
 
-void callbackSleep(void)
+void callbackSuspend(void)
 {
-    GNSS.sleep();
+    GNSS.suspend();
 }
 
-void callbackWakeup(void)
+void callbackResume(void)
 {
-    GNSS.wakeup();
+    GNSS.resume();
 
     isTracking = false;
 
-    myTimerSleep.start(callbackSleep, myAcqTime * 1000);
+    myTimerSuspend.start(callbackSuspend, myAcqTime * 1000);
 }
 
 void setup( void )
@@ -48,6 +50,8 @@ void setup( void )
     GNSS.setAntenna(GNSS.ANTENNA_INTERNAL);
 
     while (GNSS.busy()) { }
+
+    GNSS.enableWakeup();
 }
 
 void loop( void )
@@ -56,6 +60,9 @@ void loop( void )
 
     if (GNSS.location(myLocation))
     {
+        uint8_t year, month, day, hours, minutes, seconds;
+        uint32_t subSeconds, milliSeconds;
+
         static const char *fixTypeString[] = {
             "NONE",
             "TIME",
@@ -77,29 +84,65 @@ void loop( void )
 
         if (!isPeriodic)
         {
-            if (myLocation.fixType() == GNSSLocation::TYPE_3D)
+            if ((myLocation.fixType() == GNSSLocation::TYPE_3D) && (myLocation.ehpe() <= 30.0) && myLocation.fullyResolved())
             {
                 isPeriodic = true;
                 
-                myTimerSleep.start(callbackWakeup, 0, myPeriod * 1000);
+                myTimerResume.start(callbackResume, 0, myPeriod * 1000);
 
                 isTracking = true;
                 
-                myTimerSleep.start(callbackSleep, myOnTime * 1000);
+                myTimerSuspend.start(callbackSuspend, myOnTime * 1000);
             }
         }
         else
         {
-            if (myLocation.fixType() >= GNSSLocation::TYPE_2D)
+            if ((myLocation.fixType() >= GNSSLocation::TYPE_2D) && (myLocation.ehpe() <= 30.0) && myLocation.fullyResolved())
             {
                 if (!isTracking)
                 {
                     isTracking = true;
                     
-                    myTimerSleep.restart(myOnTime * 1000);
+                    myTimerSuspend.restart(myOnTime * 1000);
                 }
             }
         }
+
+        RTC.getDate(day, month, year);
+        RTC.getTime(hours, minutes, seconds, subSeconds);
+
+        milliSeconds = ((subSeconds >> 17) * 1000 + 16384) / 32768;
+
+        Serial.print("RTC: ");
+        Serial.print(2000 + year);
+        Serial.print("/");
+        Serial.print(month);
+        Serial.print("/");
+        Serial.print(day);
+        Serial.print(" ");
+        if (hours <= 9) {
+            Serial.print("0");
+        }
+        Serial.print(hours);
+        Serial.print(":");
+        if (minutes <= 9) {
+            Serial.print("0");
+        }
+        Serial.print(minutes);
+        Serial.print(":");
+        if (seconds <= 9) {
+            Serial.print("0");
+        }
+        Serial.print(seconds);
+        Serial.print(".");
+        if (milliSeconds <= 9) {
+            Serial.print("0");
+        }
+        if (milliSeconds <= 99) {
+            Serial.print("0");
+        }
+        Serial.print(milliSeconds);
+        Serial.println();
 
         Serial.print("LOCATION: ");
         Serial.print(fixTypeString[myLocation.fixType()]);
@@ -137,6 +180,14 @@ void loop( void )
             }
             Serial.print(myLocation.millis());
 
+            if (myLocation.leapSeconds() != GNSSLocation::LEAP_SECONDS_UNDEFINED) {
+                Serial.print(" ");
+                Serial.print(myLocation.leapSeconds());
+                if (!myLocation.fullyResolved()) {
+                    Serial.print("D");
+                }
+            }
+                
             if (myLocation.fixType() != GNSSLocation::TYPE_TIME)
             {
                 Serial.print(" LLA=");
