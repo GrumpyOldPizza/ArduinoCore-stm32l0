@@ -48,9 +48,9 @@ compiler.suffix.cmd.windows=dfu-suffix.exe
 compiler.ldflags=-mcpu={build.mcu} -mthumb -Wl,--cref -Wl,--check-sections -Wl,--gc-sections -Wl,--unresolved-symbols=report-all -Wl,--warn-common -Wl,--warn-section-align
 compiler.size.cmd=arm-none-eabi-size
 compiler.define=-DARDUINO=
-compiler.platform.path={runtime.platform.path}/tools/windows/
-compiler.platform.path.macosx={runtime.platform.path}/tools/macosx/
-compiler.platform.path.linux={runtime.platform.path}/tools/linux/
+compiler.platform.path={runtime.platform.path}/tools/windows
+compiler.platform.path.macosx={runtime.platform.path}/tools/macosx
+compiler.platform.path.linux={runtime.platform.path}/tools/linux
 
 # this can be overriden in boards.txt
 build.extra_flags=
