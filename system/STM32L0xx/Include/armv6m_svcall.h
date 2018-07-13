@@ -36,7 +36,7 @@ extern "C" {
 static inline uint32_t armv6m_svcall_0(uint32_t routine)
 {
     register uint32_t _a0 __asm__("r0");
-    register uint32_t _routine __asm__("r12") = routine;
+    register uint32_t _routine __asm__("r7") = routine;
 
     __asm__ volatile ("svc 0"
                       : "=r" (_a0)
@@ -49,7 +49,7 @@ static inline uint32_t armv6m_svcall_0(uint32_t routine)
 static inline uint32_t armv6m_svcall_1(uint32_t routine, uint32_t a0)
 {
     register uint32_t _a0 __asm__("r0") = a0;
-    register uint32_t _routine __asm__("r12") = routine;
+    register uint32_t _routine __asm__("r7") = routine;
 
     __asm__ volatile ("svc 0"
                       : "+r" (_a0)
@@ -63,7 +63,7 @@ static inline uint32_t armv6m_svcall_2(uint32_t routine, uint32_t a0, uint32_t a
 {
     register uint32_t _a0 __asm__("r0") = a0;
     register uint32_t _a1 __asm__("r1") = a1;
-    register uint32_t _routine __asm__("r12") = routine;
+    register uint32_t _routine __asm__("r7") = routine;
 
     __asm__ volatile ("svc 0"
                       : "+r" (_a0)
@@ -78,7 +78,7 @@ static inline uint32_t armv6m_svcall_3(uint32_t routine, uint32_t a0, uint32_t a
     register uint32_t _a0 __asm__("r0") = a0;
     register uint32_t _a1 __asm__("r1") = a1;
     register uint32_t _a2 __asm__("r2") = a2;
-    register uint32_t _routine __asm__("r12") = routine;
+    register uint32_t _routine __asm__("r7") = routine;
 
     __asm__ volatile ("svc 0"
                       : "+r" (_a0)
@@ -94,7 +94,7 @@ static inline uint32_t armv6m_svcall_4(uint32_t routine, uint32_t a0, uint32_t a
     register uint32_t _a1 __asm__("r1") = a1;
     register uint32_t _a2 __asm__("r2") = a2;
     register uint32_t _a3 __asm__("r3") = a3;
-    register uint32_t _routine __asm__("r12") = routine;
+    register uint32_t _routine __asm__("r7") = routine;
 
     __asm__ volatile ("svc 0"
                       : "+r" (_a0)
