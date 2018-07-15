@@ -1247,7 +1247,7 @@ void stm32l0_rtc_time_offset(uint32_t a_seconds, uint16_t a_subseconds, int32_t 
     seconds = a_seconds + b_seconds;
     subseconds = a_subseconds + b_subseconds;
 
-    if (subseconds >= 32678)
+    if (subseconds >= 32768)
     {
         subseconds -= 32768;
         seconds++;
@@ -1265,7 +1265,7 @@ void stm32l0_rtc_time_add(int32_t a_seconds, uint16_t a_subseconds, int32_t b_se
     seconds = a_seconds + b_seconds;
     subseconds = a_subseconds + b_subseconds;
 
-    if (subseconds >= 32678)
+    if (subseconds >= 32768)
     {
         subseconds -= 32768;
         seconds++;
