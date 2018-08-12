@@ -53,6 +53,9 @@ Grasshopper-L082CZ.menu.dosfs.none.build.dosfs_sflash=0
 Grasshopper-L082CZ.menu.dosfs.sdspi=SDCARD (SPI)
 Grasshopper-L082CZ.menu.dosfs.sdspi.build.dosfs_sdcard=1
 Grasshopper-L082CZ.menu.dosfs.sdspi.build.dosfs_sflash=0
+Grasshopper-L082CZ.menu.dosfs.sfspi=SFLASH (SPI)
+Grasshopper-L082CZ.menu.dosfs.sfspi.build.dosfs_sdcard=0
+Grasshopper-L082CZ.menu.dosfs.sfspi.build.dosfs_sflash=1
 
 Grasshopper-L082CZ.menu.speed.32=32 MHz
 Grasshopper-L082CZ.menu.speed.32.build.f_cpu=32000000L
