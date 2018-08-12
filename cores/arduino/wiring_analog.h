@@ -60,18 +60,25 @@ extern uint32_t analogRead( uint32_t ulPin ) ;
 
 
 /*
- * \brief Set the resolution of analogRead return values. Default is 10 bits (range from 0 to 1023).
+ * \brief Set the resolution of analogRead return values. Default is 10 bits (range from 1 to 16).
  *
  * \param res
  */
-extern void analogReadResolution(int res);
+extern void analogReadResolution(int resolution);
 
 /*
- * \brief Set the resolution of analogWrite parameters. Default is 8 bits (range from 0 to 255).
+ * \brief Set the sampling period of analogRead in nanoseconds. Default is 2000 nanosceonds (range from 0 to 50000).
  *
  * \param res
  */
-extern void analogWriteResolution(int res);
+extern void analogReadPeriod(int period);
+
+/*
+ * \brief Set the resolution of analogWrite parameters. Default is 8 bits (range from 1 to 16).
+ *
+ * \param res
+ */
+extern void analogWriteResolution(int resolution);
 
 #ifdef __cplusplus
 }

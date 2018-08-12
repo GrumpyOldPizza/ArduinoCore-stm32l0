@@ -39,6 +39,7 @@ static stm32l0_timer_t stm32l0_pwm[PWM_INSTANCE_COUNT];
 
 static uint8_t _channels[PWM_INSTANCE_COUNT];
 static int _readResolution = 10;
+static int _readPeriod = 2000;
 static int _writeResolution = 8;
 
 void analogReference(eAnalogReference reference)
@@ -49,6 +50,11 @@ void analogReference(eAnalogReference reference)
 void analogReadResolution(int resolution)
 {
     _readResolution = resolution;
+}
+
+void analogReadPeriod(int period)
+{
+    _readPeriod = period;
 }
 
 static inline uint32_t mapResolution(uint32_t value, uint32_t from, uint32_t to)
@@ -99,7 +105,7 @@ uint32_t __analogReadInternal(uint32_t channel, uint32_t smp)
 	}
 	else
 	{
-	  return 0;
+	    return 0;
 	}
     }
 }
@@ -125,7 +131,7 @@ uint32_t analogRead(uint32_t ulPin)
 
     stm32l0_gpio_pin_configure(g_APinDescription[ulPin].pin, (STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_MODE_ANALOG));
 
-    input = __analogReadInternal(g_APinDescription[ulPin].adc_channel, 2000);
+    input = __analogReadInternal(g_APinDescription[ulPin].adc_channel, _readPeriod);
 
     return mapResolution(input, 12, _readResolution);
 }
@@ -160,32 +166,39 @@ void analogWrite(uint32_t ulPin, uint32_t value)
     {
 	instance = g_APinDescription[ulPin].pwm_instance;
 
-	if (stm32l0_pwm[instance].state == STM32L0_TIMER_STATE_NONE)
+	if (_channels[instance] & (1u << g_APinDescription[ulPin].pwm_channel))
 	{
-	    stm32l0_timer_create(&stm32l0_pwm[instance], g_PWMInstances[instance], STM32L0_PWM_IRQ_PRIORITY, 0);
+	    stm32l0_timer_compare(&stm32l0_pwm[instance], g_APinDescription[ulPin].pwm_channel, mapResolution(value, _writeResolution, 12));
 	}
-
-	if (stm32l0_pwm[instance].state == STM32L0_TIMER_STATE_INIT)
+	else
 	{
-	    carrier = 2000000;
-	    modulus = 4095;
-	    
-	    divider = stm32l0_timer_clock(&stm32l0_pwm[instance]) / carrier;
-	    
-	    if (divider == 0)
+	    _channels[instance] |= (1u << g_APinDescription[ulPin].pwm_channel);
+
+	    if (stm32l0_pwm[instance].state == STM32L0_TIMER_STATE_NONE)
 	    {
-		divider = 1;
+		stm32l0_timer_create(&stm32l0_pwm[instance], g_PWMInstances[instance], STM32L0_PWM_IRQ_PRIORITY, 0);
 	    }
 	    
-	    stm32l0_timer_enable(&stm32l0_pwm[instance], divider -1, 0, NULL, NULL, 0);
-	    stm32l0_timer_start(&stm32l0_pwm[instance], modulus -1, false);
+	    if (stm32l0_pwm[instance].state == STM32L0_TIMER_STATE_INIT)
+	    {
+		carrier = 2000000;
+		modulus = 4095;
+		
+		divider = stm32l0_timer_clock(&stm32l0_pwm[instance]) / carrier;
+		
+		if (divider == 0)
+		{
+		    divider = 1;
+		}
+		
+		stm32l0_timer_enable(&stm32l0_pwm[instance], divider -1, 0, NULL, NULL, 0);
+		stm32l0_timer_start(&stm32l0_pwm[instance], modulus -1, false);
+	    }
+	    
+	    stm32l0_gpio_pin_configure(g_APinDescription[ulPin].pin, (STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_ALTERNATE));
+	    
+	    stm32l0_timer_channel(&stm32l0_pwm[instance], g_APinDescription[ulPin].pwm_channel, mapResolution(value, _writeResolution, 12), STM32L0_TIMER_CONTROL_PWM);
 	}
-
-	stm32l0_gpio_pin_configure(g_APinDescription[ulPin].pin, (STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_ALTERNATE));
-
-	stm32l0_timer_channel(&stm32l0_pwm[instance], g_APinDescription[ulPin].pwm_channel, mapResolution(value, _writeResolution, 12), STM32L0_TIMER_CONTROL_PWM);
-
-	_channels[instance] |= (1u << g_APinDescription[ulPin].pwm_channel);
 
 	return;
     }
