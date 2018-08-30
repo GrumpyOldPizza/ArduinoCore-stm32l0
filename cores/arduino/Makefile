@@ -20,8 +20,10 @@ INCLUDES = \
 	-I../../libraries/CayenneLPP/src \
 	-I../../libraries/DOSFS/src \
 	-I../../libraries/EEPROM/src \
+	-I../../libraries/FskRadio/src \
 	-I../../libraries/GNSS/src \
 	-I../../libraries/GNSS/src/utility \
+	-I../../libraries/LoRaRadio/src \
 	-I../../libraries/LoRaWAN/src \
 	-I../../libraries/RTC/src \
 	-I../../libraries/SPI/src \
@@ -32,8 +34,10 @@ INCLUDES = \
 SRCS = \
 	../../libraries/CayenneLPP/src/CayenneLPP.cpp \
 	../../libraries/DOSFS/src/DOSFS.cpp \
+	../../libraries/FskRadio/src/FskRadio.cpp \
 	../../libraries/GNSS/src/GNSS.cpp \
 	../../libraries/GNSS/src/utility/gnss_core.c \
+	../../libraries/LoRaRadio/src/LoRaRadio.cpp \
 	../../libraries/LoRaWAN/src/LoRaWAN.cpp \
 	../../libraries/RTC/src/RTC.cpp \
 	../../libraries/SPI/src/SPI.cpp \
@@ -78,8 +82,10 @@ SRCS = \
 OBJS = \
 	../../libraries/CayenneLPP/src/CayenneLPP.o \
 	../../libraries/DOSFS/src/DOSFS.o \
+	../../libraries/FskRadio/src/FskRadio.o \
 	../../libraries/GNSS/src/GNSS.o \
 	../../libraries/GNSS/src/utility/gnss_core.o \
+	../../libraries/LoRaRadio/src/LoRaRadio.o \
 	../../libraries/LoRaWAN/src/LoRaWAN.o \
 	../../libraries/RTC/src/RTC.o \
 	../../libraries/SPI/src/SPI.o \

@@ -35,12 +35,11 @@
 #define RADIO_INIT_REGISTERS_VALUE                \
 {                                                 \
     { MODEM_FSK , REG_LNA                , 0x23 },\
-    { MODEM_FSK , REG_RXCONFIG           , 0x1E },\
     { MODEM_FSK , REG_RSSICONFIG         , 0xD2 },\
     { MODEM_FSK , REG_AFCFEI             , 0x01 },\
     { MODEM_FSK , REG_PREAMBLEDETECT     , 0xAA },\
     { MODEM_FSK , REG_OSC                , 0x07 },\
-    { MODEM_FSK , REG_FIFOTHRESH         , 0x8F },\
+    { MODEM_FSK , REG_FIFOTHRESH         , 0x9F },\
     { MODEM_FSK , REG_IMAGECAL           , 0x02 },\
 }                                                 \
 
@@ -90,13 +89,6 @@ void SX1272DioInit( void );
 void SX1272DioDeInit( void );
 
 /*!
- * \brief Controls the DIO1 edge
- *
- * \param [IN] rising true == rising, false == falling
- */
-void SX1272SetDio1Edge( bool rising );
-
-/*!
  * \brief Sets the radio output power.
  *
  * \param [IN] power Sets the RF output power
@@ -117,6 +109,50 @@ bool SX1272CheckRfFrequency( uint32_t frequency );
  * \retval time Board TCXO wakeup time in ms.
  */
 uint32_t SX1272GetBoardTcxoWakeupTime( void );
+
+/*!
+ * \brief Acquires the SPI interface
+ */
+void SX1272Acquire( void );
+
+/*!
+ * \brief Releases the SPI interface
+ */
+void SX1272Release( void );
+
+/*!
+ * \brief Writes the radio register at the specified address
+ *
+ * \param [IN]: addr Register address
+ * \param [IN]: data New register value
+ */
+void SX1272Write( uint8_t addr, uint8_t data );
+
+/*!
+ * \brief Reads the radio register at the specified address
+ *
+ * \param [IN]: addr Register address
+ * \retval data Register value
+ */
+uint8_t SX1272Read( uint8_t addr );
+
+/*!
+ * \brief Writes multiple radio registers starting at address
+ *
+ * \param [IN] addr   First Radio register address
+ * \param [IN] buffer Buffer containing the new register's values
+ * \param [IN] size   Number of registers to be written
+ */
+void SX1272WriteBuffer( uint8_t addr, uint8_t *buffer, uint8_t size );
+
+/*!
+ * \brief Reads multiple radio registers starting at address
+ *
+ * \param [IN] addr First Radio register address
+ * \param [OUT] buffer Buffer where to copy the registers data
+ * \param [IN] size Number of registers to be read
+ */
+void SX1272ReadBuffer( uint8_t addr, uint8_t *buffer, uint8_t size );
 
 /*!
  * Radio hardware and global parameters

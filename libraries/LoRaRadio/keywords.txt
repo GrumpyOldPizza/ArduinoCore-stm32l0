@@ -1,0 +1,76 @@
+#######################################
+# Syntax Coloring Map For LoRaRadio
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+LoRaRadio		KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+begin			KEYWORD2
+end			KEYWORD2
+busy			KEYWORD2
+cadDetected		KEYWORD2
+beginPacket		KEYWORD2
+endPacket		KEYWORD2
+sendPacket		KEYWORD2
+receive			KEYWORD2
+cad			KEYWORD2
+sense			KEYWORD2
+standby			KEYWORD2
+stop			KEYWORD2
+availableForWrite	KEYWORD2
+flush			KEYWORD2
+write			KEYWORD2
+parsePacket		KEYWORD2
+available		KEYWORD2
+read			KEYWORD2
+peek			KEYWORD2
+purge			KEYWORD2
+packetRssi		KEYWORD2
+packetSnr		KEYWORD2
+setFrequency		KEYWORD2
+setTxPower		KEYWORD2
+setBandwidth		KEYWORD2
+setSpreadingFactor	KEYWORD2
+setCodingRate		KEYWORD2
+setPreambleLength	KEYWORD2
+setFixedPayloadLength	KEYWORD2
+setSymbolTimeout	KEYWORD2
+setIQInverted		KEYWORD2
+setPublicNetwork	KEYWORD2
+setLnaBoost		KEYWORD2
+enableCrc		KEYWORD2
+disableCrc		KEYWORD2
+setIdleMode		KEYWORD2
+enableWakeup		KEYWORD2
+disableWakeup		KEYWORD2
+onReceive		KEYWORD2
+onTransmit		KEYWORD2
+onCad			KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+ 
+BW_125			LITERAL1
+BW_250			LITERAL1
+BW_500			LITERAL1
+SF_7			LITERAL1
+SF_8			LITERAL1
+SF_9			LITERAL1
+SF_10			LITERAL1
+SF_11			LITERAL1
+SF_12			LITERAL1
+CR_4_5			LITERAL1
+CR_4_6			LITERAL1
+CR_4_7			LITERAL1
+CR_4_8			LITERAL1
+
+
+

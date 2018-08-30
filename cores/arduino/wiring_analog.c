@@ -33,11 +33,16 @@
 extern "C" {
 #endif
 
+#if defined(PWM_INSTANCE_COUNT)
+
 extern const unsigned int g_PWMInstances[PWM_INSTANCE_COUNT];
 
 static stm32l0_timer_t stm32l0_pwm[PWM_INSTANCE_COUNT];
 
 static uint8_t _channels[PWM_INSTANCE_COUNT];
+
+#endif /* PWM_INSTANCE_COUNT */
+
 static int _readResolution = 10;
 static int _readPeriod = 2000;
 static int _writeResolution = 8;
@@ -124,10 +129,7 @@ uint32_t analogRead(uint32_t ulPin)
 	return 0;
     }
   
-    if (g_APinDescription[ulPin].attr & (PIN_ATTR_DAC1 | PIN_ATTR_DAC2))
-    {
-	stm32l0_dac_disable(g_APinDescription[ulPin].attr & (PIN_ATTR_DAC1 | PIN_ATTR_DAC2));
-    }
+    __analogWriteDisable(ulPin);
 
     stm32l0_gpio_pin_configure(g_APinDescription[ulPin].pin, (STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_MODE_ANALOG));
 
@@ -151,6 +153,7 @@ void analogWrite(uint32_t ulPin, uint32_t value)
 	return;
     }
 
+#if defined(DAC_RESOLUTION)
     if (g_APinDescription[ulPin].attr & (PIN_ATTR_DAC1 | PIN_ATTR_DAC2))
     {
 	stm32l0_gpio_pin_configure(g_APinDescription[ulPin].pin, (STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_MODE_ANALOG));
@@ -161,7 +164,9 @@ void analogWrite(uint32_t ulPin, uint32_t value)
 
 	return;
     }
+#endif /* DAC_RESOLUTION */
 
+#if defined(PWM_INSTANCE_COUNT)
     if (g_APinDescription[ulPin].pwm_instance != PWM_INSTANCE_NONE)
     {
 	instance = g_APinDescription[ulPin].pwm_instance;
@@ -202,6 +207,7 @@ void analogWrite(uint32_t ulPin, uint32_t value)
 
 	return;
     }
+#endif /* PWM_INSTANCE_COUNT */
 
     // -- Defaults to digital write
     pinMode(ulPin, OUTPUT) ;
@@ -217,15 +223,20 @@ void analogWrite(uint32_t ulPin, uint32_t value)
 
 void __analogWriteDisable(uint32_t ulPin)
 {
+#if defined(PWM_INSTANCE_COUNT)
     uint32_t instance;
+#endif /* PWM_INSTANCE_COUNT */
 
+#if defined(DAC_RESOLUTION)
     if (g_APinDescription[ulPin].attr & (PIN_ATTR_DAC1 | PIN_ATTR_DAC2))
     {
 	stm32l0_dac_disable(g_APinDescription[ulPin].attr & (PIN_ATTR_DAC1 | PIN_ATTR_DAC2));
 
 	return;
     }
+#endif /* DAC_RESOLUTION */
 
+#if defined(PWM_INSTANCE_COUNT)
     if (g_APinDescription[ulPin].pwm_instance != PWM_INSTANCE_NONE)
     {
 	instance = g_APinDescription[ulPin].pwm_instance;
@@ -243,6 +254,7 @@ void __analogWriteDisable(uint32_t ulPin)
 	    }
 	}
     }
+#endif /* PWM_INSTANCE_COUNT */
 }
 
 #ifdef __cplusplus

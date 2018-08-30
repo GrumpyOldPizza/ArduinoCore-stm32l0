@@ -35,12 +35,11 @@
 #define RADIO_INIT_REGISTERS_VALUE                \
 {                                                 \
     { MODEM_FSK , REG_LNA                , 0x23 },\
-    { MODEM_FSK , REG_RXCONFIG           , 0x1E },\
     { MODEM_FSK , REG_RSSICONFIG         , 0xD2 },\
     { MODEM_FSK , REG_AFCFEI             , 0x01 },\
     { MODEM_FSK , REG_PREAMBLEDETECT     , 0xAA },\
     { MODEM_FSK , REG_OSC                , 0x07 },\
-    { MODEM_FSK , REG_FIFOTHRESH         , 0x8F },\
+    { MODEM_FSK , REG_FIFOTHRESH         , 0x9F },\
     { MODEM_FSK , REG_IMAGECAL           , 0x02 },\
 }                                                 \
 
@@ -92,13 +91,6 @@ void SX1276DioInit( void );
 void SX1276DioDeInit( void );
 
 /*!
- * \brief Controls the DIO1 edge
- *
- * \param [IN] rising true == rising, false == falling
- */
-void SX1276SetDio1Edge( bool rising );
-
-/*!
  * \brief Sets the radio output power.
  *
  * \param [IN] power Sets the RF output power
@@ -120,34 +112,49 @@ bool SX1276CheckRfFrequency( uint32_t frequency );
  */
 uint32_t SX1276GetBoardTcxoWakeupTime( void );
 
-/*
- * SX1276 DIO IRQ callback functions prototype
+/*!
+ * \brief Acquires the SPI interface
  */
+void SX1276Acquire( void );
 
 /*!
- * \brief DIO 0 IRQ callback
+ * \brief Releases the SPI interface
  */
-void SX1276OnDio0Irq( void );
+void SX1276Release( void );
 
 /*!
- * \brief DIO 1 IRQ callback
+ * \brief Writes the radio register at the specified address
+ *
+ * \param [IN]: addr Register address
+ * \param [IN]: data New register value
  */
-void SX1276OnDio1Irq( void );
+void SX1276Write( uint8_t addr, uint8_t data );
 
 /*!
- * \brief DIO 2 IRQ callback
+ * \brief Reads the radio register at the specified address
+ *
+ * \param [IN]: addr Register address
+ * \retval data Register value
  */
-void SX1276OnDio2Irq( void );
+uint8_t SX1276Read( uint8_t addr );
 
 /*!
- * \brief DIO 3 IRQ callback
+ * \brief Writes multiple radio registers starting at address
+ *
+ * \param [IN] addr   First Radio register address
+ * \param [IN] buffer Buffer containing the new register's values
+ * \param [IN] size   Number of registers to be written
  */
-void SX1276OnDio3Irq( void );
+void SX1276WriteBuffer( uint8_t addr, uint8_t *buffer, uint8_t size );
 
 /*!
- * \brief DIO 4 IRQ callback
+ * \brief Reads multiple radio registers starting at address
+ *
+ * \param [IN] addr First Radio register address
+ * \param [OUT] buffer Buffer where to copy the registers data
+ * \param [IN] size Number of registers to be read
  */
-void SX1276OnDio4Irq( void );
+void SX1276ReadBuffer( uint8_t addr, uint8_t *buffer, uint8_t size );
 
 /*!
  * Radio hardware and global parameters

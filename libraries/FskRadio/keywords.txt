@@ -1,0 +1,77 @@
+#######################################
+# Syntax Coloring Map For FskRadio
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+FskRadio		KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+begin			KEYWORD2
+end			KEYWORD2
+busy			KEYWORD2
+beginPacket		KEYWORD2
+endPacket		KEYWORD2
+sendPacket		KEYWORD2
+receive			KEYWORD2
+sense			KEYWORD2
+standby			KEYWORD2
+sleep			KEYWORD2
+availableForWrite	KEYWORD2
+flush			KEYWORD2
+write			KEYWORD2
+parsePacket		KEYWORD2
+available		KEYWORD2
+read			KEYWORD2
+peek			KEYWORD2
+purge			KEYWORD2
+packetRssi		KEYWORD2
+packetBroadcast		KEYWORD2
+setFrequency		KEYWORD2
+setTxPower		KEYWORD2
+setDeviation		KEYWORD2
+setBandwidth		KEYWORD2
+setBandwidthAfc		KEYWORD2
+setBitRate		KEYWORD2
+setPreambleLength	KEYWORD2
+setFixedPayloadLength	KEYWORD2
+setMaxPayloadLength	KEYWORD2
+setSyncTimeout		KEYWORD2
+setSyncWord		KEYWORD2
+setAddressFiltering	KEYWORD2
+setNodeAddress		KEYWORD2
+setBroadcastAddress	KEYWORD2
+setModulation		KEYWORD2
+setLnaBoost		KEYWORD2
+enableAfc		KEYWORD2
+disableAfc		KEYWORD2
+enableWhitening		KEYWORD2
+disableWhitening	KEYWORD2
+enableCrc		KEYWORD2
+disableCrc		KEYWORD2
+setIdleMode		KEYWORD2
+enableWakeup		KEYWORD2
+disableWakeup		KEYWORD2
+onReceive		KEYWORD2
+onTransmit		KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+ 
+FSK			LITERAL1
+GFSK_BT_0_3		LITERAL1
+GFSK_BT_0_5		LITERAL1
+GFSK_BT_1_0		LITERAL1
+FILTERING_NONE		LITERAL1
+FILTERING_NODE		LITERAL1
+FILTERING_NODE_AND_BROADCAST	LITERAL1
+
+
+
+

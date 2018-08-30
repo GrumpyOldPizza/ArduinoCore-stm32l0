@@ -935,6 +935,7 @@ LoRaMacStatus_t RegionAS923NextChannel( NextChanParams_t* nextChanParams, uint8_
     uint8_t delayTx = 0;
     uint8_t enabledChannels[AS923_MAX_NB_CHANNELS] = { 0 };
     TimerTime_t nextTxDelay = 0;
+    bool isChannelFree = false;
 
     if( RegionCommonCountChannels( RegionChannelsMask, 0, 1 ) == 0 )
     { // Reactivate default channels
@@ -971,7 +972,11 @@ LoRaMacStatus_t RegionAS923NextChannel( NextChanParams_t* nextChanParams, uint8_
                 
                 // Perform carrier sense for AS923_CARRIER_SENSE_TIME
                 // If the channel is free, we can stop the LBT mechanism
-                if( Radio.IsChannelFree( MODEM_LORA, RegionChannels[channelNext].Frequency, AS923_RSSI_FREE_TH, AS923_CARRIER_SENSE_TIME ) == true )
+                isChannelFree = Radio.IsChannelFree( MODEM_LORA, RegionChannels[channelNext].Frequency, AS923_RSSI_FREE_TH, AS923_CARRIER_SENSE_TIME );
+
+		Radio.Sleep();
+
+                if( isChannelFree == true )
                 {
                     // Free channel found
                     *channel = channelNext;

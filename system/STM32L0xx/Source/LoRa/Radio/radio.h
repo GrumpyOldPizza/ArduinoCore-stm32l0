@@ -47,6 +47,15 @@ typedef enum
 }RadioState_t;
 
 /*!
+ * Radio driver internal idle states definition
+ */
+typedef enum
+{
+    IDLE_STANDBY = 0,
+    IDLE_SLEEP,
+}RadioIdle_t;
+
+/*!
  * \brief Radio driver callback functions
  */
 typedef struct
@@ -104,7 +113,11 @@ struct Radio_s
      * \param [IN] events Structure containing the driver callback functions
      * \param [IN] freq Channel RF frequency for rx calibration
      */
-    void    ( *Init )( RadioEvents_t *events, uint32_t freq );
+    void    ( *Init )( const RadioEvents_t *events, uint32_t freq );
+    /*!
+     * \brief De-Initializes the radio
+     */
+    void    ( *DeInit )( void );
     /*!
      * Return current radio status
      *
@@ -134,17 +147,6 @@ struct Radio_s
      * \retval isFree         [true: Channel is free, false: Channel is not free]
      */
     bool    ( *IsChannelFree )( RadioModems_t modem, uint32_t freq, int16_t rssiThresh, uint32_t maxCarrierSenseTime );
-    /*!
-     * \brief Generates a 32 bits random value based on the RSSI readings
-     *
-     * \remark This function sets the radio in LoRa modem mode and disables
-     *         all interrupts.
-     *         After calling this function either Radio.SetRxConfig or
-     *         Radio.SetTxConfig functions must be called.
-     *
-     * \retval randomValue    32 bits random value
-     */
-    uint32_t ( *Random )( void );
     /*!
      * \brief Sets the reception parameters
      *
@@ -334,19 +336,26 @@ struct Radio_s
      * \param [IN] enable if true, it enables a public network
      */
     void    ( *SetPublicNetwork )( bool enable );
-    /*!
-     * \brief Sets the SyncWord for FSK modem
-     *
-     * \param [IN] data Buffer containing the sync word data
-     * \param [IN] size Number of bytes in sync word
-     */
-    void    ( *SetSyncWord )( uint8_t *data, uint8_t size );
+
     /*!
      * \brief Sets the modulation shaping for FSK modem.
      *
      * \param [IN] modulation [0: FSK, 1: GFSK_BT_1_0, 2: GFSK_BT_0_5, 3: GFSK_BT_0_3, 4: OOK ]
      */
     void    ( *SetModulation )( uint8_t modulation );
+    /*!
+     * \brief Sets the Preamble polatity for FSK modem
+     *
+     * \param [IN] enable [false: 0xaa, true: 0x55]
+     */
+    void    ( *SetPreambleInverted )( bool enable );
+    /*!
+     * \brief Sets the SyncWord for FSK modem
+     *
+     * \param [IN] data Buffer containing the sync word data
+     * \param [IN] size Number of bytes in sync word
+     */
+    void    ( *SetSyncWord )( const uint8_t *data, uint8_t size );
     /*!
      * \brief Enables/Disables AFC for FSK
      *
@@ -362,7 +371,7 @@ struct Radio_s
     /*!
      * \brief Sets the CrcType (CCITT/IBM) for FSK modem.
      *
-     * \param [IN] crcType [0: CCITT, 1: IBM]
+     * \param [IN] crcType [0: CCITT, 1: IBM, 2: WMBUS]
      */
     void    ( *SetCrcType )( uint8_t crcType );
     /*!
@@ -382,13 +391,7 @@ struct Radio_s
      *
      * \param [IN] address BroadcastAddress
      */
-    void    ( *SetBoardcastAddress )( uint8_t address );
-    /*!
-     * \brief Sets the OOK Floor Threshold for FSK modem
-     *
-     * \param [IN] threshold [dBm]
-     */
-    void    ( *SetOokFloorThreshold )( uint8_t threshold );
+    void    ( *SetBroadcastAddress )( uint8_t address );
     /*!
      * \brief Sets the LNA boost
      *
@@ -396,11 +399,11 @@ struct Radio_s
      */
     void    ( *SetLnaBoost )( bool enable );
     /*!
-     * \brief Sets the CLKOUT rate on DIO5
+     * \brief Sets the LNA boost
      *
-     * \param [IN] rate [0: 32MHz, 1: 16MHz, 2: 8MHz, 3: 4MHz, 4: 2MHz, 5: 1MHz, 7: OFF]
+     * \param [IN] mode [0: STANDBY, 1: SLEEP]
      */
-    void    ( *SetClockRate )( uint8_t rate );
+    void    ( *SetIdleMode )( uint8_t mode );
     /*!
      * \brief Gets the time required for the board plus radio to get out of sleep.[ms]
      *
@@ -415,6 +418,9 @@ struct Radio_s
  * \remark This variable is defined and initialized in the specific radio
  *         board implementation
  */
-extern const struct Radio_s Radio;
+
+extern const struct Radio_s * SX127xRadio;
+
+#define Radio (*SX127xRadio)
 
 #endif // __RADIO_H__

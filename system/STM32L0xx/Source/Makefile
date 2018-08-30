@@ -34,6 +34,7 @@ INCLUDES = \
 SRCS = \
 	./LoRa/Boards/cmwx1zzabz-board.c \
 	./LoRa/Boards/sx1272mb2das-board.c \
+	./LoRa/Boards/wmsgsm42-board.c \
 	./LoRa/Crypto/aes.c \
 	./LoRa/Crypto/cmac.c \
 	./LoRa/Mac/LoRaMac.c \
@@ -48,6 +49,7 @@ SRCS = \
 	./LoRa/Mac/region/RegionIN865.c \
 	./LoRa/Mac/region/RegionKR920.c \
 	./LoRa/Mac/region/RegionUS915.c \
+	./LoRa/Radio/radio.c \
 	./LoRa/Radio/sx1272/sx1272.c \
 	./LoRa/Radio/sx1276/sx1276.c \
 	./LoRa/System/timer.c \

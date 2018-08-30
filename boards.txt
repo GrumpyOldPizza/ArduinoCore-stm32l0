@@ -267,6 +267,55 @@ B-L072Z-LRWAN1.menu.opt.o3.build.flags.optimize=-O3
 B-L072Z-LRWAN1.menu.opt.o3.build.flags.ldspecs=
 
 
+# ST I-NUCLEO-LRWAN1
+# ---------------------------------------
+I-NUCLEO-LRWAN1.name=I-NUCLEO-LRWAN1
+I-NUCLEO-LRWAN1.vid.0=0x0483
+I-NUCLEO-LRWAN1.pid.0=0x374b
+
+I-NUCLEO-LRWAN1.upload.tool=stm32l0_openocd
+I-NUCLEO-LRWAN1.upload.protocol=stlink
+I-NUCLEO-LRWAN1.upload.maximum_size=65536
+I-NUCLEO-LRWAN1.upload.maximum_data_size=8192
+I-NUCLEO-LRWAN1.upload.use_1200bps_touch=true
+I-NUCLEO-LRWAN1.upload.wait_for_upload_port=false
+I-NUCLEO-LRWAN1.upload.native_usb=false
+
+I-NUCLEO-LRWAN1.build.mcu=cortex-m0plus
+I-NUCLEO-LRWAN1.build.f_cpu=32000000L
+I-NUCLEO-LRWAN1.build.board=STM32L0_NUCLEO
+I-NUCLEO-LRWAN1.build.arch=stm32l0
+I-NUCLEO-LRWAN1.build.core=arduino
+I-NUCLEO-LRWAN1.build.vid=0x0483
+I-NUCLEO-LRWAN1.build.pid=0x374b
+I-NUCLEO-LRWAN1.build.did=0xffff
+I-NUCLEO-LRWAN1.build.extra_flags=-DSTM32L052xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+I-NUCLEO-LRWAN1.build.ldscript=linker_scripts/STM32L052T8_FLASH.ld
+I-NUCLEO-LRWAN1.build.openocdscript=openocd_scripts/i-nucleo-lrwan1.cfg
+I-NUCLEO-LRWAN1.build.variant=I-NUCLEO-LRWAN1
+I-NUCLEO-LRWAN1.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l052xx -larm_cortexM0l_math
+I-NUCLEO-LRWAN1.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
+
+I-NUCLEO-LRWAN1.menu.speed.32=32 MHz
+I-NUCLEO-LRWAN1.menu.speed.32.build.f_cpu=32000000L
+I-NUCLEO-LRWAN1.menu.speed.16=16 MHz
+I-NUCLEO-LRWAN1.menu.speed.16.build.f_cpu=16000000L
+I-NUCLEO-LRWAN1.menu.speed.4=4.2 MHz
+I-NUCLEO-LRWAN1.menu.speed.4.build.f_cpu=4200000L
+
+I-NUCLEO-LRWAN1.menu.opt.os=Smallest Code
+I-NUCLEO-LRWAN1.menu.opt.os.build.flags.optimize=-Os
+I-NUCLEO-LRWAN1.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
+I-NUCLEO-LRWAN1.menu.opt.o1=Fast
+I-NUCLEO-LRWAN1.menu.opt.o1.build.flags.optimize=-O1
+I-NUCLEO-LRWAN1.menu.opt.o1.build.flags.ldspecs=
+I-NUCLEO-LRWAN1.menu.opt.o2=Faster
+I-NUCLEO-LRWAN1.menu.opt.o2.build.flags.optimize=-O2
+I-NUCLEO-LRWAN1.menu.opt.o2.build.flags.ldspecs=
+I-NUCLEO-LRWAN1.menu.opt.o3=Fastest
+I-NUCLEO-LRWAN1.menu.opt.o3.build.flags.optimize=-O3
+I-NUCLEO-LRWAN1.menu.opt.o3.build.flags.ldspecs=
+
 
 # ST P-NUCLEO-LRWAN1
 # ---------------------------------------

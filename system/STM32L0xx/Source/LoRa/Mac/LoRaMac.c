@@ -2418,6 +2418,7 @@ LoRaMacStatus_t LoRaMacInitialization( const LoRaMacPrimitives_t *primitives, co
 {
     GetPhyParams_t getPhy;
     PhyParam_t phyParam;
+    uint32_t seed;
 
     if( primitives == NULL )
     {
@@ -2549,7 +2550,8 @@ LoRaMacStatus_t LoRaMacInitialization( const LoRaMacPrimitives_t *primitives, co
     Radio.Init( &RadioEvents, phyParam.Value );
 
     // Random seed initialization
-    srand1( Radio.Random( ) );
+    stm32l0_random( (uint8_t*)&seed, sizeof(seed) );
+    srand1( seed );
 
     PublicNetwork = true;
     Radio.SetPublicNetwork( PublicNetwork );
