@@ -113,13 +113,13 @@ typedef void (*stm32l0_adc_done_callback_t)(void *context, uint32_t count);
 #define STM32L0_ADC_TSENSE_CAL1                     (*((const uint16_t*)0x1ff8007a))
 #define STM32L0_ADC_TSENSE_CAL2                     (*((const uint16_t*)0x1ff8007e))
 
-#define STM32L0_ADC_VREFINT_SMP                     5000
-#define STM32L0_ADC_TSENSE_SMP                      10000
+#define STM32L0_ADC_VREFINT_PERIOD                  5
+#define STM32L0_ADC_TSENSE_PERIOD                   10
 
 extern bool stm32l0_adc_enable(void);
 extern bool stm32l0_adc_disable(void);
-extern uint32_t stm32l0_adc_read(unsigned int channel, uint16_t smp);
-extern bool stm32l0_adc_convert(void *data, uint32_t count, uint16_t mask, uint16_t smp, uint32_t control, stm32l0_adc_done_callback_t callback, void *context);
+extern uint32_t stm32l0_adc_read(unsigned int channel, uint16_t period);
+extern bool stm32l0_adc_convert(void *data, uint32_t count, uint16_t mask, uint16_t period, uint32_t control, stm32l0_adc_done_callback_t callback, void *context);
 extern void stm32l0_adc_cancel(void);
 extern bool stm32l0_adc_done(void);
 

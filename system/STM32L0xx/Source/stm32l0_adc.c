@@ -86,7 +86,7 @@ typedef struct _stm32l0_adc_device_t {
     volatile uint8_t             state;
     uint8_t                      calibration;
     uint8_t                      channels;
-    uint16_t                     smp;
+    uint16_t                     period;
     uint16_t                     mask;
     uint32_t                     control;
     stm32l0_adc_done_callback_t  xf_callback;
@@ -176,7 +176,7 @@ bool stm32l0_adc_disable(void)
     return true;
 }
 
-uint32_t stm32l0_adc_read(unsigned int channel, uint16_t smp)
+uint32_t stm32l0_adc_read(unsigned int channel, uint16_t period)
 {
     uint32_t hclk, pclk, adcclk, adc_cfgr2, adc_smpr, threshold, data;
 
@@ -237,33 +237,21 @@ uint32_t stm32l0_adc_read(unsigned int channel, uint16_t smp)
         }
     }
 
-    /* smp is in nS. 1e9 / adcclk is one tick in terms of nS.
-     *
-     * (smp * adcclk) / 1e9 is the threshold for the sampling time.
-     *
-     * smp has a upper limit of 50000nS. Hence this calculation will
-     * overflow by 8 bits (max adcclk == 16MHz).
-     * 
-     * Hence we use:
-     *
-     * (smp * (adcclk / 256)) / (1e9 / 256)
-     */
-
-    if (smp > 50000)
+    if (period > 50)
     {
-        smp = 50000;
+        period = 50;
     }
     
-    threshold = ((uint32_t)smp * (adcclk / 256));
+    threshold = ((uint32_t)period * adcclk);
 
-    if      (threshold < (uint32_t)(  1.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_1_5;   }
-    else if (threshold < (uint32_t)(  3.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_3_5;   }
-    else if (threshold < (uint32_t)(  7.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_7_5;   }
-    else if (threshold < (uint32_t)( 12.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_12_5;  }
-    else if (threshold < (uint32_t)( 19.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_19_5;  }
-    else if (threshold < (uint32_t)( 39.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_39_5;  }
-    else if (threshold < (uint32_t)( 79.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_79_5;  }
-    else                                                  { adc_smpr = ADC_SMPR_SMP_160_5; }
+    if      (threshold < (uint32_t)(  1.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_1_5;   }
+    else if (threshold < (uint32_t)(  3.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_3_5;   }
+    else if (threshold < (uint32_t)(  7.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_7_5;   }
+    else if (threshold < (uint32_t)( 12.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_12_5;  }
+    else if (threshold < (uint32_t)( 19.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_19_5;  }
+    else if (threshold < (uint32_t)( 39.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_39_5;  }
+    else if (threshold < (uint32_t)( 79.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_79_5;  }
+    else                                          { adc_smpr = ADC_SMPR_SMP_160_5; }
 
     ADC1_COMMON->CCR = (ADC1_COMMON->CCR & ~ADC_CCR_LFMEN) | ((adcclk < 3500000) ? ADC_CCR_LFMEN : 0);
 
@@ -314,7 +302,7 @@ uint32_t stm32l0_adc_read(unsigned int channel, uint16_t smp)
     return data;
 }
 
-bool stm32l0_adc_convert(void *data, uint32_t count, uint16_t mask, uint16_t smp, uint32_t control, stm32l0_adc_done_callback_t callback, void *context)
+bool stm32l0_adc_convert(void *data, uint32_t count, uint16_t mask, uint16_t period, uint32_t control, stm32l0_adc_done_callback_t callback, void *context)
 {
     uint32_t hclk, pclk, adcclk, adc_cfgr1, adc_cfgr2, adc_smpr, adc_ccr, threshold, channels, option;
 
@@ -326,7 +314,7 @@ bool stm32l0_adc_convert(void *data, uint32_t count, uint16_t mask, uint16_t smp
     hclk = stm32l0_system_hclk();
     pclk = stm32l0_system_pclk2();
 
-    if ((stm32l0_adc_device.state == STM32L0_ADC_STATE_READY) || (stm32l0_adc_device.mask != mask) || (stm32l0_adc_device.smp != smp) || (stm32l0_adc_device.control != control))
+    if ((stm32l0_adc_device.state == STM32L0_ADC_STATE_READY) || (stm32l0_adc_device.mask != mask) || (stm32l0_adc_device.period != period) || (stm32l0_adc_device.control != control))
     {
         if (((control & STM32L0_ADC_CONTROL_MODE_MASK) >= STM32L0_ADC_CONTROL_MODE_CONTINUOUS_1000000) && (hclk < 32000000))
         {
@@ -459,33 +447,21 @@ bool stm32l0_adc_convert(void *data, uint32_t count, uint16_t mask, uint16_t smp
                 }
             }
             
-            /* smp is in nS. 1e9 / adcclk is one tick in terms of nS.
-             *
-             * (smp * adcclk) / 1e9 is the threshold for the sampling time.
-             *
-             * smp has a upper limit of 50000nS. Hence this calculation will
-             * overflow by 8 bits (max adcclk == 16MHz).
-             * 
-             * Hence we use:
-             *
-             * (smp * (adcclk / 256)) / (1e9 / 256)
-             */
-
-            if (smp > 50000)
-            {
-                smp = 50000;
-            }
-            
-            threshold = ((uint32_t)smp * (adcclk / 256));
-            
-            if      (threshold < (uint32_t)(  1.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_1_5;   }
-            else if (threshold < (uint32_t)(  3.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_3_5;   }
-            else if (threshold < (uint32_t)(  7.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_7_5;   }
-            else if (threshold < (uint32_t)( 12.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_12_5;  }
-            else if (threshold < (uint32_t)( 19.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_19_5;  }
-            else if (threshold < (uint32_t)( 39.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_39_5;  }
-            else if (threshold < (uint32_t)( 79.5 * (1e9 / 256))) { adc_smpr = ADC_SMPR_SMP_79_5;  }
-            else                                                  { adc_smpr = ADC_SMPR_SMP_160_5; }
+	    if (period > 50)
+	    {
+		period = 50;
+	    }
+	    
+	    threshold = ((uint32_t)period * adcclk);
+	    
+	    if      (threshold < (uint32_t)(  1.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_1_5;   }
+	    else if (threshold < (uint32_t)(  3.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_3_5;   }
+	    else if (threshold < (uint32_t)(  7.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_7_5;   }
+	    else if (threshold < (uint32_t)( 12.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_12_5;  }
+	    else if (threshold < (uint32_t)( 19.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_19_5;  }
+	    else if (threshold < (uint32_t)( 39.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_39_5;  }
+	    else if (threshold < (uint32_t)( 79.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_79_5;  }
+	    else                                          { adc_smpr = ADC_SMPR_SMP_160_5; }
         }
 
         ADC1_COMMON->CCR = (ADC1_COMMON->CCR & ~(ADC_CCR_LFMEN | ADC_CCR_PRESC)) | adc_ccr;
@@ -495,7 +471,7 @@ bool stm32l0_adc_convert(void *data, uint32_t count, uint16_t mask, uint16_t smp
         ADC1->SMPR = adc_smpr;
         ADC1->CHSELR = mask & 0xffff;
 
-        stm32l0_adc_device.smp = smp;
+        stm32l0_adc_device.period = period;
         stm32l0_adc_device.mask = mask;
         stm32l0_adc_device.control = control;
 

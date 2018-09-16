@@ -67,7 +67,7 @@ extern uint32_t analogRead( uint32_t ulPin ) ;
 extern void analogReadResolution(int resolution);
 
 /*
- * \brief Set the sampling period of analogRead in nanoseconds. Default is 2000 nanosceonds (range from 0 to 50000).
+ * \brief Set the sampling period of analogRead in microseconds. Default is 2 microsceonds (range from 0 to 50).
  *
  * \param res
  */

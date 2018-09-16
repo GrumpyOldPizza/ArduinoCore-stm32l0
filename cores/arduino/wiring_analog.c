@@ -44,7 +44,7 @@ static uint8_t _channels[PWM_INSTANCE_COUNT];
 #endif /* PWM_INSTANCE_COUNT */
 
 static int _readResolution = 10;
-static int _readPeriod = 2000;
+static int _readPeriod = 2;
 static int _writeResolution = 8;
 
 void analogReference(eAnalogReference reference)
@@ -79,20 +79,20 @@ static inline uint32_t mapResolution(uint32_t value, uint32_t from, uint32_t to)
     }
 }
 
-static uint32_t __analogReadRoutine(uint32_t channel, uint32_t smp)
+static uint32_t __analogReadRoutine(uint32_t channel, uint32_t period)
 {
     uint32_t data;
 
     stm32l0_adc_enable();
 
-    data = stm32l0_adc_read(channel, smp);
+    data = stm32l0_adc_read(channel, period);
 
     stm32l0_adc_disable();
 
     return data;
 }
 
-uint32_t __analogReadInternal(uint32_t channel, uint32_t smp)
+uint32_t __analogReadInternal(uint32_t channel, uint32_t period)
 {
     IRQn_Type irq;
 
@@ -100,13 +100,13 @@ uint32_t __analogReadInternal(uint32_t channel, uint32_t smp)
 
     if (irq == Reset_IRQn)
     {
-	return (uint32_t)armv6m_svcall_2((uint32_t)&__analogReadRoutine, (uint32_t)channel, (uint32_t)smp);
+	return (uint32_t)armv6m_svcall_2((uint32_t)&__analogReadRoutine, (uint32_t)channel, (uint32_t)period);
     }
     else
     {
 	if ((irq == SVC_IRQn) || (irq == PendSV_IRQn))
 	{
-	    return __analogReadRoutine(channel, smp);
+	    return __analogReadRoutine(channel, period);
 	}
 	else
 	{

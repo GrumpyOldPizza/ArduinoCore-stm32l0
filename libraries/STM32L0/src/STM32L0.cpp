@@ -73,8 +73,8 @@ float STM32L0Class::getVBAT()
     int32_t vrefint_data, vbat_data;
     float vdda;
 
-    vrefint_data = __analogReadInternal(STM32L0_ADC_CHANNEL_VREFINT, STM32L0_ADC_VREFINT_SMP);
-    vbat_data = __analogReadInternal(STM32L0_CONFIG_CHANNEL_VBAT, STM32L0_CONFIG_VBAT_SMP);
+    vrefint_data = __analogReadInternal(STM32L0_ADC_CHANNEL_VREFINT, STM32L0_ADC_VREFINT_PERIOD);
+    vbat_data = __analogReadInternal(STM32L0_CONFIG_CHANNEL_VBAT, STM32L0_CONFIG_VBAT_PERIOD);
 
     vdda = (3.0 * STM32L0_ADC_VREFINT_CAL) / vrefint_data;
 
@@ -91,7 +91,7 @@ float STM32L0Class::getVDDA()
 {
     int32_t vrefint_data;
 
-    vrefint_data = __analogReadInternal(STM32L0_ADC_CHANNEL_VREFINT, STM32L0_ADC_VREFINT_SMP);
+    vrefint_data = __analogReadInternal(STM32L0_ADC_CHANNEL_VREFINT, STM32L0_ADC_VREFINT_PERIOD);
 
     return (3.0 * STM32L0_ADC_VREFINT_CAL) / vrefint_data;
 }
@@ -100,8 +100,8 @@ float STM32L0Class::getTemperature()
 {
     int32_t vrefint_data, tsense_data;
 
-    vrefint_data = __analogReadInternal(STM32L0_ADC_CHANNEL_VREFINT, STM32L0_ADC_VREFINT_SMP);
-    tsense_data = __analogReadInternal(STM32L0_ADC_CHANNEL_TSENSE, STM32L0_ADC_TSENSE_SMP);
+    vrefint_data = __analogReadInternal(STM32L0_ADC_CHANNEL_VREFINT, STM32L0_ADC_VREFINT_PERIOD);
+    tsense_data = __analogReadInternal(STM32L0_ADC_CHANNEL_TSENSE, STM32L0_ADC_TSENSE_PERIOD);
 
     /* Compensate TSENSE_DATA for VDDA vs. 3.0 */
     tsense_data = (tsense_data * STM32L0_ADC_VREFINT_CAL) / vrefint_data;
