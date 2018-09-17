@@ -108,7 +108,7 @@ static __attribute__((naked, used)) void armv6m_event_return(void)
 {
     __asm__(
         "  ldr     r0, =armv6m_event_svcall            \n"
-        "  mov     r12, r0                             \n"
+        "  mov     r7, r0                              \n"
         "  svc     0                                   \n"
         "  bkpt                                        \n"
         :
