@@ -205,8 +205,10 @@ static uint32_t stm32l0_uart_dma_receive(stm32l0_uart_t *uart, uint32_t count)
 
         rx_entries = armv6m_atomic_add(&uart->rx_count, rx_count);
         
-        if (rx_count && !rx_entries)
+        if (rx_count && uart->rx_event)
         {
+	    uart->rx_event = false;
+
             events |= STM32L0_UART_EVENT_RECEIVE;
         }
 
@@ -584,7 +586,7 @@ static void stm32l0_uart_exti_callback(stm32l0_uart_t *uart)
 static void stm32l0_uart_interrupt(stm32l0_uart_t *uart)
 {
     USART_TypeDef *USART = uart->USART;
-    uint32_t events, rx_write, rx_entries, tx_count;
+    uint32_t events, rx_write, tx_count;
     uint8_t rx_data;
 
     events = 0;
@@ -658,10 +660,12 @@ static void stm32l0_uart_interrupt(stm32l0_uart_t *uart)
             
                     uart->rx_write = rx_write;
             
-                    rx_entries = armv6m_atomic_add(&uart->rx_count, 1);
+                    armv6m_atomic_add(&uart->rx_count, 1);
             
-                    if (!rx_entries)
+                    if (uart->rx_event)
                     {
+			uart->rx_event = false;
+
                         events |= STM32L0_UART_EVENT_RECEIVE;
                     }
             
@@ -1070,6 +1074,7 @@ bool stm32l0_uart_enable(stm32l0_uart_t *uart, uint8_t *rx_data, uint32_t rx_siz
     uart->rx_sequence = 0;
     uart->rx_enable = 1;
     uart->rx_xonoff = UART_DATA_XON;
+    uart->rx_event = true;
 
     uart->tx_callback = NULL;
     uart->tx_context = NULL;
@@ -1483,6 +1488,7 @@ uint32_t stm32l0_uart_receive(stm32l0_uart_t *uart, uint8_t *rx_data, uint32_t r
     if (!peek)
     {
         uart->rx_read = rx_read;
+        uart->rx_event = true;
 
         rx_entries = armv6m_atomic_sub(&uart->rx_count, rx_count);
 

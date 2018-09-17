@@ -133,6 +133,7 @@ typedef struct _stm32l0_uart_t {
     volatile uint8_t              rx_sequence;
     volatile uint8_t              rx_enable;
     volatile uint8_t              rx_xonoff;
+    volatile uint8_t              rx_event;
     stm32l0_uart_done_callback_t  tx_callback;
     void                          *tx_context;
     const uint8_t * volatile      tx_data;

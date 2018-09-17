@@ -73,6 +73,7 @@ typedef struct _stm32l0_usbd_cdc_t {
     uint16_t                          rx_write;
     volatile uint16_t                 rx_wrap;
     volatile uint32_t                 rx_count;
+    volatile uint8_t                  rx_event;
     stm32l0_usbd_cdc_done_callback_t  tx_callback;
     void                              *tx_context;
 } stm32l0_usbd_cdc_t;
