@@ -74,7 +74,7 @@ void CDC::begin(unsigned long baudrate)
     begin(baudrate, (uint8_t)SERIAL_8N1);
 }
 
-void CDC::begin(unsigned long baudrate, uint16_t config)
+void CDC::begin(unsigned long baudrate, uint32_t config)
 {
     (void)baudrate;
     (void)config;

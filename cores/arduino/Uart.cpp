@@ -61,7 +61,7 @@ void Uart::begin(unsigned long baudrate)
     begin(baudrate, SERIAL_8N1, &_rx_data[0], sizeof(_rx_data));
 }
 
-void Uart::begin(unsigned long baudrate, uint16_t config)
+void Uart::begin(unsigned long baudrate, uint32_t config)
 {
     begin(baudrate, config, &_rx_data[0], sizeof(_rx_data));
 }
@@ -71,7 +71,7 @@ void Uart::begin(unsigned long baudrate, uint8_t *buffer, size_t size)
     begin(baudrate, SERIAL_8N1, buffer, size);
 }
 
-void Uart::begin(unsigned long baudrate, uint16_t config, uint8_t *buffer, size_t size)
+void Uart::begin(unsigned long baudrate, uint32_t config, uint8_t *buffer, size_t size)
 {
     uint32_t option;
 

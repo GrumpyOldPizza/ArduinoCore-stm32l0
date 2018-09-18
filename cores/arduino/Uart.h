@@ -44,9 +44,9 @@ public:
   
     Uart(struct _stm32l0_uart_t *uart, const struct _stm32l0_uart_params_t *params, void (*serialEventRun)(void));
     void begin(unsigned long baudRate);
-    void begin(unsigned long baudrate, uint16_t config);
+    void begin(unsigned long baudrate, uint32_t config);
     void begin(unsigned long baudRate, uint8_t *buffer, size_t size);
-    void begin(unsigned long baudrate, uint16_t config, uint8_t *buffer, size_t size);
+    void begin(unsigned long baudrate, uint32_t config, uint8_t *buffer, size_t size);
     void end();
     virtual int available();
     virtual int availableForWrite(void);
