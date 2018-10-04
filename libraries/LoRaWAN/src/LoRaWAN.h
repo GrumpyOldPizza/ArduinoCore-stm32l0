@@ -233,15 +233,15 @@ private:
     uint8_t           *_tx_data;
     uint8_t           _tx_size;
     uint8_t           _tx_port;
-    uint8_t           _tx_join;
-    uint8_t           _tx_active;
     uint8_t           _tx_confirmed;
+    volatile uint8_t  _tx_join;
+    volatile uint8_t  _tx_active;
     volatile uint8_t  _tx_pending;
     volatile uint8_t  _tx_ack;
     volatile uint8_t  _tx_busy;
 
     const struct LoRaWANBand *_Band;
-    uint8_t           _Joined;
+    volatile uint8_t  _Joined;
     uint8_t           _Save;
     uint8_t           _BatteryLevel;
 
@@ -251,12 +251,7 @@ private:
     uint8_t           _DataRate;
     uint8_t           _Retries;
 
-    uint8_t           _ComplianceTestEnable;
-    uint8_t           _ComplianceTestRunning;
-    uint8_t           _ComplianceTestState;
-    uint8_t           _ComplianceTestConfirmed;
-    uint8_t           _ComplianceTestLinkCheck;
-    uint16_t          _ComplianceTestCount;
+    uint8_t           _ComplianceTest;
 
     uint16_t          _JoinRetries;    
     volatile uint16_t _JoinTrials;    

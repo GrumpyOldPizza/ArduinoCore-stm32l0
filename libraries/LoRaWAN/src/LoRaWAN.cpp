@@ -119,6 +119,86 @@ static uint32_t crc32(const uint8_t *data, uint32_t size, uint32_t crc)
     return crc;
 }
 
+#define LORAWAN_COMPLIANCE_TEST
+
+#if defined(LORAWAN_COMPLIANCE_TEST)
+
+static struct {
+    uint8_t             Running;
+    uint8_t             LinkCheck;
+    uint8_t             DemodMargin;
+    uint8_t             NbGateways;
+    uint16_t            DownLinkCounter;
+    uint16_t            UpLinkCounter;
+    uint8_t             TxIsConfirmed;
+    uint8_t             TxSize;
+    uint8_t             TxData[20];
+    stm32l0_rtc_timer_t Timer;
+} ComplianceTest;
+
+static void ComplianceTestCallback(void)
+{
+    McpsReq_t mcpsReq;
+    unsigned int txSize;
+    uint8_t *txData, txBuffer[3];
+
+    if (ComplianceTest.Running)
+    {
+	if (ComplianceTest.LinkCheck)
+	{
+	    txSize = 3;
+	    txData = &txBuffer[0];
+	
+	    txData[0] = 5;
+	    txData[1] = ComplianceTest.DemodMargin;
+	    txData[2] = ComplianceTest.NbGateways;
+	}
+	else
+	{
+	    if (ComplianceTest.TxSize)
+	    {
+		txSize = ComplianceTest.TxSize;
+		txData = &ComplianceTest.TxData[0];
+	    
+		ComplianceTest.TxSize = 0;
+	    }
+	    else
+	    {
+		txSize = 2;
+		txData = &txBuffer[0];
+	    
+		txData[0] = ComplianceTest.DownLinkCounter >> 8;
+		txData[1] = ComplianceTest.DownLinkCounter & 0xFF;
+	    }
+	}
+
+	if (ComplianceTest.TxIsConfirmed)
+	{
+	    mcpsReq.Type = MCPS_CONFIRMED;
+	    mcpsReq.Req.Confirmed.fPort = 224;
+	    mcpsReq.Req.Confirmed.fBuffer = txData;
+	    mcpsReq.Req.Confirmed.fBufferSize = txSize;
+	    mcpsReq.Req.Confirmed.NbTrials = 8;
+	    mcpsReq.Req.Confirmed.Datarate = 0;
+	}
+	else
+	{
+	    mcpsReq.Type = MCPS_UNCONFIRMED;
+	    mcpsReq.Req.Unconfirmed.fPort = 224;
+	    mcpsReq.Req.Unconfirmed.fBuffer = txData;
+	    mcpsReq.Req.Unconfirmed.fBufferSize = txSize;
+	    mcpsReq.Req.Unconfirmed.Datarate = 0;
+	}
+
+	LoRaMacMcpsRequest(&mcpsReq);
+
+	// RESTART TIMER
+	stm32l0_rtc_timer_start(&ComplianceTest.Timer, 5, 0, false);
+    }
+}
+
+#endif /* LORAWAN_COMPLIANCE_TEST */
+
 static uint32_t LoRaWANBuffer[(LORAWAN_TX_BUFFER_SIZE + 3) / 4 + (LORAWAN_RX_BUFFER_SIZE + 3) / 4];
 
 struct LoRaWANBand {
@@ -328,56 +408,6 @@ static LoRaMacStatus_t LoRaWANChannelRemove( uint8_t id )
     }
 }
 
-#ifdef notyet
-
-static LoRaMacStatus_t LoRaWANMulticastChannelLink( MulticastParams_t *channelParam )
-{
-    IRQn_Type irq;
-
-    irq = (IRQn_Type)((__get_IPSR() & 0x1ff) - 16);
-
-    if (irq == Reset_IRQn)
-    {
-        return (LoRaMacStatus_t)armv6m_svcall_1((uint32_t)&LoRaMacMulticastChannelLink, (uint32_t)channelParam);
-    }
-    else
-    {
-        if ((irq == SVC_IRQn) || (irq == PendSV_IRQn))
-        {
-            return LoRaMacMulticastChannelLink(channelParam);
-        }
-        else
-        {
-            return LORAMAC_STATUS_BUSY;
-        }
-    }
-}
-
-static LoRaMacStatus_t LoRaWANMulticastChannelUnlink( MulticastParams_t *channelParam )
-{
-    IRQn_Type irq;
-
-    irq = (IRQn_Type)((__get_IPSR() & 0x1ff) - 16);
-
-    if (irq == Reset_IRQn)
-    {
-        return (LoRaMacStatus_t)armv6m_svcall_1((uint32_t)&LoRaMacMulticastChannelUnlink, (uint32_t)channelParam);
-    }
-    else
-    {
-        if ((irq == SVC_IRQn) || (irq == PendSV_IRQn))
-        {
-            return LoRaMacMulticastChannelUnlink(channelParam);
-        }
-        else
-        {
-            return LORAMAC_STATUS_BUSY;
-        }
-    }
-}
-
-#endif
-
 static LoRaMacStatus_t LoRaWANMibGetRequestConfirm( MibRequestConfirm_t *mibGet )
 {
     IRQn_Type irq;
@@ -505,9 +535,7 @@ LoRaWANClass::LoRaWANClass()
     _LinkCheckMargin = 0;
     _LinkCheckGateways = 0;
 
-    _ComplianceTestEnable = true;
-    _ComplianceTestRunning = false;
-    _ComplianceTestState = 0;
+    _ComplianceTest = true;
 
     _PublicNetwork = 0;
     _SubBand = 0;
@@ -526,12 +554,16 @@ LoRaWANClass::LoRaWANClass()
     EEPROMTransaction.status = STM32L0_EEPROM_STATUS_NONE;
     EEPROMTransaction.callback = (stm32l0_eeprom_done_callback_t)LoRaWANClass::_eepromSync;
     EEPROMTransaction.context = (void*)this;
+
+#if defined(LORAWAN_COMPLIANCE_TEST)
+    ComplianceTest.Running = false;
+
+    stm32l0_rtc_timer_create(&ComplianceTest.Timer, (stm32l0_rtc_timer_callback_t)ComplianceTestCallback, NULL);
+#endif /* LORAWAN_COMPLIANCE_TEST */
 }
 
 int LoRaWANClass::begin(const struct LoRaWANBand &band)
 {
-    MibRequestConfirm_t mibReq;
-
     static const LoRaMacPrimitives_t LoRaMacPrimitives = {
         LoRaWANClass::__McpsConfirm,
         LoRaWANClass::__McpsIndication,
@@ -582,13 +614,15 @@ int LoRaWANClass::begin(const struct LoRaWANBand &band)
 
     LoRaMacInitialization(&LoRaMacPrimitives, &LoRaMacCallbacks, _Band->LoRaMacRegion);
 
-    mibReq.Type = MIB_ANTENNA_GAIN;
 #if defined(STM32L0_CONFIG_ANTENNA_GAIN)
-    mibReq.Param.AntennaGain = STM32L0_CONFIG_ANTENNA_GAIN;
-#else
-    mibReq.Param.AntennaGain = 2.0f;
+    {
+	MibRequestConfirm_t mibReq;
+
+	mibReq.Type = MIB_ANTENNA_GAIN;
+	mibReq.Param.AntennaGain = STM32L0_CONFIG_ANTENNA_GAIN;
+	LoRaWANMibSetRequestConfirm(&mibReq);
+    }
 #endif
-    LoRaWANMibSetRequestConfirm(&mibReq);
 
     LoRaMacTxDelay = 1;
 
@@ -2135,7 +2169,7 @@ int LoRaWANClass::setComplianceTest(bool enable)
         return 0;
     }
 
-    _ComplianceTestEnable = enable;
+    _ComplianceTest = enable;
 
     return 1;
 }
@@ -2641,6 +2675,7 @@ int LoRaWANClass::_rejoinOTAA()
     }
 
     _Joined = false;
+    _JoinTrials = 0;
 
     _AdrWait = 0;
     _LinkCheckFail = 0;
@@ -2716,93 +2751,44 @@ bool LoRaWANClass::_send()
     MlmeReq_t mlmeReq;
     LoRaMacTxInfo_t txInfo;
     unsigned int fOptLen = 0;
-    bool tx_active, tx_confirmed;
-    unsigned int tx_port, tx_size;
-    uint8_t *tx_data, txData[3];
 
     if (LoRaWANQueryTxPossible(0, _DataRate, &txInfo) != LORAMAC_STATUS_OK) 
     {
         _tx_active = false;
         _tx_busy = false;
 
-        _ComplianceTestLinkCheck = 0;
-        
         return false;
     }
 
-    tx_active = _tx_active;
-    tx_confirmed = _tx_confirmed;
-    tx_port = _tx_port;
-    tx_size = _tx_size;
-    tx_data = _tx_data;
-
-    if (_ComplianceTestRunning)
+    if (_tx_size > txInfo.CurrentPayloadSize)
     {
-        tx_confirmed = _ComplianceTestConfirmed;
-        tx_port = 224;
-
-        if (_ComplianceTestLinkCheck)
-        {
-            tx_size = 3;
-            tx_data = &txData[0];
-
-            tx_data[0] = 5;
-            tx_data[1] = _LinkCheckMargin;
-            tx_data[2] = _LinkCheckGateways;
-        }
-        else
-        {
-            if (_ComplianceTestState == 1)
-            {
-                tx_size = 2;
-                tx_data = &txData[0];
-
-                tx_data[0] = _ComplianceTestCount >> 8;
-                tx_data[1] = _ComplianceTestCount & 0xFF;
-            }
-
-            if (_ComplianceTestState == 4)
-            {
-                if (tx_size > txInfo.MaxPossiblePayload) {
-                    tx_size = txInfo.MaxPossiblePayload;
-                }
-                
-                _ComplianceTestState = 1;
-            }
-        }
-    }
-    else
-    {
-        if (tx_size > txInfo.CurrentPayloadSize)
-        {
-            _tx_active = false;
-            _tx_busy = false;
-            
-            return false;
-        }
+	_tx_active = false;
+	_tx_busy = false;
         
-        if (_LinkCheckCount)
-        {
-            if (!(tx_confirmed && (tx_size <= txInfo.MaxPossiblePayload)))
-            {
-                _LinkCheckCount--;
+	return false;
+    }
+        
+    if (_LinkCheckCount)
+    {
+	if (!(_tx_confirmed && (_tx_size <= txInfo.MaxPossiblePayload)))
+	{
+	    _LinkCheckCount--;
             
-                if (_LinkCheckCount == 0) {
-                    mlmeReq.Type = MLME_LINK_CHECK;
-                    if (LoRaWANMlmeRequest(&mlmeReq) == LORAMAC_STATUS_OK) {
-                        fOptLen = 1;
+	    if (_LinkCheckCount == 0) {
+		mlmeReq.Type = MLME_LINK_CHECK;
+		if (LoRaWANMlmeRequest(&mlmeReq) == LORAMAC_STATUS_OK) {
+		    fOptLen = 1;
                     
-                        _LinkCheckCount = _LinkCheckLimit;
-                        _LinkCheckWait = _LinkCheckDelay;
-                    }  else {
-                        _LinkCheckCount++;
-                    }
-                }
-            }
-        }
+		    _LinkCheckCount = _LinkCheckLimit;
+		    _LinkCheckWait = _LinkCheckDelay;
+		}  else {
+		    _LinkCheckCount++;
+		}
+	    }
+	}
     }
 
-    if (tx_size > (txInfo.MaxPossiblePayload + fOptLen)) 
+    if (_tx_size > (txInfo.MaxPossiblePayload + fOptLen)) 
     {
         mcpsReq.Type = MCPS_UNCONFIRMED;
         mcpsReq.Req.Unconfirmed.fPort = 0;
@@ -2814,21 +2800,21 @@ bool LoRaWANClass::_send()
     {
         _tx_active = false;
 
-        if (tx_confirmed)
+        if (_tx_confirmed)
         {
             mcpsReq.Type = MCPS_CONFIRMED;
-            mcpsReq.Req.Confirmed.fPort = tx_port;
-            mcpsReq.Req.Confirmed.fBuffer = tx_data;
-            mcpsReq.Req.Confirmed.fBufferSize = tx_size;
+            mcpsReq.Req.Confirmed.fPort = _tx_port;
+            mcpsReq.Req.Confirmed.fBuffer = _tx_data;
+            mcpsReq.Req.Confirmed.fBufferSize = _tx_size;
             mcpsReq.Req.Confirmed.NbTrials = 1 + _Retries;
             mcpsReq.Req.Confirmed.Datarate = _DataRate;
         }
         else
         {
             mcpsReq.Type = MCPS_UNCONFIRMED;
-            mcpsReq.Req.Unconfirmed.fPort = tx_port;
-            mcpsReq.Req.Unconfirmed.fBuffer = tx_data;
-            mcpsReq.Req.Unconfirmed.fBufferSize = tx_size;
+            mcpsReq.Req.Unconfirmed.fPort = _tx_port;
+            mcpsReq.Req.Unconfirmed.fBuffer = _tx_data;
+            mcpsReq.Req.Unconfirmed.fBufferSize = _tx_size;
             mcpsReq.Req.Unconfirmed.Datarate = _DataRate;
         }
     }
@@ -2838,21 +2824,10 @@ bool LoRaWANClass::_send()
         _tx_active = false;
         _tx_busy = false;
 
-        _ComplianceTestLinkCheck = 0;
-
         return false;
     }
 
     _tx_pending = false;
-
-    if (_ComplianceTestRunning)
-    {
-        if (_ComplianceTestLinkCheck) {
-            _ComplianceTestLinkCheck = 0;
-
-            _tx_active = tx_active;
-        }
-    }
 
     return true;
 }
@@ -3018,6 +2993,8 @@ void LoRaWANClass::__McpsJoin()
 
     if (LoRaMacMcpsRequest(&mcpsReq) != LORAMAC_STATUS_OK)
     {
+        LoRaWAN._Joined = true;
+        
         LoRaWAN._tx_join = false;
         LoRaWAN._tx_busy = false;
         
@@ -3029,9 +3006,7 @@ void LoRaWANClass::__McpsSend()
 {
     if (!LoRaWAN._send())
     {
-        if (!LoRaWAN._ComplianceTestRunning) {
-            LoRaWAN._transmitCallback.queue();
-        }
+	LoRaWAN._transmitCallback.queue();
     }
 }
 
@@ -3053,7 +3028,27 @@ void LoRaWANClass::__McpsConfirm( McpsConfirm_t *mcpsConfirm )
 	
 	LoRaWAN._saveUpLinkCounter();
 	
-	if (!LoRaWAN._ComplianceTestRunning)
+#if defined(LORAWAN_COMPLIANCE_TEST)
+	if (ComplianceTest.Running)
+	{
+	    ComplianceTest.UpLinkCounter++;
+
+	    if (ComplianceTest.UpLinkCounter > 192)
+	    {
+		ComplianceTest.Running = false;
+
+		// STOP TIMER
+		stm32l0_rtc_timer_stop(&ComplianceTest.Timer);
+		
+		LoRaWAN._tx_busy = false;
+		
+		if (LoRaWAN._Band->DutyCycle) {
+		    LoRaMacTestSetDutyCycleOn(LoRaWAN._DutyCycle);
+		}
+	    }
+	}
+	else
+#endif /* LORAWAN_COMPLIANCE_TEST */
 	{
 	    LoRaWAN._saveADR();
 
@@ -3115,29 +3110,33 @@ void LoRaWANClass::__McpsConfirm( McpsConfirm_t *mcpsConfirm )
 	LoRaWAN._AdrLastTxPower = LoRaMacParams.ChannelsTxPower;
     }
 
-    if (LoRaWAN._ComplianceTestState != 0)
+#if defined(LORAWAN_COMPLIANCE_TEST)
+    if (!ComplianceTest.Running)
+#endif /* LORAWAN_COMPLIANCE_TEST */
     {
-	LoRaWAN._ComplianceTestRunning = true;
-	
-	LoRaWAN._tx_active = true;
-    }
-
-    if (LoRaWAN._tx_active)
-    {
-	armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)LoRaWANClass::__McpsSend, NULL, 0);
-    }
-    else
-    {
-	if (!LoRaMacFlags.Bits.McpsInd || LoRaMacFlags.Bits.McpsIndSkip)
+	if (LoRaWAN._tx_active)
 	{
-	    LoRaWAN._tx_busy = false;
-	    
-	    if (LoRaWAN._tx_join) {
-		LoRaWAN._tx_join = false;
+	    armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)LoRaWANClass::__McpsSend, NULL, 0);
+	}
+	else
+	{
+	    if (!LoRaMacFlags.Bits.McpsInd || LoRaMacFlags.Bits.McpsIndSkip)
+	    {
+		if (LoRaWAN._tx_join)
+		{
+		    LoRaWAN._Joined = true;
 		
-		LoRaWAN._joinCallback.queue();
-	    } else {
-		LoRaWAN._transmitCallback.queue();
+		    LoRaWAN._tx_join = false;
+		    LoRaWAN._tx_busy = false;
+		    
+		    LoRaWAN._joinCallback.queue();
+		}
+		else
+		{
+		    LoRaWAN._tx_busy = false;
+		    
+		    LoRaWAN._transmitCallback.queue();
+		}
 	    }
 	}
     }
@@ -3150,10 +3149,12 @@ void LoRaWANClass::__McpsIndication( McpsIndication_t *mcpsIndication )
     uint32_t rx_write, rx_size;
     unsigned int i;
 
+#if defined(LORAWAN_COMPLIANCE_TEST)
+    bool ComplianceTestRunning = ComplianceTest.Running;
+#endif /* LORAWAN_COMPLIANCE_TEST */
+
     if (mcpsIndication->Status == LORAMAC_EVENT_INFO_STATUS_OK)
     {
-	LoRaWAN._rx_pending = mcpsIndication->FramePending;
-
 	LoRaWAN._SNR = mcpsIndication->Snr;
 	LoRaWAN._RSSI = mcpsIndication->Rssi;
 	LoRaWAN._DownLinkCounter = mcpsIndication->DownLinkCounter;
@@ -3162,10 +3163,7 @@ void LoRaWANClass::__McpsIndication( McpsIndication_t *mcpsIndication )
 
 	if (mcpsIndication->ParamsUpdated) 
 	{
-	    if (!LoRaWAN._ComplianceTestRunning)
-	    {
-		LoRaWAN._saveADR();
-	    }
+	    LoRaWAN._saveADR();
 
 	    if (LoRaWAN._Save)
 	    {
@@ -3174,208 +3172,244 @@ void LoRaWANClass::__McpsIndication( McpsIndication_t *mcpsIndication )
 	    }
 	}
 
-	LoRaWAN._AdrWait = 0;
+	LoRaWAN._rx_pending = mcpsIndication->FramePending;
 
-	if (LoRaWAN._LinkCheckGateways == 0) {
-	    LoRaWAN._LinkCheckGateways = 1;
-	}
-
-	if (mcpsIndication->RxData == true)
+#if defined(LORAWAN_COMPLIANCE_TEST)
+	if (ComplianceTest.Running)
 	{
-	    if (mcpsIndication->Port == 224)
+	    ComplianceTest.DownLinkCounter++;
+	    ComplianceTest.UpLinkCounter = 0;
+
+	    if (mcpsIndication->RxData == true)
 	    {
-		if (LoRaWAN._ComplianceTestEnable)
+		if (mcpsIndication->Port == 224)
 		{
-		    if (LoRaWAN._ComplianceTestState == 0)
-		    {
-			// Check compliance test enable command (i)
-			if( (mcpsIndication->BufferSize == 4) &&
-			    (mcpsIndication->Buffer[0] == 0x01) &&
-			    (mcpsIndication->Buffer[1] == 0x01) &&
-			    (mcpsIndication->Buffer[2] == 0x01) &&
-			    (mcpsIndication->Buffer[3] == 0x01))
-			{
-			    LoRaWAN._ComplianceTestState = 1;
-			    LoRaWAN._ComplianceTestConfirmed = false;
-			    LoRaWAN._ComplianceTestLinkCheck = false;
-			    LoRaWAN._ComplianceTestCount = 0;
-                    
-			    mibReq.Param.AdrEnable = true;
-			    LoRaMacMibSetRequestConfirm(&mibReq);
-                    
-			    if (LoRaWAN._Band->DutyCycle) {
-				LoRaMacTestSetDutyCycleOn(false);
-			    }
+		    switch(mcpsIndication->Buffer[0]) {
+		    case 0: // Check compliance test disable command (ii)
+			ComplianceTest.Running = false;
+
+			// STOP TIMER
+			stm32l0_rtc_timer_stop(&ComplianceTest.Timer);
+
+			LoRaWAN._tx_busy = false;
+
+			if (LoRaWAN._Band->DutyCycle) {
+			    LoRaMacTestSetDutyCycleOn(LoRaWAN._DutyCycle);
+			}
+			break;
+
+		    case 1: // (iii, iv)
+			break;
+
+		    case 2: // Enable confirmed messages (v)
+			ComplianceTest.TxIsConfirmed = true;
+			break;
+
+		    case 3:  // Disable confirmed messages (vi)
+			ComplianceTest.TxIsConfirmed = false;
+			break;
+			
+		    case 4: // (vii)
+			ComplianceTest.TxSize = mcpsIndication->BufferSize;
+
+			if (ComplianceTest.TxSize > 18) {
+			    ComplianceTest.TxSize = 18;
+			}
+			
+			ComplianceTest.TxData[0] = 4;
+			
+			for (i = 1; i < ComplianceTest.TxSize; i++) { 
+			    ComplianceTest.TxData[i] = mcpsIndication->Buffer[i] +1;
+			}
+			break;
+			
+		    case 5: // (viii)
+			mlmeReq.Type = MLME_LINK_CHECK;
+			LoRaMacMlmeRequest(&mlmeReq);
+			break;
+			
+		    case 6: // Disable TestMode and revert back to normal operation (ix)
+			ComplianceTest.Running = false;
+
+			// STOP TIMER
+			stm32l0_rtc_timer_stop(&ComplianceTest.Timer);
+
+			if (LoRaWAN._Band->DutyCycle) {
+			    LoRaMacTestSetDutyCycleOn(LoRaWAN._DutyCycle);
 			}
 
-			if (!LoRaWAN._tx_active) 
+			LoRaWAN._session.NetID = 0;
+			LoRaWAN._session.DevAddr = 0;
+        
+			memset(LoRaWAN._session.NwkSKey, 0, 16);
+			memset(LoRaWAN._session.AppSKey, 0, 16);
+			
+			LoRaWAN._UpLinkCounter = 0;
+			LoRaWAN._DownLinkCounter = 0;
+			
+			LoRaWAN._saveSession();
+
+			LoRaWAN._Joined = false;
+			LoRaWAN._JoinTrials = 0;
+			    
+			armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)LoRaWANClass::__MlmeJoin, NULL, 0);
+			break;
+			
+		    case 7: // (x)
+			if (mcpsIndication->BufferSize == 3)
 			{
-			    LoRaWAN._ComplianceTestRunning = true;
-
-			    LoRaWAN._tx_active = true;
-
-			    armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)LoRaWANClass::__McpsSend, NULL, 0);
-			}
-		    }
-		    else
-		    {
-			LoRaWAN._ComplianceTestState = mcpsIndication->Buffer[0];
-
-			switch(LoRaWAN._ComplianceTestState) {
-			case 0: // Check compliance test disable command (ii)
-			    LoRaWAN._ComplianceTestRunning = false;
-			    LoRaWAN._ComplianceTestState = 0;
-
-			    LoRaWAN._restoreADR();
-
-			    if (LoRaWAN._Band->DutyCycle) {
-				LoRaMacTestSetDutyCycleOn(LoRaWAN._DutyCycle);
-			    }
-			    break;
-
-			case 1: // (iii, iv)
-			    break;
-
-			case 2: // Enable confirmed messages (v)
-			    LoRaWAN._ComplianceTestConfirmed = true;
-			    break;
-
-			case 3:  // Disable confirmed messages (vi)
-			    LoRaWAN._ComplianceTestConfirmed = false;
-			    break;
-
-			case 4: // (vii)
-			    LoRaWAN._tx_size = mcpsIndication->BufferSize;
-
-			    if (LoRaWAN._tx_size > LORAWAN_MAX_PAYLOAD_SIZE) {
-				LoRaWAN._tx_size = LORAWAN_MAX_PAYLOAD_SIZE;
-			    }
-                    
-			    LoRaWAN._tx_data[0] = 4;
-
-			    for (i = 1; i < LoRaWAN._tx_size; i++) { 
-				LoRaWAN._tx_data[i] = mcpsIndication->Buffer[i] +1;
-			    }
-			    break;
-
-			case 5: // (viii)
-			    mlmeReq.Type = MLME_LINK_CHECK;
+			    mlmeReq.Type = MLME_TXCW;
+			    mlmeReq.Req.TxCw.Timeout = (uint16_t)((mcpsIndication->Buffer[1] << 8) | mcpsIndication->Buffer[2]);
 			    LoRaMacMlmeRequest(&mlmeReq);
-			    break;
-
-			case 6: // Disable TestMode and revert back to normal operation (ix)
-			    LoRaWAN._ComplianceTestRunning = false;
-			    LoRaWAN._ComplianceTestState = 0;
-
-			    LoRaWAN._restoreADR();
-
-			    if (LoRaWAN._Band->DutyCycle) {
-				LoRaMacTestSetDutyCycleOn(LoRaWAN._DutyCycle);
-			    }
-
-			    LoRaWAN._rejoinOTAA();
-			    break;
-
-			case 7: // (x)
-			    if (mcpsIndication->BufferSize == 3)
-			    {
-				mlmeReq.Type = MLME_TXCW;
-				mlmeReq.Req.TxCw.Timeout = (uint16_t)((mcpsIndication->Buffer[1] << 8) | mcpsIndication->Buffer[2]);
-				LoRaMacMlmeRequest(&mlmeReq);
-			    }
-			    else if(mcpsIndication->BufferSize == 7)
-			    {
-				mlmeReq.Type = MLME_TXCW_1;
-				mlmeReq.Req.TxCw.Timeout = (uint16_t)((mcpsIndication->Buffer[1] << 8) | mcpsIndication->Buffer[2]);
-				mlmeReq.Req.TxCw.Frequency = (uint32_t)((mcpsIndication->Buffer[3] << 16) | (mcpsIndication->Buffer[4] << 8) | mcpsIndication->Buffer[5]) * 100;
-				mlmeReq.Req.TxCw.Power = mcpsIndication->Buffer[6];
-				LoRaMacMlmeRequest(&mlmeReq);
-			    }
-			    break;
-
-			default:
-			    break;
 			}
-
-			if (LoRaWAN._ComplianceTestState != 4) {
-			    LoRaWAN._ComplianceTestState = 1;
+			else if(mcpsIndication->BufferSize == 7)
+			{
+			    mlmeReq.Type = MLME_TXCW_1;
+			    mlmeReq.Req.TxCw.Timeout = (uint16_t)((mcpsIndication->Buffer[1] << 8) | mcpsIndication->Buffer[2]);
+			    mlmeReq.Req.TxCw.Frequency = (uint32_t)((mcpsIndication->Buffer[3] << 16) | (mcpsIndication->Buffer[4] << 8) | mcpsIndication->Buffer[5]) * 100;
+			    mlmeReq.Req.TxCw.Power = mcpsIndication->Buffer[6];
+			    LoRaMacMlmeRequest(&mlmeReq);
 			}
-
-			if (LoRaWAN._ComplianceTestRunning) {
-			    LoRaWAN._tx_active = true;
-
-			    armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)LoRaWANClass::__McpsSend, NULL, 0);
-			}
+			break;
+			
+		    default:
+			break;
 		    }
 		}
 	    }
-	    else
+	}
+	else
+#endif /* LORAWAN_COMPLIANCE_TEST */ 
+	{
+	    LoRaWAN._AdrWait = 0;
+	    
+	    if (LoRaWAN._LinkCheckGateways == 0) {
+		LoRaWAN._LinkCheckGateways = 1;
+	    }
+	
+	    if (mcpsIndication->RxData == true)
 	    {
-		rx_write = LoRaWAN._rx_write;
-
-		if (rx_write < LoRaWAN._rx_read) {
-		    rx_size = LoRaWAN._rx_read - rx_write -1;
-		} else {
-		    rx_size = (LORAWAN_RX_BUFFER_SIZE - rx_write) + LoRaWAN._rx_read -1;
-		}
-
-		if (rx_size >= (unsigned int)(3 + mcpsIndication->BufferSize))
+		if (mcpsIndication->Port == 224)
 		{
-		    LoRaWAN._rx_data[rx_write] = mcpsIndication->BufferSize;
-            
-		    if (++rx_write == LORAWAN_RX_BUFFER_SIZE) {
-			rx_write = 0;
-		    }
+#if defined(LORAWAN_COMPLIANCE_TEST)
+		    if (LoRaWAN._ComplianceTest)
+		    {
+			if (!ComplianceTest.Running)
+			{
+			    // Check compliance test enable command (i)
+			    if( (mcpsIndication->BufferSize == 4) &&
+				(mcpsIndication->Buffer[0] == 0x01) &&
+				(mcpsIndication->Buffer[1] == 0x01) &&
+				(mcpsIndication->Buffer[2] == 0x01) &&
+				(mcpsIndication->Buffer[3] == 0x01))
+			    {
+				ComplianceTestRunning = true;
 
-		    LoRaWAN._rx_data[rx_write] = mcpsIndication->Port; 
+				ComplianceTest.Running = true;
+				ComplianceTest.LinkCheck = false;
+				ComplianceTest.DownLinkCounter = 0;
+				ComplianceTest.UpLinkCounter = 0;
+				ComplianceTest.TxIsConfirmed = false;
+				ComplianceTest.TxSize = 0;
 
-		    if (++rx_write == LORAWAN_RX_BUFFER_SIZE) {
-			rx_write = 0;
-		    }
+				// START TIMER
+				stm32l0_rtc_timer_start(&ComplianceTest.Timer, 5, 0, false);
+                    
+				mibReq.Param.AdrEnable = true;
+				LoRaMacMibSetRequestConfirm(&mibReq);
+                    
+				if (LoRaWAN._Band->DutyCycle) {
+				    LoRaMacTestSetDutyCycleOn(false);
+				}
 
-		    rx_size = mcpsIndication->BufferSize;
+				LoRaWAN._tx_busy = true;
+				
+				if (LoRaWAN._tx_active) {
+				    LoRaWAN._tx_active = false;
 
-		    if (rx_size > (LORAWAN_RX_BUFFER_SIZE - rx_write)) {
-			rx_size = LORAWAN_RX_BUFFER_SIZE - rx_write;
-		    }
-
-		    if (rx_size) {
-			memcpy(&LoRaWAN._rx_data[rx_write], mcpsIndication->Buffer, rx_size);
-
-			rx_write += rx_size;
-
-			if (rx_write >= LORAWAN_RX_BUFFER_SIZE) {
-			    rx_write -= LORAWAN_RX_BUFFER_SIZE;
+				    LoRaWAN._transmitCallback.queue();
+				}
+			    }
 			}
 		    }
+#endif /* LORAWAN_COMPLIANCE_TEST */ 
+		}
+		else
+		{
+		    rx_write = LoRaWAN._rx_write;
 
-		    if (rx_size != mcpsIndication->BufferSize) {
-			memcpy(&LoRaWAN._rx_data[rx_write], mcpsIndication->Buffer + rx_size, mcpsIndication->BufferSize - rx_size);
-
-			rx_write += (mcpsIndication->BufferSize - rx_size);
+		    if (rx_write < LoRaWAN._rx_read) {
+			rx_size = LoRaWAN._rx_read - rx_write -1;
+		    } else {
+			rx_size = (LORAWAN_RX_BUFFER_SIZE - rx_write) + LoRaWAN._rx_read -1;
 		    }
 
-		    LoRaWAN._rx_write = rx_write;
-		}
+		    if (rx_size >= (unsigned int)(3 + mcpsIndication->BufferSize))
+		    {
+			LoRaWAN._rx_data[rx_write] = mcpsIndication->BufferSize;
+            
+			if (++rx_write == LORAWAN_RX_BUFFER_SIZE) {
+			    rx_write = 0;
+			}
 
-		LoRaWAN._receiveCallback.queue();
+			LoRaWAN._rx_data[rx_write] = mcpsIndication->Port; 
+
+			if (++rx_write == LORAWAN_RX_BUFFER_SIZE) {
+			    rx_write = 0;
+			}
+
+			rx_size = mcpsIndication->BufferSize;
+
+			if (rx_size > (LORAWAN_RX_BUFFER_SIZE - rx_write)) {
+			    rx_size = LORAWAN_RX_BUFFER_SIZE - rx_write;
+			}
+
+			if (rx_size) {
+			    memcpy(&LoRaWAN._rx_data[rx_write], mcpsIndication->Buffer, rx_size);
+
+			    rx_write += rx_size;
+
+			    if (rx_write >= LORAWAN_RX_BUFFER_SIZE) {
+				rx_write -= LORAWAN_RX_BUFFER_SIZE;
+			    }
+			}
+
+			if (rx_size != mcpsIndication->BufferSize) {
+			    memcpy(&LoRaWAN._rx_data[rx_write], mcpsIndication->Buffer + rx_size, mcpsIndication->BufferSize - rx_size);
+
+			    rx_write += (mcpsIndication->BufferSize - rx_size);
+			}
+
+			LoRaWAN._rx_write = rx_write;
+		    }
+
+		    LoRaWAN._receiveCallback.queue();
+		}
 	    }
 	}
     }
 
-    if (LoRaWAN._ComplianceTestState == 0)
+#if defined(LORAWAN_COMPLIANCE_TEST)
+    if (!ComplianceTestRunning)
+#endif /* LORAWAN_COMPLIANCE_TEST */
     {
         if (LoRaWAN._tx_busy) 
         {
-            LoRaWAN._tx_busy = false;
-            
-            if (LoRaWAN._tx_join) {
-                LoRaWAN._tx_join = false;
-                
-                LoRaWAN._joinCallback.queue();
-            } else {
-                LoRaWAN._transmitCallback.queue();
-            }
+	    if (LoRaWAN._tx_join)
+	    {
+		LoRaWAN._Joined = true;
+		
+		LoRaWAN._tx_join = false;
+		LoRaWAN._tx_busy = false;
+		
+		LoRaWAN._joinCallback.queue();
+	    }
+	    else
+	    {
+		LoRaWAN._tx_busy = false;
+		    
+		LoRaWAN._transmitCallback.queue();
+	    }
         }
     }
 }
@@ -3403,7 +3437,7 @@ void LoRaWANClass::__MlmeJoin( )
     {
         LoRaWAN._tx_busy = false;
             
-        LoRaWAN._joinCallback.queue();
+        LoRaWAN._joinCallback.call();
     }
 }
 
@@ -3447,13 +3481,22 @@ void LoRaWANClass::__MlmeConfirm( MlmeConfirm_t *mlmeConfirm )
 
             LoRaWAN._saveSession();
 
-            LoRaWAN._Joined = true;
-
             LoRaWAN._LinkCheckGateways = 1;
 
-            LoRaWAN._tx_join = true;
+	    if ((LoRaWAN._Band->Region == LORAWAN_REGION_AU915) || (LoRaWAN._Band->Region == LORAWAN_REGION_US915))
+	    {
+		LoRaWAN._tx_join = true;
+		
+		armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)LoRaWANClass::__McpsJoin, NULL, 0);
+	    }
+	    else
+	    {
+	        LoRaWAN._Joined = true;
 
-            armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)LoRaWANClass::__McpsJoin, NULL, 0);
+		LoRaWAN._tx_busy = false;
+        
+		LoRaWAN._joinCallback.queue();
+	    }
         }
         else
         {
@@ -3473,24 +3516,21 @@ void LoRaWANClass::__MlmeConfirm( MlmeConfirm_t *mlmeConfirm )
     case MLME_LINK_CHECK:
         if (mlmeConfirm->Status == LORAMAC_EVENT_INFO_STATUS_OK)
         {
+	    LoRaWAN._LinkCheckWait = 0;
+	    LoRaWAN._LinkCheckFail = 0;
             LoRaWAN._LinkCheckMargin = mlmeConfirm->DemodMargin;
             LoRaWAN._LinkCheckGateways = mlmeConfirm->NbGateways;
 
-            if (LoRaWAN._ComplianceTestState != 0)
-            {
-                LoRaWAN._ComplianceTestLinkCheck = 1;
-
-                if (LoRaWAN._ComplianceTestRunning) {
-                    if (!LoRaWAN._tx_active) {
-                        armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)LoRaWANClass::__McpsSend, NULL, 0);
-                    }
-                }
-            }
+#if defined(LORAWAN_COMPLIANCE_TEST)
+	    if (ComplianceTest.Running)
+	    {
+		ComplianceTest.LinkCheck = true;
+		ComplianceTest.DemodMargin = mlmeConfirm->DemodMargin;
+		ComplianceTest.NbGateways = mlmeConfirm->NbGateways;
+	    }
             else
+#endif /* LORAWAN_COMPLIANCE_TEST */
             {
-                LoRaWAN._LinkCheckWait = 0;
-                LoRaWAN._LinkCheckFail = 0;
-                
                 LoRaWAN._linkCheckCallback.queue();
             }
         }
