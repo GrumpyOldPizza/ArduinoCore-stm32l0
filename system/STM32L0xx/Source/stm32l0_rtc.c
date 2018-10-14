@@ -29,6 +29,7 @@
 #include "armv6m.h"
 
 #include "stm32l0_rtc.h"
+#include "stm32l0_gpio.h"
 #include "stm32l0_system.h"
 
 extern void RTC_IRQHandler(void);
@@ -38,6 +39,10 @@ typedef struct _stm32l0_rtc_device_t {
     void                    *alarm_context;
     stm32l0_rtc_callback_t  wakeup_callback;
     void                    *wakeup_context;
+    stm32l0_rtc_callback_t  tamp1_callback;
+    void                    *tamp1_context;
+    stm32l0_rtc_callback_t  tamp2_callback;
+    void                    *tamp2_context;
     int32_t                 reference_seconds;
     uint16_t                reference_subseconds;
     int16_t                 adjust_subseconds;
@@ -147,6 +152,7 @@ void __stm32l0_rtc_initialize(void)
         }
         
         RTC->CR = RTC_CR_BYPSHAD;
+	RTC->TAMPCR = RTC_TAMPCR_TAMP2NOERASE | RTC_TAMPCR_TAMP1NOERASE | RTC_TAMPCR_TAMPPUDIS;
         
         RTC->PRER = (STM32L0_RTC_PREDIV_S -1) << RTC_PRER_PREDIV_S_Pos;
         
@@ -160,10 +166,11 @@ void __stm32l0_rtc_initialize(void)
         }
     }
 
-    RTC->CR &= ~(RTC_CR_WUTIE | RTC_CR_ALRBIE | RTC_CR_ALRAIE | RTC_CR_WUTE | RTC_CR_ALRBE | RTC_CR_ALRAE);
+    RTC->CR &= ~(RTC_CR_TSIE | RTC_CR_WUTIE | RTC_CR_ALRBIE | RTC_CR_ALRAIE | RTC_CR_TSE | RTC_CR_WUTE | RTC_CR_ALRBE | RTC_CR_ALRAE);
+    RTC->TAMPCR &= ~(RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2E | RTC_TAMPCR_TAMP1IE | RTC_TAMPCR_TAMP1E);
     RTC->ISR = 0;
 
-    EXTI->PR = EXTI_PR_PIF17 | EXTI_PR_PIF20;
+    EXTI->PR = EXTI_PR_PIF17 | EXTI_PR_PIF19 | EXTI_PR_PIF20;
 
     stm32l0_rtc_clock_time(&r_seconds, &r_subseconds);
     stm32l0_rtc_time_delta(0, 0, r_seconds, r_subseconds, &stm32l0_rtc_device.reference_seconds, &stm32l0_rtc_device.reference_subseconds);
@@ -184,7 +191,7 @@ void stm32l0_rtc_configure(unsigned int priority)
     EXTI->PR = (EXTI_PR_PIF17 | EXTI_PR_PIF19 | EXTI_PR_PIF20);
 
     armv6m_atomic_or(&EXTI->RTSR, (EXTI_RTSR_RT17 | EXTI_RTSR_RT19 | EXTI_RTSR_RT20));
-    armv6m_atomic_or(&EXTI->IMR, (EXTI_IMR_IM17 | EXTI_IMR_IM20));
+    armv6m_atomic_or(&EXTI->IMR, (EXTI_IMR_IM17 | EXTI_IMR_IM19 | EXTI_IMR_IM20));
 }
 
 __attribute__((optimize("O3"))) void stm32l0_rtc_clock_capture(uint32_t *p_data)
@@ -990,14 +997,95 @@ void stm32l0_rtc_wakeup_stop(void)
 
 bool stm32l0_rtc_wakeup_done(void)
 {
-  return !(RTC->CR & RTC_CR_WUTE);
+    return !(RTC->CR & RTC_CR_WUTE);
 }
 
-void stm32l0_rtc_standby(void)
+bool stm32l0_rtc_tamp_attach(uint16_t pin, uint32_t control, stm32l0_rtc_callback_t callback, void *context)
+{
+    pin &= STM32L0_GPIO_PIN_IO_MASK;
+
+    if (pin == STM32L0_GPIO_PIN_PC13)
+    {
+	armv6m_atomic_and(&RTC->TAMPCR, ~(RTC_TAMPCR_TAMP1IE | RTC_TAMPCR_TAMP1TRG | RTC_TAMPCR_TAMP1E));
+	armv6m_atomic_modify(&RTC->ISR, ~RTC_ISR_INIT, ~(RTC_ISR_TAMP1F | RTC_ISR_INIT));
+
+	stm32l0_rtc_device.tamp1_callback = callback;
+	stm32l0_rtc_device.tamp1_context = context;
+
+	if (control & (STM32L0_RTC_TAMP_CONTROL_EDGE_FALLING | STM32L0_RTC_TAMP_CONTROL_EDGE_RISING))
+	{
+	    if (control & STM32L0_RTC_TAMP_CONTROL_EDGE_FALLING)
+	    {
+		armv6m_atomic_or(&RTC->TAMPCR, (RTC_TAMPCR_TAMP1IE | RTC_TAMPCR_TAMP1TRG | RTC_TAMPCR_TAMP1E));
+	    }
+	    else
+	    {
+		armv6m_atomic_or(&RTC->TAMPCR, (RTC_TAMPCR_TAMP1IE | RTC_TAMPCR_TAMP1E));
+	    }
+	}
+
+	return true;
+    }
+
+    if (pin == STM32L0_GPIO_PIN_PA0)
+    {
+	armv6m_atomic_and(&RTC->TAMPCR, ~(RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2TRG | RTC_TAMPCR_TAMP2E));
+	armv6m_atomic_modify(&RTC->ISR, ~RTC_ISR_INIT, ~(RTC_ISR_TAMP2F | RTC_ISR_INIT));
+
+	stm32l0_rtc_device.tamp2_callback = callback;
+	stm32l0_rtc_device.tamp2_context = context;
+
+	if (control & (STM32L0_RTC_TAMP_CONTROL_EDGE_FALLING | STM32L0_RTC_TAMP_CONTROL_EDGE_RISING))
+	{
+	    if (control & STM32L0_RTC_TAMP_CONTROL_EDGE_FALLING)
+	    {
+		armv6m_atomic_or(&RTC->TAMPCR, (RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2TRG | RTC_TAMPCR_TAMP2E));
+	    }
+	    else
+	    {
+		armv6m_atomic_or(&RTC->TAMPCR, (RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2E));
+	    }
+	}
+
+	return true;
+    }
+
+    return false;
+}
+
+void stm32l0_rtc_tamp_detach(uint16_t pin)
+{
+    pin &= STM32L0_GPIO_PIN_IO_MASK;
+
+    if (pin == STM32L0_GPIO_PIN_PC13)
+    {
+	armv6m_atomic_and(&RTC->TAMPCR, ~(RTC_TAMPCR_TAMP1IE | RTC_TAMPCR_TAMP1E));
+	armv6m_atomic_modify(&RTC->ISR, ~RTC_ISR_INIT, ~(RTC_ISR_TAMP1F | RTC_ISR_INIT));
+    }
+
+    if (pin == STM32L0_GPIO_PIN_PA0)
+    {
+	armv6m_atomic_and(&RTC->TAMPCR, ~(RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2E));
+	armv6m_atomic_modify(&RTC->ISR, ~RTC_ISR_INIT, ~(RTC_ISR_TAMP2F | RTC_ISR_INIT));
+    }
+}
+
+void stm32l0_rtc_standby(uint32_t config)
 {
     /* Called with IRQs disabled */
 
     RTC->CR &= ~(RTC_CR_TSIE | RTC_CR_WUTIE | RTC_CR_ALRBIE | RTC_CR_TSE | RTC_CR_WUTE | RTC_CR_ALRBE);
+
+    if (config & STM32L0_SYSTEM_CONFIG_WKUP1)
+    {
+	RTC->TAMPCR &= ~(RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2E);
+    }
+    
+    if (config & STM32L0_SYSTEM_CONFIG_WKUP2)
+    {
+	RTC->TAMPCR &= ~(RTC_TAMPCR_TAMP1IE | RTC_TAMPCR_TAMP1E);
+    }
+
     RTC->ISR = 0;
 
     EXTI->PR = EXTI_PR_PIF20 | EXTI_PR_PIF19 | EXTI_PR_PIF17;
@@ -1008,6 +1096,7 @@ void stm32l0_rtc_reset(void)
     /* Called with IRQs disabled */
 
     RTC->CR &= ~(RTC_CR_TSIE | RTC_CR_WUTIE | RTC_CR_ALRBIE | RTC_CR_ALRAIE | RTC_CR_TSE | RTC_CR_WUTE | RTC_CR_ALRBE | RTC_CR_ALRAE);
+    RTC->TAMPCR &= ~(RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2E | RTC_TAMPCR_TAMP1IE | RTC_TAMPCR_TAMP1E);
     RTC->ISR = 0;
 
     EXTI->PR = EXTI_PR_PIF20 | EXTI_PR_PIF19 | EXTI_PR_PIF17;
@@ -1350,6 +1439,26 @@ void RTC_IRQHandler(void)
     if (EXTI->PR & EXTI_PR_PIF19)
     {
         EXTI->PR = EXTI_PR_PIF19;
+
+        if (RTC->ISR & RTC_ISR_TAMP1F)
+        {
+	    armv6m_atomic_modify(&RTC->ISR, ~RTC_ISR_INIT, ~(RTC_ISR_TAMP1F | RTC_ISR_INIT));
+            
+	    if (stm32l0_rtc_device.tamp1_callback)
+	    {
+		(*stm32l0_rtc_device.tamp1_callback)(stm32l0_rtc_device.tamp1_context);
+	    }
+        }
+
+        if (RTC->ISR & RTC_ISR_TAMP2F)
+        {
+	    armv6m_atomic_modify(&RTC->ISR, ~RTC_ISR_INIT, ~(RTC_ISR_TAMP2F | RTC_ISR_INIT));
+            
+	    if (stm32l0_rtc_device.tamp2_callback)
+	    {
+		(*stm32l0_rtc_device.tamp2_callback)(stm32l0_rtc_device.tamp2_context);
+	    }
+        }
     }
 
     if (EXTI->PR & EXTI_PR_PIF20)

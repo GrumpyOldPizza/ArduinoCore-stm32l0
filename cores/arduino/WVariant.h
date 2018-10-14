@@ -39,7 +39,8 @@ extern "C" {
 #define PIN_ATTR_EXTI          (1UL<<2)
 #define PIN_ATTR_WKUP1         (1UL<<3)   /* PA0  */
 #define PIN_ATTR_WKUP2         (1UL<<4)   /* PC13 */
-#define PIN_ATTR_SWD           (1UL<<5)   /* PA13/PA14 */
+#define PIN_ATTR_TAMP          (1UL<<5)   /* PA0  */
+#define PIN_ATTR_SWD           (1UL<<6)   /* PA13/PA14 */
 
 #define PWM_INSTANCE_NONE      255
 

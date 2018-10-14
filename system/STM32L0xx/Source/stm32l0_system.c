@@ -1679,7 +1679,7 @@ void stm32l0_system_standby(uint32_t config)
         }
     }
 
-    stm32l0_rtc_standby();
+    stm32l0_rtc_standby(config);
     
     RCC->APB1ENR |= RCC_APB1ENR_PWREN;
     
@@ -1692,27 +1692,13 @@ void stm32l0_system_standby(uint32_t config)
     {
         PWR->CSR |= PWR_CSR_EWUP2;
     }
-    
-#if defined(STM32L072xx) || defined(STM32L082xx)
+
+#if defined(STM32L072xx)
     if (config & STM32L0_SYSTEM_CONFIG_WKUP3)
     {
         PWR->CSR |= PWR_CSR_EWUP3;
     }
-#endif /* STM32L072xx || STM32L082xx */
-    
-    if (stm32l0_system_device.hsi48)
-    {
-        if (RCC->APB1ENR & RCC_APB1ENR_CRSEN)
-        {
-            CRS->CR &= ~(CRS_CR_AUTOTRIMEN | CRS_CR_CEN);
-            
-            RCC->APB1ENR &= ~RCC_APB1ENR_CRSEN;
-        }
-        
-        RCC->CRRCR &= ~RCC_CRRCR_HSI48ON;
-        
-        SYSCFG->CFGR3 &= ~SYSCFG_CFGR3_ENREF_HSI48;
-    }
+#endif /* STM32L072xx */
     
     /* Enable the low power voltage regulator */
     PWR->CR |= PWR_CR_LPSDSR;

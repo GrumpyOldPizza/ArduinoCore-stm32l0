@@ -140,9 +140,9 @@ typedef struct _stm32l0_system_notify_t {
 
 #define STM32L0_SYSTEM_CONFIG_WKUP1            0x00000001
 #define STM32L0_SYSTEM_CONFIG_WKUP2            0x00000002
-#if defined(STM32L072xx) || defined(STM32L082xx)
+#if defined(STM32L072xx)
 #define STM32L0_SYSTEM_CONFIG_WKUP3            0x00000004
-#endif /* STM32L072xx || STM32L082xx */
+#endif /* STM32L072xx */
 
 /* This bit is documented in the reference manuals,
  * but is not part of the CMSIS/Device headers. Turns out

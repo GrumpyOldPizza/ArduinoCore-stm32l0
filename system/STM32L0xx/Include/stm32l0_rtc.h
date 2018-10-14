@@ -45,6 +45,9 @@ extern "C" {
 #define STM32L0_RTC_CALENDAR_MASK_DATE          0x00000038
 #define STM32L0_RTC_CALENDAR_MASK_ALL           0x0000007f
 
+#define STM32L0_RTC_TAMP_CONTROL_EDGE_FALLING   0x00000001
+#define STM32L0_RTC_TAMP_CONTROL_EDGE_RISING    0x00000002
+
 typedef struct __attribute__((aligned(4))) _stm32l0_rtc_calendar_t {
     uint16_t                       subseconds;
     uint8_t                        seconds;
@@ -99,7 +102,10 @@ extern void stm32l0_rtc_wakeup_start(uint32_t timeout, stm32l0_rtc_callback_t ca
 extern void stm32l0_rtc_wakeup_stop(void);
 extern bool stm32l0_rtc_wakeup_done(void);
 
-extern void stm32l0_rtc_standby(void);
+extern bool stm32l0_rtc_tamp_attach(uint16_t pin, uint32_t control, stm32l0_rtc_callback_t callback, void *context);
+extern void stm32l0_rtc_tamp_detach(uint16_t pin);
+
+extern void stm32l0_rtc_standby(uint32_t config);
 extern void stm32l0_rtc_reset(void);
 
 #define STM32L0_RTC_PREDIV_S               2048

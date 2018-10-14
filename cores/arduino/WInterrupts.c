@@ -31,23 +31,35 @@
 
 void attachInterrupt(uint32_t pin, voidFuncPtr callback, uint32_t mode)
 {
-    if ((pin >= PINS_COUNT) || !(g_APinDescription[pin].attr & PIN_ATTR_EXTI) || !callback) {
+    if ((pin >= PINS_COUNT) || !(g_APinDescription[pin].attr & (PIN_ATTR_EXTI | PIN_ATTR_TAMP)) || !callback) {
 	return;
     }
 
-    switch (mode) {
-    
-    case CHANGE:
-	stm32l0_exti_attach(g_APinDescription[pin].pin, (STM32L0_EXTI_CONTROL_EDGE_FALLING | STM32L0_EXTI_CONTROL_EDGE_RISING), (stm32l0_exti_callback_t)callback, NULL);
-	break;
-    
-    case FALLING:
-	stm32l0_exti_attach(g_APinDescription[pin].pin, STM32L0_EXTI_CONTROL_EDGE_FALLING, (stm32l0_exti_callback_t)callback, NULL);
-	break;
-    
-    case RISING:
-	stm32l0_exti_attach(g_APinDescription[pin].pin, STM32L0_EXTI_CONTROL_EDGE_RISING, (stm32l0_exti_callback_t)callback, NULL);
-	break;
+    if (g_APinDescription[pin].attr & PIN_ATTR_EXTI) {
+	switch (mode) {
+	case CHANGE:
+	    stm32l0_exti_attach(g_APinDescription[pin].pin, (STM32L0_EXTI_CONTROL_EDGE_FALLING | STM32L0_EXTI_CONTROL_EDGE_RISING), (stm32l0_exti_callback_t)callback, NULL);
+	    break;
+	case FALLING:
+	    stm32l0_exti_attach(g_APinDescription[pin].pin, STM32L0_EXTI_CONTROL_EDGE_FALLING, (stm32l0_exti_callback_t)callback, NULL);
+	    break;
+	case RISING:
+	    stm32l0_exti_attach(g_APinDescription[pin].pin, STM32L0_EXTI_CONTROL_EDGE_RISING, (stm32l0_exti_callback_t)callback, NULL);
+	    break;
+	default:
+	    break;
+	}
+    } else {
+	switch (mode) {
+	case FALLING:
+	    stm32l0_rtc_tamp_attach(g_APinDescription[pin].pin, STM32L0_RTC_TAMP_CONTROL_EDGE_FALLING, (stm32l0_rtc_callback_t)callback, NULL);
+	    break;
+	case RISING:
+	    stm32l0_rtc_tamp_attach(g_APinDescription[pin].pin, STM32L0_RTC_TAMP_CONTROL_EDGE_RISING, (stm32l0_rtc_callback_t)callback, NULL);
+	    break;
+	default:
+	    break;
+	}
     }
 }
 
@@ -56,9 +68,13 @@ void attachInterrupt(uint32_t pin, voidFuncPtr callback, uint32_t mode)
  */
 void detachInterrupt(uint32_t pin)
 {
-    if ((pin >= PINS_COUNT) || !(g_APinDescription[pin].attr & PIN_ATTR_EXTI)) {
+    if ((pin >= PINS_COUNT) || !(g_APinDescription[pin].attr & (PIN_ATTR_EXTI | PIN_ATTR_TAMP))) {
 	return;
     }
 
-    stm32l0_exti_detach(g_APinDescription[pin].pin);
+    if (g_APinDescription[pin].attr & PIN_ATTR_EXTI) {
+	stm32l0_exti_detach(g_APinDescription[pin].pin);
+    } else {
+	stm32l0_rtc_tamp_detach(g_APinDescription[pin].pin);
+    }
 }
