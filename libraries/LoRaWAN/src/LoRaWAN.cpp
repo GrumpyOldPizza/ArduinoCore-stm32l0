@@ -130,9 +130,9 @@ static struct {
     uint8_t             NbGateways;
     uint16_t            DownLinkCounter;
     uint16_t            UpLinkCounter;
-    uint8_t             TxIsConfirmed;
+    uint8_t             IsConfirmed;
     uint8_t             TxSize;
-    uint8_t             TxData[20];
+    uint8_t             *TxData;
     stm32l0_rtc_timer_t Timer;
 } ComplianceTest;
 
@@ -172,7 +172,7 @@ static void ComplianceTestCallback(void)
 	    }
 	}
 
-	if (ComplianceTest.TxIsConfirmed)
+	if (ComplianceTest.IsConfirmed)
 	{
 	    mcpsReq.Type = MCPS_CONFIRMED;
 	    mcpsReq.Req.Confirmed.fPort = 224;
@@ -3202,18 +3202,18 @@ void LoRaWANClass::__McpsIndication( McpsIndication_t *mcpsIndication )
 			break;
 
 		    case 2: // Enable confirmed messages (v)
-			ComplianceTest.TxIsConfirmed = true;
+			ComplianceTest.IsConfirmed = true;
 			break;
 
 		    case 3:  // Disable confirmed messages (vi)
-			ComplianceTest.TxIsConfirmed = false;
+			ComplianceTest.IsConfirmed = false;
 			break;
 			
 		    case 4: // (vii)
 			ComplianceTest.TxSize = mcpsIndication->BufferSize;
 
-			if (ComplianceTest.TxSize > 18) {
-			    ComplianceTest.TxSize = 18;
+			if (ComplianceTest.TxSize > LORAWAN_TX_BUFFER_SIZE) {
+			    ComplianceTest.TxSize = LORAWAN_TX_BUFFER_SIZE;
 			}
 			
 			ComplianceTest.TxData[0] = 4;
@@ -3309,8 +3309,9 @@ void LoRaWANClass::__McpsIndication( McpsIndication_t *mcpsIndication )
 				ComplianceTest.LinkCheck = false;
 				ComplianceTest.DownLinkCounter = 0;
 				ComplianceTest.UpLinkCounter = 0;
-				ComplianceTest.TxIsConfirmed = false;
+				ComplianceTest.IsConfirmed = false;
 				ComplianceTest.TxSize = 0;
+				ComplianceTest.TxData = LoRaWAN._tx_data;
 
 				// START TIMER
 				stm32l0_rtc_timer_start(&ComplianceTest.Timer, 5, 0, false);
