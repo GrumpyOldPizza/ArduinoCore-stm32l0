@@ -531,39 +531,37 @@ bool RegionAS923AdrNext( AdrNextParams_t* adrNext, int8_t* drOut, int8_t* txPowO
     // Apply the minimum possible datarate.
     datarate = MAX( datarate, minTxDatarate );
 
-    adrAckReq = false;
-
     if( adrNext->AdrEnabled == true )
     {
-        if( adrNext->AdrAckCounter < ( AS923_ADR_ACK_LIMIT + 18 * AS923_ADR_ACK_DELAY ) )
+        if( datarate == minTxDatarate )
+        {
+            *adrAckCounter = 0;
+            adrAckReq = false;
+        }
+        else
         {
             if( adrNext->AdrAckCounter >= AS923_ADR_ACK_LIMIT )
             {
                 adrAckReq = true;
+                txPower = AS923_MAX_TX_POWER;
             }
-            
+            else
+            {
+                adrAckReq = false;
+            }
             if( adrNext->AdrAckCounter >= ( AS923_ADR_ACK_LIMIT + AS923_ADR_ACK_DELAY ) )
             {
                 if( ( adrNext->AdrAckCounter % AS923_ADR_ACK_DELAY ) == 1 )
                 {
-                    if (txPower != AS923_MAX_TX_POWER)
-                    {
-                        // Increase the txPower
-                        txPower = AS923_MAX_TX_POWER;
-                    }
-                    else if ( datarate != minTxDatarate )
-                    {
-                        // Decrease the datarate
-                        getPhy.Attribute = PHY_NEXT_LOWER_TX_DR;
-                        getPhy.Datarate = datarate;
-                        getPhy.UplinkDwellTime = adrNext->UplinkDwellTime;
-                        phyParam = RegionAS923GetPhyParam( &getPhy );
-                        datarate = phyParam.Value;
-                    }
-                    else
-                    {
-                        *adrAckCounter = ( AS923_ADR_ACK_LIMIT + 18 * AS923_ADR_ACK_DELAY );
+                    // Decrease the datarate
+                    getPhy.Attribute = PHY_NEXT_LOWER_TX_DR;
+                    getPhy.Datarate = datarate;
+                    getPhy.UplinkDwellTime = adrNext->UplinkDwellTime;
+                    phyParam = RegionAS923GetPhyParam( &getPhy );
+                    datarate = phyParam.Value;
 
+                    if( datarate == minTxDatarate )
+                    {
                         // We must set adrAckReq to false as soon as we reach the lowest datarate
                         adrAckReq = false;
                         if( adrNext->UpdateChanMask == true )
@@ -974,7 +972,7 @@ LoRaMacStatus_t RegionAS923NextChannel( NextChanParams_t* nextChanParams, uint8_
                 // If the channel is free, we can stop the LBT mechanism
                 isChannelFree = Radio.IsChannelFree( MODEM_LORA, RegionChannels[channelNext].Frequency, AS923_RSSI_FREE_TH, AS923_CARRIER_SENSE_TIME );
 
-		Radio.Sleep();
+                Radio.Sleep();
 
                 if( isChannelFree == true )
                 {

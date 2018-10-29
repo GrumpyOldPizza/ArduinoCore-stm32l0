@@ -933,6 +933,10 @@ typedef struct sMcpsIndication
      */
     bool AckReceived;
     /*!
+     * Set if an ADR request was received
+     */
+    bool AdrReqReceived;
+    /*!
      * Set if an update to network confiugation was received
      */
     bool ParamsUpdated;

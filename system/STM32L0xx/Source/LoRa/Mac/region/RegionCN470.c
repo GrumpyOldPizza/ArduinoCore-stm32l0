@@ -505,39 +505,37 @@ bool RegionCN470AdrNext( AdrNextParams_t* adrNext, int8_t* drOut, int8_t* txPowO
     // Report back the adr ack counter
     *adrAckCounter = adrNext->AdrAckCounter;
 
-    adrAckReq = false;
-
     if( adrNext->AdrEnabled == true )
     {
-        if( adrNext->AdrAckCounter < ( CN470_ADR_ACK_LIMIT + 18 * CN470_ADR_ACK_DELAY ) )
+        if( datarate == CN470_TX_MIN_DATARATE )
+        {
+            *adrAckCounter = 0;
+            adrAckReq = false;
+        }
+        else
         {
             if( adrNext->AdrAckCounter >= CN470_ADR_ACK_LIMIT )
             {
                 adrAckReq = true;
+                txPower = CN470_MAX_TX_POWER;
             }
-            
+            else
+            {
+                adrAckReq = false;
+            }
             if( adrNext->AdrAckCounter >= ( CN470_ADR_ACK_LIMIT + CN470_ADR_ACK_DELAY ) )
             {
                 if( ( adrNext->AdrAckCounter % CN470_ADR_ACK_DELAY ) == 1 )
                 {
-                    if( txPower != CN470_MAX_TX_POWER )
-                    {
-                        // Increase the txPower
-                        txPower = CN470_MAX_TX_POWER;
-                    }
-                    else if( datarate != CN470_TX_MIN_DATARATE )
-                    {
-                        // Decrease the datarate
-                        getPhy.Attribute = PHY_NEXT_LOWER_TX_DR;
-                        getPhy.Datarate = datarate;
-                        getPhy.UplinkDwellTime = adrNext->UplinkDwellTime;
-                        phyParam = RegionCN470GetPhyParam( &getPhy );
-                        datarate = phyParam.Value;
-                    }
-                    else
-                    {
-                        *adrAckCounter = ( CN470_ADR_ACK_LIMIT + 18 * CN470_ADR_ACK_DELAY );
+                    // Decrease the datarate
+                    getPhy.Attribute = PHY_NEXT_LOWER_TX_DR;
+                    getPhy.Datarate = datarate;
+                    getPhy.UplinkDwellTime = adrNext->UplinkDwellTime;
+                    phyParam = RegionCN470GetPhyParam( &getPhy );
+                    datarate = phyParam.Value;
 
+                    if( datarate == CN470_TX_MIN_DATARATE )
+                    {
                         // We must set adrAckReq to false as soon as we reach the lowest datarate
                         adrAckReq = false;
                         if( adrNext->UpdateChanMask == true )

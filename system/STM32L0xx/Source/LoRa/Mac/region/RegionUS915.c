@@ -541,43 +541,42 @@ bool RegionUS915AdrNext( AdrNextParams_t* adrNext, int8_t* drOut, int8_t* txPowO
     // Report back the adr ack counter
     *adrAckCounter = adrNext->AdrAckCounter;
 
-    adrAckReq = false;
-
     if( adrNext->AdrEnabled == true )
     {
-        if( adrNext->AdrAckCounter < ( US915_ADR_ACK_LIMIT + 18 * US915_ADR_ACK_DELAY ) )
+        if( datarate == US915_TX_MIN_DATARATE )
+        {
+            *adrAckCounter = 0;
+            adrAckReq = false;
+        }
+        else
         {
             if( adrNext->AdrAckCounter >= US915_ADR_ACK_LIMIT )
             {
                 adrAckReq = true;
+                txPower = US915_MAX_TX_POWER;
             }
-            
+            else
+            {
+                adrAckReq = false;
+            }
             if( adrNext->AdrAckCounter >= ( US915_ADR_ACK_LIMIT + US915_ADR_ACK_DELAY ) )
             {
                 if( ( adrNext->AdrAckCounter % US915_ADR_ACK_DELAY ) == 1 )
                 {
-                    if( txPower != US915_MAX_TX_POWER )
-                    {
-                        // Increase the txPower
-                        txPower = US915_MAX_TX_POWER;
-                    }
-                    else if( datarate != US915_TX_MIN_DATARATE )
-                    {
-                        // Decrease the datarate
-                        getPhy.Attribute = PHY_NEXT_LOWER_TX_DR;
-                        getPhy.Datarate = datarate;
-                        getPhy.UplinkDwellTime = adrNext->UplinkDwellTime;
-                        phyParam = RegionUS915GetPhyParam( &getPhy );
-                        datarate = phyParam.Value;
-                    }
-                    else
-                    {
-                        *adrAckCounter = ( US915_ADR_ACK_LIMIT + 18 * US915_ADR_ACK_DELAY );
+                    // Decrease the datarate
+                    getPhy.Attribute = PHY_NEXT_LOWER_TX_DR;
+                    getPhy.Datarate = datarate;
+                    getPhy.UplinkDwellTime = adrNext->UplinkDwellTime;
+                    phyParam = RegionUS915GetPhyParam( &getPhy );
+                    datarate = phyParam.Value;
 
+                    if( datarate == US915_TX_MIN_DATARATE )
+                    {
                         // We must set adrAckReq to false as soon as we reach the lowest datarate
                         adrAckReq = false;
                         if( adrNext->UpdateChanMask == true )
                         {
+                            // Re-enable default channels
                             // Re-enable default channels
                             RegionChannelsMask[0] = RegionChannelsDefaultMask[0];
                             RegionChannelsMask[1] = RegionChannelsDefaultMask[1];
@@ -722,13 +721,19 @@ uint8_t RegionUS915LinkAdrReq( LinkAdrReqParams_t* linkAdrReq, int8_t* drOut, in
         }
         else if( linkAdrParams.ChMaskCtrl == 5 )
         {
-            // chMask selects [chMask * 8, chMask * 8 +7],64+chMask
             channelsMask[0] = 0x0000;
             channelsMask[1] = 0x0000;
             channelsMask[2] = 0x0000;
             channelsMask[3] = 0x0000;
-            channelsMask[(linkAdrParams.ChMask & 7) >> 1] = ((linkAdrParams.ChMask & 1) ? 0xFF00 : 0x00FF);
-            channelsMask[4] = (0x0001 << (linkAdrParams.ChMask & 7));
+            channelsMask[4] = linkAdrParams.ChMask;
+
+            for( uint8_t i = 0; i <= 7; i++ )
+            {
+                if (channelsMask[4] & (1 << i))
+                {
+                    channelsMask[i >> 1] |= ((i & 1) ? 0xFF00 : 0x00FF);
+                }
+            }
         }
         else
         {

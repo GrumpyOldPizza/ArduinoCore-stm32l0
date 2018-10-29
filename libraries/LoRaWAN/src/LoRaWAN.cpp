@@ -3072,23 +3072,17 @@ void LoRaWANClass::__McpsConfirm( McpsConfirm_t *mcpsConfirm )
 
 	    if (!LoRaMacFlags.Bits.McpsInd || LoRaMacFlags.Bits.McpsIndSkip)
 	    {
-		if (LoRaWAN._AdrWait)
-		{
-		    LoRaWAN._AdrWait--;
-
-		    if (LoRaWAN._AdrWait == 0) {
-			LoRaWAN._LinkCheckGateways = 0;
-		    }
-		}
-		else
+		if (LoRaWAN._AdrEnable && LoRaWAN._AdrWait)
 		{
 		    minDataRate = ((LoRaWAN._Band->Region == LORAWAN_REGION_AS923) && (LoRaMacParams.UplinkDwellTime != 0)) ? 2 : 0;
 
-		    if ((LoRaMacParams.ChannelsDatarate <= minDataRate) &&
-			((LoRaMacParams.ChannelsDatarate < LoRaWAN._AdrLastDataRate) ||
-			 ((LoRaMacParams.ChannelsTxPower == 0) && (LoRaMacParams.ChannelsTxPower < LoRaWAN._AdrLastTxPower))))
+		    if (LoRaMacParams.ChannelsDatarate <= minDataRate)
 		    {
-			LoRaWAN._AdrWait = ADR_ACK_DELAY;
+			LoRaWAN._AdrWait--;
+			
+			if (LoRaWAN._AdrWait == 0) {
+			    LoRaWAN._LinkCheckGateways = 0;
+			}
 		    }
 		}
 
@@ -3148,6 +3142,7 @@ void LoRaWANClass::__McpsIndication( McpsIndication_t *mcpsIndication )
     MlmeReq_t mlmeReq;
     uint32_t rx_write, rx_size;
     unsigned int i;
+    int minDataRate;
 
 #if defined(LORAWAN_COMPLIANCE_TEST)
     bool ComplianceTestRunning = ComplianceTest.Running;
@@ -3281,10 +3276,29 @@ void LoRaWANClass::__McpsIndication( McpsIndication_t *mcpsIndication )
 	else
 #endif /* LORAWAN_COMPLIANCE_TEST */ 
 	{
-	    LoRaWAN._AdrWait = 0;
-	    
 	    if (LoRaWAN._LinkCheckGateways == 0) {
 		LoRaWAN._LinkCheckGateways = 1;
+	    }
+
+	    if (mcpsIndication->AdrReqReceived) 
+	    {
+		LoRaWAN._AdrWait = ADR_ACK_DELAY;
+	    }
+	    else
+	    {
+		if (LoRaWAN._AdrEnable && LoRaWAN._AdrWait)
+		{
+		    minDataRate = ((LoRaWAN._Band->Region == LORAWAN_REGION_AS923) && (LoRaMacParams.UplinkDwellTime != 0)) ? 2 : 0;
+
+		    if (LoRaMacParams.ChannelsDatarate <= minDataRate)
+		    {
+			LoRaWAN._AdrWait--;
+			
+			if (LoRaWAN._AdrWait == 0) {
+			    LoRaWAN._LinkCheckGateways = 0;
+			}
+		    }
+		}
 	    }
 	
 	    if (mcpsIndication->RxData == true)

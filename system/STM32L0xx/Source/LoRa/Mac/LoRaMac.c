@@ -797,6 +797,7 @@ static void OnRadioRxDone( uint8_t *payload, uint16_t size, int16_t rssi, int8_t
     McpsIndication.BufferSize = 0;
     McpsIndication.RxData = false;
     McpsIndication.AckReceived = false;
+    McpsIndication.AdrReqReceived = false;
     McpsIndication.ParamsUpdated = false;
     McpsIndication.DownLinkCounter = 0;
     McpsIndication.McpsIndication = MCPS_UNCONFIRMED;
@@ -1837,6 +1838,8 @@ static void ProcessMacCommands( uint8_t *payload, uint8_t macIndex, uint8_t comm
                         LoRaMacParams.ChannelsNbRep = linkAdrNbRep;
                         McpsIndication.ParamsUpdated = true;
                     }
+
+                    McpsIndication.AdrReqReceived = true;
 
                     // Add the answers to the buffer
                     for( uint8_t i = 0; i < ( linkAdrNbBytesParsed / 5 ); i++ )

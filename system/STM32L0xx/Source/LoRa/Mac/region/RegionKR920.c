@@ -492,39 +492,37 @@ bool RegionKR920AdrNext( AdrNextParams_t* adrNext, int8_t* drOut, int8_t* txPowO
     // Report back the adr ack counter
     *adrAckCounter = adrNext->AdrAckCounter;
 
-    adrAckReq = false;
-
     if( adrNext->AdrEnabled == true )
     {
-        if( adrNext->AdrAckCounter < ( KR920_ADR_ACK_LIMIT + 18 * KR920_ADR_ACK_DELAY ) )
+        if( datarate == KR920_TX_MIN_DATARATE )
+        {
+            *adrAckCounter = 0;
+            adrAckReq = false;
+        }
+        else
         {
             if( adrNext->AdrAckCounter >= KR920_ADR_ACK_LIMIT )
             {
                 adrAckReq = true;
+                txPower = KR920_MAX_TX_POWER;
             }
-            
+            else
+            {
+                adrAckReq = false;
+            }
             if( adrNext->AdrAckCounter >= ( KR920_ADR_ACK_LIMIT + KR920_ADR_ACK_DELAY ) )
             {
                 if( ( adrNext->AdrAckCounter % KR920_ADR_ACK_DELAY ) == 1 )
                 {
-                    if( txPower != KR920_MAX_TX_POWER )
-                    {
-                        // Increase the txPower
-                        txPower = KR920_MAX_TX_POWER;
-                    }
-                    else if( datarate != KR920_TX_MIN_DATARATE )
-                    {
-                        // Decrease the datarate
-                        getPhy.Attribute = PHY_NEXT_LOWER_TX_DR;
-                        getPhy.Datarate = datarate;
-                        getPhy.UplinkDwellTime = adrNext->UplinkDwellTime;
-                        phyParam = RegionKR920GetPhyParam( &getPhy );
-                        datarate = phyParam.Value;
-                    }
-                    else
-                    {
-                        *adrAckCounter = ( KR920_ADR_ACK_LIMIT + 18 * KR920_ADR_ACK_DELAY );
+                    // Decrease the datarate
+                    getPhy.Attribute = PHY_NEXT_LOWER_TX_DR;
+                    getPhy.Datarate = datarate;
+                    getPhy.UplinkDwellTime = adrNext->UplinkDwellTime;
+                    phyParam = RegionKR920GetPhyParam( &getPhy );
+                    datarate = phyParam.Value;
 
+                    if( datarate == KR920_TX_MIN_DATARATE )
+                    {
                         // We must set adrAckReq to false as soon as we reach the lowest datarate
                         adrAckReq = false;
                         if( adrNext->UpdateChanMask == true )
@@ -901,7 +899,7 @@ LoRaMacStatus_t RegionKR920NextChannel( NextChanParams_t* nextChanParams, uint8_
                 // If the channel is free, we can stop the LBT mechanism
                 isChannelFree = Radio.IsChannelFree( MODEM_LORA, RegionChannels[channelNext].Frequency, KR920_RSSI_FREE_TH, KR920_CARRIER_SENSE_TIME );
 
-		Radio.Sleep();
+                Radio.Sleep();
 
                 if( isChannelFree == true )
                 {
