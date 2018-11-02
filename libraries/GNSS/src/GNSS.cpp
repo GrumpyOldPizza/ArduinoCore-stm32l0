@@ -334,6 +334,11 @@ void GNSSClass::begin(Uart &uart, GNSSmode mode, GNSSrate rate)
         (gnss_satellites_callback_t)&GNSSClass::satellitesCallback,
     };
 
+#if defined(STM32L0_CONFIG_PIN_GNSS_BACKUP)
+    stm32l0_gpio_pin_configure(STM32L0_CONFIG_PIN_GNSS_BACKUP, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLUP | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
+    stm32l0_gpio_pin_write(STM32L0_CONFIG_PIN_GNSS_BACKUP, 1);
+#endif /* defined(STM32L0_CONFIG_PIN_GNSS_BACKUP) */
+
 #if defined(STM32L0_CONFIG_PIN_GNSS_ENABLE)
     stm32l0_gpio_pin_configure(STM32L0_CONFIG_PIN_GNSS_RX, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
     stm32l0_gpio_pin_configure(STM32L0_CONFIG_PIN_GNSS_TX, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLUP | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
@@ -379,12 +384,20 @@ void GNSSClass::end()
         _uart->end();
         
         _uart = NULL;
+
+#if defined(STM32L0_CONFIG_PIN_GNSS_BACKUP)
+	stm32l0_gpio_pin_configure(STM32L0_CONFIG_PIN_GNSS_BACKUP, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
+#endif /* defined(STM32L0_CONFIG_PIN_GNSS_BACKUP) */
     }
 }
 
 bool GNSSClass::setAntenna(GNSSantenna antenna)
 {
+#if defined(STM32L0_CONFIG_GNSS_ANT_SWITCH)
     return (_uart && gnss_set_antenna(antenna));
+#else /* STM32L0_CONFIG_GNSS_ANT_SWITCH */
+    return false;
+#endif /* STM32L0_CONFIG_GNSS_ANT_SWITCH */
 }
 
 bool GNSSClass::setPPS(unsigned int width)

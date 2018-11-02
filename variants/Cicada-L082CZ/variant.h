@@ -26,8 +26,8 @@
  * WITH THE SOFTWARE.
  */
 
-#ifndef _VARIANT_CRICKET_STM32L082CZ_
-#define _VARIANT_CRICKET_STM32L082CZ_
+#ifndef _VARIANT_CICADA_STM32L082CZ_
+#define _VARIANT_CICADA_STM32L082CZ_
 
 /*----------------------------------------------------------------------------
  *        Definitions
@@ -198,4 +198,4 @@ extern Uart Serial3;
 // Alias Serial to SerialUSB
 #define Serial                      SerialUSB
 
-#endif /* _VARIANT_CRICKET_STM32L082CZ_ */
+#endif /* _VARIANT_CICADA_STM32L082CZ_ */

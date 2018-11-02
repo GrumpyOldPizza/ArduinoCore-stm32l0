@@ -26,8 +26,8 @@
  * WITH THE SOFTWARE.
  */
 
-#ifndef _VARIANT_CRICKET_STM32L082CZ_
-#define _VARIANT_CRICKET_STM32L082CZ_
+#ifndef _VARIANT_GNAT_STM32L082CZ_
+#define _VARIANT_GNAT_STM32L082CZ_
 
 /*----------------------------------------------------------------------------
  *        Definitions
@@ -45,12 +45,10 @@
 #define STM32L0_CONFIG_VBAT_SCALE         ((float)1.27)
 
 #define STM32L0_CONFIG_PIN_GNSS_ENABLE    STM32L0_GPIO_PIN_PB2
+#define STM32L0_CONFIG_PIN_GNSS_BACKUP    STM32L0_GPIO_PIN_PA4
 #define STM32L0_CONFIG_PIN_GNSS_PPS       STM32L0_GPIO_PIN_PB7
 #define STM32L0_CONFIG_PIN_GNSS_RX        STM32L0_GPIO_PIN_PA10_USART1_RX
 #define STM32L0_CONFIG_PIN_GNSS_TX        STM32L0_GPIO_PIN_PA9_USART1_TX
-#define STM32L0_CONFIG_GNSS_ANT_SWITCH    1
-
-#define STM32L0_CONFIG_SFLASH_DATA_START  (256 * 1024)
 
 #define USBCON
 
@@ -76,9 +74,9 @@ extern "C"
  *----------------------------------------------------------------------------*/
 
 // Number of pins defined in PinDescription array
-#define PINS_COUNT           (26u)
+#define PINS_COUNT           (25u)
 #define NUM_DIGITAL_PINS     (16u)
-#define NUM_ANALOG_INPUTS    (6u)
+#define NUM_ANALOG_INPUTS    (5u)
 #define NUM_ANALOG_OUTPUTS   (2u)
 
 // LEDs
@@ -95,7 +93,6 @@ extern "C"
 #define PIN_A2               (18ul)
 #define PIN_A3               (19ul)
 #define PIN_A4               (20ul)
-#define PIN_A5               (21ul)
 #define PIN_DAC0             (16ul)
 #define PIN_DAC1             (17ul)
 
@@ -104,7 +101,6 @@ static const uint8_t A1  = PIN_A1;
 static const uint8_t A2  = PIN_A2;
 static const uint8_t A3  = PIN_A3;
 static const uint8_t A4  = PIN_A4;
-static const uint8_t A5  = PIN_A5;
 static const uint8_t DAC0 = PIN_DAC0;
 static const uint8_t DAC1 = PIN_DAC1;
 
@@ -115,32 +111,13 @@ static const uint8_t DAC1 = PIN_DAC1;
  * Serial interfaces
  */
 
-#define SERIAL_INTERFACES_COUNT 4
+#define SERIAL_INTERFACES_COUNT 3
 
 #define PIN_SERIAL1_RX       (0ul)
 #define PIN_SERIAL1_TX       (1ul)
 
 #define PIN_SERIAL2_RX       (19ul)
 #define PIN_SERIAL2_TX       (18ul)
-#define PIN_SERIAL2_RTS      (16ul)
-#define PIN_SERIAL2_CTS      (20ul)
-
-#define PIN_SERIAL3_RX       (8ul)
-#define PIN_SERIAL3_TX       (9ul)
-
-/*
- * SPI Interfaces
- */
-#define SPI_INTERFACES_COUNT 1
-
-#define PIN_SPI_MISO         (12u)
-#define PIN_SPI_MOSI         (11u)
-#define PIN_SPI_SCK          (13u)
-
-static const uint8_t SS   = 10;
-static const uint8_t MOSI = PIN_SPI_MOSI;
-static const uint8_t MISO = PIN_SPI_MISO;
-static const uint8_t SCK  = PIN_SPI_SCK;
 
 /*
  * Wire Interfaces
@@ -160,7 +137,7 @@ static const uint8_t SCL = PIN_WIRE_SCL;
 #define PIN_USB_DP           (23ul)
 #define PIN_USB_VBUS         (24ul)
 
-#define PWM_INSTANCE_COUNT    2
+#define PWM_INSTANCE_COUNT    1
 
 #ifdef __cplusplus
 }
@@ -174,7 +151,6 @@ static const uint8_t SCL = PIN_WIRE_SCL;
 extern CDC  SerialUSB;
 extern Uart Serial1;
 extern Uart Serial2;
-extern Uart Serial3;
 #endif
 
 // These serial port names are intended to allow libraries and architecture-neutral
@@ -194,14 +170,12 @@ extern Uart Serial3;
 //                            pins are NOT connected to anything by default.
 #define SERIAL_PORT_USBVIRTUAL      SerialUSB
 #define SERIAL_PORT_MONITOR         SerialUSB
-#define SERIAL_PORT_GNSS            Serial1
 #define SERIAL_PORT_HARDWARE1       Serial1
 #define SERIAL_PORT_HARDWARE2       Serial2
-#define SERIAL_PORT_HARDWARE3       Serial3
+#define SERIAL_PORT_HARDWARE_OPEN1  Serial1
 #define SERIAL_PORT_HARDWARE_OPEN2  Serial2
-#define SERIAL_PORT_HARDWARE_OPEN3  Serial3
 
 // Alias Serial to SerialUSB
 #define Serial                      SerialUSB
 
-#endif /* _VARIANT_CRICKET_STM32L082CZ_ */
+#endif /* _VARIANT_GNAT_STM32L082CZ_ */
