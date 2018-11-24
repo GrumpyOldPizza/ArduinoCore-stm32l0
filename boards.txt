@@ -275,6 +275,54 @@ Gnat-L082CZ.menu.opt.o3=Fastest
 Gnat-L082CZ.menu.opt.o3.build.flags.optimize=-O3
 Gnat-L082CZ.menu.opt.o3.build.flags.ldspecs=
 
+# Arduino MKRWAN 1300
+# ---------------------------------------
+mkrwan.name=Arduino MKRWAN 1300
+mkrwan.vid.0=0x0483
+mkrwan.pid.0=0x374b
+
+mkrwan.upload.tool=stm32flash
+mkrwan.upload.protocol=
+mkrwan.upload.maximum_size=196608
+mkrwan.upload.maximum_data_size=20480
+mkrwan.upload.use_1200bps_touch=false
+mkrwan.upload.wait_for_upload_port=false
+mkrwan.upload.native_usb=false
+
+mkrwan.build.mcu=cortex-m0plus
+mkrwan.build.f_cpu=32000000L
+mkrwan.build.board=STM32L0_B_L072Z_LRWAN1
+mkrwan.build.arch=stm32l0
+mkrwan.build.core=arduino
+mkrwan.build.vid=0x0483
+mkrwan.build.pid=0x374b
+mkrwan.build.did=0xffff
+mkrwan.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+mkrwan.build.ldscript=linker_scripts/STM32L072CZ_FLASH.ld
+mkrwan.build.openocdscript=openocd_scripts/b-l072z-lrwan1.cfg
+mkrwan.build.variant=B-L072Z-LRWAN1
+mkrwan.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l072xx -larm_cortexM0l_math
+mkrwan.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
+
+mkrwan.menu.speed.32=32 MHz
+mkrwan.menu.speed.32.build.f_cpu=32000000L
+mkrwan.menu.speed.16=16 MHz (No USB)
+mkrwan.menu.speed.16.build.f_cpu=16000000L
+mkrwan.menu.speed.4=4.2 MHz (No USB)
+mkrwan.menu.speed.4.build.f_cpu=4200000L
+
+mkrwan.menu.opt.os=Smallest Code
+mkrwan.menu.opt.os.build.flags.optimize=-Os
+mkrwan.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
+mkrwan.menu.opt.o1=Fast
+mkrwan.menu.opt.o1.build.flags.optimize=-O1
+mkrwan.menu.opt.o1.build.flags.ldspecs=
+mkrwan.menu.opt.o2=Faster
+mkrwan.menu.opt.o2.build.flags.optimize=-O2
+mkrwan.menu.opt.o2.build.flags.ldspecs=
+mkrwan.menu.opt.o3=Fastest
+mkrwan.menu.opt.o3.build.flags.optimize=-O3
+mkrwan.menu.opt.o3.build.flags.ldspecs=
 
 # ST B-L072Z-LRWAN1
 # ---------------------------------------
