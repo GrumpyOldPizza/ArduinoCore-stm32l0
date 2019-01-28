@@ -111,6 +111,22 @@ extern const stm32l0_uart_params_t g_Serial2Params = {
 };
 
 
+extern const stm32l0_uart_params_t g_Serial3Params = {
+    STM32L0_UART_INSTANCE_LPUART1,
+    STM32L0_UART_IRQ_PRIORITY,
+    STM32L0_DMA_CHANNEL_NONE,
+    STM32L0_DMA_CHANNEL_NONE,
+    NULL,
+    0,
+    {
+	STM32L0_GPIO_PIN_PA13_LPUART1_RX,
+	STM32L0_GPIO_PIN_PA14_LPUART1_TX,
+	STM32L0_GPIO_PIN_NONE,
+	STM32L0_GPIO_PIN_NONE,
+    },
+};
+
+
 extern const stm32l0_i2c_params_t g_WireParams = {
     STM32L0_I2C_INSTANCE_I2C1,
     STM32L0_I2C_IRQ_PRIORITY,

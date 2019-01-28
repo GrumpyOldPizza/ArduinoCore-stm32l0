@@ -111,13 +111,16 @@ static const uint8_t DAC1 = PIN_DAC1;
  * Serial interfaces
  */
 
-#define SERIAL_INTERFACES_COUNT 3
+#define SERIAL_INTERFACES_COUNT 4
 
 #define PIN_SERIAL1_RX       (0ul)
 #define PIN_SERIAL1_TX       (1ul)
 
 #define PIN_SERIAL2_RX       (19ul)
 #define PIN_SERIAL2_TX       (18ul)
+
+#define PIN_SERIAL3_RX       (8ul)
+#define PIN_SERIAL3_TX       (9ul)
 
 /*
  * Wire Interfaces
@@ -151,6 +154,7 @@ static const uint8_t SCL = PIN_WIRE_SCL;
 extern CDC  SerialUSB;
 extern Uart Serial1;
 extern Uart Serial2;
+extern Uart Serial3;
 #endif
 
 // These serial port names are intended to allow libraries and architecture-neutral
@@ -170,10 +174,12 @@ extern Uart Serial2;
 //                            pins are NOT connected to anything by default.
 #define SERIAL_PORT_USBVIRTUAL      SerialUSB
 #define SERIAL_PORT_MONITOR         SerialUSB
+#define SERIAL_PORT_GNSS            Serial1
 #define SERIAL_PORT_HARDWARE1       Serial1
 #define SERIAL_PORT_HARDWARE2       Serial2
-#define SERIAL_PORT_HARDWARE_OPEN1  Serial1
+#define SERIAL_PORT_HARDWARE3       Serial3
 #define SERIAL_PORT_HARDWARE_OPEN2  Serial2
+#define SERIAL_PORT_HARDWARE_OPEN3  Serial3
 
 // Alias Serial to SerialUSB
 #define Serial                      SerialUSB
