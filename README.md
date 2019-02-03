@@ -11,6 +11,7 @@ ArduinoCore-stm32l0 is targeted at ultra low power scenarios, sensor hubs, with 
  * [Grasshopper-L082CZ](https://www.tindie.com/products/TleraCorp/grasshopper-lora-development-board)
  * [Cricket-L082CZ](https://www.tindie.com/products/TleraCorp/cricket-lorawangnss-asset-tracker)
  * [Cicada-L082CZ](https://www.tindie.com/products/TleraCorp/lorasensortile)
+ * [Gnat-L082CZ](https://www.tindie.com/products/TleraCorp/gnat-loragnss-asset-tracker/)
 
 ### STMicroelectronics
  * [B-L072Z-LRWAN1](http://www.st.com/en/evaluation-tools/b-l072z-lrwan1.html)
