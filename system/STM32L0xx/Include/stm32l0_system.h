@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2019 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -92,14 +92,8 @@ enum {
 #define STM32L0_SYSTEM_LOCK_VREFINT            7
 #define STM32L0_SYSTEM_LOCK_COUNT              8
 
-#define STM32L0_SYSTEM_REFERENCE_I2C1_FMP      0x00000001  /* force sysclk >= 32MHz */
-#define STM32L0_SYSTEM_REFERENCE_I2C2_FMP      0x00000002  /* force pclk1  >= 32MHz */
-#if defined(STM32L072xx) || defined(STM32L082xx)
-#define STM32L0_SYSTEM_REFERENCE_I2C3_FMP      0x00000004  /* force sysclk >= 32MHz */
-#endif /* STM32L072xx || STM32L082xx */
-#define STM32L0_SYSTEM_REFERENCE_I2C2_FM       0x00000008  /* force pclk1  >= 16MHz */
-#define STM32L0_SYSTEM_REFERENCE_I2C2_SM       0x00000010  /* force pclk1  >=  4MHz */
-#define STM32L0_SYSTEM_REFERENCE_USB           0x00000020  /* force pclk1  >= 16MHz */
+#define STM32L0_SYSTEM_REFERENCE_USB           0x00000001  /* force pclk1  >= 16MHz */
+#define STM32L0_SYSTEM_REFERENCE_I2C2          0x00000002  /* force pclk1  >=  4MHz */
 
 #define STM32L0_SYSTEM_EVENT_CLOCKS            0x00000001
 #define STM32L0_SYSTEM_EVENT_SLEEP             0x00000002

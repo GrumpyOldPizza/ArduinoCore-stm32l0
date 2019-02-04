@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2019 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -45,52 +45,54 @@ enum {
     STM32L0_I2C_INSTANCE_COUNT
 };
 
-#define STM32L0_I2C_OPTION_MODE_MASK            0x00000003
-#define STM32L0_I2C_OPTION_MODE_SHIFT           0
-#define STM32L0_I2C_OPTION_MODE_100K            0x00000000
-#define STM32L0_I2C_OPTION_MODE_400K            0x00000001
-#define STM32L0_I2C_OPTION_MODE_1000K           0x00000002
-#define STM32L0_I2C_OPTION_GENERAL_CALL         0x00000004
-#define STM32L0_I2C_OPTION_WAKEUP               0x00000008
-#define STM32L0_I2C_OPTION_NORESET              0x00000010
-#define STM32L0_I2C_OPTION_ADDRESS_MASK         0xffff0000
-#define STM32L0_I2C_OPTION_ADDRESS_SHIFT        16
+#define STM32L0_I2C_OPTION_MODE_MASK                 0x00000003
+#define STM32L0_I2C_OPTION_MODE_SHIFT                0
+#define STM32L0_I2C_OPTION_MODE_100K                 0x00000000
+#define STM32L0_I2C_OPTION_MODE_400K                 0x00000001
+#define STM32L0_I2C_OPTION_MODE_1000K                0x00000002
+#define STM32L0_I2C_OPTION_GENERAL_CALL              0x00000004
+#define STM32L0_I2C_OPTION_WAKEUP                    0x00000008
+#define STM32L0_I2C_OPTION_ADDRESS_MASK              0xffff0000
+#define STM32L0_I2C_OPTION_ADDRESS_SHIFT             16
 
-#define STM32L0_I2C_EVENT_RECEIVE_REQUEST       0x00000001
-#define STM32L0_I2C_EVENT_RECEIVE_DONE          0x00000002
-#define STM32L0_I2C_EVENT_TRANSMIT_REQUEST      0x00000004
-#define STM32L0_I2C_EVENT_TRANSMIT_DONE         0x00000008
-#define STM32L0_I2C_EVENT_COUNT_MASK            0xffffff00
-#define STM32L0_I2C_EVENT_COUNT_SHIFT           8
+#define STM32L0_I2C_EVENT_TRANSMIT_REQUEST           0x00000001
+#define STM32L0_I2C_EVENT_TRANSMIT_DONE              0x00000002
+#define STM32L0_I2C_EVENT_RECEIVE_REQUEST            0x00000004
+#define STM32L0_I2C_EVENT_RECEIVE_DONE               0x00000008
+#define STM32L0_I2C_EVENT_COUNT_MASK                 0xffffff00
+#define STM32L0_I2C_EVENT_COUNT_SHIFT                8
+#define STM32L0_I2C_EVENT_ADDRESS_MASK               0xffff0000
+#define STM32L0_I2C_EVENT_ADDRESS_SHIFT              16
 
-#define STM32L0_I2C_STATUS_BUSY                 0
-#define STM32L0_I2C_STATUS_SUCCESS              1
-#define STM32L0_I2C_STATUS_ADDRESS_NACK         2
-#define STM32L0_I2C_STATUS_DATA_NACK            3
-#define STM32L0_I2C_STATUS_ARBITRATION_LOST     4
+#define STM32L0_I2C_STATUS_SUCCESS                   0
+#define STM32L0_I2C_STATUS_BUSY                      1
+#define STM32L0_I2C_STATUS_TRANSMIT_ADDRESS_NACK     2
+#define STM32L0_I2C_STATUS_TRANSMIT_DATA_NACK        3
+#define STM32L0_I2C_STATUS_TRANSMIT_ARBITRATION_LOST 4
+#define STM32L0_I2C_STATUS_TRANSMIT_TIMEOUT          5
+#define STM32L0_I2C_STATUS_RECEIVE_ADDRESS_NACK      6
+#define STM32L0_I2C_STATUS_RECEIVE_ARBITRATION_LOST  7
+#define STM32L0_I2C_STATUS_RECEIVE_TIMEOUT           8
 
-#define STM32L0_I2C_CONTROL_RESTART             0x01
-#define STM32L0_I2C_CONTROL_TX                  0x02
-#define STM32L0_I2C_CONTROL_RX                  0x04
-#define STM32L0_I2C_CONTROL_TX_SECONDARY        0x08
-#define STM32L0_I2C_CONTROL_CONTINUE            0x10
+#define STM32L0_I2C_CONTROL_RESTART                  0x01
 
 typedef void (*stm32l0_i2c_event_callback_t)(void *context, uint32_t events);
 
+typedef void (*stm32l0_i2c_suspend_callback_t)(void *context);
+
 typedef void (*stm32l0_i2c_done_callback_t)(void *context);
 
-#define STM32L0_I2C_STATE_NONE                  0
-#define STM32L0_I2C_STATE_INIT                  1
-#define STM32L0_I2C_STATE_BUSY                  2
-#define STM32L0_I2C_STATE_READY                 3
-#define STM32L0_I2C_STATE_MASTER_STOP           4
-#define STM32L0_I2C_STATE_MASTER_RESTART        5
-#define STM32L0_I2C_STATE_MASTER_NACK           6
-#define STM32L0_I2C_STATE_MASTER_TRANSMIT       7
-#define STM32L0_I2C_STATE_MASTER_RECEIVE        8
-#define STM32L0_I2C_STATE_SLAVE_NACK            9
-#define STM32L0_I2C_STATE_SLAVE_TRANSMIT        10
-#define STM32L0_I2C_STATE_SLAVE_RECEIVE         11
+#define STM32L0_I2C_STATE_NONE                       0
+#define STM32L0_I2C_STATE_INIT                       1
+#define STM32L0_I2C_STATE_READY                      2
+#define STM32L0_I2C_STATE_SUSPENDED                  3
+#define STM32L0_I2C_STATE_MASTER_STOP                4
+#define STM32L0_I2C_STATE_MASTER_RESTART             5
+#define STM32L0_I2C_STATE_MASTER_NACK                6
+#define STM32L0_I2C_STATE_MASTER_TRANSMIT            7
+#define STM32L0_I2C_STATE_MASTER_RECEIVE             8
+#define STM32L0_I2C_STATE_SLAVE_TRANSMIT             9
+#define STM32L0_I2C_STATE_SLAVE_RECEIVE              10
 
 typedef struct _stm32l0_i2c_pins_t {
     uint16_t                            scl;
@@ -110,10 +112,10 @@ typedef struct _stm32l0_i2c_transaction_t {
     volatile uint8_t                    status;
     uint8_t                             control;
     uint16_t                            address;
-    uint8_t                             *data;
-    uint8_t                             *data2;
-    uint16_t                            count;
-    uint16_t                            count2;
+    const uint8_t                       *tx_data;
+    uint8_t                             *rx_data;
+    uint16_t                            tx_count;
+    uint16_t                            rx_count;
     stm32l0_i2c_done_callback_t         callback;
     void                                *context;
 } stm32l0_i2c_transaction_t;
@@ -127,37 +129,35 @@ typedef struct _stm32l0_i2c_t {
     uint8_t                             rx_dma;
     uint8_t                             tx_dma;
     stm32l0_i2c_pins_t                  pins;
-    uint32_t                            sysclk;
-    uint32_t                            pclk;
     uint32_t                            option;
+    uint32_t                            timeout;
     stm32l0_i2c_event_callback_t        ev_callback;
     void                                *ev_context;
-    stm32l0_i2c_transaction_t* volatile xf_continue;
-    stm32l0_i2c_transaction_t* volatile xf_queue;
-    stm32l0_i2c_done_callback_t         xf_callback;
-    void                                *xf_context;
-    volatile uint8_t                    *xf_status;
+    stm32l0_i2c_suspend_callback_t      rq_callback;
+    void                                *rq_context;
+    volatile uint8_t                    rq_sync;
+    uint8_t                             xf_control;
     uint16_t                            xf_address;
-    uint16_t                            xf_control;
     uint32_t                            xf_count;
-    uint8_t                             *tx_data;
-    uint8_t                             *tx_data_e;
+    stm32l0_i2c_transaction_t           *xf_queue;
+    stm32l0_i2c_transaction_t           *xf_transaction;
+    const uint8_t                       *tx_data;
+    const uint8_t                       *tx_data_e;
     uint8_t                             *rx_data;
     uint8_t                             *rx_data_e;
-    uint8_t                             *tx2_data;
-    uint8_t                             *tx2_data_e;
 } stm32l0_i2c_t;
 
 extern bool stm32l0_i2c_create(stm32l0_i2c_t *i2c, const stm32l0_i2c_params_t *params);
 extern bool stm32l0_i2c_destroy(stm32l0_i2c_t *i2c);
-extern bool stm32l0_i2c_reset(stm32l0_i2c_t *i2c);
-extern bool stm32l0_i2c_enable(stm32l0_i2c_t *i2c, uint32_t option, stm32l0_i2c_event_callback_t callback, void *context);
+extern bool stm32l0_i2c_enable(stm32l0_i2c_t *i2c, uint32_t option, uint32_t timeout, stm32l0_i2c_event_callback_t callback, void *context);
 extern bool stm32l0_i2c_disable(stm32l0_i2c_t *i2c);
-extern bool stm32l0_i2c_configure(stm32l0_i2c_t *i2c, uint32_t option);
+extern bool stm32l0_i2c_configure(stm32l0_i2c_t *i2c, uint32_t option, uint32_t timeout);
+extern bool stm32l0_i2c_suspend(stm32l0_i2c_t *i2c, stm32l0_i2c_suspend_callback_t callback, void *context);
+extern void stm32l0_i2c_resume(stm32l0_i2c_t *i2c);
 extern bool stm32l0_i2c_reset(stm32l0_i2c_t *i2c);
-extern bool stm32l0_i2c_receive(stm32l0_i2c_t *i2c, uint8_t *rx_data, uint16_t rx_count, bool nack);
+extern bool stm32l0_i2c_receive(stm32l0_i2c_t *i2c, uint8_t *rx_data, uint16_t rx_count);
 extern bool stm32l0_i2c_transmit(stm32l0_i2c_t *i2c, uint8_t *tx_data, uint16_t tx_count);
-extern bool stm32l0_i2c_enqueue(stm32l0_i2c_t *i2c, stm32l0_i2c_transaction_t *transaction);
+extern bool stm32l0_i2c_submit(stm32l0_i2c_t *i2c, stm32l0_i2c_transaction_t *transaction);
 
 #ifdef __cplusplus
 }

@@ -11,11 +11,23 @@
 #######################################
 
 begin	KEYWORD2
+end	KEYWORD2
+setClock	KEYWORD2
 beginTransmission	KEYWORD2
 endTransmission	KEYWORD2
 requestFrom	KEYWORD2
 onReceive	KEYWORD2
 onRequest	KEYWORD2
+onTransmit	KEYWORD2
+setClockLowTimeout	KEYWORD2
+isGeneralCall		KEYWORD2
+transfer	KEYWORD2
+reset	KEYWORD2
+scan	KEYWORD2
+suspend	KEYWORD2
+resume	KEYWORD2
+enableWakeup	KEYWORD2
+disableWakeup	KEYWORD2
 
 #######################################
 # Instances (KEYWORD2)

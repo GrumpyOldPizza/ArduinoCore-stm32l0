@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2019 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -629,6 +629,10 @@ void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, ui
      * LUPART which is LSE. CLK48 is driven by HSI48 with CRS.
      */
     RCC->CCIPR = (RCC_CCIPR_LPTIM1SEL_0 | RCC_CCIPR_LPTIM1SEL_1 |   /* LSE   */
+                  RCC_CCIPR_I2C1SEL_1 |                             /* HSI16 */
+#if defined(STM32L072xx) || defined(STM32L082xx)
+                  RCC_CCIPR_I2C3SEL_1 |                             /* HSI16 */
+#endif /* STM32L072xx || STM32L082xx */
                   RCC_CCIPR_HSI48SEL);                              /* HSI48 */
 
     RCC->APB1ENR &= ~RCC_APB1ENR_PWREN;
@@ -769,14 +773,8 @@ bool stm32l0_system_sysclk_configure(uint32_t hclk, uint32_t pclk1, uint32_t pcl
     __disable_irq();
 
     if (stm32l0_system_device.lock[STM32L0_SYSTEM_LOCK_CLOCKS] ||
-        ((stm32l0_system_device.reference & STM32L0_SYSTEM_REFERENCE_I2C1_FMP) && (sysclk < 32000000)) ||
-        ((stm32l0_system_device.reference & STM32L0_SYSTEM_REFERENCE_I2C2_FMP) && (pclk1  < 32000000)) ||
-#if defined(STM32L072xx) || defined(STM32L082xx)
-        ((stm32l0_system_device.reference & STM32L0_SYSTEM_REFERENCE_I2C3_FMP) && (sysclk < 32000000)) ||
-#endif /* STM32L072xx || STM32L082xx */
-        ((stm32l0_system_device.reference & STM32L0_SYSTEM_REFERENCE_I2C2_FM)  && (pclk1  < 16000000)) ||
-        ((stm32l0_system_device.reference & STM32L0_SYSTEM_REFERENCE_I2C2_SM)  && (pclk1  <  4000000)) ||
-        ((stm32l0_system_device.reference & STM32L0_SYSTEM_REFERENCE_USB)      && (pclk1  < 16000000)))
+        ((stm32l0_system_device.reference & STM32L0_SYSTEM_REFERENCE_USB)  && (pclk1  < 16000000)) ||
+        ((stm32l0_system_device.reference & STM32L0_SYSTEM_REFERENCE_I2C2) && (pclk1  <  4000000)))
     {
         __set_PRIMASK(primask);
         

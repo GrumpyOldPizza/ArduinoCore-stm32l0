@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2016-2019 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -36,48 +36,44 @@ TwoWire::TwoWire(struct _stm32l0_i2c_t *i2c, const struct _stm32l0_i2c_params_t 
 
     stm32l0_i2c_create(i2c, params);
 
-    _clock = TWI_CLOCK;
-    _option = 0;
+    _option = STM32L0_I2C_OPTION_MODE_100K;
+    _timeout = 0;
     _ev_address = 0;
     _xf_address = 0;
 
     _rx_read = 0;
     _rx_write = 0;
-    _rx_active = false;
 
     _tx_write = 0;
     _tx_active = false;
 
-    _requestCallback = NULL;
     _receiveCallback = NULL;
+    _requestCallback = NULL;
+    _transmitCallback = NULL;
 }
 
 void TwoWire::begin()
 {
     _ev_address = 0;
 
-    if      (_clock > 400000) { _option = STM32L0_I2C_OPTION_MODE_1000K; }
-    else if (_clock > 100000) { _option = STM32L0_I2C_OPTION_MODE_400K;  }
-    else                      { _option = STM32L0_I2C_OPTION_MODE_100K;  }
+    _option &= ~(STM32L0_I2C_OPTION_GENERAL_CALL | STM32L0_I2C_OPTION_ADDRESS_MASK);
 
-    stm32l0_i2c_enable(_i2c, _option, NULL, NULL);
+    stm32l0_i2c_enable(_i2c, _option, _timeout, NULL, NULL);
 }
 
 void TwoWire::begin(uint8_t address, bool generalCall) 
 {
     _ev_address = address;
 
-    _option |= (STM32L0_I2C_OPTION_WAKEUP | (address << STM32L0_I2C_OPTION_ADDRESS_SHIFT));
+    _option &= ~(STM32L0_I2C_OPTION_GENERAL_CALL | STM32L0_I2C_OPTION_ADDRESS_MASK);
+
+    _option |= (address << STM32L0_I2C_OPTION_ADDRESS_SHIFT);
 
     if (generalCall) {
-	_option |= STM32L0_I2C_OPTION_GENERAL_CALL;
+        _option |= STM32L0_I2C_OPTION_GENERAL_CALL;
     }
 
-    if      (_clock > 400000) { _option |= STM32L0_I2C_OPTION_MODE_1000K; }
-    else if (_clock > 100000) { _option |= STM32L0_I2C_OPTION_MODE_400K;  }
-    else                      { _option |= STM32L0_I2C_OPTION_MODE_100K;  }
-
-    stm32l0_i2c_enable(_i2c, _option, (stm32l0_i2c_event_callback_t)TwoWire::_eventCallback, (void*)this);
+    stm32l0_i2c_enable(_i2c, _option, _timeout, (stm32l0_i2c_event_callback_t)TwoWire::_eventCallback, (void*)this);
 }
 
 void TwoWire::end() 
@@ -87,27 +83,27 @@ void TwoWire::end()
 
 void TwoWire::setClock(uint32_t clock) 
 {
-    _clock = clock;
+    _option &= ~STM32L0_I2C_OPTION_MODE_MASK;
 
-    if      (_clock > 400000) { _option |= STM32L0_I2C_OPTION_MODE_1000K; }
-    else if (_clock > 100000) { _option |= STM32L0_I2C_OPTION_MODE_400K;  }
-    else                      { _option |= STM32L0_I2C_OPTION_MODE_100K;  }
-  
-    stm32l0_i2c_configure(_i2c, _option);
+    if      (clock > 400000) { _option |= STM32L0_I2C_OPTION_MODE_1000K; }
+    else if (clock > 100000) { _option |= STM32L0_I2C_OPTION_MODE_400K;  }
+    else                     { _option |= STM32L0_I2C_OPTION_MODE_100K;  }
+
+    stm32l0_i2c_configure(_i2c, _option, _timeout);
 }
 
 void TwoWire::beginTransmission(uint8_t address)
 {
     if (__get_IPSR() != 0) {
-	return;
+        return;
     }
 
     if (_ev_address) {
-	return;
+        return;
     }
 
     if (_tx_active) {
-	return;
+        return;
     }
 
     _tx_write = 0;
@@ -117,285 +113,139 @@ void TwoWire::beginTransmission(uint8_t address)
 
 // Errors:
 //  0 : Success
-//  1 : Data too long
+//  1 : Parameter error
 //  2 : NACK on transmit of address
 //  3 : NACK on transmit of data
-//  4 : Other error
+//  4 : Arbitration lost
+//  5 : SCL timeout
+
 uint8_t TwoWire::endTransmission(bool stopBit)
 {
+    stm32l0_i2c_transaction_t transaction;
+
     if (!_tx_active) {
-	return 4;
+        return 1;
     }
 
     _tx_active = false;
 
-    return sendTransmission(_tx_address, &_tx_data[0], _tx_write, stopBit);
-}
-
-uint8_t TwoWire::sendTransmission(uint8_t address, const uint8_t *buffer, size_t size, bool stopBit)
-{
-    stm32l0_i2c_transaction_t transaction;
-
-    if (__get_IPSR() != 0) {
-	return 4;
+    if (_xf_address && (_xf_address != _tx_address)) {
+        return 1;
     }
 
-    if (_ev_address) {
-	return 4;
-    }
-
-    if (_xf_address && (_xf_address != address)) {
-	return 4;
-    }
-
-    transaction.control = (_xf_address ? STM32L0_I2C_CONTROL_CONTINUE : 0) | (!stopBit ? STM32L0_I2C_CONTROL_RESTART : 0) | STM32L0_I2C_CONTROL_TX;
-    transaction.data = (uint8_t*)&buffer[0];
-    transaction.data2 = NULL;
-    transaction.count = size;
-    transaction.count2 = 0;
-
-    transaction.address = address;
+    transaction.status = STM32L0_I2C_STATUS_SUCCESS;
+    transaction.control = stopBit ? 0 : STM32L0_I2C_CONTROL_RESTART;
+    transaction.address = _tx_address;
+    transaction.tx_data = &_tx_data[0];
+    transaction.rx_data = NULL;
+    transaction.tx_count = _tx_write;
+    transaction.rx_count = 0;
     transaction.callback = NULL;
     transaction.context = NULL;
 
-    if (!stm32l0_i2c_enqueue(_i2c, &transaction)) {
-	return 4;
+    if (!stm32l0_i2c_submit(_i2c, &transaction)) {
+        return 1;
     }
 
     _xf_address = 0;
 
     while (transaction.status == STM32L0_I2C_STATUS_BUSY) {
-	armv6m_core_wait();
+        armv6m_core_wait();
     }
 
-    if (transaction.status != STM32L0_I2C_STATUS_SUCCESS) {
-	if (transaction.status == STM32L0_I2C_STATUS_ADDRESS_NACK) {
-	    return 2;
-	}
-
-	if (transaction.status == STM32L0_I2C_STATUS_DATA_NACK) {
-	    return 3;
-	}
-
-	return 4;
+    if (transaction.status == STM32L0_I2C_STATUS_SUCCESS) {
+        if (!stopBit) {
+            _xf_address = _tx_address;
+        }
     } 
 
-    if (!stopBit) {
-	_xf_address = address;
-    }
-
-    return 0;
-}
-
-uint8_t TwoWire::sendTransmission(uint8_t address, const uint8_t *buffer, size_t size, uint32_t iaddress, uint8_t isize, bool stopBit)
-{
-    stm32l0_i2c_transaction_t transaction;
-
-    if (__get_IPSR() != 0) {
-	return 4;
-    }
-
-    if (_ev_address) {
-	return 4;
-    }
-
-    if (_xf_address && (_xf_address != address)) {
-	return 4;
-    }
-
-    if ((isize == 0) || (isize > 4)) {
-	return 4;
-    }
-
-    if (size == 0)
-    {
-	transaction.control = (_xf_address ? STM32L0_I2C_CONTROL_CONTINUE : 0) | (!stopBit ? STM32L0_I2C_CONTROL_RESTART : 0) | STM32L0_I2C_CONTROL_TX;
-	transaction.data = (uint8_t*)&iaddress;
-	transaction.data2 = NULL;
-	transaction.count = isize;
-	transaction.count2 = 0;
-    }
-    else
-    {
-	transaction.control = (_xf_address ? STM32L0_I2C_CONTROL_CONTINUE : 0) | (!stopBit ? STM32L0_I2C_CONTROL_RESTART : 0) | STM32L0_I2C_CONTROL_TX | STM32L0_I2C_CONTROL_TX_SECONDARY;
-	transaction.data = (uint8_t*)&iaddress;
-	transaction.data2 = (uint8_t*)&buffer[0];
-	transaction.count = isize;
-	transaction.count2 = size;
-    }
-
-    transaction.address = address;
-    transaction.callback = NULL;
-    transaction.context = NULL;
-
-    if (!stm32l0_i2c_enqueue(_i2c, &transaction)) {
-	return 4;
-    }
-
-    _xf_address = 0;
-
-    while (transaction.status == STM32L0_I2C_STATUS_BUSY) {
-	armv6m_core_wait();
-    }
-
-    if (transaction.status != STM32L0_I2C_STATUS_SUCCESS) {
-	if (transaction.status == STM32L0_I2C_STATUS_ADDRESS_NACK) {
-	    return 2;
-	}
-
-	if (transaction.status == STM32L0_I2C_STATUS_DATA_NACK) {
-	    return 3;
-	}
-
-	return 4;
-    }
-
-    if (!stopBit) {
-	_xf_address = address;
-    }
-
-    return 0;
+    return transaction.status;
 }
 
 size_t TwoWire::requestFrom(uint8_t address, size_t size, bool stopBit)
 {
-    if (size == 0) {
-	return 0;
-    }
-
-    if (size > BUFFER_LENGTH) {
-	size = BUFFER_LENGTH;
-    }
-
-    size = requestFrom(address, &_rx_data[0], size, stopBit);
-
-    if (size)
-    {
-	_rx_read = 0;
-	_rx_write = size;
-    }
-
-    return size;
-}
-
-size_t TwoWire::requestFrom(uint8_t address, uint8_t *buffer, size_t size, bool stopBit)
-{
-    stm32l0_i2c_transaction_t transaction;
-
-    if (__get_IPSR() != 0) {
-	return 0;
-    }
-
-    if (_ev_address) {
-	return 0;
-    }
-
-    if (_xf_address && (_xf_address != address)) {
-	return 0;
-    }
-
-    if (size == 0) {
-	return 0;
-    }
-
-    transaction.control = (_xf_address ? STM32L0_I2C_CONTROL_CONTINUE : 0) | (!stopBit ? STM32L0_I2C_CONTROL_RESTART : 0) | STM32L0_I2C_CONTROL_RX;
-    transaction.data = buffer;
-    transaction.data2 = NULL;
-    transaction.count = size;
-    transaction.count2 = 0;
-
-    transaction.address = address;
-    transaction.callback = NULL;
-    transaction.context = NULL;
-
-    if (!stm32l0_i2c_enqueue(_i2c, &transaction)) {
-	return 0;
-    }
-
-    _xf_address = 0;
-
-    while (transaction.status == STM32L0_I2C_STATUS_BUSY) {
-	armv6m_core_wait();
-    }
-
-    if (transaction.status != STM32L0_I2C_STATUS_SUCCESS) {
-	return 0;
-    }
-
-    if (!stopBit) {
-	_xf_address = address;
-    }
-
-    return size;
+    return requestFrom(address, size, 0, 0, stopBit);
 }
 
 size_t TwoWire::requestFrom(uint8_t address, size_t size, uint32_t iaddress, uint8_t isize, bool stopBit)
 {
-    if (size > BUFFER_LENGTH) {
-	size = BUFFER_LENGTH;
-    }
-
-    size = requestFrom(address, &_rx_data[0], size, iaddress, isize, stopBit);
-
-    if (size)
-    {
-	_rx_read = 0;
-	_rx_write = size;
-    }
-
-    return size;
-}
-
-size_t TwoWire::requestFrom(uint8_t address, uint8_t *buffer, size_t size, uint32_t iaddress, uint8_t isize, bool stopBit)
-{
     stm32l0_i2c_transaction_t transaction;
+    uint8_t tx_data[3];
 
     if (__get_IPSR() != 0) {
-	return 0;
+        return 0;
     }
 
     if (_ev_address) {
-	return 0;
+        return 0;
     }
 
     if (_xf_address && (_xf_address != address)) {
-	return 0;
+        return 0;
     }
 
     if (size == 0) {
-	return 0;
+        return 0;
     }
 
-    if ((isize == 0) || (isize > 4)) {
-	return 0;
+    if (size > BUFFER_LENGTH) {
+        size = BUFFER_LENGTH;
     }
 
-    transaction.control = (_xf_address ? STM32L0_I2C_CONTROL_CONTINUE : 0) | (!stopBit ? STM32L0_I2C_CONTROL_RESTART : 0) | STM32L0_I2C_CONTROL_TX | STM32L0_I2C_CONTROL_RX;
-    transaction.data = (uint8_t*)&iaddress;
-    transaction.data2 = buffer;
-    transaction.count = isize;
-    transaction.count2 = size;
-
+    transaction.status = STM32L0_I2C_STATUS_SUCCESS;
+    transaction.control = stopBit ? 0 : STM32L0_I2C_CONTROL_RESTART;
     transaction.address = address;
+    transaction.tx_data = NULL;
+    transaction.rx_data = &_rx_data[0];
+    transaction.tx_count = 0;
+    transaction.rx_count = size;
     transaction.callback = NULL;
     transaction.context = NULL;
 
-    if (!stm32l0_i2c_enqueue(_i2c, &transaction)) {
-	return 0;
+    if (isize)
+    {
+        if (isize == 1) 
+        {
+            tx_data[0] = iaddress >> 0;
+        }
+        else if (isize == 2) 
+        {
+            tx_data[0] = iaddress >> 8;
+            tx_data[1] = iaddress >> 0;
+        }
+        else
+        {
+            tx_data[0] = iaddress >> 16;
+            tx_data[1] = iaddress >> 8;
+            tx_data[2] = iaddress >> 0;
+
+            isize = 3;
+        }
+
+        transaction.tx_data = &tx_data[0];
+        transaction.tx_count = isize;
+    }
+
+    if (!stm32l0_i2c_submit(_i2c, &transaction)) {
+        return 0;
     }
 
     _xf_address = 0;
 
+    _rx_read = 0;
+    _rx_write = 0;
+
     while (transaction.status == STM32L0_I2C_STATUS_BUSY) {
-	armv6m_core_wait();
+        armv6m_core_wait();
     }
 
-    if (transaction.status != STM32L0_I2C_STATUS_SUCCESS) {
-	return 0;
-    }
 
-    if (!stopBit) {
-	_xf_address = address;
+    if (transaction.status == STM32L0_I2C_STATUS_SUCCESS) {
+        if (!stopBit) {
+            _xf_address = address;
+        }
+
+        _rx_write = size;
     }
 
     return size;
@@ -404,11 +254,11 @@ size_t TwoWire::requestFrom(uint8_t address, uint8_t *buffer, size_t size, uint3
 size_t TwoWire::write(uint8_t data)
 {
     if (!_tx_active) {
-	return 0;
+        return 0;
     }
 
     if (_tx_write >= BUFFER_LENGTH) {
-	return 0;
+        return 0;
     }
 
     _tx_data[_tx_write++] = data;
@@ -416,21 +266,21 @@ size_t TwoWire::write(uint8_t data)
     return 1;
 }
 
-size_t TwoWire::write(const uint8_t *data, size_t quantity)
+size_t TwoWire::write(const uint8_t *data, size_t size)
 {
     if (!_tx_active) {
-	return 0;
+        return 0;
     }
 
-    if (quantity > (unsigned int)(BUFFER_LENGTH - _tx_write)) {
-	quantity = BUFFER_LENGTH - _tx_write;
+    if (size > (unsigned int)(BUFFER_LENGTH - _tx_write)) {
+        size = BUFFER_LENGTH - _tx_write;
     }
 
-    memcpy(&_tx_data[_tx_write], data, quantity);
+    memcpy(&_tx_data[_tx_write], data, size);
 
-    _tx_write += quantity;
+    _tx_write += size;
 
-    return quantity;
+    return size;
 }
 
 int TwoWire::available(void)
@@ -441,7 +291,7 @@ int TwoWire::available(void)
 int TwoWire::read(void)
 {
     if (_rx_read >= _rx_write) {
-	return -1;
+        return -1;
     }
 
     return _rx_data[_rx_read++];
@@ -451,7 +301,7 @@ size_t TwoWire::read(uint8_t *buffer, size_t size)
 {
     if (size > (unsigned int)(_rx_write - _rx_read))
     {
-	size = (_rx_write - _rx_read);
+        size = (_rx_write - _rx_read);
     }
 
     memcpy(buffer, &_rx_data[_rx_read], size);
@@ -464,7 +314,7 @@ size_t TwoWire::read(uint8_t *buffer, size_t size)
 int TwoWire::peek(void)
 {
     if (_rx_read >= _rx_write) {
-	return -1;
+        return -1;
     }
 
     return _rx_data[_rx_read];
@@ -474,9 +324,191 @@ void TwoWire::flush(void)
 {
 }
 
-void TwoWire::reset(void)
+void TwoWire::setClockLowTimeout(unsigned long timeout)
 {
+    _timeout = timeout;
+
+    stm32l0_i2c_configure(_i2c, _option, _timeout);
+}
+
+bool TwoWire::isGeneralCall()
+{
+    return (_rx_address == 0);
+}
+
+// Errors:
+//  0 : Success
+//  1 : Parameter error
+//  2 : (TRANSMIT) NACK on transmit of address
+//  3 : (TRANSMIT) NACK on transmit of data
+//  4 : (TRANSMIT) Arbitration lost
+//  5 : (TRANSMIT) SCL timeout
+//  6 : (RECEIVE) NACK on transmit of address
+//  7 : (RECEIVE) Arbitration lost
+//  8 : (RECEIVE) SCL timeout
+
+uint8_t TwoWire::transfer(uint8_t address, const uint8_t *txBuffer, size_t txSize, uint8_t *rxBuffer, size_t rxSize, bool stopBit)
+{
+    stm32l0_i2c_transaction_t transaction;
+
+    if (__get_IPSR() != 0) {
+        return 1;
+    }
+
+    if (_ev_address) {
+        return 1;
+    }
+
+    if (_xf_address && (_xf_address != address)) {
+        return 1;
+    }
+
+    if (!txBuffer && txSize)  {
+        return 1;
+    }
+
+    if (!rxBuffer && rxSize)  {
+        return 1;
+    }
+
+    if (rxBuffer && !rxSize)  {
+        return 1;
+    }
+
+    if ((txSize > 65535) || (rxSize > 65536))  {
+        return 1;
+    }
+
+    transaction.status = STM32L0_I2C_STATUS_SUCCESS;
+    transaction.control = stopBit ? 0 : STM32L0_I2C_CONTROL_RESTART;
+    transaction.address = address;
+    transaction.tx_data = txBuffer;
+    transaction.rx_data = rxBuffer;
+    transaction.tx_count = txSize;
+    transaction.rx_count = rxSize;
+    transaction.callback = NULL;
+    transaction.context = NULL;
+
+    if (!stm32l0_i2c_submit(_i2c, &transaction)) {
+        return 1;
+    }
+
+    while (transaction.status == STM32L0_I2C_STATUS_BUSY) {
+        armv6m_core_wait();
+    }
+
+    if (transaction.status == STM32L0_I2C_STATUS_SUCCESS) {
+        if (!stopBit) {
+            _xf_address = address;
+        }
+    } 
+
+    return transaction.status;
+}
+
+void TwoWire::reset()
+{
+    if (__get_IPSR() != 0) {
+        return;
+    }
+
+    if (stm32l0_i2c_suspend(_i2c, NULL, NULL)) {
+        while (_i2c->state != STM32L0_I2C_STATE_SUSPENDED) {
+            armv6m_core_wait();
+        }
+    }
+
     stm32l0_i2c_reset(_i2c);
+
+    stm32l0_i2c_resume(_i2c);
+}
+
+uint8_t TwoWire::scan(uint8_t address)
+{
+    stm32l0_i2c_transaction_t transaction;
+
+    if (__get_IPSR() != 0) {
+        return 0x00;
+    }
+
+    if (_ev_address) {
+        return 0x00;
+    }
+
+    if (_xf_address) {
+        return 0x00;
+    }
+
+    while (address < 0x77)
+    {
+        address++;
+
+        if (address < 0x08) {
+            address = 0x08;
+        }
+
+        transaction.status = STM32L0_I2C_STATUS_SUCCESS;
+        transaction.control = 0;
+        transaction.address = address;
+        transaction.tx_data = &_tx_data[0];
+        transaction.rx_data = NULL;
+        transaction.tx_count = 0;
+        transaction.rx_count = 0;
+        transaction.callback = NULL;
+        transaction.context = NULL;
+
+        if (!stm32l0_i2c_submit(_i2c, &transaction)) {
+            return 1;
+        }
+        
+        while (transaction.status == STM32L0_I2C_STATUS_BUSY) {
+            armv6m_core_wait();
+        }
+        
+        if (transaction.status == STM32L0_I2C_STATUS_SUCCESS) {
+            return address;
+        }
+    }
+
+    return 0x00;
+}
+
+bool TwoWire::suspend()
+{
+    if (__get_IPSR() != 0) {
+        return false;
+    }
+
+    if (stm32l0_i2c_suspend(_i2c, NULL, NULL)) {
+        while (_i2c->state != STM32L0_I2C_STATE_SUSPENDED) {
+            armv6m_core_wait();
+        }
+    }
+
+    return true;
+}
+
+void TwoWire::resume()
+{
+    if (__get_IPSR() != 0) {
+        return;
+    }
+
+    stm32l0_i2c_resume(_i2c);
+}
+
+void TwoWire::enableWakeup()
+{
+    _option |= STM32L0_I2C_OPTION_WAKEUP;
+
+    stm32l0_i2c_configure(_i2c, _option, _timeout);
+}
+
+void TwoWire::disableWakeup()
+{
+    _option &= ~STM32L0_I2C_OPTION_WAKEUP;
+
+    stm32l0_i2c_configure(_i2c, _option, _timeout);
 }
 
 void TwoWire::onReceive(void(*callback)(int))
@@ -489,254 +521,133 @@ void TwoWire::onRequest(void(*callback)(void))
     _requestCallback = callback;
 }
 
+void TwoWire::onTransmit(void(*callback)(int))
+{
+    _transmitCallback = callback;
+}
+
 void TwoWire::_eventCallback(class TwoWire *self, uint32_t events)
 {
     if (events & STM32L0_I2C_EVENT_RECEIVE_REQUEST) {
-	if (self->_rx_active) {
-	    self->_rx_write = BUFFER_LENGTH;
+        self->_rx_address = (events & STM32L0_I2C_EVENT_ADDRESS_MASK) >> STM32L0_I2C_EVENT_ADDRESS_SHIFT;
 
-	    if (self->_receiveCallback) {
-		(*self->_receiveCallback)(self->_rx_write - self->_rx_read);
-	    }
-
-	    if (self->_rx_read != self->_rx_write) {
-		memmove(&self->_rx_data[0], &self->_rx_data[self->_rx_read], (self->_rx_write - self->_rx_read));
-		
-		self->_rx_write = self->_rx_read;
-		self->_rx_read = 0;
-	    }
-
-	    self->_rx_active = false;
-	}
-
-	if (self->_rx_write < BUFFER_LENGTH) {
-	    stm32l0_i2c_receive(self->_i2c, &self->_rx_data[self->_rx_write], BUFFER_LENGTH - self->_rx_write, false);
-
-	    self->_rx_active = true;
-	}
+        stm32l0_i2c_receive(self->_i2c, &self->_rx_data[0], BUFFER_LENGTH);
     }
 
     if (events & STM32L0_I2C_EVENT_RECEIVE_DONE) {
-	self->_rx_write += ((events & STM32L0_I2C_EVENT_COUNT_MASK) >> STM32L0_I2C_EVENT_COUNT_SHIFT);
+        self->_rx_read = 0;
+        self->_rx_write = (events & STM32L0_I2C_EVENT_COUNT_MASK) >> STM32L0_I2C_EVENT_COUNT_SHIFT;
 
-	if (self->_receiveCallback) {
-	    (*self->_receiveCallback)(self->_rx_write - self->_rx_read);
-	}
-
-	self->_rx_active = false;
+        if (self->_receiveCallback) {
+            (*self->_receiveCallback)(self->_rx_write);
+        }
     }
     
     if (events & STM32L0_I2C_EVENT_TRANSMIT_REQUEST) {
-	self->_tx_active = true;
-	self->_tx_write = 0;
+        self->_tx_active = true;
+        self->_tx_write = 0;
 
-	if(self->_requestCallback) {
-	    (*self->_requestCallback)();
-	}
-      
-	stm32l0_i2c_transmit(self->_i2c, &self->_tx_data[0], self->_tx_write);
+        if (self->_requestCallback) {
+            (*self->_requestCallback)();
+        }
+
+        self->_tx_active = false;
+
+        stm32l0_i2c_transmit(self->_i2c, &self->_tx_data[0], self->_tx_write);
     }
 
     if (events & STM32L0_I2C_EVENT_TRANSMIT_DONE) {
-	self->_tx_active = false;
-	self->_tx_write = 0;
+        if (self->_transmitCallback) {
+            (*self->_transmitCallback)((events & STM32L0_I2C_EVENT_COUNT_MASK) >> STM32L0_I2C_EVENT_COUNT_SHIFT);
+        }
     }
 }
 
 TwoWireTransaction::TwoWireTransaction()
 {
     _transaction.status = STM32L0_I2C_STATUS_SUCCESS;
-
-    _xf_address = 0;
-    _xf_status = 0;
 }
 
 TwoWireTransaction::~TwoWireTransaction()
 {
+    if (_transaction.status == STM32L0_I2C_STATUS_BUSY) {
+        __BKPT();
+    }
 }
 
-bool TwoWireTransaction::sendTransmission(class TwoWire &twowire, uint8_t address, const uint8_t *buffer, size_t size, bool stopBit, void(*callback)(void))
+bool TwoWireTransaction::submit(class TwoWire &wire, uint8_t address, const uint8_t *txBuffer, size_t txSize, uint8_t *rxBuffer, size_t rxSize, void(*callback)(void), bool stopBit)
 {
-    if (twowire._ev_address) {
-	return false;
+    return submit(wire, address, txBuffer, txSize, rxBuffer, rxSize, Callback(callback), stopBit);
+}
+
+bool TwoWireTransaction::submit(class TwoWire &wire, uint8_t address, const uint8_t *txBuffer, size_t txSize, uint8_t *rxBuffer, size_t rxSize, Callback callback, bool stopBit)
+{
+    if (!txBuffer && txSize)  {
+        return false;
     }
 
-    if (_xf_address && (_xf_address != address)) {
-	return false;
+    if (!rxBuffer && rxSize)  {
+        return false;
     }
 
-    _transaction.control = (_xf_address ? STM32L0_I2C_CONTROL_CONTINUE : 0) | (!stopBit ? STM32L0_I2C_CONTROL_RESTART : 0) | STM32L0_I2C_CONTROL_TX;
-    _transaction.data = (uint8_t*)&buffer[0];
-    _transaction.data2 = NULL;
-    _transaction.count = size;
-    _transaction.count2 = 0;
+    if (rxBuffer && !rxSize)  {
+        return false;
+    }
 
+    if ((txSize > 65535) || (rxSize > 65536))  {
+        return false;
+    }
+
+    if (wire._ev_address) {
+        return false;
+    }
+
+    if (_transaction.status == STM32L0_I2C_STATUS_BUSY) {
+        return false;
+    }
+
+    _transaction.status = STM32L0_I2C_STATUS_SUCCESS;
+    _transaction.control = stopBit ? 0 : STM32L0_I2C_CONTROL_RESTART;
     _transaction.address = address;
-    _transaction.callback = (stm32l0_i2c_done_callback_t)doneCallback;
+    _transaction.tx_data = txBuffer;
+    _transaction.rx_data = rxBuffer;
+    _transaction.tx_count = txSize;
+    _transaction.rx_count = rxSize;
+    _transaction.callback = (stm32l0_i2c_done_callback_t)TwoWireTransaction::_doneCallback;
     _transaction.context = (void*)this;
 
-    _callback = Callback(callback);
+    _callback = callback;
 
-    if (!stm32l0_i2c_enqueue(twowire._i2c, &_transaction)) {
-	return false;
+    if (!stm32l0_i2c_submit(wire._i2c, &_transaction)) {
+        return 1;
     }
 
-    _xf_address = 0;
-
-    return true;
+    return 0;
 }
 
-bool TwoWireTransaction::sendTransmission(class TwoWire &twowire, uint8_t address, const uint8_t *buffer, size_t size, uint32_t iaddress, uint8_t isize, bool stopBit, void(*callback)(void))
+bool TwoWireTransaction::done()
 {
-    if (twowire._ev_address) {
-	return false;
-    }
-
-    if (_xf_address && (_xf_address != address)) {
-	return false;
-    }
-
-    if ((isize == 0) || (isize > 4)) {
-	return false;
-    }
-
-    if (size == 0)
-    {
-	_transaction.control = (_xf_address ? STM32L0_I2C_CONTROL_CONTINUE : 0) | (!stopBit ? STM32L0_I2C_CONTROL_RESTART : 0) | STM32L0_I2C_CONTROL_TX;
-	_transaction.data = (uint8_t*)&iaddress;
-	_transaction.data2 = NULL;
-	_transaction.count = isize;
-	_transaction.count2 = 0;
-    }
-    else
-    {
-	_transaction.control = (_xf_address ? STM32L0_I2C_CONTROL_CONTINUE : 0) | (!stopBit ? STM32L0_I2C_CONTROL_RESTART : 0) | STM32L0_I2C_CONTROL_TX | STM32L0_I2C_CONTROL_TX_SECONDARY;
-	_transaction.data = (uint8_t*)&iaddress;
-	_transaction.data2 = (uint8_t*)&buffer[0];
-	_transaction.count = isize;
-	_transaction.count2 = size;
-    }
-
-    _transaction.address = address;
-    _transaction.callback = (stm32l0_i2c_done_callback_t)doneCallback;
-    _transaction.context = (void*)this;
-
-    _callback = Callback(callback);
-
-    if (!stm32l0_i2c_enqueue(twowire._i2c, &_transaction)) {
-	return false;
-    }
-
-    _xf_address = 0;
-
-    return true;
+    return (_transaction.status != STM32L0_I2C_STATUS_BUSY);
 }
 
-bool TwoWireTransaction::requestFrom(class TwoWire &twowire, uint8_t address, uint8_t *buffer, size_t size, bool stopBit, void(*callback)(void))
+// Status:
+//  0 : Success
+//  1 : Busy
+//  2 : (TRANSMIT) NACK on transmit of address
+//  3 : (TRANSMIT) NACK on transmit of data
+//  4 : (TRANSMIT) Arbitration lost
+//  5 : (TRANSMIT) SCL timeout
+//  6 : (RECEIVE) NACK on transmit of address
+//  7 : (RECEIVE) Arbitration lost
+//  8 : (RECEIVE) SCL timeout
+
+uint8_t TwoWireTransaction::status()
 {
-    if (twowire._ev_address) {
-	return false;
-    }
-
-    if (_xf_address && (_xf_address != address)) {
-	return false;
-    }
-
-    if (size == 0) {
-	return false;
-    }
-
-    _transaction.control = (_xf_address ? STM32L0_I2C_CONTROL_CONTINUE : 0) | (!stopBit ? STM32L0_I2C_CONTROL_RESTART : 0) | STM32L0_I2C_CONTROL_RX;
-    _transaction.data = buffer;
-    _transaction.data2 = NULL;
-    _transaction.count = size;
-    _transaction.count2 = 0;
-
-    _transaction.address = address;
-    _transaction.callback = (stm32l0_i2c_done_callback_t)doneCallback;
-    _transaction.context = (void*)this;
-
-    _callback = Callback(callback);
-
-    if (!stm32l0_i2c_enqueue(twowire._i2c, &_transaction)) {
-	return false;
-    }
-
-    _xf_address = 0;
-
-    return true;
+    return _transaction.status;
 }
 
-bool TwoWireTransaction::requestFrom(class TwoWire &twowire, uint8_t address, uint8_t *buffer, size_t size, uint32_t iaddress, uint8_t isize, bool stopBit, void(*callback)(void))
+void TwoWireTransaction::_doneCallback(class TwoWireTransaction *self)
 {
-    if (twowire._ev_address) {
-	return false;
-    }
-
-    if (_xf_address && (_xf_address != address)) {
-	return false;
-    }
-
-    if (size == 0) {
-	return false;
-    }
-
-    if ((isize == 0) || (isize > 4)) {
-	return false;
-    }
-
-    _transaction.control = (_xf_address ? STM32L0_I2C_CONTROL_CONTINUE : 0) | (!stopBit ? STM32L0_I2C_CONTROL_RESTART : 0) | STM32L0_I2C_CONTROL_TX | STM32L0_I2C_CONTROL_RX;
-    _transaction.data = (uint8_t*)iaddress;
-    _transaction.data2 = buffer;
-    _transaction.count = isize;
-    _transaction.count2 = size;
-
-    _transaction.address = address;
-    _transaction.callback = (stm32l0_i2c_done_callback_t)doneCallback;
-    _transaction.context = (void*)this;
-
-    _callback = Callback(callback);
-
-    if (!stm32l0_i2c_enqueue(twowire._i2c, &_transaction)) {
-	return false;
-    }
-
-    _xf_address = 0;
-
-    return true;
-}
-
-int TwoWireTransaction::status()
-{
-    return _xf_status;
-}
-
-bool TwoWireTransaction::busy()
-{
-    return (_transaction.status == STM32L0_I2C_STATUS_BUSY);
-}
-
-void TwoWireTransaction::doneCallback(class TwoWireTransaction *self)
-{
-    if (self->_transaction.status != STM32L0_I2C_STATUS_SUCCESS) {
-	if (self->_transaction.status == STM32L0_I2C_STATUS_ADDRESS_NACK) {
-	    self->_xf_status = 2;
-	}
-
-	if (self->_transaction.status == STM32L0_I2C_STATUS_DATA_NACK) {
-	    self->_xf_status = 3;
-	}
-
-	self->_xf_status = 4;
-    	self->_xf_address = 0;
-    } else {
-	self->_xf_status = 0;
-
-	if (self->_transaction.control & STM32L0_I2C_CONTROL_RESTART) {
-	    self->_xf_address = self->_transaction.address;
-	}
-    }
-
     self->_callback.queue();
 }
 
@@ -751,7 +662,7 @@ TwoWire Wire(&g_Wire, &g_WireParams);
 
 #if WIRE_INTERFACES_COUNT > 1
 
-static stm32l0_i2c_t f_Wire1;
+static stm32l0_i2c_t g_Wire1;
 extern const stm32l0_i2c_params_t g_Wire1Params;
 
 TwoWire Wire1(&g_Wire1, &g_Wire1Params);

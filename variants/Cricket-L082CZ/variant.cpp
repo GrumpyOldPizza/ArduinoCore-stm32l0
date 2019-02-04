@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2019 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -102,10 +102,10 @@ extern const stm32l0_uart_params_t g_Serial1Params = {
     &stm32l0_usart1_rx_fifo[0],
     sizeof(stm32l0_usart1_rx_fifo),
     {
-	STM32L0_GPIO_PIN_PA10_USART1_RX,
-	STM32L0_GPIO_PIN_PA9_USART1_TX,
-	STM32L0_GPIO_PIN_NONE,
-	STM32L0_GPIO_PIN_NONE,
+        STM32L0_GPIO_PIN_PA10_USART1_RX,
+        STM32L0_GPIO_PIN_PA9_USART1_TX,
+        STM32L0_GPIO_PIN_NONE,
+        STM32L0_GPIO_PIN_NONE,
     },
 };
 
@@ -120,10 +120,10 @@ extern const stm32l0_uart_params_t g_Serial2Params = {
     &stm32l0_usart2_rx_fifo[0],
     sizeof(stm32l0_usart2_rx_fifo),
     {
-	STM32L0_GPIO_PIN_PA3_USART2_RX,
-	STM32L0_GPIO_PIN_PA2_USART2_TX,
-	STM32L0_GPIO_PIN_PA4_USART2_CK,
-	STM32L0_GPIO_PIN_PA0_USART2_CTS,
+        STM32L0_GPIO_PIN_PA3_USART2_RX,
+        STM32L0_GPIO_PIN_PA2_USART2_TX,
+        STM32L0_GPIO_PIN_PA4_USART2_CK,
+        STM32L0_GPIO_PIN_PA0_USART2_CTS,
     },
 };
 
@@ -136,10 +136,10 @@ extern const stm32l0_uart_params_t g_Serial3Params = {
     NULL,
     0,
     {
-	STM32L0_GPIO_PIN_PA13_LPUART1_RX,
-	STM32L0_GPIO_PIN_PA14_LPUART1_TX,
-	STM32L0_GPIO_PIN_NONE,
-	STM32L0_GPIO_PIN_NONE,
+        STM32L0_GPIO_PIN_PA13_LPUART1_RX,
+        STM32L0_GPIO_PIN_PA14_LPUART1_TX,
+        STM32L0_GPIO_PIN_NONE,
+        STM32L0_GPIO_PIN_NONE,
     },
 };
 
@@ -189,42 +189,44 @@ void initVariant()
     CMWX1ZZABZ_Initialize(STM32L0_GPIO_PIN_PH1, STM32L0_GPIO_PIN_NONE);
 
     stm32l0_i2c_create(&g_Wire, &g_WireParams);
-    stm32l0_i2c_enable(&g_Wire, STM32L0_I2C_OPTION_MODE_100K, NULL, NULL);
+    stm32l0_i2c_enable(&g_Wire, STM32L0_I2C_OPTION_MODE_100K, 0, NULL, NULL);
 
     tx_data[0] = 0x11;
     tx_data[1] = 0x20;
 
-    transaction.control = STM32L0_I2C_CONTROL_TX;
-    transaction.data = (uint8_t*)&tx_data[0];
-    transaction.data2 = NULL;
-    transaction.count = 2;
-    transaction.count2 = 0;
+    transaction.status = STM32L0_I2C_STATUS_SUCCESS;
+    transaction.control = 0;
     transaction.address = 0x18;
+    transaction.tx_data = (uint8_t*)&tx_data[0];
+    transaction.rx_data = NULL;
+    transaction.tx_count = 2;
+    transaction.rx_count = 0;
     transaction.callback = NULL;
     transaction.context = NULL;
 
-    if (stm32l0_i2c_enqueue(&g_Wire, &transaction)) {
-	while (transaction.status == STM32L0_I2C_STATUS_BUSY) {
-	    armv6m_core_wait();
-	}
+    if (stm32l0_i2c_submit(&g_Wire, &transaction)) {
+        while (transaction.status == STM32L0_I2C_STATUS_BUSY) {
+            armv6m_core_wait();
+        }
     }
 
     tx_data[0] = 0xf4;
     tx_data[1] = 0x00;
     
-    transaction.control = STM32L0_I2C_CONTROL_TX;
-    transaction.data = (uint8_t*)&tx_data[0];
-    transaction.data2 = NULL;
-    transaction.count = 2;
-    transaction.count2 = 0;
+    transaction.status = STM32L0_I2C_STATUS_SUCCESS;
+    transaction.control = 0;
     transaction.address = 0x77;
+    transaction.tx_data = (uint8_t*)&tx_data[0];
+    transaction.rx_data = NULL;
+    transaction.tx_count = 2;
+    transaction.rx_count = 0;
     transaction.callback = NULL;
     transaction.context = NULL;
 
-    if (stm32l0_i2c_enqueue(&g_Wire, &transaction)) {
-	while (transaction.status == STM32L0_I2C_STATUS_BUSY) {
-	    armv6m_core_wait();
-	}
+    if (stm32l0_i2c_submit(&g_Wire, &transaction)) {
+        while (transaction.status == STM32L0_I2C_STATUS_BUSY) {
+            armv6m_core_wait();
+        }
     }
 
     stm32l0_i2c_disable(&g_Wire);

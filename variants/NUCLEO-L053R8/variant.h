@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2108 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -38,7 +38,7 @@
 #define STM32L0_CONFIG_SYSOPT             0
 
 /** Master clock frequency */
-#define VARIANT_MCK			  F_CPU
+#define VARIANT_MCK                       F_CPU
 
 /*----------------------------------------------------------------------------
  *        Headers
@@ -85,7 +85,7 @@ static const uint8_t A3  = PIN_A3;
 static const uint8_t A4  = PIN_A4;
 static const uint8_t A5  = PIN_A5;
 
-#define ADC_RESOLUTION		12
+#define ADC_RESOLUTION          12
 
 /*
  * Other pins
@@ -117,7 +117,7 @@ static const uint8_t BUTTON = PIN_BUTTON;
 #define PIN_SPI_MOSI         (11u)
 #define PIN_SPI_SCK          (13u)
 
-static const uint8_t SS	  = 10;
+static const uint8_t SS   = 10;
 static const uint8_t MOSI = PIN_SPI_MOSI;
 static const uint8_t MISO = PIN_SPI_MISO;
 static const uint8_t SCK  = PIN_SPI_SCK;

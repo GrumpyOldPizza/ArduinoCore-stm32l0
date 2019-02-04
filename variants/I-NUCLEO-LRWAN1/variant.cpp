@@ -73,10 +73,10 @@ extern const stm32l0_uart_params_t g_SerialParams = {
     &stm32l0_lpuart1_rx_fifo[0],
     sizeof(stm32l0_lpuart1_rx_fifo),
     {
-	STM32L0_GPIO_PIN_PB11_LPUART1_RX,
-	STM32L0_GPIO_PIN_PB10_LPUART1_TX,
-	STM32L0_GPIO_PIN_NONE,
-	STM32L0_GPIO_PIN_NONE,
+        STM32L0_GPIO_PIN_PB11_LPUART1_RX,
+        STM32L0_GPIO_PIN_PB10_LPUART1_TX,
+        STM32L0_GPIO_PIN_NONE,
+        STM32L0_GPIO_PIN_NONE,
     },
 };
 

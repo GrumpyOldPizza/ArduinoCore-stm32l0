@@ -80,10 +80,10 @@ extern const stm32l0_uart_params_t g_SerialParams = {
     &stm32l0_usart2_rx_fifo[0],
     sizeof(stm32l0_usart2_rx_fifo),
     {
-	STM32L0_GPIO_PIN_PA3_USART2_RX,
-	STM32L0_GPIO_PIN_PA2_USART2_TX,
-	STM32L0_GPIO_PIN_NONE,
-	STM32L0_GPIO_PIN_NONE,
+        STM32L0_GPIO_PIN_PA3_USART2_RX,
+        STM32L0_GPIO_PIN_PA2_USART2_TX,
+        STM32L0_GPIO_PIN_NONE,
+        STM32L0_GPIO_PIN_NONE,
     },
 };
 
@@ -98,10 +98,10 @@ extern const stm32l0_uart_params_t g_Serial1Params = {
     &stm32l0_usart1_rx_fifo[0],
     sizeof(stm32l0_usart1_rx_fifo),
     {
-	STM32L0_GPIO_PIN_PA10_USART1_RX,
-	STM32L0_GPIO_PIN_PA9_USART1_TX,
-	STM32L0_GPIO_PIN_NONE,
-	STM32L0_GPIO_PIN_NONE,
+        STM32L0_GPIO_PIN_PA10_USART1_RX,
+        STM32L0_GPIO_PIN_PA9_USART1_TX,
+        STM32L0_GPIO_PIN_NONE,
+        STM32L0_GPIO_PIN_NONE,
     },
 };
 
