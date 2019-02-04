@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2014-2019 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -103,36 +103,51 @@ void stm32l0_gpio_pin_configure(unsigned int pin, unsigned int mode)
     RCC->IOPENR |= (RCC_IOPENR_IOPAEN << group);
     RCC->IOPENR;
 
-    /* First switch the pin back to analog mode */
-    GPIO->MODER |= (0x00000003 << (index << 1));
-
-    /* Set OPTYPER */
-    GPIO->OTYPER = (GPIO->OTYPER & ~(0x00000001 << index)) | (((mode & STM32L0_GPIO_OTYPE_MASK) >> STM32L0_GPIO_OTYPE_SHIFT) << index);
-
-    /* Set OPSPEEDR */
-    GPIO->OSPEEDR = (GPIO->OSPEEDR & ~(0x00000003 << (index << 1))) | (((mode & STM32L0_GPIO_OSPEED_MASK) >> STM32L0_GPIO_OSPEED_SHIFT) << (index << 1));
-
-    /* Set PUPD */
-    GPIO->PUPDR = (GPIO->PUPDR & ~(0x00000003 << (index << 1))) | (((mode & STM32L0_GPIO_PUPD_MASK) >> STM32L0_GPIO_PUPD_SHIFT) << (index << 1));
-
-    /* Set AFRL/AFRH */
-    GPIO->AFR[index >> 3] = (GPIO->AFR[index >> 3] & ~(0x0000000f << ((index & 7) << 2))) | (afsel << ((index & 7) << 2));
-
-    GPIO->MODER = (GPIO->MODER & ~(0x00000003 << (index << 1))) | (((mode & STM32L0_GPIO_MODE_MASK) >> STM32L0_GPIO_MODE_SHIFT) << (index << 1));
-
-    // if ((((mode & STM32L0_GPIO_MODE_MASK) >> STM32L0_GPIO_MODE_SHIFT) == STM32L0_GPIO_MODE_INPUT) || (((mode & STM32L0_GPIO_MODE_MASK) >> STM32L0_GPIO_MODE_SHIFT) == STM32L0_GPIO_MODE_OUTPUT))
-    if (((mode & STM32L0_GPIO_MODE_MASK) >> STM32L0_GPIO_MODE_SHIFT) != STM32L0_GPIO_MODE_ANALOG)
+    /* If the mode is ANALOG, set MODER first */
+    if (((mode & STM32L0_GPIO_MODE_MASK) >> STM32L0_GPIO_MODE_SHIFT) == STM32L0_GPIO_MODE_ANALOG)
     {
-        stm32l0_gpio_device.enables[port] |= (1 << index);
-    }
-    else
-    {
+        GPIO->MODER |= (0x00000003 << (index << 1));
+
         stm32l0_gpio_device.enables[port] &= ~(1 << index);
 
         if (!stm32l0_gpio_device.enables[port])
         {
             RCC->IOPENR &= ~(RCC_IOPENR_IOPAEN << group);
         }
+    }
+    else
+    {
+        /* Set AFRL/AFRH */
+        GPIO->AFR[index >> 3] = (GPIO->AFR[index >> 3] & ~(0x0000000f << ((index & 7) << 2))) | (afsel << ((index & 7) << 2));
+        
+        /* Set OPSPEEDR */
+        GPIO->OSPEEDR = (GPIO->OSPEEDR & ~(0x00000003 << (index << 1))) | (((mode & STM32L0_GPIO_OSPEED_MASK) >> STM32L0_GPIO_OSPEED_SHIFT) << (index << 1));
+        
+        /* Set OPTYPER */
+        GPIO->OTYPER = (GPIO->OTYPER & ~(0x00000001 << index)) | (((mode & STM32L0_GPIO_OTYPE_MASK) >> STM32L0_GPIO_OTYPE_SHIFT) << index);
+        
+        /* If the mode is OUTPUT, or OUTPUT OPENDRAIN with a ODR of 0. then first switch MODER and then PUPDR
+         * to avoid spurious edges. N.b. ALTERNATE is assumed to be INPUT before the peripheral drives it.
+         */ 
+        if (((mode & STM32L0_GPIO_MODE_MASK) == STM32L0_GPIO_MODE_OUTPUT) &&
+            (((mode & STM32L0_GPIO_OTYPE_MASK) != STM32L0_GPIO_OTYPE_OPENDRAIN) || !(GPIO->ODR & (0x00000001 << index))))
+        {
+            /* Set MODE */
+            GPIO->MODER = (GPIO->MODER & ~(0x00000003 << (index << 1))) | (((mode & STM32L0_GPIO_MODE_MASK) >> STM32L0_GPIO_MODE_SHIFT) << (index << 1));
+            
+            /* Set PUPD */
+            GPIO->PUPDR = (GPIO->PUPDR & ~(0x00000003 << (index << 1))) | (((mode & STM32L0_GPIO_PUPD_MASK) >> STM32L0_GPIO_PUPD_SHIFT) << (index << 1));
+        }
+        else
+        {
+            /* Set PUPD */
+            GPIO->PUPDR = (GPIO->PUPDR & ~(0x00000003 << (index << 1))) | (((mode & STM32L0_GPIO_PUPD_MASK) >> STM32L0_GPIO_PUPD_SHIFT) << (index << 1));
+            
+            /* Set MODE */
+            GPIO->MODER = (GPIO->MODER & ~(0x00000003 << (index << 1))) | (((mode & STM32L0_GPIO_MODE_MASK) >> STM32L0_GPIO_MODE_SHIFT) << (index << 1));
+        }
+
+        stm32l0_gpio_device.enables[port] |= (1 << index);
     }
 
     stm32l0_gpio_device.mode[port] &= ~(0x00000003 << (index << 1));
