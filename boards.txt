@@ -216,6 +216,103 @@ Cicada-L082CZ.menu.opt.o3=Fastest
 Cicada-L082CZ.menu.opt.o3.build.flags.optimize=-O3
 Cicada-L082CZ.menu.opt.o3.build.flags.ldspecs=
 
+# IRNAS B-Colibri-L072Z
+# ---------------------------------------
+COLIBRI-L072Z.name=Colibri-L072Z
+COLIBRI-L072Z.vid.0=0x0483
+COLIBRI-L072Z.pid.0=0x374b
+
+COLIBRI-L072Z.upload.tool=stm32l0_openocd
+COLIBRI-L072Z.upload.protocol=stlink
+COLIBRI-L072Z.upload.maximum_size=196608
+COLIBRI-L072Z.upload.maximum_data_size=20480
+COLIBRI-L072Z.upload.use_1200bps_touch=true
+COLIBRI-L072Z.upload.wait_for_upload_port=false
+COLIBRI-L072Z.upload.native_usb=false
+
+COLIBRI-L072Z.build.mcu=cortex-m0plus
+COLIBRI-L072Z.build.f_cpu=32000000L
+COLIBRI-L072Z.build.board=STM32L0_B_L072Z_LRWAN1
+COLIBRI-L072Z.build.arch=stm32l0
+COLIBRI-L072Z.build.core=arduino
+COLIBRI-L072Z.build.vid=0x0483
+COLIBRI-L072Z.build.pid=0x374b
+COLIBRI-L072Z.build.did=0xffff
+COLIBRI-L072Z.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+COLIBRI-L072Z.build.ldscript=linker_scripts/STM32L072CZ_FLASH.ld
+COLIBRI-L072Z.build.openocdscript=openocd_scripts/COLIBRI-L072Z.cfg
+COLIBRI-L072Z.build.variant=COLIBRI-L072Z
+COLIBRI-L072Z.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l072xx -larm_cortexM0l_math
+COLIBRI-L072Z.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
+
+COLIBRI-L072Z.menu.speed.32=32 MHz
+COLIBRI-L072Z.menu.speed.32.build.f_cpu=32000000L
+COLIBRI-L072Z.menu.speed.16=16 MHz (No USB)
+COLIBRI-L072Z.menu.speed.16.build.f_cpu=16000000L
+COLIBRI-L072Z.menu.speed.4=4.2 MHz (No USB)
+COLIBRI-L072Z.menu.speed.4.build.f_cpu=4200000L
+
+COLIBRI-L072Z.menu.opt.os=Smallest Code
+COLIBRI-L072Z.menu.opt.os.build.flags.optimize=-Os
+COLIBRI-L072Z.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
+COLIBRI-L072Z.menu.opt.o1=Fast
+COLIBRI-L072Z.menu.opt.o1.build.flags.optimize=-O1
+COLIBRI-L072Z.menu.opt.o1.build.flags.ldspecs=
+COLIBRI-L072Z.menu.opt.o2=Faster
+COLIBRI-L072Z.menu.opt.o2.build.flags.optimize=-O2
+COLIBRI-L072Z.menu.opt.o2.build.flags.ldspecs=
+COLIBRI-L072Z.menu.opt.o3=Fastest
+COLIBRI-L072Z.menu.opt.o3.build.flags.optimize=-O3
+COLIBRI-L072Z.menu.opt.o3.build.flags.ldspecs=
+
+# IRNAS B-Colibri-L072Z
+# ---------------------------------------
+IRNAS-env-module-L072Z.name=IRNAS-env-module-L072Z
+IRNAS-env-module-L072Z.vid.0=0x0483
+IRNAS-env-module-L072Z.pid.0=0x374b
+
+IRNAS-env-module-L072Z.upload.tool=stm32l0_openocd
+IRNAS-env-module-L072Z.upload.protocol=stlink
+IRNAS-env-module-L072Z.upload.maximum_size=196608
+IRNAS-env-module-L072Z.upload.maximum_data_size=20480
+IRNAS-env-module-L072Z.upload.use_1200bps_touch=true
+IRNAS-env-module-L072Z.upload.wait_for_upload_port=false
+IRNAS-env-module-L072Z.upload.native_usb=false
+
+IRNAS-env-module-L072Z.build.mcu=cortex-m0plus
+IRNAS-env-module-L072Z.build.f_cpu=32000000L
+IRNAS-env-module-L072Z.build.board=STM32L0_B_L072Z_LRWAN1
+IRNAS-env-module-L072Z.build.arch=stm32l0
+IRNAS-env-module-L072Z.build.core=arduino
+IRNAS-env-module-L072Z.build.vid=0x0483
+IRNAS-env-module-L072Z.build.pid=0x374b
+IRNAS-env-module-L072Z.build.did=0xffff
+IRNAS-env-module-L072Z.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+IRNAS-env-module-L072Z.build.ldscript=linker_scripts/STM32L072CZ_FLASH.ld
+IRNAS-env-module-L072Z.build.openocdscript=openocd_scripts/IRNAS-env-module-L072Z.cfg
+IRNAS-env-module-L072Z.build.variant=IRNAS-env-module-L072Z
+IRNAS-env-module-L072Z.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l072xx -larm_cortexM0l_math
+IRNAS-env-module-L072Z.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
+
+IRNAS-env-module-L072Z.menu.speed.32=32 MHz
+IRNAS-env-module-L072Z.menu.speed.32.build.f_cpu=32000000L
+IRNAS-env-module-L072Z.menu.speed.16=16 MHz (No USB)
+IRNAS-env-module-L072Z.menu.speed.16.build.f_cpu=16000000L
+IRNAS-env-module-L072Z.menu.speed.4=4.2 MHz (No USB)
+IRNAS-env-module-L072Z.menu.speed.4.build.f_cpu=4200000L
+
+IRNAS-env-module-L072Z.menu.opt.os=Smallest Code
+IRNAS-env-module-L072Z.menu.opt.os.build.flags.optimize=-Os
+IRNAS-env-module-L072Z.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
+IRNAS-env-module-L072Z.menu.opt.o1=Fast
+IRNAS-env-module-L072Z.menu.opt.o1.build.flags.optimize=-O1
+IRNAS-env-module-L072Z.menu.opt.o1.build.flags.ldspecs=
+IRNAS-env-module-L072Z.menu.opt.o2=Faster
+IRNAS-env-module-L072Z.menu.opt.o2.build.flags.optimize=-O2
+IRNAS-env-module-L072Z.menu.opt.o2.build.flags.ldspecs=
+IRNAS-env-module-L072Z.menu.opt.o3=Fastest
+IRNAS-env-module-L072Z.menu.opt.o3.build.flags.optimize=-O3
+IRNAS-env-module-L072Z.menu.opt.o3.build.flags.ldspecs=
 
 # Tlera Gnat
 # ---------------------------------------
