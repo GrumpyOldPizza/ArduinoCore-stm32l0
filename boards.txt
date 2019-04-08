@@ -622,3 +622,52 @@ NUCLEO-L073RZ.menu.opt.o3=Fastest
 NUCLEO-L073RZ.menu.opt.o3.build.flags.optimize=-O3
 NUCLEO-L073RZ.menu.opt.o3.build.flags.ldspecs=
 
+# irnas-lora-addon-L073RZ
+# ---------------------------------------
+irnas-lora-addon-L073RZ.name=irnas-lora-addon-L073RZ
+irnas-lora-addon-L073RZ.vid.0=0x0483
+irnas-lora-addon-L073RZ.pid.0=0x374b
+
+irnas-lora-addon-L073RZ.upload.tool=stm32l0_openocd
+irnas-lora-addon-L073RZ.upload.protocol=stlink
+irnas-lora-addon-L073RZ.upload.maximum_size=196608
+irnas-lora-addon-L073RZ.upload.maximum_data_size=20480
+irnas-lora-addon-L073RZ.upload.use_1200bps_touch=true
+irnas-lora-addon-L073RZ.upload.wait_for_upload_port=false
+irnas-lora-addon-L073RZ.upload.native_usb=false
+
+irnas-lora-addon-L073RZ.build.mcu=cortex-m0plus
+irnas-lora-addon-L073RZ.build.f_cpu=32000000L
+irnas-lora-addon-L073RZ.build.board=STM32L0_NUCLEO
+irnas-lora-addon-L073RZ.build.arch=stm32l0
+irnas-lora-addon-L073RZ.build.core=arduino
+irnas-lora-addon-L073RZ.build.vid=0x0483
+irnas-lora-addon-L073RZ.build.pid=0x374b
+irnas-lora-addon-L073RZ.build.did=0xffff
+irnas-lora-addon-L073RZ.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+irnas-lora-addon-L073RZ.build.ldscript=linker_scripts/STM32L073RZ_FLASH.ld
+irnas-lora-addon-L073RZ.build.openocdscript=openocd_scripts/irnas-lora-addon-L073RZ.cfg
+irnas-lora-addon-L073RZ.build.variant=irnas-lora-addon-L073RZ
+irnas-lora-addon-L073RZ.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l072xx -larm_cortexM0l_math
+irnas-lora-addon-L073RZ.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
+
+irnas-lora-addon-L073RZ.menu.speed.32=32 MHz
+irnas-lora-addon-L073RZ.menu.speed.32.build.f_cpu=32000000L
+irnas-lora-addon-L073RZ.menu.speed.16=16 MHz
+irnas-lora-addon-L073RZ.menu.speed.16.build.f_cpu=16000000L
+irnas-lora-addon-L073RZ.menu.speed.4=4.2 MHz
+irnas-lora-addon-L073RZ.menu.speed.4.build.f_cpu=4200000L
+
+irnas-lora-addon-L073RZ.menu.opt.os=Smallest Code
+irnas-lora-addon-L073RZ.menu.opt.os.build.flags.optimize=-Os
+irnas-lora-addon-L073RZ.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
+irnas-lora-addon-L073RZ.menu.opt.o1=Fast
+irnas-lora-addon-L073RZ.menu.opt.o1.build.flags.optimize=-O1
+irnas-lora-addon-L073RZ.menu.opt.o1.build.flags.ldspecs=
+irnas-lora-addon-L073RZ.menu.opt.o2=Faster
+irnas-lora-addon-L073RZ.menu.opt.o2.build.flags.optimize=-O2
+irnas-lora-addon-L073RZ.menu.opt.o2.build.flags.ldspecs=
+irnas-lora-addon-L073RZ.menu.opt.o3=Fastest
+irnas-lora-addon-L073RZ.menu.opt.o3.build.flags.optimize=-O3
+irnas-lora-addon-L073RZ.menu.opt.o3.build.flags.ldspecs=
+
