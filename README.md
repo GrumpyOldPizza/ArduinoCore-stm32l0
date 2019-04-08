@@ -17,6 +17,10 @@ ArduinoCore-stm32l0 is targeted at ultra low power scenarios, sensor hubs, with 
  * [P-NUCLEO-LRWAN1](http://www.st.com/en/evaluation-tools/p-nucleo-lrwan1.html)
  * [NUCLEO-L053R8](http://www.st.com/en/evaluation-tools/nucleo-l053r8.html)
  * [NUCLEO-L073RZ](http://www.st.com/en/evaluation-tools/nucleo-l073rz.html)
+ 
+### IRNAS irnas.eu
+ * [IRNAS-env-module-L072Z](https://github.com/IRNAS/environmental-module-hardware)
+ * [irnas-lora-addon-L073RZ](https://github.com/IRNAS/gps-tag-lora-addon-hardware)
 
 
 ## Installing
@@ -26,8 +30,8 @@ ArduinoCore-stm32l0 is targeted at ultra low power scenarios, sensor hubs, with 
  1. [Download and install the Arduino IDE](https://www.arduino.cc/en/Main/Software) (at least version v1.6.8)
  2. Start the Arduino IDE
  3. Go into Preferences
- 4. Add ```https://grumpyoldpizza.github.io/ArduinoCore-stm32l0/package_stm32l0_boards_index.json``` as an "Additional Board Manager URL"
- 5. Open the Boards Manager from the Tools -> Board menu and install "Tlera Corp STM32L0 Boards"
+ 4. Add ```https://irnas.github.io/ArduinoCore-stm32l0/package_stm32l0_boards_index.json``` as an "Additional Board Manager URL"
+ 5. Open the Boards Manager from the Tools -> Board menu and install "IRNAS / Tlera Corp STM32L0 Boards"
  6. Select your STM32L0 board from the Tools -> Board menu
 
 #### OS Specific Setup
@@ -70,7 +74,7 @@ ArduinoCore-stm32l0 is targeted at ultra low power scenarios, sensor hubs, with 
   * Linux: ```~/Arduino```
   * Windows: ```~/Documents/Arduino```
  3. Create a folder named ```hardware```, if it does not exist, and change directories to it
- 4. Clone this repo: ```git clone https://github.com/grumpyoldpizza/ArduinoCore-stm32l0.git TleraCorp/stm32l0```
+ 4. Clone this repo: ```git clone https://github.com/irnas/ArduinoCore-stm32l0.git TleraCorp/stm32l0```
  5. Restart the Arduino IDE
 
 ## Recovering from a faulty sketch for Tlera Corp Boards
