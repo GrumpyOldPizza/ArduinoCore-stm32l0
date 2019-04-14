@@ -97,10 +97,10 @@ static const uint16_t stm32l0_rtc_days_since_year[100] = {
     32873, 33238, 33603, 33969, 34334, 34699, 35064, 35430, 35795, 36160};
 
 static const uint16_t stm32l0_rtc_days_since_month[4][16] = {
-    {   0,  31,  60,  91, 121, 152, 182, 213, 244, 274, 305, 335, },
-    {   0,  31,  59,  90, 120, 151, 181, 212, 243, 273, 304, 334, },
-    {   0,  31,  59,  90, 120, 151, 181, 212, 243, 273, 304, 334, },
-    {   0,  31,  59,  90, 120, 151, 181, 212, 243, 273, 304, 334, },
+    {   0,   0,  31,  60,  91, 121, 152, 182, 213, 244, 274, 305, 335, 335, 335, 335 },
+    {   0,   0,  31,  59,  90, 120, 151, 181, 212, 243, 273, 304, 334, 334, 334, 334 },
+    {   0,   0,  31,  59,  90, 120, 151, 181, 212, 243, 273, 304, 334, 334, 334, 334 },
+    {   0,   0,  31,  59,  90, 120, 151, 181, 212, 243, 273, 304, 334, 334, 334, 334 },
 };
 
 static inline void stm32l0_rtc_calendar_pack(const stm32l0_rtc_calendar_t *calendar, uint32_t *p_c0, uint32_t *p_c1)
@@ -221,7 +221,7 @@ __attribute__((optimize("O3"))) void stm32l0_rtc_clock_convert(uint32_t *data, u
     minutes = stm32l0_rtc_bcd_to_int[(rtc_tr >> RTC_TR_MNU_Pos) & ((RTC_TR_MNU_Msk | RTC_TR_MNT_Msk) >> RTC_TR_MNU_Pos)];
     seconds = stm32l0_rtc_bcd_to_int[(rtc_tr >> RTC_TR_SU_Pos)  & ((RTC_TR_SU_Msk  | RTC_TR_ST_Msk)  >> RTC_TR_SU_Pos)];
 
-    *p_seconds = (((((stm32l0_rtc_days_since_year[year] + stm32l0_rtc_days_since_month[year & 3][month] + day) * 24) + hours) * 60 + minutes) * 60 + seconds);
+    *p_seconds = (((((stm32l0_rtc_days_since_year[year] + stm32l0_rtc_days_since_month[year & 3][month] + (day - 1)) * 24) + hours) * 60 + minutes) * 60 + seconds);
     *p_subseconds = ((STM32L0_RTC_PREDIV_S - 1) - (rtc_ssr & (STM32L0_RTC_PREDIV_S - 1))) * STM32L0_RTC_PREDIV_A;
 }
 
@@ -245,7 +245,7 @@ __attribute__((optimize("O3"))) void stm32l0_rtc_clock_time(uint32_t *p_seconds,
     minutes = stm32l0_rtc_bcd_to_int[(rtc_tr >> RTC_TR_MNU_Pos) & ((RTC_TR_MNU_Msk | RTC_TR_MNT_Msk) >> RTC_TR_MNU_Pos)];
     seconds = stm32l0_rtc_bcd_to_int[(rtc_tr >> RTC_TR_SU_Pos)  & ((RTC_TR_SU_Msk  | RTC_TR_ST_Msk)  >> RTC_TR_SU_Pos)];
 
-    *p_seconds = (((((stm32l0_rtc_days_since_year[year] + stm32l0_rtc_days_since_month[year & 3][month] + day) * 24) + hours) * 60 + minutes) * 60 + seconds);
+    *p_seconds = (((((stm32l0_rtc_days_since_year[year] + stm32l0_rtc_days_since_month[year & 3][month] + (day - 1)) * 24) + hours) * 60 + minutes) * 60 + seconds);
     *p_subseconds = ((STM32L0_RTC_PREDIV_S - 1) - (rtc_ssr & (STM32L0_RTC_PREDIV_S - 1))) * STM32L0_RTC_PREDIV_A;
 }
 
@@ -1108,8 +1108,8 @@ void stm32l0_rtc_reset(void)
 void stm32l0_rtc_calendar_to_time(const stm32l0_rtc_calendar_t *calendar, uint32_t *p_seconds, uint16_t *p_subseconds)
 {
     *p_seconds = ((((stm32l0_rtc_days_since_year[calendar->year] +
-		     stm32l0_rtc_days_since_month[calendar->year & 3][calendar->month -1] +
-		     (calendar->day -1)) * 24 +
+		     stm32l0_rtc_days_since_month[calendar->year & 3][calendar->month] +
+		     (calendar->day - 1)) * 24 +
 		    calendar->hours) * 60 +
 		   calendar->minutes) * 60 +
 		  calendar->seconds);
@@ -1174,11 +1174,11 @@ void stm32l0_rtc_calendar_delta(const stm32l0_rtc_calendar_t *a_calendar, const 
     uint16_t subseconds;
 
     seconds = (((((stm32l0_rtc_days_since_year[a_calendar->year] +
-		   stm32l0_rtc_days_since_month[a_calendar->year & 3][a_calendar->month -1] +
-		   (a_calendar->day -1)) -
+		   stm32l0_rtc_days_since_month[a_calendar->year & 3][a_calendar->month] +
+		   (a_calendar->day - 1)) -
 		  (stm32l0_rtc_days_since_year[b_calendar->year] +
-		   stm32l0_rtc_days_since_month[b_calendar->year & 3][b_calendar->month -1] +
-		   (b_calendar->day -1))) * 24 +
+		   stm32l0_rtc_days_since_month[b_calendar->year & 3][b_calendar->month] +
+		   (b_calendar->day - 1))) * 24 +
 		 a_calendar->hours -
 		 b_calendar->hours) * 60 +
 		a_calendar->minutes -
@@ -1251,8 +1251,8 @@ void stm32l0_rtc_calendar_offset(const stm32l0_rtc_calendar_t *a_calendar, int32
                     if (days)
                     {
                         days += (stm32l0_rtc_days_since_year[a_calendar->year] +
-                                 stm32l0_rtc_days_since_month[a_calendar->year & 3][a_calendar->month -1] +
-                                 (a_calendar->day -1));
+                                 stm32l0_rtc_days_since_month[a_calendar->year & 3][a_calendar->month] +
+                                 (a_calendar->day - 1));
                     
                         years = (days / 365);
                     
