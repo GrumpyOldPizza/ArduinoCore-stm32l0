@@ -1541,12 +1541,17 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t timeout)
                     if (RCC->APB2ENR & RCC_APB2ENR_DBGEN)
                     {
                         __WFI();
+			__NOP();
                     }
                     else
                     {
                         FLASH->ACR |= FLASH_ACR_SLEEP_PD;
                         
                         __WFI();
+			__NOP();
+			__NOP();
+			__NOP();
+			__NOP();
                         
                         FLASH->ACR &= ~FLASH_ACR_SLEEP_PD;
                     }

@@ -49,7 +49,8 @@ static inline IRQn_Type __current_irq(void)
 
 static inline void armv6m_core_wait(void)
 {
-    __asm__ volatile ("wfe");
+    __WFE();
+    __NOP();
 }
 
 extern void armv6m_core_initialize(void);
