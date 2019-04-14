@@ -153,17 +153,25 @@ static void stm32l0_i2c_start(stm32l0_i2c_t *i2c)
 
         pclk = stm32l0_system_pclk1();
 
-        if      (pclk == 32000000) { i2c_timingr = 0x00707cbb; }
-        else if (pclk == 16000000) { i2c_timingr = 0x00303b5b; }
-        else if (pclk ==  8000000) { i2c_timingr = 0x2000090e; }
-        else if (pclk ==  4000000) { i2c_timingr = 0x00000e14; }
-        else                       { i2c_timingr = 0x00100e16; }
+	/* tRise = 125ns, tFall = 13ns, AF, DNF = 0 */
+        if      (pclk == 32000000) { i2c_timingr = 0x00b07cb6; }
+        else if (pclk == 16000000) { i2c_timingr = 0x00503d59; }
+        else if (pclk ==  8000000) { i2c_timingr = 0x00201d2b; }
+        else if (pclk ==  4000000) { i2c_timingr = 0x00100d14; }
+        else                       { i2c_timingr = 0x00100e15; }
 
         I2C->TIMINGR = i2c_timingr;
     }
     else
     {
-        stm32l0_system_hsi16_enable();
+	if (i2c->option & STM32L0_I2C_OPTION_MODE_1000K)
+	{
+	    stm32l0_system_lock(STM32L0_SYSTEM_LOCK_CLOCKS);
+	}
+	else
+	{
+	    stm32l0_system_hsi16_enable();
+	}
 
         if ((i2c->option & STM32L0_I2C_OPTION_ADDRESS_MASK) && !(i2c->option & STM32L0_I2C_OPTION_WAKEUP))
         {
@@ -192,7 +200,14 @@ static void stm32l0_i2c_stop(stm32l0_i2c_t *i2c)
             armv6m_atomic_and(&stm32l0_i2c_device.wakeup, ~(1u << i2c->instance));
         }
 
-        stm32l0_system_hsi16_disable();
+	if (i2c->option & STM32L0_I2C_OPTION_MODE_1000K)
+	{
+	    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_CLOCKS);
+	}
+	else
+	{
+	    stm32l0_system_hsi16_disable();
+	}
     }
 
     stm32l0_system_periph_disable(STM32L0_SYSTEM_PERIPH_I2C1 + i2c->instance);
@@ -222,8 +237,8 @@ static void stm32l0_i2c_sync(stm32l0_i2c_t *i2c)
     i2c_cr2 = 0;
     i2c_oar1 = 0;
     i2c_oar2 = 0;
-
-    i2c_cr1 |= I2C_CR1_ERRIE;
+    i2c_timingr = 0;
+    i2c_timeoutr = 0;
 
     if (i2c->option & STM32L0_I2C_OPTION_ADDRESS_MASK)
     {
@@ -242,37 +257,58 @@ static void stm32l0_i2c_sync(stm32l0_i2c_t *i2c)
 
             armv6m_atomic_or(&EXTI->IMR, stm32l0_i2c_xlate_IMR[i2c->instance]);
         }
+
+	I2C->TIMINGR = 0x00300000;
+	I2C->TIMEOUTR = 0;
     }
-
-    if (i2c->instance != STM32L0_I2C_INSTANCE_I2C2)
+    else
     {
-        if (i2c->option & STM32L0_I2C_OPTION_MODE_1000K)
-        {
-            armv6m_atomic_or(&SYSCFG->CFGR1, stm32l0_i2c_xlate_FMP[i2c->instance]);
+	if (i2c->instance != STM32L0_I2C_INSTANCE_I2C2)
+	{
+	    if (i2c->option & STM32L0_I2C_OPTION_MODE_1000K)
+	    {
+		armv6m_atomic_or(&SYSCFG->CFGR1, stm32l0_i2c_xlate_FMP[i2c->instance]);
+		
+		/* Select SYSCLK */
+		armv6m_atomic_modify(&RCC->CCIPR, (RCC_CCIPR_I2C1SEL << (i2c->instance * 2)), (RCC_CCIPR_I2C1SEL_0 << (i2c->instance * 2)));
+
+		/* tRise = 62.5ns, tFall = 10ns, no AF, DNF = 2 */
+		i2c_cr1 |= (I2C_CR1_ANFOFF | (2 << I2C_CR1_DNF_SHIFT));
+		i2c_timingr = 0x00300410;
+	    }
+	    else
+	    {
+		armv6m_atomic_and(&SYSCFG->CFGR1, ~stm32l0_i2c_xlate_FMP[i2c->instance]);
+		
+		/* Select HSI6 */
+		armv6m_atomic_modify(&RCC->CCIPR, (RCC_CCIPR_I2C1SEL << (i2c->instance * 2)), (RCC_CCIPR_I2C1SEL_1 << (i2c->instance * 2)));
+
+		/* tRise = 125ns, tFall = 13ns, no AF, DNF = 1 */
+		i2c_cr1 |= (I2C_CR1_ANFOFF | (1 << I2C_CR1_DNF_SHIFT));
+
+		if (i2c->option & STM32L0_I2C_OPTION_MODE_400K)  { i2c_timingr = 0x00300618; }
+		else                                             { i2c_timingr = 0x00503c5a; }
+	    }
+
+	    if (i2c->timeout) 
+	    {
+		i2c_timeoutr = ((i2c->timeout * 125) + 15) / 16 -1;
+		
+		if (i2c_timeoutr > 4095)
+		{
+		    i2c_timeoutr = 4095;
+		}
+		
+		i2c_timeoutr |= I2C_TIMEOUTR_TIMOUTEN;
+	    }
+
+	    I2C->TIMINGR = i2c_timingr;
+	    I2C->TIMEOUTR = i2c_timeoutr;
         }
-
-        if      (i2c->option & STM32L0_I2C_OPTION_MODE_1000K) { i2c_timingr = 0x00000107; } 
-        else if (i2c->option & STM32L0_I2C_OPTION_MODE_400K)  { i2c_timingr = 0x0010061a; }
-        else                                                  { i2c_timingr = 0x00303d5b; }
-
-        if (i2c->timeout) 
-        {
-            i2c_timeoutr = ((i2c->timeout * 125) + 15) / 16 -1;
-
-            if (i2c_timeoutr > 4095)
-            {
-                i2c_timeoutr = 4095;
-            }
-            
-            i2c_timeoutr |= I2C_TIMEOUTR_TIMOUTEN;
-        }
-        else
-        {
-            i2c_timeoutr = 0;
-        }
-
-        I2C->TIMINGR = i2c_timingr;
-        I2C->TIMEOUTR = i2c_timeoutr;
+	else
+	{
+	    I2C->TIMEOUTR = 0;
+	}
     }
 
     I2C->OAR2 = i2c_oar2;
@@ -282,13 +318,13 @@ static void stm32l0_i2c_sync(stm32l0_i2c_t *i2c)
 
     if (i2c->option & STM32L0_I2C_OPTION_WAKEUP)
     {
-        stm32l0_gpio_pin_configure(i2c->pins.scl, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLUP | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_ALTERNATE));
-        stm32l0_gpio_pin_configure(i2c->pins.sda, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLUP | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_ALTERNATE));
+        stm32l0_gpio_pin_configure(i2c->pins.scl, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_ALTERNATE));
+        stm32l0_gpio_pin_configure(i2c->pins.sda, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_ALTERNATE));
     }
     else
     {
-        stm32l0_gpio_pin_configure(i2c->pins.scl, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_PUPD_PULLUP | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_ALTERNATE));
-        stm32l0_gpio_pin_configure(i2c->pins.sda, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_PUPD_PULLUP | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_ALTERNATE));
+        stm32l0_gpio_pin_configure(i2c->pins.scl, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_ALTERNATE));
+        stm32l0_gpio_pin_configure(i2c->pins.sda, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_ALTERNATE));
     }
 
     stm32l0_system_periph_disable(STM32L0_SYSTEM_PERIPH_I2C1 + i2c->instance);
@@ -303,6 +339,7 @@ static void stm32l0_i2c_master_transmit(stm32l0_i2c_t *i2c)
 {
     I2C_TypeDef *I2C = i2c->I2C;
     uint32_t i2c_cr2, count;
+    uint8_t tx_dma;
 
     i2c->state = STM32L0_I2C_STATE_MASTER_TRANSMIT;
 
@@ -324,7 +361,24 @@ static void stm32l0_i2c_master_transmit(stm32l0_i2c_t *i2c)
         }
     }
 
-    if ((count > 1) && (i2c->tx_dma == stm32l0_dma_channel(i2c->tx_dma)))
+    if ((count > 1) && (i2c->tx_dma != STM32L0_DMA_CHANNEL_NONE))
+    {
+	tx_dma = stm32l0_dma_channel(i2c->tx_dma);
+
+	if (i2c->tx_dma != tx_dma)
+	{
+	    if (stm32l0_dma_enable(i2c->tx_dma, NULL, NULL)) 
+	    {
+		tx_dma = i2c->tx_dma;
+	    }
+	}
+    }
+    else
+    {
+	tx_dma = STM32L0_DMA_CHANNEL_UNDEFINED;
+    }
+
+    if ((count > 1) && (i2c->tx_dma == tx_dma))
     {
         I2C->CR1 |= I2C_CR1_TXDMAEN;
 
@@ -332,7 +386,7 @@ static void stm32l0_i2c_master_transmit(stm32l0_i2c_t *i2c)
 
         I2C->CR2 = (i2c_cr2 | (count << I2C_CR2_NBYTES_SHIFT));
 
-        I2C->CR1 |= (I2C_CR1_NACKIE | I2C_CR1_STOPIE | I2C_CR1_TCIE);
+        I2C->CR1 |= (I2C_CR1_STOPIE | I2C_CR1_TCIE);
 
         I2C->ISR |= I2C_ISR_TXE;
 
@@ -342,7 +396,7 @@ static void stm32l0_i2c_master_transmit(stm32l0_i2c_t *i2c)
     {
         I2C->CR2 = (i2c_cr2 | (count << I2C_CR2_NBYTES_SHIFT));
 
-        I2C->CR1 |= (I2C_CR1_TXIE | I2C_CR1_NACKIE | I2C_CR1_STOPIE | I2C_CR1_TCIE);
+        I2C->CR1 |= (I2C_CR1_TXIE | I2C_CR1_STOPIE | I2C_CR1_TCIE);
 
         I2C->ISR |= I2C_ISR_TXE;
 
@@ -354,10 +408,9 @@ static void stm32l0_i2c_master_receive(stm32l0_i2c_t *i2c)
 {
     I2C_TypeDef *I2C = i2c->I2C;
     uint32_t i2c_cr2, count;
+    uint8_t rx_dma;
 
     i2c->state = STM32L0_I2C_STATE_MASTER_RECEIVE;
-
-    i2c->xf_count = 0;
 
     count = i2c->rx_data_e - i2c->rx_data;
 
@@ -382,23 +435,50 @@ static void stm32l0_i2c_master_receive(stm32l0_i2c_t *i2c)
         }
     }
 
-    if ((count > 1) && (i2c->rx_dma == stm32l0_dma_channel(i2c->rx_dma)))
+    if ((count > 1) && (i2c->rx_dma != STM32L0_DMA_CHANNEL_NONE))
+    {
+	rx_dma = stm32l0_dma_channel(i2c->rx_dma);
+
+	if (i2c->rx_dma != rx_dma)
+	{
+	    if (stm32l0_dma_enable(i2c->rx_dma, NULL, NULL)) 
+	    {
+		rx_dma = i2c->rx_dma;
+	    }
+	}
+    }
+    else
+    {
+	rx_dma = STM32L0_DMA_CHANNEL_UNDEFINED;
+    }
+
+    if ((count > 1) && (i2c->rx_dma == rx_dma))
     {
         I2C->CR1 |= I2C_CR1_RXDMAEN;
 
         stm32l0_dma_start(i2c->rx_dma, (uint32_t)i2c->rx_data, (uint32_t)&I2C->RXDR, (i2c->rx_data_e - i2c->rx_data), STM32L0_I2C_RX_DMA_OPTION);
 
-        I2C->CR1 |= (I2C_CR1_NACKIE | I2C_CR1_STOPIE | I2C_CR1_TCIE);
+	I2C->CR2 = (i2c_cr2 | (count << I2C_CR2_NBYTES_SHIFT));
 
-        I2C->CR2 = (i2c_cr2 | (count << I2C_CR2_NBYTES_SHIFT));
+        I2C->CR1 |= (I2C_CR1_STOPIE | I2C_CR1_TCIE);
 
         i2c->rx_data += count;
     }
     else
     {
-        I2C->CR1 |= (I2C_CR1_RXIE | I2C_CR1_NACKIE | I2C_CR1_STOPIE | I2C_CR1_TCIE);
+	I2C->CR2 = (i2c_cr2 | (count << I2C_CR2_NBYTES_SHIFT));
 
-        I2C->CR2 = (i2c_cr2 | (count << I2C_CR2_NBYTES_SHIFT));
+	if (count == 1)
+	{
+	    /* No need to trigger an extra RXNE interrupt if only one byte 
+	     * is read. TCR/TC will cover that.
+	     */
+	    I2C->CR1 |= (I2C_CR1_STOPIE | I2C_CR1_TCIE);
+	}
+	else
+	{
+	    I2C->CR1 |= (I2C_CR1_RXIE | I2C_CR1_STOPIE | I2C_CR1_TCIE);
+	}
     }
 }
 
@@ -437,18 +517,8 @@ static void stm32l0_i2c_master_check(stm32l0_i2c_t *i2c)
                     stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
                 
                     stm32l0_i2c_start(i2c);
-                
-                    if (i2c->rx_dma != STM32L0_DMA_CHANNEL_NONE)
-                    {
-                        stm32l0_dma_enable(i2c->rx_dma, NULL, NULL);
-                    }
-                
-                    if (i2c->tx_dma != STM32L0_DMA_CHANNEL_NONE)
-                    {
-                        stm32l0_dma_enable(i2c->tx_dma, NULL, NULL);
-                    }
                 }
-            
+
                 i2c->xf_transaction = transaction;
             
                 i2c->xf_address = transaction->address;
@@ -484,12 +554,12 @@ static void stm32l0_i2c_master_check(stm32l0_i2c_t *i2c)
     {
         if (i2c->state == STM32L0_I2C_STATE_MASTER_STOP)
         {
-            if (i2c->rx_dma != STM32L0_DMA_CHANNEL_NONE)
+	    if (i2c->rx_dma == stm32l0_dma_channel(i2c->rx_dma))
             {
                 stm32l0_dma_disable(i2c->rx_dma);
             }
 
-            if (i2c->tx_dma != STM32L0_DMA_CHANNEL_NONE)
+            if (i2c->tx_dma == stm32l0_dma_channel(i2c->tx_dma))
             {
                 stm32l0_dma_disable(i2c->tx_dma);
             }
@@ -510,8 +580,8 @@ static void stm32l0_i2c_master_check(stm32l0_i2c_t *i2c)
 
             if (i2c->rq_callback)
             {
-                stm32l0_gpio_pin_configure(i2c->pins.scl, (STM32L0_GPIO_PUPD_PULLUP | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_INPUT));
-                stm32l0_gpio_pin_configure(i2c->pins.sda, (STM32L0_GPIO_PUPD_PULLUP | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_INPUT));
+                stm32l0_gpio_pin_configure(i2c->pins.scl, (STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_INPUT));
+                stm32l0_gpio_pin_configure(i2c->pins.sda, (STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_INPUT));
                 
                 i2c->state = STM32L0_I2C_STATE_SUSPENDED;
 
@@ -539,8 +609,8 @@ static void stm32l0_i2c_slave_check(stm32l0_i2c_t *i2c)
     {
         stm32l0_i2c_stop(i2c);
 
-        stm32l0_gpio_pin_configure(i2c->pins.scl, (STM32L0_GPIO_PUPD_PULLUP | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_INPUT));
-        stm32l0_gpio_pin_configure(i2c->pins.sda, (STM32L0_GPIO_PUPD_PULLUP | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_INPUT));
+        stm32l0_gpio_pin_configure(i2c->pins.scl, (STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_INPUT));
+        stm32l0_gpio_pin_configure(i2c->pins.sda, (STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_INPUT));
         
         i2c->state = STM32L0_I2C_STATE_SUSPENDED;
 
@@ -616,12 +686,10 @@ static void stm32l0_i2c_slave_address(stm32l0_i2c_t *i2c)
 static void stm32l0_i2c_interrupt(stm32l0_i2c_t *i2c)
 {
     I2C_TypeDef *I2C = i2c->I2C;
-    stm32l0_i2c_transaction_t *transaction;
+    stm32l0_i2c_transaction_t *transaction = i2c->xf_transaction;
     uint32_t i2c_isr, i2c_cr2, count;
 
     i2c_isr = I2C->ISR;
-
-    I2C->ICR = I2C_ICR_ALERTCF | I2C_ICR_TIMOUTCF | I2C_ICR_PECCF | I2C_ICR_OVRCF | I2C_ICR_ARLOCF | I2C_ICR_BERRCF;
 
     switch (i2c->state) {
 
@@ -662,311 +730,220 @@ static void stm32l0_i2c_interrupt(stm32l0_i2c_t *i2c)
         stm32l0_i2c_master_check(i2c);
         break;
 
-    case STM32L0_I2C_STATE_MASTER_NACK:
-        if (i2c_isr & I2C_ISR_STOPF)
-        {
-            I2C->ICR = I2C_ICR_STOPCF;
-
-            I2C->CR1 &= ~I2C_CR1_STOPIE;
-
-            i2c->state = STM32L0_I2C_STATE_MASTER_STOP;
-
-            transaction = i2c->xf_transaction;
-            i2c->xf_transaction = NULL;
-
-            if (i2c->tx_data)
-            {
-                transaction->status = ((i2c->tx_data == transaction->tx_data) ? STM32L0_I2C_STATUS_TRANSMIT_ADDRESS_NACK : STM32L0_I2C_STATUS_TRANSMIT_DATA_NACK);
-            }
-            else
-            {
-                transaction->status = STM32L0_I2C_STATUS_RECEIVE_ADDRESS_NACK;
-            }
-
-            if (transaction->callback)
-            {
-                (*transaction->callback)(transaction->context);
-            }
-
-            stm32l0_i2c_master_check(i2c);
-        }
-        break;
-
     case STM32L0_I2C_STATE_MASTER_TRANSMIT:
-        if (i2c_isr & (I2C_ISR_TIMEOUT | I2C_ISR_ARLO))
-        {
-            I2C->ICR = I2C_ICR_NACKCF;
+	if (i2c_isr & I2C_ISR_TXIS)
+	{
+	    if (!(I2C->CR1 & I2C_CR1_TXDMAEN))
+	    {
+		I2C->TXDR = *(i2c->tx_data)++;
+	    }
+	}
 
-            if (I2C->CR1 & I2C_CR1_TXDMAEN)
-            {
-                stm32l0_dma_stop(i2c->tx_dma);
-
-                I2C->CR1 &= ~(I2C_CR1_NACKIE | I2C_CR1_TCIE | I2C_CR1_TXDMAEN);
-            }
-            else
-            {
-                I2C->CR1 &= ~(I2C_CR1_TXIE | I2C_CR1_NACKIE | I2C_CR1_TCIE);
-            }
-
-            i2c->state = STM32L0_I2C_STATE_MASTER_STOP;
-
-            transaction = i2c->xf_transaction;
-            i2c->xf_transaction = NULL;
-
-            transaction->status = (i2c_isr & I2C_ISR_TIMEOUT) ? STM32L0_I2C_STATUS_TRANSMIT_TIMEOUT : STM32L0_I2C_STATUS_TRANSMIT_ARBITRATION_LOST;
-
-            if (transaction->callback)
-            {
-                (*transaction->callback)(transaction->context);
-            }
-
-            stm32l0_i2c_master_check(i2c);
-        }
-        else
-        {
-            if (i2c_isr & I2C_ISR_NACKF)
-            {
-                I2C->ICR = I2C_ICR_NACKCF;
-                
-                if (I2C->CR1 & I2C_CR1_TXDMAEN)
-                {
-                    i2c->tx_data = i2c->xf_transaction->tx_data + stm32l0_dma_stop(i2c->tx_dma);
+	if (i2c_isr & (I2C_ISR_TCR | I2C_ISR_TC | I2C_ISR_STOPF))
+	{
+	    if (i2c_isr & (I2C_ISR_TC | I2C_ISR_STOPF))
+	    {
+		I2C->CR1 &= ~(I2C_CR1_TXIE | I2C_CR1_STOPIE | I2C_CR1_TCIE);
+		
+		I2C->ICR = I2C_ICR_STOPCF;
+		
+		if (I2C->CR1 & I2C_CR1_TXDMAEN)
+		{
+		    i2c->tx_data = transaction->tx_data + stm32l0_dma_stop(i2c->tx_dma);
                     
-                    I2C->CR1 &= ~(I2C_CR1_NACKIE | I2C_CR1_TCIE | I2C_CR1_TXDMAEN);
-                }
-                else
-                {
-                    I2C->CR1 &= ~(I2C_CR1_TXIE | I2C_CR1_NACKIE | I2C_CR1_TCIE);
-                }
+		    I2C->CR1 &= ~I2C_CR1_TXDMAEN;
+		}
+
+		if (i2c_isr & (I2C_ISR_TIMEOUT | I2C_ISR_ARLO | I2C_ISR_NACKF))
+		{
+		    I2C->ICR = I2C_ICR_TIMOUTCF | I2C_ICR_ARLOCF | I2C_ICR_NACKCF;
+		    
+		    if (i2c_isr & I2C_ISR_NACKF)
+		    {
+			if (!(i2c_isr & I2C_ISR_TXE))
+			{
+			    i2c->tx_data--;
+			}
+
+			transaction->status = ((i2c->tx_data == transaction->tx_data) ? STM32L0_I2C_STATUS_TRANSMIT_ADDRESS_NACK : STM32L0_I2C_STATUS_TRANSMIT_DATA_NACK);
+		    }
+		    else
+		    {
+			if (i2c_isr & I2C_ISR_ARLO)
+			{
+			    transaction->status = STM32L0_I2C_STATUS_TRANSMIT_ARBITRATION_LOST;
+			}
+			else
+			{
+			    transaction->status = STM32L0_I2C_STATUS_TRANSMIT_TIMEOUT;
+			}
+		    }
+
+		    i2c->state = STM32L0_I2C_STATE_MASTER_STOP;
+		}
+		else
+		{
+		    if (i2c->xf_control & STM32L0_I2C_CONTROL_RESTART)
+		    {
+			i2c->state = STM32L0_I2C_STATE_MASTER_RESTART;
+		    }
+		    else
+		    {
+			i2c->state = STM32L0_I2C_STATE_MASTER_STOP;
+		    }
+
+		    if (i2c->rx_data)
+		    {
+			stm32l0_i2c_master_receive(i2c);
+		    }
+		    else
+		    {
+			transaction->status = STM32L0_I2C_STATUS_SUCCESS;
+		    }
+		}
+
+		if (transaction->status != STM32L0_I2C_STATUS_BUSY)
+		{
+		    i2c->xf_transaction = NULL;
+		    
+		    if (transaction->callback)
+		    {
+			(*transaction->callback)(transaction->context);
+		    }
+		    
+		    stm32l0_i2c_master_check(i2c);
+		}
+	    }
+	    else /* I2C_ISR_TCR */
+	    {
+		i2c_cr2 = I2C->CR2 & ~(I2C_CR2_AUTOEND | I2C_CR2_RELOAD | I2C_CR2_NBYTES | I2C_CR2_NACK | I2C_CR2_STOP | I2C_CR2_START);
                 
-                /* If I2C_TXDR is not empty, there there is an unsent byte.
-                 */
-                if (!(I2C->ISR & I2C_ISR_TXE))
-                {
-                    i2c->tx_data--;
-                }
+		count = i2c->tx_data_e - i2c->tx_data;
                 
-                I2C->CR1 |= I2C_CR1_STOPIE;
+		if (count > I2C_CR2_NBYTES_MAX)
+		{
+		    count = I2C_CR2_NBYTES_MAX;
+                    
+		    i2c_cr2 |= I2C_CR2_RELOAD;
+		}
+		else
+		{
+		    if (!i2c->rx_data && !(i2c->xf_control & STM32L0_I2C_CONTROL_RESTART))
+		    {
+			i2c_cr2 |= I2C_CR2_AUTOEND;
+		    }
+		}
                 
-                i2c->state = STM32L0_I2C_STATE_MASTER_NACK;
-            }
-            else
-            {
-                if (i2c_isr & I2C_ISR_TXIS)
-                {
-                    if (I2C->CR1 & I2C_CR1_TXIE)
-                    {
-                        I2C->TXDR = *(i2c->tx_data)++;
-                    }
-                }
-
-                if (i2c_isr & (I2C_ISR_TCR | I2C_ISR_TC | I2C_ISR_STOPF))
-                {
-                    if (i2c_isr & (I2C_ISR_TC | I2C_ISR_STOPF))
-                    {
-                        if (I2C->CR1 & I2C_CR1_TXDMAEN)
-                        {
-                            stm32l0_dma_stop(i2c->tx_dma);
-                            
-                            I2C->CR1 &= ~(I2C_CR1_NACKIE | I2C_CR1_TCIE | I2C_CR1_TXDMAEN);
-                        }
-                        else
-                        {
-                            I2C->CR1 &= ~(I2C_CR1_TXIE | I2C_CR1_NACKIE | I2C_CR1_TCIE);
-                        }
-
-                        if (i2c_isr & I2C_ISR_TC)
-                        {
-                            i2c->state = STM32L0_I2C_STATE_MASTER_RESTART;
-                        }
-                        else
-                        {
-                            I2C->ICR = I2C_ICR_STOPCF;
-
-                            i2c->state = STM32L0_I2C_STATE_MASTER_STOP;
-                        }
-                        
-                        if (i2c->rx_data)
-                        {
-                            stm32l0_i2c_master_receive(i2c);
-                        }
-                        else
-                        {
-                            transaction = i2c->xf_transaction;
-                            i2c->xf_transaction = NULL;
-
-                            transaction->status = STM32L0_I2C_STATUS_SUCCESS;
-
-                            if (transaction->callback)
-                            {
-                                (*transaction->callback)(transaction->context);
-                            }
-
-                            stm32l0_i2c_master_check(i2c);
-                        }
-                    }
-                    else /* I2C_ISR_TCR */
-                    {
-                        i2c_cr2 = I2C->CR2 & ~(I2C_CR2_AUTOEND | I2C_CR2_RELOAD | I2C_CR2_NBYTES | I2C_CR2_NACK | I2C_CR2_STOP | I2C_CR2_START);
-                        
-                        count = i2c->tx_data_e - i2c->tx_data;
-                        
-                        if (count > I2C_CR2_NBYTES_MAX)
-                        {
-                            count = I2C_CR2_NBYTES_MAX;
-                            
-                            i2c_cr2 |= I2C_CR2_RELOAD;
-                        }
-                        else
-                        {
-                            if (!i2c->rx_data && !(i2c->xf_control & STM32L0_I2C_CONTROL_RESTART))
-                            {
-                                i2c_cr2 |= I2C_CR2_AUTOEND;
-                            }
-                        }
-                        
-                        I2C->CR2 = (i2c_cr2 | (count << I2C_CR2_NBYTES_SHIFT));
-                        
-                        if (!(I2C->CR1 & I2C_CR1_TXIE))
-                        {
-                            i2c->tx_data += count;
-                        }
-                        else
-                        {
-                            if (I2C->ISR & I2C_ISR_TXE)
-                            {
-                                I2C->TXDR = *(i2c->tx_data)++;
-                            }
-                        }
-                    }
-                }
-            }
-        }
+		I2C->CR2 = (i2c_cr2 | (count << I2C_CR2_NBYTES_SHIFT));
+                
+		if (I2C->CR1 & I2C_CR1_TXDMAEN)
+		{
+		    i2c->tx_data += count;
+		}
+		else
+		{
+		    if (I2C->ISR & I2C_ISR_TXE)
+		    {
+			I2C->TXDR = *(i2c->tx_data)++;
+		    }
+		}
+	    }
+	}
         break;
 
     case STM32L0_I2C_STATE_MASTER_RECEIVE:
-        if (i2c_isr & (I2C_ISR_TIMEOUT | I2C_ISR_ARLO))
-        {
-            I2C->ICR = I2C_ICR_NACKCF;
+	if (i2c_isr & I2C_ISR_RXNE)
+	{
+	    if (!(I2C->CR1 & I2C_CR1_RXDMAEN))
+	    {
+		*(i2c->rx_data)++ = I2C->RXDR;
+	    }
+	}
+	
+	if (i2c_isr & (I2C_ISR_TCR | I2C_ISR_TC | I2C_ISR_STOPF))
+	{
+	    if (i2c_isr & (I2C_ISR_TC | I2C_ISR_STOPF))
+	    {
+		I2C->CR1 &= ~(I2C_CR1_RXIE | I2C_CR1_STOPIE | I2C_CR1_TCIE);
 
-            if (I2C->CR1 & I2C_CR1_RXIE)
-            {
-                I2C->CR1 &= ~(I2C_CR1_RXIE | I2C_CR1_NACKIE | I2C_CR1_TCIE);
-            }
-            else
-            {
-                stm32l0_dma_stop(i2c->rx_dma);
-
-                I2C->CR1 &= ~(I2C_CR1_NACKIE | I2C_CR1_TCIE | I2C_CR1_RXDMAEN);
-            }
-
-            i2c->state = STM32L0_I2C_STATE_MASTER_STOP;
-
-            transaction = i2c->xf_transaction;
-            i2c->xf_transaction = NULL;
-
-            transaction->status = (I2C->ISR & I2C_ISR_TIMEOUT) ? STM32L0_I2C_STATUS_RECEIVE_TIMEOUT : STM32L0_I2C_STATUS_RECEIVE_ARBITRATION_LOST;
-
-            if (transaction->callback)
-            {
-                (*transaction->callback)(transaction->context);
-            }
-
-            stm32l0_i2c_master_check(i2c);
-        }
-        else
-        {
-            if (i2c_isr & I2C_ISR_NACKF)
-            {
-                I2C->ICR = I2C_ICR_NACKCF;
-                
-                if (I2C->CR1 & I2C_CR1_RXIE)
-                {
-                    I2C->CR1 &= ~(I2C_CR1_RXIE | I2C_CR1_NACKIE | I2C_CR1_TCIE);
-                }
-                else
-                {
-                    stm32l0_dma_stop(i2c->rx_dma);
+		I2C->ICR = I2C_ICR_STOPCF;
+		
+		if (I2C->CR1 & I2C_CR1_RXDMAEN)
+		{
+		    stm32l0_dma_stop(i2c->rx_dma);
                     
-                    I2C->CR1 &= ~(I2C_CR1_NACKIE | I2C_CR1_TCIE | I2C_CR1_RXDMAEN);
-                }
+		    I2C->CR1 &= ~I2C_CR1_RXDMAEN;
+		}
                 
-                I2C->CR1 |= I2C_CR1_STOPIE;
+		if (i2c_isr & (I2C_ISR_TIMEOUT | I2C_ISR_ARLO | I2C_ISR_NACKF))
+		{
+		    I2C->ICR = I2C_ICR_TIMOUTCF | I2C_ICR_ARLOCF | I2C_ICR_NACKCF;
+		    
+		    if (i2c_isr & I2C_ISR_NACKF)
+		    {
+			transaction->status = STM32L0_I2C_STATUS_RECEIVE_ADDRESS_NACK;
+		    }
+		    else
+		    {
+			if (i2c_isr & I2C_ISR_ARLO)
+			{
+			    transaction->status = STM32L0_I2C_STATUS_RECEIVE_ARBITRATION_LOST;
+			}
+			else
+			{
+			    transaction->status = STM32L0_I2C_STATUS_RECEIVE_TIMEOUT;
+			}
+		    }
+
+		    i2c->state = STM32L0_I2C_STATE_MASTER_STOP;
+		}
+		else
+		{
+		    if (i2c->xf_control & STM32L0_I2C_CONTROL_RESTART)
+		    {
+			i2c->state = STM32L0_I2C_STATE_MASTER_RESTART;
+		    }
+		    else
+		    {
+			i2c->state = STM32L0_I2C_STATE_MASTER_STOP;
+		    }
+		    
+		    transaction->status = STM32L0_I2C_STATUS_SUCCESS;
+		}
+		
+		if (transaction->status != STM32L0_I2C_STATUS_BUSY)
+		{
+		    i2c->xf_transaction = NULL;
+
+		    if (transaction->callback)
+		    {
+			(*transaction->callback)(transaction->context);
+		    }
+		
+		    stm32l0_i2c_master_check(i2c);
+		}
+	    }
+	    else /* I2C_ISR_TCR */
+	    {
+		i2c_cr2 = I2C->CR2 & ~(I2C_CR2_AUTOEND | I2C_CR2_RELOAD | I2C_CR2_NBYTES | I2C_CR2_NACK |  I2C_CR2_STOP | I2C_CR2_START);
+		
+		count = (i2c->rx_data_e - i2c->rx_data);
                 
-                i2c->state = STM32L0_I2C_STATE_MASTER_NACK;
-                transaction = i2c->xf_transaction;
-            }
-            else
-            {
-                if (i2c_isr & I2C_ISR_RXNE)
-                {
-                    if (I2C->CR1 & I2C_CR1_RXIE)
-                    {
-                        *(i2c->rx_data)++ = I2C->RXDR;
-                    }
-                }
-
-                if (i2c_isr & (I2C_ISR_TCR | I2C_ISR_TC | I2C_ISR_STOPF))
-                {
-                    if (i2c_isr & (I2C_ISR_TC | I2C_ISR_STOPF))
-                    {
-                        if (I2C->CR1 & I2C_CR1_RXIE)
-                        {
-                            I2C->CR1 &= ~(I2C_CR1_RXIE | I2C_CR1_NACKIE | I2C_CR1_TCIE);
-                        }
-                        else
-                        {
-                            stm32l0_dma_stop(i2c->rx_dma);
-                            
-                            I2C->CR1 &= ~(I2C_CR1_NACKIE | I2C_CR1_TCIE | I2C_CR1_RXDMAEN);
-                        }
+		if (count > 1)
+		{
+		    i2c_cr2 |= I2C_CR2_RELOAD;
+		}
+		else
+		{
+		    if (!(i2c->xf_control & STM32L0_I2C_CONTROL_RESTART))
+		    {
+			i2c_cr2 |= I2C_CR2_AUTOEND;
+		    }
+		}
                         
-                        if (i2c_isr & I2C_ISR_TC)
-                        {
-                            i2c->state = STM32L0_I2C_STATE_MASTER_RESTART;
-                        }
-                        else
-                        {
-                            I2C->ICR = I2C_ICR_STOPCF;
-
-                            i2c->state = STM32L0_I2C_STATE_MASTER_STOP;
-                        }
-
-                        transaction = i2c->xf_transaction;
-                        i2c->xf_transaction = NULL;
-
-                        transaction->status = STM32L0_I2C_STATUS_SUCCESS;
-
-                        if (transaction->callback)
-                        {
-                            (*transaction->callback)(transaction->context);
-                        }
-
-                        stm32l0_i2c_master_check(i2c);
-                    }
-                    else /* I2C_ISR_TCR */
-                    {
-                        i2c_cr2 = I2C->CR2 & ~(I2C_CR2_AUTOEND | I2C_CR2_RELOAD | I2C_CR2_NBYTES | I2C_CR2_NACK |  I2C_CR2_STOP | I2C_CR2_START);
-
-                        count = (i2c->rx_data_e - i2c->rx_data);
-                        
-                        if (count > 1)
-                        {
-                            i2c_cr2 |= I2C_CR2_RELOAD;
-                        }
-                        else
-                        {
-                            if (!(i2c->xf_control & STM32L0_I2C_CONTROL_RESTART))
-                            {
-                                i2c_cr2 |= I2C_CR2_AUTOEND;
-                            }
-                        }
-                        
-                        I2C->CR2 = (i2c_cr2 | (1 << I2C_CR2_NBYTES_SHIFT));
-                    }
-                }
-            }
-        }
+		I2C->CR2 = (i2c_cr2 | (1 << I2C_CR2_NBYTES_SHIFT));
+	    }
+	}
         break;
 
     case STM32L0_I2C_STATE_SLAVE_TRANSMIT:
@@ -1159,6 +1136,8 @@ bool stm32l0_i2c_disable(stm32l0_i2c_t *i2c)
         return false;
     }
 
+    NVIC_DisableIRQ(i2c->interrupt);
+
     if (i2c->option & STM32L0_I2C_OPTION_ADDRESS_MASK)
     {
         stm32l0_i2c_stop(i2c);
@@ -1166,14 +1145,9 @@ bool stm32l0_i2c_disable(stm32l0_i2c_t *i2c)
         armv6m_atomic_and(&EXTI->IMR, ~stm32l0_i2c_xlate_IMR[i2c->instance]);
     }
 
-    if (i2c->instance == STM32L0_I2C_INSTANCE_I2C2)
-    {
-        stm32l0_system_unreference(STM32L0_SYSTEM_REFERENCE_I2C2);
-    }
+    stm32l0_system_unreference(STM32L0_SYSTEM_REFERENCE_I2C1 << i2c->instance);
 
     armv6m_atomic_and(&SYSCFG->CFGR1, ~stm32l0_i2c_xlate_FMP[i2c->instance]);
-
-    NVIC_DisableIRQ(i2c->interrupt);
 
     i2c->state = STM32L0_I2C_STATE_INIT;
 
@@ -1208,8 +1182,26 @@ bool stm32l0_i2c_configure(stm32l0_i2c_t *i2c, uint32_t option, uint32_t timeout
                 return false;
             }
 
+	    stm32l0_system_reference(STM32L0_SYSTEM_REFERENCE_I2C2);
+
             timeout = 0;
         }
+	else
+	{
+            if (option & STM32L0_I2C_OPTION_MODE_1000K)
+            {
+		if (stm32l0_system_sysclk() < 32000000)
+		{
+		    return false;
+		}
+
+		stm32l0_system_reference(STM32L0_SYSTEM_REFERENCE_I2C1 << i2c->instance);
+            }
+	    else
+	    {
+		stm32l0_system_unreference(STM32L0_SYSTEM_REFERENCE_I2C1 << i2c->instance);
+	    }
+	}
 
         option &= ~STM32L0_I2C_OPTION_WAKEUP;
     }
@@ -1219,7 +1211,10 @@ bool stm32l0_i2c_configure(stm32l0_i2c_t *i2c, uint32_t option, uint32_t timeout
 
     i2c->rq_sync = true;
 
-    NVIC_SetPendingIRQ(i2c->interrupt);
+    if (__current_irq() != i2c->interrupt)
+    {
+	NVIC_SetPendingIRQ(i2c->interrupt);
+    }
 
     return true;
 }
@@ -1246,7 +1241,10 @@ bool stm32l0_i2c_suspend(stm32l0_i2c_t *i2c, stm32l0_i2c_suspend_callback_t call
         i2c->rq_callback = STM32L0_I2C_SUSPEND_CALLBACK;
     }
 
-    NVIC_SetPendingIRQ(i2c->interrupt);
+    if (__current_irq() != i2c->interrupt)
+    {
+	NVIC_SetPendingIRQ(i2c->interrupt);
+    }
 
     return true;
 }
@@ -1259,13 +1257,13 @@ void stm32l0_i2c_resume(stm32l0_i2c_t *i2c)
 
         if (i2c->option & STM32L0_I2C_OPTION_WAKEUP)
         {
-            stm32l0_gpio_pin_configure(i2c->pins.scl, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLUP | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_ALTERNATE));
-            stm32l0_gpio_pin_configure(i2c->pins.sda, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLUP | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_ALTERNATE));
+            stm32l0_gpio_pin_configure(i2c->pins.scl, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_ALTERNATE));
+            stm32l0_gpio_pin_configure(i2c->pins.sda, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_ALTERNATE));
         }
         else
         {
-            stm32l0_gpio_pin_configure(i2c->pins.scl, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_PUPD_PULLUP | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_ALTERNATE));
-            stm32l0_gpio_pin_configure(i2c->pins.sda, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_PUPD_PULLUP | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_ALTERNATE));
+            stm32l0_gpio_pin_configure(i2c->pins.scl, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_ALTERNATE));
+            stm32l0_gpio_pin_configure(i2c->pins.sda, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_ALTERNATE));
         }
         
         if (i2c->option & STM32L0_I2C_OPTION_ADDRESS_MASK) 
@@ -1275,8 +1273,8 @@ void stm32l0_i2c_resume(stm32l0_i2c_t *i2c)
         
         i2c->state = STM32L0_I2C_STATE_READY;
         
-        NVIC_EnableIRQ(i2c->interrupt);
-        
+	NVIC_EnableIRQ(i2c->interrupt);
+	
         NVIC_SetPendingIRQ(i2c->interrupt);
     }
 }
@@ -1293,8 +1291,8 @@ bool stm32l0_i2c_reset(stm32l0_i2c_t *i2c)
     pin_scl = i2c->pins.scl;
     pin_sda = i2c->pins.sda;
 
-    stm32l0_gpio_pin_configure(pin_scl, (STM32L0_GPIO_PUPD_PULLUP | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_INPUT));
-    stm32l0_gpio_pin_configure(pin_sda, (STM32L0_GPIO_PUPD_PULLUP | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_INPUT));
+    stm32l0_gpio_pin_configure(pin_scl, (STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_INPUT));
+    stm32l0_gpio_pin_configure(pin_sda, (STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_OPENDRAIN | STM32L0_GPIO_MODE_INPUT));
     stm32l0_gpio_pin_write(pin_scl, 0);
     stm32l0_gpio_pin_write(pin_sda, 1);
     stm32l0_gpio_pin_output(pin_scl);
@@ -1391,7 +1389,10 @@ bool stm32l0_i2c_submit(stm32l0_i2c_t *i2c, stm32l0_i2c_transaction_t *transacti
     }
     while (armv6m_atomic_compare_and_swap((volatile uint32_t*)&i2c->xf_queue, (uint32_t)entry, (uint32_t)transaction) != (uint32_t)entry);
 
-    NVIC_SetPendingIRQ(i2c->interrupt);
+    if (__current_irq() != i2c->interrupt)
+    {
+	NVIC_SetPendingIRQ(i2c->interrupt);
+    }
 
     return true;
 }

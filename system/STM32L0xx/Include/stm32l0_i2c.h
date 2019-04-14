@@ -88,11 +88,10 @@ typedef void (*stm32l0_i2c_done_callback_t)(void *context);
 #define STM32L0_I2C_STATE_SUSPENDED                  3
 #define STM32L0_I2C_STATE_MASTER_STOP                4
 #define STM32L0_I2C_STATE_MASTER_RESTART             5
-#define STM32L0_I2C_STATE_MASTER_NACK                6
-#define STM32L0_I2C_STATE_MASTER_TRANSMIT            7
-#define STM32L0_I2C_STATE_MASTER_RECEIVE             8
-#define STM32L0_I2C_STATE_SLAVE_TRANSMIT             9
-#define STM32L0_I2C_STATE_SLAVE_RECEIVE              10
+#define STM32L0_I2C_STATE_MASTER_TRANSMIT            6
+#define STM32L0_I2C_STATE_MASTER_RECEIVE             7
+#define STM32L0_I2C_STATE_SLAVE_TRANSMIT             8
+#define STM32L0_I2C_STATE_SLAVE_RECEIVE              9
 
 typedef struct _stm32l0_i2c_pins_t {
     uint16_t                            scl;
