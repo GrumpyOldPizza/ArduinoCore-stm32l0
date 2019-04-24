@@ -11,6 +11,7 @@ uint8_t parity = 0;
 
 void setup() {
   Serial.begin(baud);
+  pinMode(LED_BUILTIN, OUTPUT);
 }
 
 char rx_buf[512];
@@ -23,26 +24,31 @@ void doStuff() {
   if (Serial.baud() != baud) {
     baud = Serial.baud();
     if (baud == 2400) {
-      Serial2.begin(115200, SERIAL_8E1);
-
+      digitalWrite(LORA_BOOT0, HIGH);
       pinMode(LORA_BOOT0, OUTPUT);
       digitalWrite(LORA_BOOT0, HIGH);
       pinMode(LORA_RESET, OUTPUT);
       digitalWrite(LORA_RESET, HIGH);
-      delay(200);
+      delay(100);
       digitalWrite(LORA_RESET, LOW);
-      delay(200);
+      delay(100);
       digitalWrite(LORA_RESET, HIGH);
+      Serial2.begin(115200, SERIAL_8E1);
+      while (Serial2.available()) {
+        Serial2.read();
+      }
+      digitalWrite(LED_BUILTIN, HIGH);
     } else {
       Serial2.begin(baud, SERIAL_8N1);
       pinMode(LORA_BOOT0, OUTPUT);
       digitalWrite(LORA_BOOT0, LOW);
       pinMode(LORA_RESET, OUTPUT);
       digitalWrite(LORA_RESET, HIGH);
-      delay(200);
+      delay(100);
       digitalWrite(LORA_RESET, LOW);
-      delay(200);
+      delay(100);
       digitalWrite(LORA_RESET, HIGH);
+      digitalWrite(LED_BUILTIN, LOW);
     }
   }
 }
