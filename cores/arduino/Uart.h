@@ -29,6 +29,7 @@
 #pragma once
 
 #include "HardwareSerial.h"
+#include "Callback.h"
 
 #define UART_RX_BUFFER_SIZE 64
 #define UART_TX_BUFFER_SIZE 64
