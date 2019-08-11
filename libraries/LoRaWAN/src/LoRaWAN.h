@@ -134,6 +134,7 @@ public:
     int sendPacket(const uint8_t *buffer, size_t size, bool confirmed = false);
     int sendPacket(uint8_t port, const uint8_t *buffer, size_t size, bool confirmed = false);
     int linkCheck();
+    int setTxContinuousWave(uint32_t freq, int8_t power, uint16_t time);
     int ping();
 
     virtual int availableForWrite();
