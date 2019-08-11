@@ -525,3 +525,100 @@ NUCLEO-L073RZ.menu.opt.o3=Fastest
 NUCLEO-L073RZ.menu.opt.o3.build.flags.optimize=-O3
 NUCLEO-L073RZ.menu.opt.o3.build.flags.ldspecs=
 
+# IRNAS-env-module-L072Z
+# ---------------------------------------
+IRNAS-env-module-L072Z.name=IRNAS-env-module-L072Z
+IRNAS-env-module-L072Z.vid.0=0x0483
+IRNAS-env-module-L072Z.pid.0=0x374b
+
+IRNAS-env-module-L072Z.upload.tool=stm32l0_openocd
+IRNAS-env-module-L072Z.upload.protocol=stlink
+IRNAS-env-module-L072Z.upload.maximum_size=196608
+IRNAS-env-module-L072Z.upload.maximum_data_size=20480
+IRNAS-env-module-L072Z.upload.use_1200bps_touch=true
+IRNAS-env-module-L072Z.upload.wait_for_upload_port=false
+IRNAS-env-module-L072Z.upload.native_usb=false
+
+IRNAS-env-module-L072Z.build.mcu=cortex-m0plus
+IRNAS-env-module-L072Z.build.f_cpu=32000000L
+IRNAS-env-module-L072Z.build.board=STM32L0_B_L072Z_LRWAN1
+IRNAS-env-module-L072Z.build.arch=stm32l0
+IRNAS-env-module-L072Z.build.core=arduino
+IRNAS-env-module-L072Z.build.vid=0x0483
+IRNAS-env-module-L072Z.build.pid=0x374b
+IRNAS-env-module-L072Z.build.did=0xffff
+IRNAS-env-module-L072Z.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+IRNAS-env-module-L072Z.build.ldscript=linker_scripts/STM32L072CZ_FLASH.ld
+IRNAS-env-module-L072Z.build.openocdscript=openocd_scripts/IRNAS-env-module-L072Z.cfg
+IRNAS-env-module-L072Z.build.variant=IRNAS-env-module-L072Z
+IRNAS-env-module-L072Z.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l072xx -larm_cortexM0l_math
+IRNAS-env-module-L072Z.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
+
+IRNAS-env-module-L072Z.menu.speed.32=32 MHz
+IRNAS-env-module-L072Z.menu.speed.32.build.f_cpu=32000000L
+IRNAS-env-module-L072Z.menu.speed.16=16 MHz (No USB)
+IRNAS-env-module-L072Z.menu.speed.16.build.f_cpu=16000000L
+IRNAS-env-module-L072Z.menu.speed.4=4.2 MHz (No USB)
+IRNAS-env-module-L072Z.menu.speed.4.build.f_cpu=4200000L
+
+IRNAS-env-module-L072Z.menu.opt.os=Smallest Code
+IRNAS-env-module-L072Z.menu.opt.os.build.flags.optimize=-Os
+IRNAS-env-module-L072Z.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
+IRNAS-env-module-L072Z.menu.opt.o1=Fast
+IRNAS-env-module-L072Z.menu.opt.o1.build.flags.optimize=-O1
+IRNAS-env-module-L072Z.menu.opt.o1.build.flags.ldspecs=
+IRNAS-env-module-L072Z.menu.opt.o2=Faster
+IRNAS-env-module-L072Z.menu.opt.o2.build.flags.optimize=-O2
+IRNAS-env-module-L072Z.menu.opt.o2.build.flags.ldspecs=
+IRNAS-env-module-L072Z.menu.opt.o3=Fastest
+IRNAS-env-module-L072Z.menu.opt.o3.build.flags.optimize=-O3
+IRNAS-env-module-L072Z.menu.opt.o3.build.flags.ldspecs=
+
+# microclimate-L072Z
+# ---------------------------------------
+microclimate-L072Z.name=microclimate-L072Z
+microclimate-L072Z.vid.0=0x0483
+microclimate-L072Z.pid.0=0x374b
+
+microclimate-L072Z.upload.tool=stm32l0_openocd
+microclimate-L072Z.upload.protocol=stlink
+microclimate-L072Z.upload.maximum_size=196608
+microclimate-L072Z.upload.maximum_data_size=20480
+microclimate-L072Z.upload.use_1200bps_touch=true
+microclimate-L072Z.upload.wait_for_upload_port=false
+microclimate-L072Z.upload.native_usb=false
+
+microclimate-L072Z.build.mcu=cortex-m0plus
+microclimate-L072Z.build.f_cpu=32000000L
+microclimate-L072Z.build.board=STM32L0_B_L072Z_LRWAN1
+microclimate-L072Z.build.arch=stm32l0
+microclimate-L072Z.build.core=arduino
+microclimate-L072Z.build.vid=0x0483
+microclimate-L072Z.build.pid=0x374b
+microclimate-L072Z.build.did=0xffff
+microclimate-L072Z.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+microclimate-L072Z.build.ldscript=linker_scripts/STM32L072CZ_FLASH.ld
+microclimate-L072Z.build.openocdscript=openocd_scripts/microclimate-L072Z.cfg
+microclimate-L072Z.build.variant=microclimate-L072Z
+microclimate-L072Z.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l072xx -larm_cortexM0l_math
+microclimate-L072Z.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
+
+microclimate-L072Z.menu.speed.32=32 MHz
+microclimate-L072Z.menu.speed.32.build.f_cpu=32000000L
+microclimate-L072Z.menu.speed.16=16 MHz (No USB)
+microclimate-L072Z.menu.speed.16.build.f_cpu=16000000L
+microclimate-L072Z.menu.speed.4=4.2 MHz (No USB)
+microclimate-L072Z.menu.speed.4.build.f_cpu=4200000L
+
+microclimate-L072Z.menu.opt.os=Smallest Code
+microclimate-L072Z.menu.opt.os.build.flags.optimize=-Os
+microclimate-L072Z.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
+microclimate-L072Z.menu.opt.o1=Fast
+microclimate-L072Z.menu.opt.o1.build.flags.optimize=-O1
+microclimate-L072Z.menu.opt.o1.build.flags.ldspecs=
+microclimate-L072Z.menu.opt.o2=Faster
+microclimate-L072Z.menu.opt.o2.build.flags.optimize=-O2
+microclimate-L072Z.menu.opt.o2.build.flags.ldspecs=
+microclimate-L072Z.menu.opt.o3=Fastest
+microclimate-L072Z.menu.opt.o3.build.flags.optimize=-O3
+microclimate-L072Z.menu.opt.o3.build.flags.ldspecs=
