@@ -774,7 +774,9 @@ bool stm32l0_system_sysclk_configure(uint32_t hclk, uint32_t pclk1, uint32_t pcl
 
     if (stm32l0_system_device.lock[STM32L0_SYSTEM_LOCK_CLOCKS] ||
         ((stm32l0_system_device.reference & STM32L0_SYSTEM_REFERENCE_USB)  && (pclk1  < 16000000)) ||
-        ((stm32l0_system_device.reference & STM32L0_SYSTEM_REFERENCE_I2C2) && (pclk1  <  4000000)))
+        ((stm32l0_system_device.reference & STM32L0_SYSTEM_REFERENCE_I2C1) && (sysclk < 32000000)) ||
+        ((stm32l0_system_device.reference & STM32L0_SYSTEM_REFERENCE_I2C2) && (pclk1  <  4000000)) ||
+        ((stm32l0_system_device.reference & STM32L0_SYSTEM_REFERENCE_I2C3) && (sysclk < 32000000)))
     {
         __set_PRIMASK(primask);
         
@@ -1539,12 +1541,17 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t timeout)
                     if (RCC->APB2ENR & RCC_APB2ENR_DBGEN)
                     {
                         __WFI();
+			__NOP();
                     }
                     else
                     {
                         FLASH->ACR |= FLASH_ACR_SLEEP_PD;
                         
                         __WFI();
+			__NOP();
+			__NOP();
+			__NOP();
+			__NOP();
                         
                         FLASH->ACR &= ~FLASH_ACR_SLEEP_PD;
                     }

@@ -89,6 +89,7 @@ static __attribute__((naked, used)) void armv6m_event_svcall(void)
 {
     __asm__(
         "  add     sp, #0x28                           \n" // drop SVC stack frame
+        "  mov     r7, r0                              \n" // restore saved r7
         "  pop     { r0, r1 }                          \n"
         "  ldr     r3, =armv6m_event_control           \n"
         "  str     r0, [r3, %[offset_CONTROL_STACK]]   \n"
@@ -107,8 +108,8 @@ static __attribute__((naked, used)) void armv6m_event_svcall(void)
 static __attribute__((naked, used)) void armv6m_event_return(void)
 {
     __asm__(
-        "  ldr     r0, =armv6m_event_svcall            \n"
-        "  mov     r7, r0                              \n"
+        "  mov     r0, r7                              \n" // save r7
+        "  ldr     r7, =armv6m_event_svcall            \n"
         "  svc     0                                   \n"
         "  bkpt                                        \n"
         :

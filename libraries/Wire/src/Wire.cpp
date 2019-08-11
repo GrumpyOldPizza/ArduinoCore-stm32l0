@@ -56,7 +56,8 @@ void TwoWire::begin()
 {
     _ev_address = 0;
 
-    _option &= ~(STM32L0_I2C_OPTION_GENERAL_CALL | STM32L0_I2C_OPTION_ADDRESS_MASK);
+    _option &= ~(STM32L0_I2C_OPTION_GENERAL_CALL | STM32L0_I2C_OPTION_ADDRESS_MASK | STM32L0_I2C_OPTION_MODE_MASK);
+    _option |= STM32L0_I2C_OPTION_MODE_100K;
 
     stm32l0_i2c_enable(_i2c, _option, _timeout, NULL, NULL);
 }
@@ -65,10 +66,9 @@ void TwoWire::begin(uint8_t address, bool generalCall)
 {
     _ev_address = address;
 
-    _option &= ~(STM32L0_I2C_OPTION_GENERAL_CALL | STM32L0_I2C_OPTION_ADDRESS_MASK);
-
+    _option &= ~(STM32L0_I2C_OPTION_GENERAL_CALL | STM32L0_I2C_OPTION_ADDRESS_MASK | STM32L0_I2C_OPTION_MODE_MASK);
     _option |= (address << STM32L0_I2C_OPTION_ADDRESS_SHIFT);
-
+    
     if (generalCall) {
         _option |= STM32L0_I2C_OPTION_GENERAL_CALL;
     }
@@ -83,13 +83,21 @@ void TwoWire::end()
 
 void TwoWire::setClock(uint32_t clock) 
 {
-    _option &= ~STM32L0_I2C_OPTION_MODE_MASK;
+    uint32_t option;
 
-    if      (clock > 400000) { _option |= STM32L0_I2C_OPTION_MODE_1000K; }
-    else if (clock > 100000) { _option |= STM32L0_I2C_OPTION_MODE_400K;  }
-    else                     { _option |= STM32L0_I2C_OPTION_MODE_100K;  }
+    if (_ev_address) {
+        return;
+    }
 
-    stm32l0_i2c_configure(_i2c, _option, _timeout);
+    option = _option & ~STM32L0_I2C_OPTION_MODE_MASK;
+
+    if      (clock > 400000) { option |= STM32L0_I2C_OPTION_MODE_1000K; }
+    else if (clock > 100000) { option |= STM32L0_I2C_OPTION_MODE_400K;  }
+    else                     { option |= STM32L0_I2C_OPTION_MODE_100K;  }
+
+    if (stm32l0_i2c_configure(_i2c, option, _timeout)) {
+	_option = option;
+    }
 }
 
 void TwoWire::beginTransmission(uint8_t address)
@@ -164,11 +172,6 @@ uint8_t TwoWire::endTransmission(bool stopBit)
 
 size_t TwoWire::requestFrom(uint8_t address, size_t size, bool stopBit)
 {
-    return requestFrom(address, size, 0, 0, stopBit);
-}
-
-size_t TwoWire::requestFrom(uint8_t address, size_t size, uint32_t iaddress, uint8_t isize, bool stopBit)
-{
     stm32l0_i2c_transaction_t transaction;
     uint8_t tx_data[3];
 
@@ -201,30 +204,6 @@ size_t TwoWire::requestFrom(uint8_t address, size_t size, uint32_t iaddress, uin
     transaction.rx_count = size;
     transaction.callback = NULL;
     transaction.context = NULL;
-
-    if (isize)
-    {
-        if (isize == 1) 
-        {
-            tx_data[0] = iaddress >> 0;
-        }
-        else if (isize == 2) 
-        {
-            tx_data[0] = iaddress >> 8;
-            tx_data[1] = iaddress >> 0;
-        }
-        else
-        {
-            tx_data[0] = iaddress >> 16;
-            tx_data[1] = iaddress >> 8;
-            tx_data[2] = iaddress >> 0;
-
-            isize = 3;
-        }
-
-        transaction.tx_data = &tx_data[0];
-        transaction.tx_count = isize;
-    }
 
     if (!stm32l0_i2c_submit(_i2c, &transaction)) {
         return 0;
@@ -326,9 +305,13 @@ void TwoWire::flush(void)
 
 void TwoWire::setClockLowTimeout(unsigned long timeout)
 {
-    _timeout = timeout;
+    if (_ev_address) {
+        return;
+    }
 
-    stm32l0_i2c_configure(_i2c, _option, _timeout);
+    if (stm32l0_i2c_configure(_i2c, _option, timeout)) {
+	_timeout = timeout;
+    }
 }
 
 bool TwoWire::isGeneralCall()

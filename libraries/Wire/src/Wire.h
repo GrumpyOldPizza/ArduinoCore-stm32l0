@@ -46,7 +46,6 @@ public:
     uint8_t endTransmission(bool stopBit = true);
 
     size_t requestFrom(uint8_t address, size_t size, bool stopBit = true);
-    size_t requestFrom(uint8_t address, size_t size, uint32_t iaddress, uint8_t isize, bool stopBit = true);
 
     size_t write(uint8_t data);
     size_t write(const uint8_t *buffer, size_t size);

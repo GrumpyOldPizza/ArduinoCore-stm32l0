@@ -42,10 +42,15 @@ typedef struct _armv6m_core_callback_t {
     void                   *context;
 } armv6m_core_callback_t;
 
+static inline IRQn_Type __current_irq(void)
+{
+    return (IRQn_Type)(__get_IPSR() - 16);
+}
 
 static inline void armv6m_core_wait(void)
 {
-    __asm__ volatile ("wfe");
+    __WFE();
+    __NOP();
 }
 
 extern void armv6m_core_initialize(void);
