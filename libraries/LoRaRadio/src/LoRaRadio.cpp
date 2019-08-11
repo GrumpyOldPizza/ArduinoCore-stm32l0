@@ -477,6 +477,10 @@ void LoRaRadioClass::purge(void)
     while (_rx_read != _rx_write);
 }
 
+void LoRaRadioClass::setTxContinuousWave(uint32_t freq, int8_t power, uint16_t time){
+    Radio.SetTxContinuousWave(freq,power,time);
+}
+
 int LoRaRadioClass::packetRssi()
 {
     return _rx_rssi;

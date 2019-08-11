@@ -98,6 +98,7 @@ public:
     virtual int peek();
     virtual void purge();
 
+    void setTxContinuousWave(uint32_t freq, int8_t power, uint16_t time);
     int packetRssi();
     int packetSnr();
 
