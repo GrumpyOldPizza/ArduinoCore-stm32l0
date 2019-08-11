@@ -851,6 +851,25 @@ int LoRaWANClass::linkCheck()
     return 1;
 }
 
+int LoRaWANClass::setTxContinuousWave(uint32_t freq, int8_t power, uint16_t time)
+{
+   MlmeReq_t mlmeReq;
+
+    if (_tx_busy) {
+        return 0;
+    }
+
+    mlmeReq.Type = MLME_TXCW_1;
+    mlmeReq.Req.TxCw.Timeout = time;
+    mlmeReq.Req.TxCw.Frequency = freq;
+    mlmeReq.Req.TxCw.Power = power;
+    if (LoRaWANMlmeRequest(&mlmeReq) != LORAMAC_STATUS_OK) {
+        return 0;
+    }
+
+    return 1;
+}
+
 int LoRaWANClass::ping()
 {
     if (!_Joined) {
