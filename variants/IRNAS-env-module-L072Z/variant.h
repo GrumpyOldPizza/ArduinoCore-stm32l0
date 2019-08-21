@@ -58,7 +58,7 @@ extern "C"
  *----------------------------------------------------------------------------*/
 
 // Number of pins defined in PinDescription array
-#define PINS_COUNT           (27u)
+#define PINS_COUNT           (28u)
 #define NUM_DIGITAL_PINS     (17u)
 #define NUM_ANALOG_INPUTS    (6u)
 #define NUM_ANALOG_OUTPUTS   (2u)
@@ -97,10 +97,10 @@ extern "C"
 #define PIN_PB12             (10ul)
 #define PIN_PB13             (13ul)
 #define PIN_PB14             (12ul)
-#define PIN_PB15             (26ul)
+#define PIN_PB15             (11ul)
 
 #define PIN_PH0              (25ul)
-//#define PIN_PH1              (45ul)
+#define PIN_PH1              (26ul)
 
 static const uint8_t PA0  = PIN_PA0;
 //static const uint8_t PA1  = PIN_PA1;
@@ -135,7 +135,7 @@ static const uint8_t PB14  = PIN_PB14;
 static const uint8_t PB15  = PIN_PB15;
 
 static const uint8_t PH0  = PIN_PH0;
-//static const uint8_t PH1  = PIN_PH1;
+static const uint8_t PH1  = PIN_PH1;
 
 // LEDs
 
