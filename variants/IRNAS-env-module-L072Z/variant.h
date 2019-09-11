@@ -59,7 +59,7 @@ extern "C"
 
 // Number of pins defined in PinDescription array
 #define PINS_COUNT           (28u)
-#define NUM_DIGITAL_PINS     (17u)
+#define NUM_DIGITAL_PINS     (28u)
 #define NUM_ANALOG_INPUTS    (6u)
 #define NUM_ANALOG_OUTPUTS   (2u)
 
@@ -173,13 +173,16 @@ static const uint8_t BUTTON = PIN_BUTTON;
  * Serial interfaces
  */
 
-#define SERIAL_INTERFACES_COUNT 2
+#define SERIAL_INTERFACES_COUNT 3
 
 #define PIN_SERIAL_RX        (0ul)
 #define PIN_SERIAL_TX        (1ul)
 
 #define PIN_SERIAL1_RX       (2ul)
 #define PIN_SERIAL1_TX       (8ul)
+
+#define PIN_SERIAL3_RX       (8ul)
+#define PIN_SERIAL3_TX       (9ul)
 
 /*
  * SPI Interfaces
@@ -220,6 +223,7 @@ static const uint8_t SCL = PIN_WIRE_SCL;
 #ifdef __cplusplus
 extern Uart Serial;
 extern Uart Serial1;
+extern Uart Serial2;
 #endif
 
 // These serial port names are intended to allow libraries and architecture-neutral
@@ -238,9 +242,10 @@ extern Uart Serial1;
 // SERIAL_PORT_HARDWARE_OPEN  Hardware serial ports which are open for use.  Their RX & TX
 //                            pins are NOT connected to anything by default.
 #define SERIAL_PORT_MONITOR         Serial
-#define SERIAL_PORT_HARDWARE1       Serial
-#define SERIAL_PORT_HARDWARE2       Serial1
-#define SERIAL_PORT_HARDWARE_OPEN2  Serial1
+#define SERIAL_PORT_HARDWARE1       Serial1
+#define SERIAL_PORT_HARDWARE_OPEN1  Serial1
+#define SERIAL_PORT_HARDWARE2       Serial2
+#define SERIAL_PORT_HARDWARE_OPEN2  Serial2
 
 #endif /*_VARIANT_IRNAS_env_module_L072Z_STM32L072CZ_ */
 
