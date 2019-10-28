@@ -18,6 +18,14 @@ ArduinoCore-stm32l0 is targeted at ultra low power scenarios, sensor hubs, with 
  * [NUCLEO-L053R8](http://www.st.com/en/evaluation-tools/nucleo-l053r8.html)
  * [NUCLEO-L073RZ](http://www.st.com/en/evaluation-tools/nucleo-l073rz.html)
 
+### AI Thinker / RuiXingHengFang / RisingHF
+ * [RHF76-052](http://www.risinghf.com/#/product-details?product_id=5&lang=en) with Arduino-like pinout, SPI/SPI1 and SX1276 on SPI
+NOTE! RHF76-052 RF frontend is close to Semtech SX1276RF1JAS reference design but instead of using SX1276 RXTXRFMOD (pin 20) and an invertor to control antenna switches, RHF76 controls them with complimentary MCU pins - PA1 as FEM_CTX and PA2 as FEM_CPS. You have to modify a LoRa library you use for TX/RX antenna switching by these two pins!
+
+### MURATA
+ * [CMWX1ZZABZ1-DISCO] Generic Murata CMWX1ZZABZ-078 module with (mostly) [B-L072Z-LRWAN1](http://www.st.com/en/evaluation-tools/b-l072z-lrwan1.html) pinout, SPI/SPI1 and SX1276 on SPI
+
+To add RHF76-052 and CMWX1ZZABZ1-DISCO support do not use json in board manager, but follow "From git" section and replace git URl by this one!
 
 ## Installing
 
