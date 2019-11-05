@@ -72,6 +72,7 @@ extern bool USBD_Suspended(void);
 extern void CMWX1ZZABZ_Initialize(uint16_t pin_tcxo, uint16_t pin_stsafe);
 extern void SX1272MB2DAS_Initialize(void);
 extern void WMSGSM42_Initialize(void);
+extern void DTC_Initialize(uint8_t pin_serial_enable_1, uint8_t cap_value_1, uint8_t pin_serial_enable_2, uint8_t cap_value_2);
 
 extern int g_swdStatus;  /* 0, default, 1 = enable, 2 = disable, 3 = forced disable */
 

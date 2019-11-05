@@ -422,5 +422,7 @@ struct Radio_s
 extern const struct Radio_s * SX127xRadio;
 
 #define Radio (*SX127xRadio)
+extern uint8_t g_ser_en_pin;
+extern uint8_t g_cap_value;
 
 #endif // __RADIO_H__

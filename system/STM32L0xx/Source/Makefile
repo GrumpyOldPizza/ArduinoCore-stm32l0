@@ -100,7 +100,8 @@ SRCS = \
 	stm32l0_timer.c \
 	stm32l0_uart.c \
 	stm32l0_usbd_cdc.c \
-	stm32l0_usbd_hid.c
+	stm32l0_usbd_hid.c \
+	PE64102.c
 
 SRCS_L052 = $(SRCS) startup_stm32l052xx.S
 OBJS_L052 = $(patsubst %.c,_out/stm32l052xx/%.o,$(filter-out %.S,$(SRCS_L052))) $(patsubst %.S,_out/stm32l052xx/%.o,$(filter-out %.c,$(SRCS_L052)))

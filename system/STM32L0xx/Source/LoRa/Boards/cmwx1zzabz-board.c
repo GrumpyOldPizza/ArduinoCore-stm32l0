@@ -25,6 +25,7 @@
 #include "radio.h"
 #include "sx1276-board.h"
 #include "stm32l0_rtc.h"
+#include "PE64102.h"
 
 #if defined(STM32L072xx) || defined(STM32L082xx)
 
@@ -92,6 +93,11 @@ static const struct Radio_s SX1276Radio =
 
 static uint8_t RADIO_TCXO_VCC;
 static uint8_t RADIO_STSAFE_RESET;
+
+uint8_t DTC_SEN_1;
+uint8_t DTC_SEN_2;
+uint8_t DTC_CAP_VALUE_1;
+uint8_t DTC_CAP_VALUE_2;
 
 static const stm32l0_spi_params_t RADIO_SPI_PARAMS = {
     STM32L0_SPI_INSTANCE_SPI1,
@@ -175,6 +181,22 @@ void SX1276SetBoardTcxo( bool state )
         {
             stm32l0_gpio_pin_configure(RADIO_TCXO_VCC, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
             stm32l0_gpio_pin_write(RADIO_TCXO_VCC, 1);
+
+            //Ensure sufficient start up time
+            SX1276Delay(1);
+
+            //User specific code here
+            if (DTC_SEN_1 != STM32L0_GPIO_PIN_NONE)
+            {
+                //GPIOB->ODR |= (1<<6);
+                DTC_set(DTC_SEN_1, DTC_CAP_VALUE_1);
+            }
+
+            if (DTC_SEN_2 != STM32L0_GPIO_PIN_NONE)
+            {
+                //GPIOB->ODR |= (1<<5);
+                DTC_set(DTC_SEN_2, DTC_CAP_VALUE_2);
+            }
         }
         else
         {
@@ -571,6 +593,14 @@ void CMWX1ZZABZ_Initialize( uint8_t pin_tcxo, uint16_t pin_stsafe )
     {
         stm32l0_rtc_set_calibration( ((uint32_t)(((uint64_t)(tim21_end - tim21_start) << 20) / (uint32_t)(tim3_end - tim3_start)) - (1 << 20)) );
     }
+}
+
+void DTC_Initialize(uint8_t pin_serial_enable_1, uint8_t cap_value_1, uint8_t pin_serial_enable_2, uint8_t cap_value_2)
+{
+    DTC_SEN_1 = pin_serial_enable_1;
+    DTC_SEN_2 = pin_serial_enable_2;
+    DTC_CAP_VALUE_1 = cap_value_1;
+    DTC_CAP_VALUE_2 = cap_value_2;
 }
 
 #endif /* defined(STM32L072xx) || defined(STM32L082xx) */
