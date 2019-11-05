@@ -595,6 +595,15 @@ void CMWX1ZZABZ_Initialize( uint8_t pin_tcxo, uint16_t pin_stsafe )
     }
 }
 
+/*
+ * @brief Loads serial enable pins and cap values into static values
+ * @param[in] pin_serial_enable_1, controls first DTC
+ * @param[in] pin_serial_enable_2, controls second DTC
+ * @param[in] cap_value_1, controls first DTC
+ * @param[in] cap_value_2, controls second DTC
+ * @note To disable functionality for one or both DTCs, set pin_serial_enable to
+ * STM32L0_GPIO_PIN_NONE.
+ */
 void DTC_Initialize(uint8_t pin_serial_enable_1, uint8_t cap_value_1, uint8_t pin_serial_enable_2, uint8_t cap_value_2)
 {
     DTC_SEN_1 = pin_serial_enable_1;

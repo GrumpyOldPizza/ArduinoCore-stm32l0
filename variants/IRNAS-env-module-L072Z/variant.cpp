@@ -157,12 +157,6 @@ extern const stm32l0_i2c_params_t g_WireParams = {
 
 void initVariant()
 {
-
-    /* Use STM32L0_GPIO_PIN_NONE when you are not using DTC, cap_value won't 
-     * matter then. 
-     * Otherwise cap_value can go from 0 to 0b11111, larger values won't execute
-     * DTC_set function.
-     */
     DTC_Initialize(STM32L0_GPIO_PIN_NONE, 0b0, STM32L0_GPIO_PIN_NONE, 0b0);
 
     CMWX1ZZABZ_Initialize(STM32L0_GPIO_PIN_PA12, STM32L0_GPIO_PIN_NONE);
