@@ -26,8 +26,8 @@
  * WITH THE SOFTWARE.
  */
 
-#ifndef _VARIANT_CMWX1ZZABZ_STLINK_
-#define _VARIANT_CMWX1ZZABZ_STLINK_
+#ifndef _VARIANT_K33_
+#define _VARIANT_K33_
 
 /*----------------------------------------------------------------------------
  *        Definitions
@@ -177,5 +177,5 @@ extern Uart Serial1;
 #define SERIAL_PORT_HARDWARE2       Serial1
 #define SERIAL_PORT_HARDWARE_OPEN2  Serial1
 
-#endif /*_VARIANT_CMWX1ZZABZ_STLINK_ */
+#endif /*_VARIANT_K33_ */
 

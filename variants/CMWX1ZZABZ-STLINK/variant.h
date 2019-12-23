@@ -110,11 +110,11 @@ static const uint8_t BUTTON = PIN_BUTTON;
 
 #define SERIAL_INTERFACES_COUNT 2
 
-#define PIN_SERIAL1_RX       (2ul)
-#define PIN_SERIAL1_TX       (8ul)
+#define PIN_SERIAL_RX       (2ul)
+#define PIN_SERIAL_TX       (8ul)
 
-#define PIN_SERIAL2_RX       (0ul)
-#define PIN_SERIAL2_TX       (1ul)
+#define PIN_SERIAL1_RX       (0ul)
+#define PIN_SERIAL1_TX       (1ul)
 
 
 /*
