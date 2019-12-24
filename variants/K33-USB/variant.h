@@ -37,6 +37,7 @@
 #define STM32L0_CONFIG_HSECLK             0
 #define STM32L0_CONFIG_SYSOPT             0
 
+#define STM32L0_CONFIG_PIN_VBUS           STM32L0_GPIO_PIN_PA8
 #define USBCON
 
 /** Master clock frequency */
