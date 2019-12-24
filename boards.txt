@@ -348,7 +348,7 @@ K33-USB.build.pid=0x374e
 K33-USB.build.did=0xffff
 K33-USB.build.usb_manufacturer="CHCB"
 K33-USB.build.usb_product="K33"
-K33-USB.build.extra_flags=-DSTM32L082xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags} {build.dosfs_flags}
+K33-USB.build.extra_flags=-DSTM32L082xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
 K33-USB.build.ldscript=linker_scripts/STM32L082CZ_FLASH.ld
 K33-USB.build.openocdscript=openocd_scripts/k33_usb.cfg
 K33-USB.build.variant=K33-USB
