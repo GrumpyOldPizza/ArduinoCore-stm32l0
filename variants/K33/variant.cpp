@@ -39,8 +39,8 @@
 extern const PinDescription g_APinDescription[PINS_COUNT] =
 {
     // 0..13 - Digital pins 
-    { GPIOA, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PA3),  STM32L0_GPIO_PIN_PA3_TIM2_CH4,   (PIN_ATTR_EXTI),                               PWM_INSTANCE_TIM2,  PWM_CHANNEL_4,    ADC_CHANNEL_NONE },
-    { GPIOA, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PA2),  STM32L0_GPIO_PIN_PA2_TIM2_CH3,   (PIN_ATTR_EXTI),                               PWM_INSTANCE_TIM2,  PWM_CHANNEL_3,    ADC_CHANNEL_NONE },
+    { GPIOA, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PA3),  STM32L0_GPIO_PIN_PA3,            (PIN_ATTR_EXTI),                               PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },
+    { GPIOA, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PA2),  STM32L0_GPIO_PIN_PA2,            (PIN_ATTR_EXTI),                               PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },
     { GPIOA, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PA10), STM32L0_GPIO_PIN_PA10,           (PIN_ATTR_EXTI),                               PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },
     { GPIOA, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PA0),  STM32L0_GPIO_PIN_PA0_TIM2_CH1,   (PIN_ATTR_WKUP1 | PIN_ATTR_TAMP),              PWM_INSTANCE_TIM2,  PWM_CHANNEL_1,    ADC_CHANNEL_0    },    
     { GPIOB, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PB5),  STM32L0_GPIO_PIN_PB5_TIM22_CH2,  (PIN_ATTR_EXTI),                               PWM_INSTANCE_TIM22, PWM_CHANNEL_2,    ADC_CHANNEL_NONE },
@@ -71,7 +71,7 @@ extern const PinDescription g_APinDescription[PINS_COUNT] =
     { NULL,  0,                                            STM32L0_GPIO_PIN_NONE,           0,                                             PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },
     { GPIOA, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PA4),  STM32L0_GPIO_PIN_PA4,            (PIN_ATTR_EXTI),                               PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_4    },
 
-    // 25..28 - Special pins (USB_DM, USB_DP, USB_VBUS, SFLASH_CS)
+    // 25..28 - Special pins (USB_DM, USB_DP, USB_VBUS)
     { NULL,  STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PA11), STM32L0_GPIO_PIN_PA11,           (PIN_ATTR_EXTI),                               PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },
     { NULL,  STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PA12), STM32L0_GPIO_PIN_PA12,           (PIN_ATTR_EXTI),                               PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },
     { GPIOA, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PA13), STM32L0_GPIO_PIN_PA13,           (PIN_ATTR_SWD | PIN_ATTR_EXTI),                PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },
@@ -85,26 +85,9 @@ extern const unsigned int g_PWMInstances[PWM_INSTANCE_COUNT] = {
 };
 
 
-static uint8_t stm32l0_usart1_rx_fifo[32];
-
-extern const stm32l0_uart_params_t g_SerialParams = {
-    STM32L0_UART_INSTANCE_USART1,
-    STM32L0_UART_IRQ_PRIORITY,
-    STM32L0_DMA_CHANNEL_DMA1_CH3_USART1_RX,
-    STM32L0_DMA_CHANNEL_NONE,
-    &stm32l0_usart1_rx_fifo[0],
-    sizeof(stm32l0_usart1_rx_fifo),
-    {
-        STM32L0_GPIO_PIN_PA10_USART1_RX,
-        STM32L0_GPIO_PIN_PA9_USART1_TX,
-        STM32L0_GPIO_PIN_NONE,
-        STM32L0_GPIO_PIN_NONE,
-    },
-};
-
 static uint8_t stm32l0_usart2_rx_fifo[32];
 
-extern const stm32l0_uart_params_t g_Serial1Params = {
+extern const stm32l0_uart_params_t g_SerialParams = {
     STM32L0_UART_INSTANCE_USART2,
     STM32L0_UART_IRQ_PRIORITY,
     STM32L0_DMA_CHANNEL_DMA1_CH5_USART2_RX,
@@ -118,7 +101,6 @@ extern const stm32l0_uart_params_t g_Serial1Params = {
         STM32L0_GPIO_PIN_NONE,
     },
 };
-
 
 
 extern const stm32l0_spi_params_t g_SPIParams = {

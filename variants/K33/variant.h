@@ -93,13 +93,10 @@ static const uint8_t BUTTON = PIN_BUTTON;
  * Serial interfaces
  */
 
-#define SERIAL_INTERFACES_COUNT 2
+#define SERIAL_INTERFACES_COUNT 1
 
-#define PIN_SERIAL_RX       (2ul)
-#define PIN_SERIAL_TX       (8ul)
-
-#define PIN_SERIAL1_RX       (0ul)
-#define PIN_SERIAL1_TX       (1ul)
+#define PIN_SERIAL_RX       (0ul)
+#define PIN_SERIAL_TX       (1ul)
 
 
 /*
@@ -154,7 +151,6 @@ static const uint8_t SCL = PIN_WIRE_SCL;
 
 #ifdef __cplusplus
 extern Uart Serial;
-extern Uart Serial1;
 #endif
 
 // These serial port names are intended to allow libraries and architecture-neutral
@@ -174,8 +170,7 @@ extern Uart Serial1;
 //                            pins are NOT connected to anything by default.
 #define SERIAL_PORT_MONITOR         Serial
 #define SERIAL_PORT_HARDWARE1       Serial
-#define SERIAL_PORT_HARDWARE2       Serial1
-#define SERIAL_PORT_HARDWARE_OPEN2  Serial1
+#define SERIAL_PORT_HARDWARE_OPEN1  Serial
 
 #endif /*_VARIANT_K33_ */
 
