@@ -279,7 +279,7 @@ Gnat-L082CZ.menu.opt.o3.build.flags.ldspecs=
 # ---------------------------------------
 K33.name=K33
 K33.vid.0=0x0483
-K33.pid.0=0x374b
+K33.pid.0=0x374e
 
 K33.upload.tool=stm32l0_openocd
 K33.upload.protocol=stlink
@@ -295,7 +295,7 @@ K33.build.board=K33
 K33.build.arch=stm32l0
 K33.build.core=arduino
 K33.build.vid=0x0483
-K33.build.pid=0x374b
+K33.build.pid=0x374e
 K33.build.did=0xffff
 K33.build.extra_flags=-DSTM32L082xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
 K33.build.ldscript=linker_scripts/STM32L082CZ_FLASH.ld
@@ -323,6 +323,69 @@ K33.menu.opt.o2.build.flags.ldspecs=
 K33.menu.opt.o3=Fastest
 K33.menu.opt.o3.build.flags.optimize=-O3
 K33.menu.opt.o3.build.flags.ldspecs=
+
+# K33 w/STM32L082CZ @ USB
+# ---------------------------------------
+K33-USB.name=K33-USB
+K33-USB.vid.0=0x0483
+K33-USB.pid.0=0x374e
+
+K33-USB.upload.tool=stm32l0_dfu
+K33-USB.upload.protocol=dfu
+K33-USB.upload.maximum_size=196608
+K33-USB.upload.maximum_data_size=20480
+K33-USB.upload.use_1200bps_touch=true
+K33-USB.upload.wait_for_upload_port=false
+K33-USB.upload.native_usb=false
+
+K33-USB.build.mcu=cortex-m0plus
+K33-USB.build.f_cpu=32000000L
+K33-USB.build.board=K33_USB
+K33-USB.build.arch=stm32l0
+K33-USB.build.core=arduino
+K33-USB.build.vid=0x0483
+K33-USB.build.pid=0x374e
+K33-USB.build.did=0xffff
+K33-USB.build.usb_manufacturer="CHCB"
+K33-USB.build.usb_product="K33"
+K33-USB.build.extra_flags=-DSTM32L082xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags} {build.dosfs_flags}
+K33-USB.build.ldscript=linker_scripts/STM32L082CZ_FLASH.ld
+K33-USB.build.openocdscript=openocd_scripts/k33_usb.cfg
+K33-USB.build.variant=K33-USB
+K33-USB.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l082xx -larm_cortexM0l_math
+K33-USB.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
+
+K33-USB.menu.usb.cdc=Serial
+K33-USB.menu.usb.cdc.build.usb_type=USB_TYPE_CDC
+K33-USB.menu.usb.cdc_msc=Serial + Mass Storage
+K33-USB.menu.usb.cdc_msc.build.usb_type=USB_TYPE_CDC_MSC
+K33-USB.menu.usb.cdc_hid=Serial + Keyboard + Mouse
+K33-USB.menu.usb.cdc_hid.build.usb_type=USB_TYPE_CDC_HID
+K33-USB.menu.usb.cdc_msc_hid=Serial + Mass Storage + Keyboard + Mouse
+K33-USB.menu.usb.cdc_msc_hid.build.usb_type=USB_TYPE_CDC_MSC_HID
+K33-USB.menu.usb.none=No USB
+K33-USB.menu.usb.none.build.usb_type=USB_TYPE_NONE
+
+K33-USB.menu.speed.32=32 MHz
+K33-USB.menu.speed.32.build.f_cpu=32000000L
+K33-USB.menu.speed.16=16 MHz (No USB)
+K33-USB.menu.speed.16.build.f_cpu=16000000L
+K33-USB.menu.speed.4=4.2 MHz (No USB)
+K33-USB.menu.speed.4.build.f_cpu=4200000L
+
+K33-USB.menu.opt.os=Smallest Code
+K33-USB.menu.opt.os.build.flags.optimize=-Os
+K33-USB.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
+K33-USB.menu.opt.o1=Fast
+K33-USB.menu.opt.o1.build.flags.optimize=-O1
+K33-USB.menu.opt.o1.build.flags.ldspecs=
+K33-USB.menu.opt.o2=Faster
+K33-USB.menu.opt.o2.build.flags.optimize=-O2
+K33-USB.menu.opt.o2.build.flags.ldspecs=
+K33-USB.menu.opt.o3=Fastest
+K33-USB.menu.opt.o3.build.flags.optimize=-O3
+K33-USB.menu.opt.o3.build.flags.ldspecs=
+
 
 # ST B-L072Z-LRWAN1
 # ---------------------------------------
