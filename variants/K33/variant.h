@@ -84,12 +84,6 @@ static const uint8_t A2  = PIN_A2;
 #define ADC_RESOLUTION          12
 
 /*
- * Other pins
- */
-#define PIN_BUTTON           (3l)
-static const uint8_t BUTTON = PIN_BUTTON;
-
-/*
  * Serial interfaces
  */
 
@@ -139,7 +133,7 @@ static const uint8_t SDA = PIN_WIRE_SDA;
 static const uint8_t SCL = PIN_WIRE_SCL;
 
 
-#define PWM_INSTANCE_COUNT    3
+#define PWM_INSTANCE_COUNT    1
 
 #ifdef __cplusplus
 }
