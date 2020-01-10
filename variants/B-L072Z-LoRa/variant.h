@@ -26,8 +26,8 @@
  * WITH THE SOFTWARE.
  */
 
-#ifndef _VARIANT_CMWX1ZZABZ_STLINK_
-#define _VARIANT_CMWX1ZZABZ_STLINK_
+#ifndef _VARIANT_B_L072Z_LORA_STM32L072CZ_
+#define _VARIANT_B_L072Z_LORA_STM32L072CZ_
 
 /*----------------------------------------------------------------------------
  *        Definitions
@@ -68,35 +68,18 @@ extern "C"
  *----------------------------------------------------------------------------*/
 
 // Number of pins defined in PinDescription array
-#define PINS_COUNT           (29u)
-#define NUM_DIGITAL_PINS     (27u)
+#define PINS_COUNT           (27u)
+#define NUM_DIGITAL_PINS     (24u)
 #define NUM_ANALOG_INPUTS    (3u)
 #define NUM_ANALOG_OUTPUTS   (2u)
 
-// LEDs
-
-#define PIN_LED_GR           (4ul)
-#define PIN_LED_RD           (8ul)
-#define PIN_LED3             (5ul)
-#define LED_BUILTIN          PIN_LED3
-
 /*
- * Analog pins
+ * LEDs
  */
-#define PIN_A0               (22ul)
-#define PIN_A1               (23ul)
-#define PIN_A2               (24ul)
-#define PIN_DAC0             (24ul)
-#define PIN_DAC1             (22ul)
-
-static const uint8_t A0  = PIN_A0;
-static const uint8_t A1  = PIN_A1;
-static const uint8_t A2  = PIN_A2;
-static const uint8_t DAC0 = PIN_DAC0;
-static const uint8_t DAC1 = PIN_DAC1;
-
-#define ADC_RESOLUTION          12
-#define DAC_RESOLUTION          12
+#define PIN_LED_GR           (4ul)
+#define PIN_LED3             (5ul)
+#define PIN_LED_RD           (8ul)
+#define LED_BUILTIN          PIN_LED3
 
 /*
  * Other pins
@@ -107,15 +90,24 @@ static const uint8_t BUTTON = PIN_BUTTON;
 /*
  * Serial interfaces
  */
-
 #define SERIAL_INTERFACES_COUNT 2
 
-#define PIN_SERIAL_RX       (2ul)
-#define PIN_SERIAL_TX       (8ul)
+#define PIN_SERIAL_RX       (0ul)
+#define PIN_SERIAL_TX       (1ul)
 
-#define PIN_SERIAL1_RX       (0ul)
-#define PIN_SERIAL1_TX       (1ul)
+#define PIN_SERIAL1_RX       (2ul)
+#define PIN_SERIAL1_TX       (8ul)
 
+/*
+ * Wire Interfaces
+ */
+#define WIRE_INTERFACES_COUNT 1
+
+#define PIN_WIRE_SDA         (14u)
+#define PIN_WIRE_SCL         (15u)
+
+static const uint8_t SDA = PIN_WIRE_SDA;
+static const uint8_t SCL = PIN_WIRE_SCL;
 
 /*
  * SPI Interfaces
@@ -146,15 +138,22 @@ static const uint8_t RADIO_DIO2  = PIN_RADIO_DIO2;
 static const uint8_t RADIO_DIO3  = PIN_RADIO_DIO3;
 
 /*
- * Wire Interfaces
+ * Analog pins
  */
-#define WIRE_INTERFACES_COUNT 1
+#define PIN_A0               (22ul)
+#define PIN_A1               (23ul)
+#define PIN_A2               (24ul)
+#define PIN_DAC0             (24ul)
+#define PIN_DAC1             (22ul)
 
-#define PIN_WIRE_SDA         (14u)
-#define PIN_WIRE_SCL         (15u)
+static const uint8_t A0  = PIN_A0;
+static const uint8_t A1  = PIN_A1;
+static const uint8_t A2  = PIN_A2;
+static const uint8_t DAC0 = PIN_DAC0;
+static const uint8_t DAC1 = PIN_DAC1;
 
-static const uint8_t SDA = PIN_WIRE_SDA;
-static const uint8_t SCL = PIN_WIRE_SCL;
+#define ADC_RESOLUTION          12
+#define DAC_RESOLUTION          12
 
 
 #define PWM_INSTANCE_COUNT    3
@@ -192,5 +191,5 @@ extern Uart Serial1;
 #define SERIAL_PORT_HARDWARE2       Serial1
 #define SERIAL_PORT_HARDWARE_OPEN2  Serial1
 
-#endif /*_VARIANT_CMWX1ZZABZ_STLINK_ */
+#endif /*_VARIANT_B_L072Z_LORA_STM32L072CZ_ */
 

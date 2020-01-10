@@ -49,17 +49,10 @@ extern const PinDescription g_APinDescription[PINS_COUNT] =
     { GPIOA, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PA8),  STM32L0_GPIO_PIN_PA8,            (PIN_ATTR_EXTI),                               PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },
     { GPIOA, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PA9),  STM32L0_GPIO_PIN_PA9,            (PIN_ATTR_EXTI),                               PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },
     { GPIOB, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PB6),  STM32L0_GPIO_PIN_PB6,            (PIN_ATTR_EXTI),                               PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },
-#if (DOSFS_SDCARD >= 1) || (DOSFS_SFLASH >= 1)
-    { NULL,  STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PB12), STM32L0_GPIO_PIN_PB12,           (PIN_ATTR_EXTI),                               PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },
-    { NULL,  STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PB15), STM32L0_GPIO_PIN_PB15,           (PIN_ATTR_EXTI),                               PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },
-    { NULL,  STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PB14), STM32L0_GPIO_PIN_PB14,           (PIN_ATTR_EXTI),                               PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },
-    { NULL,  STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PB13), STM32L0_GPIO_PIN_PB13,           (PIN_ATTR_EXTI),                               PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },
-#else /* (DOSFS_SDCARD >= 1) || (DOSFS_SFLASH >= 1) */
     { GPIOB, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PB12), STM32L0_GPIO_PIN_PB12,           (PIN_ATTR_EXTI),                               PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },
     { GPIOB, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PB15), STM32L0_GPIO_PIN_PB15,           (PIN_ATTR_EXTI),                               PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },
     { GPIOB, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PB14), STM32L0_GPIO_PIN_PB14,           (PIN_ATTR_EXTI),                               PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },
     { GPIOB, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PB13), STM32L0_GPIO_PIN_PB13_TIM21_CH1, (PIN_ATTR_EXTI),                               PWM_INSTANCE_TIM21, PWM_CHANNEL_1,    ADC_CHANNEL_NONE },
-#endif /* (DOSFS_SDCARD >= 1) || (DOSFS_SFLASH >= 1) */    
 
     // 14..15 - I2C pins (SDA,SCL)
     { GPIOB, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PB9),  STM32L0_GPIO_PIN_PB9,            (PIN_ATTR_EXTI),                               PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },
@@ -78,11 +71,9 @@ extern const PinDescription g_APinDescription[PINS_COUNT] =
     { NULL,  0,                                            STM32L0_GPIO_PIN_NONE,           0,                                             PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },
     { GPIOA, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PA4),  STM32L0_GPIO_PIN_PA4,            (PIN_ATTR_DAC1  | PIN_ATTR_EXTI),              PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_4    },
 
-    // 25..28 - Special pins (USB_DM, USB_DP, USB_VBUS, SFLASH_CS)
+    // 25..26 - Special pins (USB_DM, USB_DP, USB_VBUS)
     { NULL,  STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PA11), STM32L0_GPIO_PIN_PA11,           (PIN_ATTR_EXTI),                               PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },
     { NULL,  STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PA12), STM32L0_GPIO_PIN_PA12,           (PIN_ATTR_EXTI),                               PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },
-    { GPIOA, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PA13), STM32L0_GPIO_PIN_PA13,           (PIN_ATTR_SWD | PIN_ATTR_EXTI),                PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },
-    { GPIOA, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PA14), STM32L0_GPIO_PIN_PA14,           (PIN_ATTR_SWD | PIN_ATTR_EXTI),                PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },
 };
 
 extern const unsigned int g_PWMInstances[PWM_INSTANCE_COUNT] = {
@@ -92,26 +83,9 @@ extern const unsigned int g_PWMInstances[PWM_INSTANCE_COUNT] = {
 };
 
 
-static uint8_t stm32l0_usart1_rx_fifo[32];
-
-extern const stm32l0_uart_params_t g_SerialParams = {
-    STM32L0_UART_INSTANCE_USART1,
-    STM32L0_UART_IRQ_PRIORITY,
-    STM32L0_DMA_CHANNEL_DMA1_CH3_USART1_RX,
-    STM32L0_DMA_CHANNEL_NONE,
-    &stm32l0_usart1_rx_fifo[0],
-    sizeof(stm32l0_usart1_rx_fifo),
-    {
-        STM32L0_GPIO_PIN_PA10_USART1_RX,
-        STM32L0_GPIO_PIN_PA9_USART1_TX,
-        STM32L0_GPIO_PIN_NONE,
-        STM32L0_GPIO_PIN_NONE,
-    },
-};
-
 static uint8_t stm32l0_usart2_rx_fifo[32];
 
-extern const stm32l0_uart_params_t g_Serial1Params = {
+extern const stm32l0_uart_params_t g_SerialParams = {
     STM32L0_UART_INSTANCE_USART2,
     STM32L0_UART_IRQ_PRIORITY,
     STM32L0_DMA_CHANNEL_DMA1_CH5_USART2_RX,
@@ -126,6 +100,35 @@ extern const stm32l0_uart_params_t g_Serial1Params = {
     },
 };
 
+
+static uint8_t stm32l0_usart1_rx_fifo[32];
+
+extern const stm32l0_uart_params_t g_Serial1Params = {
+    STM32L0_UART_INSTANCE_USART1,
+    STM32L0_UART_IRQ_PRIORITY,
+    STM32L0_DMA_CHANNEL_DMA1_CH3_USART1_RX,
+    STM32L0_DMA_CHANNEL_NONE,
+    &stm32l0_usart1_rx_fifo[0],
+    sizeof(stm32l0_usart1_rx_fifo),
+    {
+        STM32L0_GPIO_PIN_PA10_USART1_RX,
+        STM32L0_GPIO_PIN_PA9_USART1_TX,
+        STM32L0_GPIO_PIN_NONE,
+        STM32L0_GPIO_PIN_NONE,
+    },
+};
+
+
+extern const stm32l0_i2c_params_t g_WireParams = {
+    STM32L0_I2C_INSTANCE_I2C1,
+    STM32L0_I2C_IRQ_PRIORITY,
+    STM32L0_DMA_CHANNEL_DMA1_CH7_I2C1_RX,
+    STM32L0_DMA_CHANNEL_NONE,
+    {
+        STM32L0_GPIO_PIN_PB8_I2C1_SCL,
+        STM32L0_GPIO_PIN_PB9_I2C1_SDA,
+    },
+};
 
 
 extern const stm32l0_spi_params_t g_SPIParams = {
@@ -153,27 +156,6 @@ extern const stm32l0_spi_params_t g_SPI1Params = {
         STM32L0_GPIO_PIN_PB13_SPI2_SCK,
         STM32L0_GPIO_PIN_NONE,
     },
-};
-
-
-extern const stm32l0_i2c_params_t g_WireParams = {
-    STM32L0_I2C_INSTANCE_I2C1,
-    STM32L0_I2C_IRQ_PRIORITY,
-    STM32L0_DMA_CHANNEL_DMA1_CH7_I2C1_RX,
-    STM32L0_DMA_CHANNEL_NONE,
-    {
-        STM32L0_GPIO_PIN_PB8_I2C1_SCL,
-        STM32L0_GPIO_PIN_PB9_I2C1_SDA,
-    },
-};
-
-
-extern const stm32l0_sdspi_params_t g_SDSPIParams = {
-    STM32L0_GPIO_PIN_PA10,
-};
-
-extern const stm32l0_sfspi_params_t g_SFSPIParams = {
-    STM32L0_GPIO_PIN_PA9,
 };
 
 
