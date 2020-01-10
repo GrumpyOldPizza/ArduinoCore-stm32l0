@@ -37,6 +37,11 @@
 #define STM32L0_CONFIG_HSECLK             0
 #define STM32L0_CONFIG_SYSOPT             0
 
+#define STM32L0_CONFIG_PIN_VBAT           STM32L0_GPIO_PIN_PA4
+#define STM32L0_CONFIG_CHANNEL_VBAT       STM32L0_ADC_CHANNEL_4
+#define STM32L0_CONFIG_VBAT_PERIOD        40
+#define STM32L0_CONFIG_VBAT_SCALE         ((float)1.27)
+
 /** Master clock frequency */
 #define VARIANT_MCK                       F_CPU
 
@@ -58,8 +63,8 @@ extern "C"
  *----------------------------------------------------------------------------*/
 
 // Number of pins defined in PinDescription array
-#define PINS_COUNT           (28u)
-#define NUM_DIGITAL_PINS     (27u)
+#define PINS_COUNT           (27u)
+#define NUM_DIGITAL_PINS     (26u)
 #define NUM_ANALOG_INPUTS    (1u)
 #define NUM_ANALOG_OUTPUTS   (0u)
 

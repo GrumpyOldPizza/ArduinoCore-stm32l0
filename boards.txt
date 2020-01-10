@@ -327,8 +327,8 @@ K33.menu.opt.o3.build.flags.ldspecs=
 # UT2UH K33-USB
 # ---------------------------------------
 K33-USB.name=K33-USB
-K33-USB.vid.0=0x0483
-K33-USB.pid.0=0x374e
+K33-USB.vid.0=0x1209
+K33-USB.pid.0=0x6662
 
 K33-USB.upload.tool=stm32l0_dfu
 K33-USB.upload.protocol=dfu
@@ -343,10 +343,10 @@ K33-USB.build.f_cpu=32000000L
 K33-USB.build.board=K33_USB
 K33-USB.build.arch=stm32l0
 K33-USB.build.core=arduino
-K33-USB.build.vid=0x0483
-K33-USB.build.pid=0x374e
+K33-USB.build.vid=0x1209
+K33-USB.build.pid=0x6662
 K33-USB.build.did=0xffff
-K33-USB.build.usb_manufacturer="CHCB"
+K33-USB.build.usb_manufacturer="UT2UH"
 K33-USB.build.usb_product="K33"
 K33-USB.build.extra_flags=-DSTM32L082xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
 K33-USB.build.ldscript=linker_scripts/STM32L082CZ_FLASH.ld
@@ -689,7 +689,7 @@ NUCLEO-L073RZ.menu.opt.o3.build.flags.ldspecs=
 # ---------------------------------------
 RHF76-052.name=RHF76-052
 RHF76-052.vid.0=0x0483
-RHF76-052.pid.0=0x374b
+RHF76-052.pid.0=0x374e
 
 RHF76-052.upload.tool=stm32l0_openocd
 RHF76-052.upload.protocol=stlink
@@ -705,7 +705,7 @@ RHF76-052.build.board=RHF76_052
 RHF76-052.build.arch=stm32l0
 RHF76-052.build.core=arduino
 RHF76-052.build.vid=0x0483
-RHF76-052.build.pid=0x374b
+RHF76-052.build.pid=0x374e
 RHF76-052.build.did=0xffff
 RHF76-052.build.extra_flags=-DSTM32L052xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
 RHF76-052.build.ldscript=linker_scripts/STM32L052C8_FLASH.ld
