@@ -58,30 +58,20 @@ extern "C"
  *----------------------------------------------------------------------------*/
 
 // Number of pins defined in PinDescription array
-#define PINS_COUNT           (29u)
+#define PINS_COUNT           (28u)
 #define NUM_DIGITAL_PINS     (27u)
-#define NUM_ANALOG_INPUTS    (3u)
+#define NUM_ANALOG_INPUTS    (1u)
 #define NUM_ANALOG_OUTPUTS   (0u)
 
-// LEDs
+/*
+ * LEDs
+ */
 
 #define PIN_LED_GR           (4ul)
-#define PIN_LED_RD           (8ul)
 #define PIN_LED_BL           (5ul)
+#define PIN_LED_RD           (8ul)
+
 #define LED_BUILTIN          PIN_LED_BL
-
-/*
- * Analog pins
- */
-#define PIN_A0               (22ul)
-#define PIN_A1               (23ul)
-#define PIN_A2               (24ul)
-
-static const uint8_t A0  = PIN_A0;
-static const uint8_t A1  = PIN_A1;
-static const uint8_t A2  = PIN_A2;
-
-#define ADC_RESOLUTION          12
 
 /*
  * Serial interfaces
@@ -89,9 +79,19 @@ static const uint8_t A2  = PIN_A2;
 
 #define SERIAL_INTERFACES_COUNT 1
 
-#define PIN_SERIAL_RX       (0ul)
-#define PIN_SERIAL_TX       (1ul)
+#define PIN_SERIAL_RX        (0ul)
+#define PIN_SERIAL_TX        (1ul)
 
+/*
+ * Wire Interfaces
+ */
+#define WIRE_INTERFACES_COUNT 1
+
+#define PIN_WIRE_SDA         (14u)
+#define PIN_WIRE_SCL         (15u)
+
+static const uint8_t SDA = PIN_WIRE_SDA;
+static const uint8_t SCL = PIN_WIRE_SCL;
 
 /*
  * SPI Interfaces
@@ -122,18 +122,15 @@ static const uint8_t RADIO_DIO2  = PIN_RADIO_DIO2;
 static const uint8_t RADIO_DIO3  = PIN_RADIO_DIO3;
 
 /*
- * Wire Interfaces
+ * ADC pin
  */
-#define WIRE_INTERFACES_COUNT 1
+#define PIN_A0                  (23ul)
 
-#define PIN_WIRE_SDA         (14u)
-#define PIN_WIRE_SCL         (15u)
+static const uint8_t A0  = PIN_A0;
 
-static const uint8_t SDA = PIN_WIRE_SDA;
-static const uint8_t SCL = PIN_WIRE_SCL;
+#define ADC_RESOLUTION          12
 
-
-#define PWM_INSTANCE_COUNT    1
+#define PWM_INSTANCE_COUNT      1
 
 #ifdef __cplusplus
 }

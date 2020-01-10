@@ -62,36 +62,20 @@ extern "C"
  *----------------------------------------------------------------------------*/
 
 // Number of pins defined in PinDescription array
-#define PINS_COUNT           (29u)
+#define PINS_COUNT           (28u)
 #define NUM_DIGITAL_PINS     (27u)
-#define NUM_ANALOG_INPUTS    (3u)
+#define NUM_ANALOG_INPUTS    (1u)
 #define NUM_ANALOG_OUTPUTS   (0u)
 
-// LEDs
+/*
+ * LEDs
+ */
 
 #define PIN_LED_GR           (4ul)
-#define PIN_LED_RD           (8ul)
 #define PIN_LED_BL           (5ul)
+#define PIN_LED_RD           (8ul)
+
 #define LED_BUILTIN          PIN_LED_BL
-
-/*
- * Analog pins
- */
-#define PIN_A0               (22ul)
-#define PIN_A1               (23ul)
-#define PIN_A2               (24ul)
-
-static const uint8_t A0  = PIN_A0;
-static const uint8_t A1  = PIN_A1;
-static const uint8_t A2  = PIN_A2;
-
-#define ADC_RESOLUTION          12
-
-/*
- * Other pins
- */
-#define PIN_BUTTON           (3l)
-static const uint8_t BUTTON = PIN_BUTTON;
 
 /*
  * Serial interfaces
@@ -102,6 +86,16 @@ static const uint8_t BUTTON = PIN_BUTTON;
 #define PIN_SERIAL1_RX       (0ul)
 #define PIN_SERIAL1_TX       (1ul)
 
+/*
+ * Wire Interfaces
+ */
+#define WIRE_INTERFACES_COUNT 1
+
+#define PIN_WIRE_SDA         (14u)
+#define PIN_WIRE_SCL         (15u)
+
+static const uint8_t SDA = PIN_WIRE_SDA;
+static const uint8_t SCL = PIN_WIRE_SCL;
 
 /*
  * SPI Interfaces
@@ -117,12 +111,12 @@ static const uint8_t MOSI = PIN_SPI_MOSI;
 static const uint8_t MISO = PIN_SPI_MISO;
 static const uint8_t SCK  = PIN_SPI_SCK;
 
-#define PIN_RADIO_NRST        (16u)
-#define PIN_RADIO_NSS         (17u)
-#define PIN_RADIO_DIO0        (18u)
-#define PIN_RADIO_DIO1        (19u)
-#define PIN_RADIO_DIO2        (20u)
-#define PIN_RADIO_DIO3        (21u)
+#define PIN_RADIO_NRST       (16u)
+#define PIN_RADIO_NSS        (17u)
+#define PIN_RADIO_DIO0       (18u)
+#define PIN_RADIO_DIO1       (19u)
+#define PIN_RADIO_DIO2       (20u)
+#define PIN_RADIO_DIO3       (21u)
 
 static const uint8_t RADIO_RESET = PIN_RADIO_NRST;
 static const uint8_t RADIO_NSS   = PIN_RADIO_NSS;
@@ -132,24 +126,22 @@ static const uint8_t RADIO_DIO2  = PIN_RADIO_DIO2;
 static const uint8_t RADIO_DIO3  = PIN_RADIO_DIO3;
 
 /*
- * Wire Interfaces
+ * ADC pin
  */
-#define WIRE_INTERFACES_COUNT 1
+#define PIN_A0                (23ul)
 
-#define PIN_WIRE_SDA         (14u)
-#define PIN_WIRE_SCL         (15u)
+static const uint8_t A0  = PIN_A0;
 
-static const uint8_t SDA = PIN_WIRE_SDA;
-static const uint8_t SCL = PIN_WIRE_SCL;
+#define ADC_RESOLUTION        12
 
 /*
  * USB Interface
  */
-#define PIN_USB_DM           (25ul)
-#define PIN_USB_DP           (26ul)
-#define PIN_USB_VBUS         (7ul)
+#define PIN_USB_VBUS          (7ul)
+#define PIN_USB_DM            (24ul)
+#define PIN_USB_DP            (25ul)
 
-#define PWM_INSTANCE_COUNT    3
+#define PWM_INSTANCE_COUNT    1
 
 #ifdef __cplusplus
 }
