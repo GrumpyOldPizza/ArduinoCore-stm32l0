@@ -37,11 +37,6 @@
 #define STM32L0_CONFIG_HSECLK             0
 #define STM32L0_CONFIG_SYSOPT             0
 
-#define STM32L0_CONFIG_PIN_VBAT           STM32L0_GPIO_PIN_PA4
-#define STM32L0_CONFIG_CHANNEL_VBAT       STM32L0_ADC_CHANNEL_4
-#define STM32L0_CONFIG_VBAT_PERIOD        40
-#define STM32L0_CONFIG_VBAT_SCALE         ((float)1.27)
-
 #define STM32L0_CONFIG_PIN_VBUS           STM32L0_GPIO_PIN_PA8
 #define USBCON
 
@@ -76,11 +71,11 @@ extern "C"
  * LEDs
  */
 
-#define PIN_LED_GR           (4ul)
-#define PIN_LED_BL           (5ul)
-#define PIN_LED_RD           (8ul)
+#define PIN_LED_GRN          (2ul)
+#define PIN_LED_BLU          (5ul)
+#define PIN_LED_RED          (8ul)
 
-#define LED_BUILTIN          PIN_LED_BL
+#define LED_BUILTIN          PIN_LED_GRN
 
 /*
  * Serial interfaces
