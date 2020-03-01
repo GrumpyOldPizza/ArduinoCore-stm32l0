@@ -324,6 +324,56 @@ K33.menu.opt.o3=Fastest
 K33.menu.opt.o3.build.flags.optimize=-O3
 K33.menu.opt.o3.build.flags.ldspecs=
 
+# UT2UH K33-TEST
+# ---------------------------------------
+K33-TEST.name=K33-TEST
+K33-TEST.vid.0=0x0483
+K33-TEST.pid.0=0x374e
+
+K33-TEST.upload.tool=stm32l0_openocd
+K33-TEST.upload.protocol=stlink
+K33-TEST.upload.maximum_size=196608
+K33-TEST.upload.maximum_data_size=20480
+K33-TEST.upload.use_1200bps_touch=true
+K33-TEST.upload.wait_for_upload_port=false
+K33-TEST.upload.native_usb=false
+
+K33-TEST.build.mcu=cortex-m0plus
+K33-TEST.build.f_cpu=32000000L
+K33-TEST.build.board=K33-TEST
+K33-TEST.build.arch=stm32l0
+K33-TEST.build.core=arduino
+K33-TEST.build.vid=0x0483
+K33-TEST.build.pid=0x374e
+K33-TEST.build.did=0xffff
+K33-TEST.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+K33-TEST.build.ldscript=linker_scripts/STM32L072CZ_FLASH.ld
+K33-TEST.build.openocdscript=openocd_scripts/k33_test.cfg
+K33-TEST.build.variant=K33-TEST
+K33-TEST.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l072xx -larm_cortexM0l_math
+K33-TEST.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
+
+K33-TEST.menu.speed.32=32 MHz
+K33-TEST.menu.speed.32.build.f_cpu=32000000L
+K33-TEST.menu.speed.16=16 MHz (No USB)
+K33-TEST.menu.speed.16.build.f_cpu=16000000L
+K33-TEST.menu.speed.4=4.2 MHz (No USB)
+K33-TEST.menu.speed.4.build.f_cpu=4200000L
+
+K33-TEST.menu.opt.os=Smallest Code
+K33-TEST.menu.opt.os.build.flags.optimize=-Os
+K33-TEST.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
+K33-TEST.menu.opt.o1=Fast
+K33-TEST.menu.opt.o1.build.flags.optimize=-O1
+K33-TEST.menu.opt.o1.build.flags.ldspecs=
+K33-TEST.menu.opt.o2=Faster
+K33-TEST.menu.opt.o2.build.flags.optimize=-O2
+K33-TEST.menu.opt.o2.build.flags.ldspecs=
+K33-TEST.menu.opt.o3=Fastest
+K33-TEST.menu.opt.o3.build.flags.optimize=-O3
+K33-TEST.menu.opt.o3.build.flags.ldspecs=
+
+
 # UT2UH K33-USB
 # ---------------------------------------
 K33-USB.name=K33-USB
