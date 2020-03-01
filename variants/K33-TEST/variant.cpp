@@ -79,7 +79,7 @@ extern const unsigned int g_PWMInstances[PWM_INSTANCE_COUNT] = {
 };
 
 
-static uint8_t stm32l0_usart2_rx_fifo[32];
+static uint8_t stm32l0_usart1_rx_fifo[32];
 
 extern const stm32l0_uart_params_t g_SerialParams = {
     STM32L0_UART_INSTANCE_USART1,
