@@ -66,8 +66,8 @@ extern "C"
 /*
  * LEDs
  */
-#define PIN_LED_GRN          (0ul)
 #define PIN_LED_RED          (1ul)
+#define PIN_LED_GRN          (0ul)
 #define PIN_LED_BLU          (5ul)
 
 #define LED_BUILTIN          PIN_LED_BLU
