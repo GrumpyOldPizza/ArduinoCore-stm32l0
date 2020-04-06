@@ -1,4 +1,4 @@
-TOOLS    = /opt/gcc-arm-none-eabi-4.8.3-2014q1
+TOOLS    = ~/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/4.8.3-2014q1/
 CPP      = $(TOOLS)/bin/arm-none-eabi-cpp
 CC       = $(TOOLS)/bin/arm-none-eabi-gcc
 CXX      = $(TOOLS)/bin/arm-none-eabi-g++
@@ -127,7 +127,7 @@ OBJS = \
 	wiring_pulse.o \
 	wiring_shift.o \
 
-all:: flash.bin
+all:: flash.elf
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
@@ -141,10 +141,7 @@ all:: flash.bin
 flash.elf: $(OBJS)
 	$(CC) $(LDFLAGS) $(OBJS) -L../../system/STM32L0xx/Lib -lstm32l082xx -lm -lc -lgcc -lstm32l082xx -o flash.elf
 
-flash.bin:: flash.elf
-	arm-none-eabi-objcopy -O binary flash.elf flash.bin
-
 clean::
-	rm -f flash.bin flash.elf *~ *.o *.d $(OBJS)
+	rm -f flash.elf *~ *.o *.d $(OBJS)
 
 -include $(OBJS:.o=.d)

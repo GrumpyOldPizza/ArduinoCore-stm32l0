@@ -1137,12 +1137,12 @@ void stm32l0_rtc_time_to_calendar(uint32_t seconds, uint16_t subseconds, stm32l0
 
     months = (days / 29);
 
-    if ((months >= 12) || (stm32l0_rtc_days_since_month[years & 3][months] > days))
+    if ((months >= 12) || (stm32l0_rtc_days_since_month[years & 3][months +1] > days))
     {
         months--;
     }
 
-    days -= stm32l0_rtc_days_since_month[years & 3][months];
+    days -= stm32l0_rtc_days_since_month[years & 3][months +1];
     
     p_calendar->day = days +1;
     p_calendar->month = months +1;
@@ -1265,12 +1265,12 @@ void stm32l0_rtc_calendar_offset(const stm32l0_rtc_calendar_t *a_calendar, int32
                     
                         months = (days / 29);
                     
-                        if ((months >= 12) || (stm32l0_rtc_days_since_month[years & 3][months] > days))
+                        if ((months >= 12) || (stm32l0_rtc_days_since_month[years & 3][months +1] > days))
                         {
                             months--;
                         }
                     
-                        days -= stm32l0_rtc_days_since_month[years & 3][months];
+                        days -= stm32l0_rtc_days_since_month[years & 3][months +1];
                     
                         p_calendar->day = days +1;
                         p_calendar->month = months +1;
