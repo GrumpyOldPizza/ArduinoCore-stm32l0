@@ -447,21 +447,21 @@ bool stm32l0_adc_convert(void *data, uint32_t count, uint16_t mask, uint16_t per
                 }
             }
             
-	    if (period > 50)
-	    {
-		period = 50;
-	    }
-	    
-	    threshold = ((uint32_t)period * adcclk);
-	    
-	    if      (threshold < (uint32_t)(  1.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_1_5;   }
-	    else if (threshold < (uint32_t)(  3.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_3_5;   }
-	    else if (threshold < (uint32_t)(  7.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_7_5;   }
-	    else if (threshold < (uint32_t)( 12.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_12_5;  }
-	    else if (threshold < (uint32_t)( 19.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_19_5;  }
-	    else if (threshold < (uint32_t)( 39.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_39_5;  }
-	    else if (threshold < (uint32_t)( 79.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_79_5;  }
-	    else                                          { adc_smpr = ADC_SMPR_SMP_160_5; }
+            if (period > 50)
+            {
+                period = 50;
+            }
+            
+            threshold = ((uint32_t)period * adcclk);
+            
+            if      (threshold < (uint32_t)(  1.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_1_5;   }
+            else if (threshold < (uint32_t)(  3.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_3_5;   }
+            else if (threshold < (uint32_t)(  7.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_7_5;   }
+            else if (threshold < (uint32_t)( 12.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_12_5;  }
+            else if (threshold < (uint32_t)( 19.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_19_5;  }
+            else if (threshold < (uint32_t)( 39.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_39_5;  }
+            else if (threshold < (uint32_t)( 79.5 * 1e6)) { adc_smpr = ADC_SMPR_SMP_79_5;  }
+            else                                          { adc_smpr = ADC_SMPR_SMP_160_5; }
         }
 
         ADC1_COMMON->CCR = (ADC1_COMMON->CCR & ~(ADC_CCR_LFMEN | ADC_CCR_PRESC)) | adc_ccr;

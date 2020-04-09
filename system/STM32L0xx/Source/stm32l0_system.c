@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -28,6 +28,7 @@
 
 #include "armv6m.h"
 #include "stm32l0_gpio.h"
+#include "stm32l0_exti.h"
 #include "stm32l0_rtc.h"
 #include "stm32l0_eeprom.h"
 #include "stm32l0_system.h"
@@ -638,6 +639,7 @@ void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, ui
     RCC->APB1ENR &= ~RCC_APB1ENR_PWREN;
 
     __stm32l0_gpio_initialize();
+    __stm32l0_exti_initialize();
     __stm32l0_rtc_initialize();
     __stm32l0_eeprom_initialize();
 
@@ -1541,17 +1543,17 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t timeout)
                     if (RCC->APB2ENR & RCC_APB2ENR_DBGEN)
                     {
                         __WFI();
-			__NOP();
+                        __NOP();
                     }
                     else
                     {
                         FLASH->ACR |= FLASH_ACR_SLEEP_PD;
                         
                         __WFI();
-			__NOP();
-			__NOP();
-			__NOP();
-			__NOP();
+                        __NOP();
+                        __NOP();
+                        __NOP();
+                        __NOP();
                         
                         FLASH->ACR &= ~FLASH_ACR_SLEEP_PD;
                     }

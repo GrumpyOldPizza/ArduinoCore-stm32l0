@@ -102,7 +102,6 @@ extern void __analogWriteDisable(uint32_t pin);
 #define STM32L0_UART_IRQ_PRIORITY    1
 
 #define STM32L0_ADC_IRQ_PRIORITY     0
-#define STM32L0_EXTI_IRQ_PRIORITY    0
 #define STM32L0_LPTIM_IRQ_PRIORITY   0
 #define STM32L0_RTC_IRQ_PRIORITY     0
 #define STM32L0_SERVO_IRQ_PRIORITY   0

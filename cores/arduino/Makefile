@@ -1,4 +1,4 @@
-TOOLS    = ~/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/4.8.3-2014q1/
+TOOLS    = ~/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/
 CPP      = $(TOOLS)/bin/arm-none-eabi-cpp
 CC       = $(TOOLS)/bin/arm-none-eabi-gcc
 CXX      = $(TOOLS)/bin/arm-none-eabi-g++

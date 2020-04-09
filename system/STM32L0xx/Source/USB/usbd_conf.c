@@ -175,10 +175,10 @@ void USBD_Attach(void)
 	{
 	    if (stm32l0_gpio_pin_read(usbd_pin_vbus))
 	    {
-	      stm32l0_rtc_timer_start(&USBD_VBUSTimer, 0, 1311, false); /* 40ms */
+		stm32l0_rtc_timer_start(&USBD_VBUSTimer, 0, 1311, false); /* 40ms */
 	    }
 
-	    stm32l0_exti_attach(usbd_pin_vbus, STM32L0_EXTI_CONTROL_EDGE_RISING | STM32L0_EXTI_CONTROL_EDGE_FALLING, (stm32l0_exti_callback_t)USBD_VBUSChanged, NULL);
+	    stm32l0_exti_attach(usbd_pin_vbus, STM32L0_EXTI_CONTROL_EDGE_RISING | STM32L0_EXTI_CONTROL_EDGE_FALLING | STM32L0_EXTI_CONTROL_PRIORITY_LOW, (stm32l0_exti_callback_t)USBD_VBUSChanged, NULL);
 	}
 	else
 	{

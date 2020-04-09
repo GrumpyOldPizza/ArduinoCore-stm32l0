@@ -146,7 +146,7 @@ void __stm32l0_rtc_initialize(void)
         }
         
         RTC->CR = RTC_CR_BYPSHAD;
-	RTC->TAMPCR = RTC_TAMPCR_TAMP2NOERASE | RTC_TAMPCR_TAMP1NOERASE | RTC_TAMPCR_TAMPPUDIS;
+        RTC->TAMPCR = RTC_TAMPCR_TAMP2NOERASE | RTC_TAMPCR_TAMP1NOERASE | RTC_TAMPCR_TAMPPUDIS;
         
         RTC->PRER = (STM32L0_RTC_PREDIV_S -1) << RTC_PRER_PREDIV_S_Pos;
         
@@ -1006,48 +1006,48 @@ bool stm32l0_rtc_tamp_attach(uint16_t pin, uint32_t control, stm32l0_rtc_callbac
 
     if (pin == STM32L0_GPIO_PIN_PC13)
     {
-	armv6m_atomic_and(&RTC->TAMPCR, ~(RTC_TAMPCR_TAMP1IE | RTC_TAMPCR_TAMP1TRG | RTC_TAMPCR_TAMP1E));
-	armv6m_atomic_modify(&RTC->ISR, ~RTC_ISR_INIT, ~(RTC_ISR_TAMP1F | RTC_ISR_INIT));
+        armv6m_atomic_and(&RTC->TAMPCR, ~(RTC_TAMPCR_TAMP1IE | RTC_TAMPCR_TAMP1TRG | RTC_TAMPCR_TAMP1E));
+        armv6m_atomic_modify(&RTC->ISR, ~RTC_ISR_INIT, ~(RTC_ISR_TAMP1F | RTC_ISR_INIT));
 
-	stm32l0_rtc_device.tamp1_callback = callback;
-	stm32l0_rtc_device.tamp1_context = context;
+        stm32l0_rtc_device.tamp1_callback = callback;
+        stm32l0_rtc_device.tamp1_context = context;
 
-	if (control & (STM32L0_RTC_TAMP_CONTROL_EDGE_FALLING | STM32L0_RTC_TAMP_CONTROL_EDGE_RISING))
-	{
-	    if (control & STM32L0_RTC_TAMP_CONTROL_EDGE_FALLING)
-	    {
-		armv6m_atomic_or(&RTC->TAMPCR, (RTC_TAMPCR_TAMP1IE | RTC_TAMPCR_TAMP1TRG | RTC_TAMPCR_TAMP1E));
-	    }
-	    else
-	    {
-		armv6m_atomic_or(&RTC->TAMPCR, (RTC_TAMPCR_TAMP1IE | RTC_TAMPCR_TAMP1E));
-	    }
-	}
+        if (control & (STM32L0_RTC_TAMP_CONTROL_EDGE_FALLING | STM32L0_RTC_TAMP_CONTROL_EDGE_RISING))
+        {
+            if (control & STM32L0_RTC_TAMP_CONTROL_EDGE_FALLING)
+            {
+                armv6m_atomic_or(&RTC->TAMPCR, (RTC_TAMPCR_TAMP1IE | RTC_TAMPCR_TAMP1TRG | RTC_TAMPCR_TAMP1E));
+            }
+            else
+            {
+                armv6m_atomic_or(&RTC->TAMPCR, (RTC_TAMPCR_TAMP1IE | RTC_TAMPCR_TAMP1E));
+            }
+        }
 
-	return true;
+        return true;
     }
 
     if (pin == STM32L0_GPIO_PIN_PA0)
     {
-	armv6m_atomic_and(&RTC->TAMPCR, ~(RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2TRG | RTC_TAMPCR_TAMP2E));
-	armv6m_atomic_modify(&RTC->ISR, ~RTC_ISR_INIT, ~(RTC_ISR_TAMP2F | RTC_ISR_INIT));
+        armv6m_atomic_and(&RTC->TAMPCR, ~(RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2TRG | RTC_TAMPCR_TAMP2E));
+        armv6m_atomic_modify(&RTC->ISR, ~RTC_ISR_INIT, ~(RTC_ISR_TAMP2F | RTC_ISR_INIT));
 
-	stm32l0_rtc_device.tamp2_callback = callback;
-	stm32l0_rtc_device.tamp2_context = context;
+        stm32l0_rtc_device.tamp2_callback = callback;
+        stm32l0_rtc_device.tamp2_context = context;
 
-	if (control & (STM32L0_RTC_TAMP_CONTROL_EDGE_FALLING | STM32L0_RTC_TAMP_CONTROL_EDGE_RISING))
-	{
-	    if (control & STM32L0_RTC_TAMP_CONTROL_EDGE_FALLING)
-	    {
-		armv6m_atomic_or(&RTC->TAMPCR, (RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2TRG | RTC_TAMPCR_TAMP2E));
-	    }
-	    else
-	    {
-		armv6m_atomic_or(&RTC->TAMPCR, (RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2E));
-	    }
-	}
+        if (control & (STM32L0_RTC_TAMP_CONTROL_EDGE_FALLING | STM32L0_RTC_TAMP_CONTROL_EDGE_RISING))
+        {
+            if (control & STM32L0_RTC_TAMP_CONTROL_EDGE_FALLING)
+            {
+                armv6m_atomic_or(&RTC->TAMPCR, (RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2TRG | RTC_TAMPCR_TAMP2E));
+            }
+            else
+            {
+                armv6m_atomic_or(&RTC->TAMPCR, (RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2E));
+            }
+        }
 
-	return true;
+        return true;
     }
 
     return false;
@@ -1059,14 +1059,14 @@ void stm32l0_rtc_tamp_detach(uint16_t pin)
 
     if (pin == STM32L0_GPIO_PIN_PC13)
     {
-	armv6m_atomic_and(&RTC->TAMPCR, ~(RTC_TAMPCR_TAMP1IE | RTC_TAMPCR_TAMP1E));
-	armv6m_atomic_modify(&RTC->ISR, ~RTC_ISR_INIT, ~(RTC_ISR_TAMP1F | RTC_ISR_INIT));
+        armv6m_atomic_and(&RTC->TAMPCR, ~(RTC_TAMPCR_TAMP1IE | RTC_TAMPCR_TAMP1E));
+        armv6m_atomic_modify(&RTC->ISR, ~RTC_ISR_INIT, ~(RTC_ISR_TAMP1F | RTC_ISR_INIT));
     }
 
     if (pin == STM32L0_GPIO_PIN_PA0)
     {
-	armv6m_atomic_and(&RTC->TAMPCR, ~(RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2E));
-	armv6m_atomic_modify(&RTC->ISR, ~RTC_ISR_INIT, ~(RTC_ISR_TAMP2F | RTC_ISR_INIT));
+        armv6m_atomic_and(&RTC->TAMPCR, ~(RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2E));
+        armv6m_atomic_modify(&RTC->ISR, ~RTC_ISR_INIT, ~(RTC_ISR_TAMP2F | RTC_ISR_INIT));
     }
 }
 
@@ -1078,12 +1078,12 @@ void stm32l0_rtc_standby(uint32_t config)
 
     if (config & STM32L0_SYSTEM_CONFIG_WKUP1)
     {
-	RTC->TAMPCR &= ~(RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2E);
+        RTC->TAMPCR &= ~(RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2E);
     }
     
     if (config & STM32L0_SYSTEM_CONFIG_WKUP2)
     {
-	RTC->TAMPCR &= ~(RTC_TAMPCR_TAMP1IE | RTC_TAMPCR_TAMP1E);
+        RTC->TAMPCR &= ~(RTC_TAMPCR_TAMP1IE | RTC_TAMPCR_TAMP1E);
     }
 
     RTC->ISR = 0;
@@ -1108,11 +1108,11 @@ void stm32l0_rtc_reset(void)
 void stm32l0_rtc_calendar_to_time(const stm32l0_rtc_calendar_t *calendar, uint32_t *p_seconds, uint16_t *p_subseconds)
 {
     *p_seconds = ((((stm32l0_rtc_days_since_year[calendar->year] +
-		     stm32l0_rtc_days_since_month[calendar->year & 3][calendar->month] +
-		     (calendar->day - 1)) * 24 +
-		    calendar->hours) * 60 +
-		   calendar->minutes) * 60 +
-		  calendar->seconds);
+                     stm32l0_rtc_days_since_month[calendar->year & 3][calendar->month] +
+                     (calendar->day - 1)) * 24 +
+                    calendar->hours) * 60 +
+                   calendar->minutes) * 60 +
+                  calendar->seconds);
     
     *p_subseconds = calendar->subseconds;
 }
@@ -1174,17 +1174,17 @@ void stm32l0_rtc_calendar_delta(const stm32l0_rtc_calendar_t *a_calendar, const 
     uint16_t subseconds;
 
     seconds = (((((stm32l0_rtc_days_since_year[a_calendar->year] +
-		   stm32l0_rtc_days_since_month[a_calendar->year & 3][a_calendar->month] +
-		   (a_calendar->day - 1)) -
-		  (stm32l0_rtc_days_since_year[b_calendar->year] +
-		   stm32l0_rtc_days_since_month[b_calendar->year & 3][b_calendar->month] +
-		   (b_calendar->day - 1))) * 24 +
-		 a_calendar->hours -
-		 b_calendar->hours) * 60 +
-		a_calendar->minutes -
-		b_calendar->minutes) * 60 +
+                   stm32l0_rtc_days_since_month[a_calendar->year & 3][a_calendar->month] +
+                   (a_calendar->day - 1)) -
+                  (stm32l0_rtc_days_since_year[b_calendar->year] +
+                   stm32l0_rtc_days_since_month[b_calendar->year & 3][b_calendar->month] +
+                   (b_calendar->day - 1))) * 24 +
+                 a_calendar->hours -
+                 b_calendar->hours) * 60 +
+                a_calendar->minutes -
+                b_calendar->minutes) * 60 +
                a_calendar->seconds -
-	       b_calendar->seconds);
+               b_calendar->seconds);
 
     if (a_calendar->subseconds < b_calendar->subseconds)
     {
@@ -1437,22 +1437,22 @@ void RTC_IRQHandler(void)
 
         if (RTC->ISR & RTC_ISR_TAMP1F)
         {
-	    armv6m_atomic_modify(&RTC->ISR, ~RTC_ISR_INIT, ~(RTC_ISR_TAMP1F | RTC_ISR_INIT));
+            armv6m_atomic_modify(&RTC->ISR, ~RTC_ISR_INIT, ~(RTC_ISR_TAMP1F | RTC_ISR_INIT));
             
-	    if (stm32l0_rtc_device.tamp1_callback)
-	    {
-		(*stm32l0_rtc_device.tamp1_callback)(stm32l0_rtc_device.tamp1_context);
-	    }
+            if (stm32l0_rtc_device.tamp1_callback)
+            {
+                (*stm32l0_rtc_device.tamp1_callback)(stm32l0_rtc_device.tamp1_context);
+            }
         }
 
         if (RTC->ISR & RTC_ISR_TAMP2F)
         {
-	    armv6m_atomic_modify(&RTC->ISR, ~RTC_ISR_INIT, ~(RTC_ISR_TAMP2F | RTC_ISR_INIT));
+            armv6m_atomic_modify(&RTC->ISR, ~RTC_ISR_INIT, ~(RTC_ISR_TAMP2F | RTC_ISR_INIT));
             
-	    if (stm32l0_rtc_device.tamp2_callback)
-	    {
-		(*stm32l0_rtc_device.tamp2_callback)(stm32l0_rtc_device.tamp2_context);
-	    }
+            if (stm32l0_rtc_device.tamp2_callback)
+            {
+                (*stm32l0_rtc_device.tamp2_callback)(stm32l0_rtc_device.tamp2_context);
+            }
         }
     }
 

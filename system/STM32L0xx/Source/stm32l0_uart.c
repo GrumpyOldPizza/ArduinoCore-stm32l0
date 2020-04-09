@@ -207,7 +207,7 @@ static uint32_t stm32l0_uart_dma_receive(stm32l0_uart_t *uart, uint32_t count)
         
         if (rx_count && uart->rx_event)
         {
-	    uart->rx_event = false;
+            uart->rx_event = false;
 
             events |= STM32L0_UART_EVENT_RECEIVE;
         }
@@ -664,7 +664,7 @@ static void stm32l0_uart_interrupt(stm32l0_uart_t *uart)
             
                     if (uart->rx_event)
                     {
-			uart->rx_event = false;
+                        uart->rx_event = false;
 
                         events |= STM32L0_UART_EVENT_RECEIVE;
                     }

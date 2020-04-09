@@ -47,6 +47,11 @@ static inline IRQn_Type __current_irq(void)
     return (IRQn_Type)(__get_IPSR() - 16);
 }
 
+#define ARMV6M_IRQ_PRIORITY_CRITICAL  0
+#define ARMV6M_IRQ_PRIORITY_HIGH      1
+#define ARMV6M_IRQ_PRIORITY_MEDIUM    2
+#define ARMV6M_IRQ_PRIORITY_LOW       3
+  
 static inline void armv6m_core_wait(void)
 {
     __WFE();
