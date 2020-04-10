@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2015-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -31,6 +31,7 @@
 
 #include "gnss_api.h"
 #include "stm32l0_rtc.h"
+#include "stm32l0_lptim.h"
 
 /*
  * NOTES:
@@ -189,8 +190,8 @@ typedef struct _ubx_context_t {
         uint8_t         enabled;
         uint8_t         simultaneous;
     } gnss;
-    stm32l0_rtc_timer_t sleep;
-    stm32l0_rtc_timer_t timeout;
+    stm32l0_lptim_timeout_t sleep;
+    stm32l0_lptim_timeout_t timeout;
 } ubx_context_t;
 
 /************************************************************************************/
@@ -266,6 +267,8 @@ typedef struct _gnss_device_t {
 static gnss_device_t gnss_device;
 
 static void gnss_send_callback(void);
+static void ubx_timeout(void);
+static void ubx_sleep(void);
 static void ubx_wakeup(gnss_device_t *device);
 static void ubx_configure(gnss_device_t *device, unsigned int response, uint32_t command);
 
@@ -3113,14 +3116,14 @@ static void ubx_table(gnss_device_t *device, const uint8_t * const * table)
 
     ubx_send(device, data);
 
-    stm32l0_rtc_timer_start(&device->ubx.timeout, 0, 4096, false); // 125ms
+    stm32l0_lptim_timeout_start(&device->ubx.timeout, stm32l0_lptim_millis_to_ticks(125), (stm32l0_lptim_callback_t)ubx_timeout); // 125ms
 }
 
 static void ubx_configure(gnss_device_t *device, unsigned int response, uint32_t command)
 {
     const uint8_t *data = NULL;
 
-    stm32l0_rtc_timer_stop(&device->ubx.timeout);
+    stm32l0_lptim_timeout_stop(&device->ubx.timeout);
 
     if (device->table)
     {
@@ -3201,12 +3204,14 @@ static void ubx_configure(gnss_device_t *device, unsigned int response, uint32_t
     {
         ubx_send(device, data);
 
-        stm32l0_rtc_timer_start(&device->ubx.timeout, 0, 4096, false); // 125ms
+        stm32l0_lptim_timeout_start(&device->ubx.timeout, stm32l0_lptim_millis_to_ticks(125), (stm32l0_lptim_callback_t)ubx_timeout); // 125ms
     }
 }
 
-static void ubx_sleep(gnss_device_t *device)
+static void ubx_sleep(void)
 {
+    gnss_device_t *device = &gnss_device;
+
     if (device->callbacks->disable_callback)
     {
         (*device->callbacks->disable_callback)(device->context);
@@ -3273,8 +3278,9 @@ static void ubx_wakeup(gnss_device_t *device)
     }
 }
 
-static void ubx_timeout(gnss_device_t *device)
+static void ubx_timeout(void)
 {
+    gnss_device_t *device = &gnss_device;
     const uint8_t *data = NULL;
 
     if (device->table)
@@ -3283,7 +3289,7 @@ static void ubx_timeout(gnss_device_t *device)
 
         ubx_send(device, data);
 
-        stm32l0_rtc_timer_start(&device->ubx.timeout, 0, 4096, false); // 125ms
+        stm32l0_lptim_timeout_start(&device->ubx.timeout, stm32l0_lptim_millis_to_ticks(125), (stm32l0_lptim_callback_t)ubx_timeout); // 125ms
     }
 }
 
@@ -3297,7 +3303,7 @@ static void gnss_send_callback(void)
     {
         device->command = ~0l;
         
-        stm32l0_rtc_timer_start(&device->ubx.sleep, 0, 4096, false); // 125ms
+        stm32l0_lptim_timeout_start(&device->ubx.sleep, stm32l0_lptim_millis_to_ticks(125), (stm32l0_lptim_callback_t)ubx_sleep); // 125ms
     }
     else
     {
@@ -3619,8 +3625,8 @@ void gnss_initialize(unsigned int mode, unsigned int rate, unsigned int speed, g
         
         uart_count = strlen(uart_data);
 
-        stm32l0_rtc_timer_create(&device->ubx.sleep, (stm32l0_rtc_timer_callback_t)&ubx_sleep, device);
-        stm32l0_rtc_timer_create(&device->ubx.timeout, (stm32l0_rtc_timer_callback_t)&ubx_timeout, device);
+        stm32l0_lptim_timeout_create(&device->ubx.sleep);
+        stm32l0_lptim_timeout_create(&device->ubx.timeout);
     }
     else
     {

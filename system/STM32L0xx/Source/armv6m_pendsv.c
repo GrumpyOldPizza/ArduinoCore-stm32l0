@@ -93,11 +93,18 @@ void armv6m_pendsv_initialize(void)
     NVIC_SetPriority(PendSV_IRQn, ARMV6M_IRQ_PRIORITY_LOW);
 }
 
-void armv6m_pendsv_raise(uint32_t index)
+bool armv6m_pendsv_raise(uint32_t index)
 {
-    armv6m_atomic_or(&armv6m_pendsv_control.swi_pending, (1ul << index));
+    uint32_t mask = (1ul << index);
+    
+    if (!(armv6m_atomic_or(&armv6m_pendsv_control.swi_pending, mask) & mask))
+    {
+	SCB->ICSR = SCB_ICSR_PENDSVSET_Msk;
 
-    SCB->ICSR = SCB_ICSR_PENDSVSET_Msk;
+	return true;
+    }
+
+    return false;
 }
 void armv6m_pendsv_block(uint32_t mask)
 {

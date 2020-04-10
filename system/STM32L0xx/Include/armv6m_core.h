@@ -33,8 +33,24 @@
 extern "C" {
 #endif
 
-#define Reset_IRQn ((IRQn_Type)-16)
+#define Reset_IRQn        ((IRQn_Type)-16)
+#define NMI_IRQn          ((IRQn_Type)-14)
+#define HardFault_IRQn    ((IRQn_Type)-13)
+#define SVCall_IRQn       ((IRQn_Type)-5)
+#define PendSV_IRQn       ((IRQn_Type)-2)
+#define SysTick_IRQn      ((IRQn_Type)-1)
 
+typedef enum
+{
+  ThreadMode_EXCn             = 0,
+  NMI_EXCn                    = 2,      /*!< 2 Cortex-M0+ NMI Exception                              */
+  HardFault_EXCn              = 3,      /*!< 3 Cortex-M0+ Hard Fault Exception                       */
+  SVCall_EXCn                 = 11,     /*!< 11 Cortex-M0+ SV Call Exception                         */
+  PendSV_EXCn                 = 14,     /*!< 14 Cortex-M0+ Pend SV Exception                         */
+  SysTick_EXCn                = 15,     /*!< 15 Cortex-M0+ System Tick Exception                     */
+  IRQ0_EXCn                   = 16,
+} EXCn_Type;
+  
 typedef void (*armv6m_core_routine_t)(void *context);
 
 typedef struct _armv6m_core_callback_t {
@@ -63,7 +79,7 @@ extern void armv6m_core_udelay(uint32_t udelay);
 
 extern void armv6m_core_c_function(armv6m_core_callback_t *callback, void *function);
 extern void armv6m_core_cxx_method(armv6m_core_callback_t *callback, const void *method, void *object);
-
+  
 #ifdef __cplusplus
 }
 #endif

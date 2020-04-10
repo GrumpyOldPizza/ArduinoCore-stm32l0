@@ -513,7 +513,7 @@ static inline __attribute__((optimize("O3"),always_inline)) uint32_t __armv6m_at
         "   add     %1, %0, #1   \n"
         "   strb    %1, [%2]     \n"
         "1: msr     PRIMASK, r12 \n"
-        : "=&l" (data_return), "+&l" (data_scratch)
+        : "=&l" (data_return), "=&l" (data_scratch)
         : "l" (p_data)
         : "r12", "memory"
         );

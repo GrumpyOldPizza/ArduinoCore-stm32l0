@@ -40,7 +40,7 @@ extern void armv6m_pendsv_initialize(void);
 extern void armv6m_pendsv_notify(armv6m_pendsv_callback_t callback);
 extern bool armv6m_pendsv_enqueue(armv6m_pendsv_routine_t routine, void *context, uint32_t data);
 
-extern void armv6m_pendsv_raise(uint32_t index);
+extern bool armv6m_pendsv_raise(uint32_t index);
 extern void armv6m_pendsv_block(uint32_t mask);
 extern void armv6m_pendsv_unblock(uint32_t mask);
 
@@ -79,9 +79,11 @@ extern void SWI31_IRQHandler(void);
   
 #define ARMV6M_PENDSV_SWI_RADIO             0
 #define ARMV6M_PENDSV_SWI_EXTI              1
+#define ARMV6M_PENDSV_SWI_LPTIM             2
 
 #define SWI_RADIO_IRQHandler                SWI0_IRQHandler
 #define SWI_EXTI_IRQHandler                 SWI1_IRQHandler
+#define SWI_LPTIM_IRQHandler                SWI2_IRQHandler
   
 #ifdef __cplusplus
 }
