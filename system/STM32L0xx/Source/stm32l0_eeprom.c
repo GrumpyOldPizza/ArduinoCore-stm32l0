@@ -213,8 +213,7 @@ void FLASH_IRQHandler(void)
 
                 FLASH->PECR |= FLASH_PECR_PELOCK;
 
-                stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_CLOCKS);
-                stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
+                stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_RUN);
 
                 stm32l0_eeprom_device.address = 0x00000000;
                 
@@ -251,8 +250,7 @@ void FLASH_IRQHandler(void)
 
                 FLASH->PECR |= FLASH_PECR_PELOCK;
 
-                stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_CLOCKS);
-                stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
+                stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_RUN);
                 
                 stm32l0_eeprom_device.address = 0x00000000;
                 
@@ -291,8 +289,7 @@ void FLASH_IRQHandler(void)
         
             if ((transaction->control == STM32L0_EEPROM_CONTROL_ERASE) || (transaction->control == STM32L0_EEPROM_CONTROL_PROGRAM))
             {
-                stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
-                stm32l0_system_lock(STM32L0_SYSTEM_LOCK_CLOCKS);
+                stm32l0_system_lock(STM32L0_SYSTEM_LOCK_RUN);
 
                 primask = __get_PRIMASK();
 
@@ -345,8 +342,7 @@ void FLASH_IRQHandler(void)
                         
                     FLASH->PECR |= FLASH_PECR_PELOCK;
                     
-                    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_CLOCKS);
-                    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
+                    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_RUN);
                     
                     stm32l0_eeprom_device.address = 0x00000000;
                     

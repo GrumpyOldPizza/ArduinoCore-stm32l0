@@ -100,7 +100,7 @@ static void USBD_VBUSTimeoutIrq(void)
         {
             usbd_connected = true;
 
-            stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
+            stm32l0_system_lock(STM32L0_SYSTEM_LOCK_RUN);
 
             USBD_Init(&USBD_Device, &CDC_MSC_Desc, 0);
             
@@ -136,7 +136,7 @@ static void USBD_VBUSChanged(void)
             
             USBD_DeInit(&USBD_Device);
 
-            stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
+            stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_RUN);
             
             usbd_connected = false;
         }
@@ -184,7 +184,7 @@ void USBD_Attach(void)
         {
             usbd_connected = true;
 
-            stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
+            stm32l0_system_lock(STM32L0_SYSTEM_LOCK_RUN);
 
             USBD_Init(&USBD_Device, &CDC_MSC_Desc, 0);
             
@@ -209,7 +209,7 @@ void USBD_Detach(void)
 
         USBD_DeInit(&USBD_Device);
 
-        stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
+        stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_RUN);
 
         usbd_connected = false;
     }

@@ -74,7 +74,8 @@ static void stm32l0_lptim_clock_start(uint32_t compare)
     stm32l0_lptim_device.next = 0;
     stm32l0_lptim_device.clock = 0;
 
-    stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
+    stm32l0_system_lock(STM32L0_SYSTEM_LOCK_RUN);
+    stm32l0_system_lock(STM32L0_SYSTEM_LOCK_DEEPSLEEP);
 
     NVIC_EnableIRQ(LPTIM1_IRQn);
 }
@@ -83,9 +84,11 @@ static void stm32l0_lptim_clock_stop()
 {
     NVIC_DisableIRQ(LPTIM1_IRQn);
 
+    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_DEEPSLEEP);
+
     if (stm32l0_lptim_device.busy)
     {
-	stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
+	stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_RUN);
     }
     
     stm32l0_lptim_device.state = STM32L0_LPTIM_STATE_NONE;
@@ -289,7 +292,7 @@ static void stm32l0_lptim_timeout_flush(uint32_t reference)
 				    stm32l0_lptim_device.compare[0] = clock;
 				    stm32l0_lptim_device.reference[0] = reference;
 				    
-				    stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
+				    stm32l0_system_lock(STM32L0_SYSTEM_LOCK_RUN);
 				    
 				    stm32l0_lptim_device.busy = 1;
 				    
@@ -482,7 +485,7 @@ void LPTIM1_IRQHandler(void)
 		stm32l0_lptim_device.busy = 0;
 		stm32l0_lptim_device.next = 0;
 		    
-		stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
+		stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_RUN);
 	    }
 	    else
 	    {
@@ -502,7 +505,7 @@ void LPTIM1_IRQHandler(void)
 		{
 		    stm32l0_lptim_device.busy = 0;
 		    
-		    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
+		    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_RUN);
 		}
 	    }
 	}

@@ -226,8 +226,7 @@ bool stm32l0_spi_acquire(stm32l0_spi_t *spi, uint32_t clock, uint32_t option)
         stm32l0_exti_block(spi->mask);
     }
 
-    stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
-    stm32l0_system_lock(STM32L0_SYSTEM_LOCK_CLOCKS);
+    stm32l0_system_lock(STM32L0_SYSTEM_LOCK_RUN);
 
     stm32l0_system_periph_enable(STM32L0_SYSTEM_PERIPH_SPI1 + spi->instance);
 
@@ -313,8 +312,7 @@ bool stm32l0_spi_release(stm32l0_spi_t *spi)
 
     stm32l0_system_periph_disable(STM32L0_SYSTEM_PERIPH_SPI1 + spi->instance);
 
-    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_CLOCKS);
-    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
+    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_RUN);
 
     if (spi->mask)
     {

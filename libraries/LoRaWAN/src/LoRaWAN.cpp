@@ -193,7 +193,7 @@ static void ComplianceTestCallback(void)
 	LoRaMacMcpsRequest(&mcpsReq);
 
 	// RESTART TIMER
-	stm32l0_rtc_timer_start(&ComplianceTest.Timer, 5, 0, false);
+	stm32l0_rtc_timer_start(&ComplianceTest.Timer, stm32l0_rtc_seconds_to_ticks(5), STM32L0_RTC_TIMER_MODE_RELATIVE);
     }
 }
 
@@ -3328,7 +3328,7 @@ void LoRaWANClass::__McpsIndication( McpsIndication_t *mcpsIndication )
 				ComplianceTest.TxData = LoRaWAN._tx_data;
 
 				// START TIMER
-				stm32l0_rtc_timer_start(&ComplianceTest.Timer, 5, 0, false);
+				stm32l0_rtc_timer_start(&ComplianceTest.Timer, stm32l0_rtc_seconds_to_ticks(5), STM32L0_RTC_TIMER_MODE_RELATIVE);
                     
 				mibReq.Param.AdrEnable = true;
 				LoRaMacMibSetRequestConfirm(&mibReq);

@@ -328,8 +328,7 @@ bool stm32l0_adc_convert(void *data, uint32_t count, uint16_t mask, uint16_t per
                 return false;
             }
 
-            stm32l0_system_lock(STM32L0_SYSTEM_LOCK_CLOCKS);
-            stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
+            stm32l0_system_lock(STM32L0_SYSTEM_LOCK_RUN);
         }
         else
         {
@@ -558,8 +557,7 @@ void stm32l0_adc_cancel(void)
                 stm32l0_system_hsi16_disable();
             }
 
-            stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
-            stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_CLOCKS);
+            stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_RUN);
         
             stm32l0_adc_device.state = STM32L0_ADC_STATE_READY;
         }

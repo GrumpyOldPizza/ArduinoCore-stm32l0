@@ -106,6 +106,7 @@ bool armv6m_pendsv_raise(uint32_t index)
 
     return false;
 }
+
 void armv6m_pendsv_block(uint32_t mask)
 {
     armv6m_atomic_and(&armv6m_pendsv_control.swi_mask, ~mask);

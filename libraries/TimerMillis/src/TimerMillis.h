@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2016-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -30,26 +30,25 @@
 #define _TIMERMILLIS_H
 
 #include "Arduino.h"
+#include "stm32l0_rtc.h"
 
 class TimerMillis {
 public:
     TimerMillis();
     ~TimerMillis();
 
-    int start(void(*callback)(void), uint32_t delay, uint32_t period = 0) { return start(Callback(callback), delay, period); }
-    int start(Callback callback, uint32_t delay, uint32_t period = 0);
+    int start(void(*callback)(void), uint32_t delay, uint32_t period = 0);
     int restart(uint32_t delay, uint32_t period = 0);
     int stop();
     bool active();
 
 private:
-    struct _stm32l0_rtc_timer_t *_timer;
-    uint32_t                    _period;
-    uint32_t                    _seconds;
-    uint16_t                    _subseconds;
-    volatile uint16_t           _adjust;
-    Callback                    _callback;
-    static void                 timeout(class TimerMillis*, struct _stm32l0_rtc_timer_t *);
+    stm32l0_rtc_timer_t _timer;
+    uint64_t            _clock;
+    uint32_t            _millis;
+    uint32_t            _period;
+    void                (*_callback)();
+    static void         timeout(class TimerMillis *self);
 };
 
 #endif // _TIMERMILLIS_H

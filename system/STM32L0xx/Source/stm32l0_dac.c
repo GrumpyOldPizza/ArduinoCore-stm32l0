@@ -197,7 +197,7 @@ bool stm32l0_dac_convert(const void *data, uint32_t count, uint32_t control, stm
                 return false;
             }
 
-            stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
+            stm32l0_system_lock(STM32L0_SYSTEM_LOCK_SLEEP);
         }
         else
         {
@@ -305,7 +305,7 @@ void stm32l0_dac_cancel(void)
 
             stm32l0_dma_disable(STM32L0_DMA_CHANNEL_DMA1_CH2_DAC1);
 
-            stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
+            stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_SLEEP);
 
             stm32l0_dac_device.state = STM32L0_DAC_STATE_READY;
         }

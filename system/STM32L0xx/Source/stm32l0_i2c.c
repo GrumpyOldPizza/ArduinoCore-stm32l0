@@ -149,7 +149,7 @@ static void stm32l0_i2c_start(stm32l0_i2c_t *i2c)
 
     if (i2c->instance == STM32L0_I2C_INSTANCE_I2C2)
     {
-        stm32l0_system_lock(STM32L0_SYSTEM_LOCK_CLOCKS);
+        stm32l0_system_lock(STM32L0_SYSTEM_LOCK_RUN);
 
         pclk = stm32l0_system_pclk1();
 
@@ -166,7 +166,7 @@ static void stm32l0_i2c_start(stm32l0_i2c_t *i2c)
     {
         if (i2c->option & STM32L0_I2C_OPTION_MODE_1000K)
         {
-            stm32l0_system_lock(STM32L0_SYSTEM_LOCK_CLOCKS);
+            stm32l0_system_lock(STM32L0_SYSTEM_LOCK_RUN);
         }
         else
         {
@@ -191,7 +191,7 @@ static void stm32l0_i2c_stop(stm32l0_i2c_t *i2c)
 
     if (i2c->instance == STM32L0_I2C_INSTANCE_I2C2)
     {
-        stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_CLOCKS);
+        stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_RUN);
     }
     else
     {
@@ -202,7 +202,7 @@ static void stm32l0_i2c_stop(stm32l0_i2c_t *i2c)
 
         if (i2c->option & STM32L0_I2C_OPTION_MODE_1000K)
         {
-            stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_CLOCKS);
+            stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_RUN);
         }
         else
         {
@@ -514,7 +514,7 @@ static void stm32l0_i2c_master_check(stm32l0_i2c_t *i2c)
             {
                 if (i2c->state == STM32L0_I2C_STATE_READY)
                 {
-                    stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
+                    stm32l0_system_lock(STM32L0_SYSTEM_LOCK_SLEEP);
                 
                     stm32l0_i2c_start(i2c);
                 }
@@ -566,7 +566,7 @@ static void stm32l0_i2c_master_check(stm32l0_i2c_t *i2c)
             
             stm32l0_i2c_stop(i2c);
 
-            stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
+            stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_SLEEP);
 
             i2c->state = STM32L0_I2C_STATE_READY;
         }
@@ -702,7 +702,7 @@ static void stm32l0_i2c_interrupt(stm32l0_i2c_t *i2c)
         {
             if (i2c_isr & I2C_ISR_ADDR)
             {
-                stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
+                stm32l0_system_lock(STM32L0_SYSTEM_LOCK_SLEEP);
 
                 stm32l0_i2c_slave_address(i2c);
             }
@@ -973,7 +973,7 @@ static void stm32l0_i2c_interrupt(stm32l0_i2c_t *i2c)
             }
             else
             {
-                stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
+                stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_SLEEP);
 
                 stm32l0_i2c_slave_check(i2c);
             }
@@ -1023,7 +1023,7 @@ static void stm32l0_i2c_interrupt(stm32l0_i2c_t *i2c)
             }
             else
             {
-                stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
+                stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_SLEEP);
 
                 stm32l0_i2c_slave_check(i2c);
             }
