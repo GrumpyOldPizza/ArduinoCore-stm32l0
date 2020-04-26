@@ -763,7 +763,7 @@ bool stm32l0_system_sysclk_configure(uint32_t hclk, uint32_t pclk1, uint32_t pcl
 
     __disable_irq();
 
-    if (stm32l0_system_device.lock[STM32L0_SYSTEM_LOCK_CLOCKS] ||
+    if (stm32l0_system_device.lock[STM32L0_SYSTEM_LOCK_RUN] ||
         ((stm32l0_system_device.reference & STM32L0_SYSTEM_REFERENCE_USB)  && (pclk1  < 16000000)) ||
         ((stm32l0_system_device.reference & STM32L0_SYSTEM_REFERENCE_I2C1) && (sysclk < 32000000)) ||
         ((stm32l0_system_device.reference & STM32L0_SYSTEM_REFERENCE_I2C2) && (pclk1  <  4000000)) ||

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -82,18 +82,17 @@ enum {
 #define STM32L0_SYSTEM_MCO_MODE_LSE            7
 #define STM32L0_SYSTEM_MCO_MODE_HSI48          8
 
-#define STM32L0_SYSTEM_LOCK_CLOCKS             0  // ###
+#define STM32L0_SYSTEM_LOCK_RUN                0
 #define STM32L0_SYSTEM_LOCK_SLEEP              1
-#define STM32L0_SYSTEM_LOCK_STOP               2  // ###
-#define STM32L0_SYSTEM_LOCK_STANDBY            3  // ###
-#define STM32L0_SYSTEM_LOCK_RANGE_2_3          4
-#define STM32L0_SYSTEM_LOCK_RANGE_3            5
-#define STM32L0_SYSTEM_LOCK_REGULATOR          6
-#define STM32L0_SYSTEM_LOCK_VREFINT            7
-
-#define STM32L0_SYSTEM_LOCK_RUN                8
-#define STM32L0_SYSTEM_LOCK_DEEPSLEEP          9
-#define STM32L0_SYSTEM_LOCK_COUNT              10
+#define STM32L0_SYSTEM_LOCK_DEEPSLEEP          2
+  //#define STM32L0_SYSTEM_LOCK_CLOCKS             0  // ###
+//#define STM32L0_SYSTEM_LOCK_STOP               2  // ###
+//#define STM32L0_SYSTEM_LOCK_STANDBY            3  // ###
+#define STM32L0_SYSTEM_LOCK_RANGE_2_3          3
+#define STM32L0_SYSTEM_LOCK_RANGE_3            4
+#define STM32L0_SYSTEM_LOCK_REGULATOR          5
+#define STM32L0_SYSTEM_LOCK_VREFINT            6
+#define STM32L0_SYSTEM_LOCK_COUNT              7
 
 #define STM32L0_SYSTEM_REFERENCE_USB           0x00000001  /* force pclk1  >= 16MHz */
 #define STM32L0_SYSTEM_REFERENCE_I2C1          0x00000002  /* force sysclk >= 32MHz */
