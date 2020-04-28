@@ -103,7 +103,7 @@ static inline uint32_t stm32l0_lptim_ticks_to_micros(uint32_t ticks)
     seconds = ticks / STM32L0_LPTIM_TIMEOUT_TICKS_PER_SECOND;
     ticks = ticks & (STM32L0_LPTIM_TIMEOUT_TICKS_PER_SECOND -1);
 
-    return (seconds * 1000000) + ((ticks * STM32L0_LPTIM_TIMEOUT_TICKS_PER_SECOND) / 1000000);
+    return (seconds * 1000000) + ((ticks * 10000000) / STM32L0_LPTIM_TIMEOUT_TICKS_PER_SECOND);
 }
 
 static inline uint32_t stm32l0_lptim_ticks_to_millis(uint32_t ticks)
@@ -113,7 +113,7 @@ static inline uint32_t stm32l0_lptim_ticks_to_millis(uint32_t ticks)
     seconds = ticks / STM32L0_LPTIM_TIMEOUT_TICKS_PER_SECOND;
     ticks = ticks & (STM32L0_LPTIM_TIMEOUT_TICKS_PER_SECOND -1);
 
-    return (seconds * 1000) + ((ticks * STM32L0_LPTIM_TIMEOUT_TICKS_PER_SECOND) / 1000);
+    return (seconds * 1000) + ((ticks * 1000) / STM32L0_LPTIM_TIMEOUT_TICKS_PER_SECOND);
 }
 
 static inline uint32_t stm32l0_lptim_ticks_to_seconds(uint32_t ticks)
