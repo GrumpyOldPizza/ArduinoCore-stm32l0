@@ -13,11 +13,18 @@ ArduinoCore-stm32l0 is targeted at ultra low power scenarios, sensor hubs, with 
  * [Cicada-L082CZ](https://www.tindie.com/products/TleraCorp/lorasensortile)
 
 ### STMicroelectronics
- * [B-L072Z-LRWAN1](http://www.st.com/en/evaluation-tools/b-l072z-lrwan1.html)
  * [P-NUCLEO-LRWAN1](http://www.st.com/en/evaluation-tools/p-nucleo-lrwan1.html)
  * [NUCLEO-L053R8](http://www.st.com/en/evaluation-tools/nucleo-l053r8.html)
  * [NUCLEO-L073RZ](http://www.st.com/en/evaluation-tools/nucleo-l073rz.html)
+ * [B-L072Z-LRWAN1](http://www.st.com/en/evaluation-tools/b-l072z-lrwan1.html) 
+ * [B-L072Z-LoRa](http://www.st.com/en/evaluation-tools/b-l072z-lrwan1.html) jumper-customized B-L072Z-LRWAN1 board with both SPI and SPI1 buses defined and SX1276 on SPI bus to use with libraries like RadioHead and MySensors.
 
+### AI Thinker / RuiXingHengFang / RisingHF
+ * [RHF76-052](http://www.risinghf.com/#/product-details?product_id=5&lang=en) cheap modules mostly with STM32L051C8T6 inside with SPI/SPI1 buses defined and SX1276 on SPI bus.
+
+NOTE! RHF76-052 RF frontend is close to Semtech SX1276RF1JAS reference design but instead of using SX1276 RXTXRFMOD (pin 20) and an invertor to control antenna switches, RHF76 controls them with complimentary MCU pins - PA1 as FEM_CTX and PA2 as FEM_CPS. You will have to add TX/RX antenna switching by these two pins to any LoRa library you use!
+
+To add RHF76-052 and B-L072Z-LoRa support do not use json in board manager, but follow "From git" section and replace git URl by this one!
 
 ## Installing
 

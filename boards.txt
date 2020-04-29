@@ -275,6 +275,216 @@ Gnat-L082CZ.menu.opt.o3=Fastest
 Gnat-L082CZ.menu.opt.o3.build.flags.optimize=-O3
 Gnat-L082CZ.menu.opt.o3.build.flags.ldspecs=
 
+# UT2UH K33
+# ---------------------------------------
+K33.name=K33
+K33.vid.0=0x0483
+K33.pid.0=0x374e
+
+K33.upload.tool=stm32l0_openocd
+K33.upload.protocol=stlink
+K33.upload.maximum_size=196608
+K33.upload.maximum_data_size=20480
+K33.upload.use_1200bps_touch=true
+K33.upload.wait_for_upload_port=false
+K33.upload.native_usb=false
+
+K33.build.mcu=cortex-m0plus
+K33.build.f_cpu=32000000L
+K33.build.board=K33
+K33.build.arch=stm32l0
+K33.build.core=arduino
+K33.build.vid=0x0483
+K33.build.pid=0x374e
+K33.build.did=0xffff
+K33.build.extra_flags=-DSTM32L082xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+K33.build.ldscript=linker_scripts/STM32L082CZ_FLASH.ld
+K33.build.openocdscript=openocd_scripts/k33.cfg
+K33.build.variant=K33
+K33.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l082xx -larm_cortexM0l_math
+K33.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
+
+K33.menu.speed.32=32 MHz
+K33.menu.speed.32.build.f_cpu=32000000L
+K33.menu.speed.16=16 MHz (No USB)
+K33.menu.speed.16.build.f_cpu=16000000L
+K33.menu.speed.4=4.2 MHz (No USB)
+K33.menu.speed.4.build.f_cpu=4200000L
+
+K33.menu.opt.os=Smallest Code
+K33.menu.opt.os.build.flags.optimize=-Os
+K33.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
+K33.menu.opt.o1=Fast
+K33.menu.opt.o1.build.flags.optimize=-O1
+K33.menu.opt.o1.build.flags.ldspecs=
+K33.menu.opt.o2=Faster
+K33.menu.opt.o2.build.flags.optimize=-O2
+K33.menu.opt.o2.build.flags.ldspecs=
+K33.menu.opt.o3=Fastest
+K33.menu.opt.o3.build.flags.optimize=-O3
+K33.menu.opt.o3.build.flags.ldspecs=
+
+# UT2UH K33-TEST
+# ---------------------------------------
+K33-TEST.name=K33-TEST
+K33-TEST.vid.0=0x0483
+K33-TEST.pid.0=0x374e
+
+K33-TEST.upload.tool=stm32l0_openocd
+K33-TEST.upload.protocol=stlink
+K33-TEST.upload.maximum_size=196608
+K33-TEST.upload.maximum_data_size=20480
+K33-TEST.upload.use_1200bps_touch=true
+K33-TEST.upload.wait_for_upload_port=false
+K33-TEST.upload.native_usb=false
+
+K33-TEST.build.mcu=cortex-m0plus
+K33-TEST.build.f_cpu=32000000L
+K33-TEST.build.board=K33-TEST
+K33-TEST.build.arch=stm32l0
+K33-TEST.build.core=arduino
+K33-TEST.build.vid=0x0483
+K33-TEST.build.pid=0x374e
+K33-TEST.build.did=0xffff
+K33-TEST.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+K33-TEST.build.ldscript=linker_scripts/STM32L072CZ_FLASH.ld
+K33-TEST.build.openocdscript=openocd_scripts/k33_test.cfg
+K33-TEST.build.variant=K33-TEST
+K33-TEST.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l072xx -larm_cortexM0l_math
+K33-TEST.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
+
+K33-TEST.menu.speed.32=32 MHz
+K33-TEST.menu.speed.32.build.f_cpu=32000000L
+K33-TEST.menu.speed.16=16 MHz (No USB)
+K33-TEST.menu.speed.16.build.f_cpu=16000000L
+K33-TEST.menu.speed.4=4.2 MHz (No USB)
+K33-TEST.menu.speed.4.build.f_cpu=4200000L
+
+K33-TEST.menu.opt.os=Smallest Code
+K33-TEST.menu.opt.os.build.flags.optimize=-Os
+K33-TEST.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
+K33-TEST.menu.opt.o1=Fast
+K33-TEST.menu.opt.o1.build.flags.optimize=-O1
+K33-TEST.menu.opt.o1.build.flags.ldspecs=
+K33-TEST.menu.opt.o2=Faster
+K33-TEST.menu.opt.o2.build.flags.optimize=-O2
+K33-TEST.menu.opt.o2.build.flags.ldspecs=
+K33-TEST.menu.opt.o3=Fastest
+K33-TEST.menu.opt.o3.build.flags.optimize=-O3
+K33-TEST.menu.opt.o3.build.flags.ldspecs=
+
+
+# UT2UH K33-USB
+# ---------------------------------------
+K33-USB.name=K33-USB
+K33-USB.vid.0=0x1209
+K33-USB.pid.0=0x6662
+
+K33-USB.upload.tool=stm32l0_dfu
+K33-USB.upload.protocol=dfu
+K33-USB.upload.maximum_size=196608
+K33-USB.upload.maximum_data_size=20480
+K33-USB.upload.use_1200bps_touch=true
+K33-USB.upload.wait_for_upload_port=false
+K33-USB.upload.native_usb=false
+
+K33-USB.build.mcu=cortex-m0plus
+K33-USB.build.f_cpu=32000000L
+K33-USB.build.board=K33_USB
+K33-USB.build.arch=stm32l0
+K33-USB.build.core=arduino
+K33-USB.build.vid=0x1209
+K33-USB.build.pid=0x6662
+K33-USB.build.did=0xffff
+K33-USB.build.usb_manufacturer="UT2UH"
+K33-USB.build.usb_product="K33"
+K33-USB.build.extra_flags=-DSTM32L082xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+K33-USB.build.ldscript=linker_scripts/STM32L082CZ_FLASH.ld
+K33-USB.build.openocdscript=openocd_scripts/k33_usb.cfg
+K33-USB.build.variant=K33-USB
+K33-USB.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l082xx -larm_cortexM0l_math
+K33-USB.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
+
+K33-USB.menu.usb.cdc=Serial
+K33-USB.menu.usb.cdc.build.usb_type=USB_TYPE_CDC
+K33-USB.menu.usb.cdc_msc=Serial + Mass Storage
+K33-USB.menu.usb.cdc_msc.build.usb_type=USB_TYPE_CDC_MSC
+K33-USB.menu.usb.cdc_hid=Serial + Keyboard + Mouse
+K33-USB.menu.usb.cdc_hid.build.usb_type=USB_TYPE_CDC_HID
+K33-USB.menu.usb.cdc_msc_hid=Serial + Mass Storage + Keyboard + Mouse
+K33-USB.menu.usb.cdc_msc_hid.build.usb_type=USB_TYPE_CDC_MSC_HID
+K33-USB.menu.usb.none=No USB
+K33-USB.menu.usb.none.build.usb_type=USB_TYPE_NONE
+
+K33-USB.menu.speed.32=32 MHz
+K33-USB.menu.speed.32.build.f_cpu=32000000L
+K33-USB.menu.speed.16=16 MHz (No USB)
+K33-USB.menu.speed.16.build.f_cpu=16000000L
+K33-USB.menu.speed.4=4.2 MHz (No USB)
+K33-USB.menu.speed.4.build.f_cpu=4200000L
+
+K33-USB.menu.opt.os=Smallest Code
+K33-USB.menu.opt.os.build.flags.optimize=-Os
+K33-USB.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
+K33-USB.menu.opt.o1=Fast
+K33-USB.menu.opt.o1.build.flags.optimize=-O1
+K33-USB.menu.opt.o1.build.flags.ldspecs=
+K33-USB.menu.opt.o2=Faster
+K33-USB.menu.opt.o2.build.flags.optimize=-O2
+K33-USB.menu.opt.o2.build.flags.ldspecs=
+K33-USB.menu.opt.o3=Fastest
+K33-USB.menu.opt.o3.build.flags.optimize=-O3
+K33-USB.menu.opt.o3.build.flags.ldspecs=
+
+
+# ST B-L072Z-LoRa
+# ---------------------------------------
+B-L072Z-LoRa.name=B-L072Z-LoRa
+B-L072Z-LoRa.vid.0=0x0483
+B-L072Z-LoRa.pid.0=0x374b
+
+B-L072Z-LoRa.upload.tool=stm32l0_openocd
+B-L072Z-LoRa.upload.protocol=stlink
+B-L072Z-LoRa.upload.maximum_size=196608
+B-L072Z-LoRa.upload.maximum_data_size=20480
+B-L072Z-LoRa.upload.use_1200bps_touch=true
+B-L072Z-LoRa.upload.wait_for_upload_port=false
+B-L072Z-LoRa.upload.native_usb=false
+
+B-L072Z-LoRa.build.mcu=cortex-m0plus
+B-L072Z-LoRa.build.f_cpu=32000000L
+B-L072Z-LoRa.build.board=STM32L0_B_L072Z_LORA
+B-L072Z-LoRa.build.arch=stm32l0
+B-L072Z-LoRa.build.core=arduino
+B-L072Z-LoRa.build.vid=0x0483
+B-L072Z-LoRa.build.pid=0x374b
+B-L072Z-LoRa.build.did=0xffff
+B-L072Z-LoRa.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+B-L072Z-LoRa.build.ldscript=linker_scripts/STM32L072CZ_FLASH.ld
+B-L072Z-LoRa.build.openocdscript=openocd_scripts/b-l072z-lrwan1.cfg
+B-L072Z-LoRa.build.variant=B-L072Z-LoRa
+B-L072Z-LoRa.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l072xx -larm_cortexM0l_math
+B-L072Z-LoRa.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
+
+B-L072Z-LoRa.menu.speed.32=32 MHz
+B-L072Z-LoRa.menu.speed.32.build.f_cpu=32000000L
+B-L072Z-LoRa.menu.speed.16=16 MHz (No USB)
+B-L072Z-LoRa.menu.speed.16.build.f_cpu=16000000L
+B-L072Z-LoRa.menu.speed.4=4.2 MHz (No USB)
+B-L072Z-LoRa.menu.speed.4.build.f_cpu=4200000L
+
+B-L072Z-LoRa.menu.opt.os=Smallest Code
+B-L072Z-LoRa.menu.opt.os.build.flags.optimize=-Os
+B-L072Z-LoRa.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
+B-L072Z-LoRa.menu.opt.o1=Fast
+B-L072Z-LoRa.menu.opt.o1.build.flags.optimize=-O1
+B-L072Z-LoRa.menu.opt.o1.build.flags.ldspecs=
+B-L072Z-LoRa.menu.opt.o2=Faster
+B-L072Z-LoRa.menu.opt.o2.build.flags.optimize=-O2
+B-L072Z-LoRa.menu.opt.o2.build.flags.ldspecs=
+B-L072Z-LoRa.menu.opt.o3=Fastest
+B-L072Z-LoRa.menu.opt.o3.build.flags.optimize=-O3
+B-L072Z-LoRa.menu.opt.o3.build.flags.ldspecs=
 
 # ST B-L072Z-LRWAN1
 # ---------------------------------------
@@ -525,3 +735,51 @@ NUCLEO-L073RZ.menu.opt.o3=Fastest
 NUCLEO-L073RZ.menu.opt.o3.build.flags.optimize=-O3
 NUCLEO-L073RZ.menu.opt.o3.build.flags.ldspecs=
 
+# ST RHF76-052
+# ---------------------------------------
+RHF76-052.name=RHF76-052
+RHF76-052.vid.0=0x0483
+RHF76-052.pid.0=0x374e
+
+RHF76-052.upload.tool=stm32l0_openocd
+RHF76-052.upload.protocol=stlink
+RHF76-052.upload.maximum_size=65536
+RHF76-052.upload.maximum_data_size=8192
+RHF76-052.upload.use_1200bps_touch=true
+RHF76-052.upload.wait_for_upload_port=false
+RHF76-052.upload.native_usb=false
+
+RHF76-052.build.mcu=cortex-m0plus
+RHF76-052.build.f_cpu=32000000L
+RHF76-052.build.board=RHF76_052
+RHF76-052.build.arch=stm32l0
+RHF76-052.build.core=arduino
+RHF76-052.build.vid=0x0483
+RHF76-052.build.pid=0x374e
+RHF76-052.build.did=0xffff
+RHF76-052.build.extra_flags=-DSTM32L052xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+RHF76-052.build.ldscript=linker_scripts/STM32L052C8_FLASH.ld
+RHF76-052.build.openocdscript=openocd_scripts/rhf76-l052c8.cfg
+RHF76-052.build.variant=RHF76-052
+RHF76-052.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l052xx -larm_cortexM0l_math
+RHF76-052.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
+
+RHF76-052.menu.speed.32=32 MHz
+RHF76-052.menu.speed.32.build.f_cpu=32000000L
+RHF76-052.menu.speed.16=16 MHz
+RHF76-052.menu.speed.16.build.f_cpu=16000000L
+RHF76-052.menu.speed.4=4.2 MHz
+RHF76-052.menu.speed.4.build.f_cpu=4200000L
+
+RHF76-052.menu.opt.os=Smallest Code
+RHF76-052.menu.opt.os.build.flags.optimize=-Os
+RHF76-052.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
+RHF76-052.menu.opt.o1=Fast
+RHF76-052.menu.opt.o1.build.flags.optimize=-O1
+RHF76-052.menu.opt.o1.build.flags.ldspecs=
+RHF76-052.menu.opt.o2=Faster
+RHF76-052.menu.opt.o2.build.flags.optimize=-O2
+RHF76-052.menu.opt.o2.build.flags.ldspecs=
+RHF76-052.menu.opt.o3=Fastest
+RHF76-052.menu.opt.o3.build.flags.optimize=-O3
+RHF76-052.menu.opt.o3.build.flags.ldspecs=

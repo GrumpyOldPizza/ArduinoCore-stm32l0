@@ -30,9 +30,9 @@
 
 class Callback {
 public:
-    Callback() : _callback(NULL), _context(NULL) {  }
+    Callback() : _callback(nullptr), _context(nullptr) {  }
 
-    Callback(void (*function)(void)) : _callback((void (*)(void*))function), _context(NULL) { }
+    Callback(void (*function)(void)) : _callback((void (*)(void*))function), _context(nullptr) { }
 
     template<typename T>
     Callback(void (T::*method)(), T *object) { bind(&method, object); }
@@ -63,7 +63,7 @@ public:
     bool queue();
     void call();
 
-    operator bool() { return (_callback != NULL); }
+    operator bool() { return (_callback != nullptr); }
 
 private:
     void (*_callback)(void*);
