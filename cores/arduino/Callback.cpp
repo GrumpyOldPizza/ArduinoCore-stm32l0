@@ -29,13 +29,6 @@
 #include "Arduino.h"
 #include "wiring_private.h"
 
-Callback::Callback(class EventHandler *event)
-{
-    _callback = reinterpret_cast<void (*)(void*)>(armv6m_event_enqueue);
-    _context = reinterpret_cast<void*>(event);
-}
-
-
 /* The format of a member pointer is defined in the C++ ABI.
  * For ARM that document is IHI0041D, which describes the differences
  * to the Itanium C++ ABI.

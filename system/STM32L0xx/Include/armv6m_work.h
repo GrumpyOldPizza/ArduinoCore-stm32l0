@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2019-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -26,46 +26,33 @@
  * WITH THE SOFTWARE.
  */
 
-#pragma once
+#if !defined(_ARMV6M_WORK_H)
+#define _ARMV6M_WORKD_H
 
-class Callback {
-public:
-    Callback() : _callback(NULL), _context(NULL) {  }
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-    Callback(void (*function)(void)) : _callback((void (*)(void*))function), _context(NULL) { }
+typedef void (*armv6m_work_callback_t)(void *context);
 
-    template<typename T>
-    Callback(void (T::*method)(), T *object) { bind(&method, object); }
+typedef struct _armv6m_work_t {
+    struct _armv6m_work_t * volatile next;
+    armv6m_work_callback_t           callback;
+    void                             *context;
+} armv6m_work_t;
 
-    template<typename T>
-    Callback(void (T::*method)() const, const T *object) { bind(&method, object); }
+#define ARMV6M_WORK_INIT(_callback, _context) {	        \
+    .callback    = (armv6m_work_callback_t)(_callback),	\
+    .context     = (void*)(_context),			\
+}
 
-    template<typename T>
-    Callback(void (T::*method)() volatile, volatile T *object) { bind(&method, object); }
+extern void armv6m_work_initialize(void);
+extern void armv6m_work_create(armv6m_work_t *work, armv6m_work_callback_t callback, void *context);
+extern bool armv6m_work_destory(armv6m_work_t *work);
+extern bool armv6m_work_submit(armv6m_work_t *work);
+    
+#ifdef __cplusplus
+}
+#endif
 
-    template<typename T>
-    Callback(void (T::*method)() const volatile, const volatile T *object) { bind(&method, object); }
-
-    template<typename T>
-    Callback(void (T::*method)(), T &object) { bind(&method, &object); }
-
-    template<typename T>
-    Callback(void (T::*method)() const, const T &object) { bind(&method, &object); }
-
-    template<typename T>
-    Callback(void (T::*method)() volatile, volatile T &object) { bind(&method, &object); }
-
-    template<typename T>
-    Callback(void (T::*method)() const volatile, const volatile T &object) { bind(&method, &object); }
-
-    bool queue();
-    void call();
-
-    operator bool() { return (_callback != NULL); }
-
-private:
-    void (*_callback)(void*);
-    void *_context;
-
-    void bind(const void *method, const void *object);
-};
+#endif /* _ARMV6M_WORK_H */

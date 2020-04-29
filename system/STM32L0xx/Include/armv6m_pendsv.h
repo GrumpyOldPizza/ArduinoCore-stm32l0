@@ -83,6 +83,7 @@ extern void SWI31_IRQHandler(void);
 #define ARMV6M_PENDSV_SWI_RTC_MODIFY        3
 #define ARMV6M_PENDSV_SWI_RTC_ALARM         4
 #define ARMV6M_PENDSV_SWI_RTC_TIMER         5
+#define ARMV6M_PENDSV_SWI_WORK_SCHEDULE     6
 
 #define SWI_RADIO_IRQHandler                SWI0_IRQHandler
 #define SWI_EXTI_IRQHandler                 SWI1_IRQHandler
@@ -90,6 +91,7 @@ extern void SWI31_IRQHandler(void);
 #define SWI_RTC_MODIFY_IRQHandler           SWI3_IRQHandler
 #define SWI_RTC_ALARM_IRQHandler            SWI4_IRQHandler
 #define SWI_RTC_TIMER_IRQHandler            SWI5_IRQHandler
+#define SWI_WORK_SCHEDULE_IRQHandler        SWI6_IRQHandler
   
 #ifdef __cplusplus
 }
