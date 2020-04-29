@@ -33,8 +33,24 @@
 extern "C" {
 #endif
 
-#define Reset_IRQn ((IRQn_Type)-16)
+#define Reset_IRQn        ((IRQn_Type)-16)
+#define NMI_IRQn          ((IRQn_Type)-14)
+#define HardFault_IRQn    ((IRQn_Type)-13)
+#define SVCall_IRQn       ((IRQn_Type)-5)
+#define PendSV_IRQn       ((IRQn_Type)-2)
+#define SysTick_IRQn      ((IRQn_Type)-1)
 
+typedef enum
+{
+  ThreadMode_EXCn             = 0,
+  NMI_EXCn                    = 2,      /*!< 2 Cortex-M0+ NMI Exception                              */
+  HardFault_EXCn              = 3,      /*!< 3 Cortex-M0+ Hard Fault Exception                       */
+  SVCall_EXCn                 = 11,     /*!< 11 Cortex-M0+ SV Call Exception                         */
+  PendSV_EXCn                 = 14,     /*!< 14 Cortex-M0+ Pend SV Exception                         */
+  SysTick_EXCn                = 15,     /*!< 15 Cortex-M0+ System Tick Exception                     */
+  IRQ0_EXCn                   = 16,
+} EXCn_Type;
+  
 typedef void (*armv6m_core_routine_t)(void *context);
 
 typedef struct _armv6m_core_callback_t {
@@ -47,18 +63,180 @@ static inline IRQn_Type __current_irq(void)
     return (IRQn_Type)(__get_IPSR() - 16);
 }
 
-static inline void armv6m_core_wait(void)
-{
-    __WFE();
-    __NOP();
-}
+#define ARMV6M_IRQ_PRIORITY_CRITICAL  0
+#define ARMV6M_IRQ_PRIORITY_HIGH      1
+#define ARMV6M_IRQ_PRIORITY_MEDIUM    2
+#define ARMV6M_IRQ_PRIORITY_LOW       3
 
 extern void armv6m_core_initialize(void);
 extern void armv6m_core_udelay(uint32_t udelay);
 
 extern void armv6m_core_c_function(armv6m_core_callback_t *callback, void *function);
 extern void armv6m_core_cxx_method(armv6m_core_callback_t *callback, const void *method, void *object);
+  
+static inline void armv6m_core_wait(void)
+{
+    __WFE();
+    __NOP();
+    __NOP();
+    __NOP();
+}
 
+static inline void armv6m_core_load_2(volatile uint32_t *p, uint32_t *p_data_0, uint32_t *p_data_1)
+{
+    register uint32_t _a0 __asm__("r0");
+    register uint32_t _a1 __asm__("r1");
+    
+    __asm__ volatile ("ldm %0!, { %1, %2 }"
+                      : "+&l" (p), "=r" (_a0), "=r" (_a1)
+                      :
+                      : "memory");
+
+    *p_data_0 = _a0;
+    *p_data_1 = _a1;
+}
+
+static inline void armv6m_core_load_3(volatile uint32_t *p, uint32_t *p_data_0, uint32_t *p_data_1, uint32_t *p_data_2)
+{
+    register uint32_t _a0 __asm__("r0");
+    register uint32_t _a1 __asm__("r1");
+    register uint32_t _a2 __asm__("r2");
+    
+    __asm__ volatile ("ldm %0!, { %1, %2, %3 }"
+                      : "+&l" (p), "=r" (_a0), "=r" (_a1), "=r" (_a2)
+                      :
+                      : "memory");
+
+    *p_data_0 = _a0;
+    *p_data_1 = _a1;
+    *p_data_2 = _a2;
+}
+
+static inline void armv6m_core_load_4(volatile uint32_t *p, uint32_t *p_data_0, uint32_t *p_data_1, uint32_t *p_data_2, uint32_t *p_data_3)
+{
+    register uint32_t _a0 __asm__("r0");
+    register uint32_t _a1 __asm__("r1");
+    register uint32_t _a2 __asm__("r2");
+    register uint32_t _a3 __asm__("r3");
+    
+    __asm__ volatile ("ldm %0!, { %1, %2, %3, %4 }"
+                      : "+&l" (p), "=r" (_a0), "=r" (_a1), "=r" (_a2), "=r" (_a3)
+                      :
+                      : "memory");
+
+    *p_data_0 = _a0;
+    *p_data_1 = _a1;
+    *p_data_2 = _a2;
+    *p_data_3 = _a3;
+}
+
+ static inline void armv6m_core_load_5(volatile uint32_t *p, uint32_t *p_data_0, uint32_t *p_data_1, uint32_t *p_data_2, uint32_t *p_data_3, uint32_t *p_data_4)
+{
+    register uint32_t _a0 __asm__("r0");
+    register uint32_t _a1 __asm__("r1");
+    register uint32_t _a2 __asm__("r2");
+    register uint32_t _a3 __asm__("r3");
+    register uint32_t _a4 __asm__("r4");
+    
+    __asm__ volatile ("ldm %0!, { %1, %2, %3, %4, %5 }"
+                      : "+&l" (p), "=r" (_a0), "=r" (_a1), "=r" (_a2), "=r" (_a3), "=r" (_a4)
+                      :
+                      : "memory");
+
+    *p_data_0 = _a0;
+    *p_data_1 = _a1;
+    *p_data_2 = _a2;
+    *p_data_3 = _a3;
+    *p_data_4 = _a4;
+}
+
+  static inline void armv6m_core_load_6(volatile uint32_t *p, uint32_t *p_data_0, uint32_t *p_data_1, uint32_t *p_data_2, uint32_t *p_data_3, uint32_t *p_data_4, uint32_t *p_data_5)
+{
+    register uint32_t _a0 __asm__("r0");
+    register uint32_t _a1 __asm__("r1");
+    register uint32_t _a2 __asm__("r2");
+    register uint32_t _a3 __asm__("r3");
+    register uint32_t _a4 __asm__("r4");
+    register uint32_t _a5 __asm__("r5");
+    
+    __asm__ volatile ("ldm %0!, { %1, %2, %3, %4, %5, %6 }"
+                      : "+&l" (p), "=r" (_a0), "=r" (_a1), "=r" (_a2), "=r" (_a3), "=r" (_a4), "=r" (_a5)
+                      :
+                      : "memory");
+
+    *p_data_0 = _a0;
+    *p_data_1 = _a1;
+    *p_data_2 = _a2;
+    *p_data_3 = _a3;
+    *p_data_4 = _a4;
+    *p_data_5 = _a5;
+}
+  
+static inline void armv6m_core_store_2(volatile uint32_t *p, uint32_t data_0, uint32_t data_1)
+{
+    register uint32_t _a0 __asm__("r0") = data_0;
+    register uint32_t _a1 __asm__("r1") = data_1;
+    
+    __asm__ volatile ("stm %0!, { %1, %2 }"
+                      : "+&l" (p)
+                      : "r" (_a0), "r" (_a1)
+                      : "memory");
+}
+
+static inline void armv6m_core_store_3(volatile uint32_t *p, uint32_t data_0, uint32_t data_1, uint32_t data_2)
+{
+    register uint32_t _a0 __asm__("r0") = data_0;
+    register uint32_t _a1 __asm__("r1") = data_1;
+    register uint32_t _a2 __asm__("r2") = data_2;
+    
+    __asm__ volatile ("stm %0!, { %1, %2, %3 }"
+                      : "+&l" (p)
+                      : "r" (_a0), "r" (_a1), "r" (_a2)
+                      : "memory");
+}
+
+static inline void armv6m_core_store_4(volatile uint32_t *p, uint32_t data_0, uint32_t data_1, uint32_t data_2, uint32_t data_3)
+{
+    register uint32_t _a0 __asm__("r0") = data_0;
+    register uint32_t _a1 __asm__("r1") = data_1;
+    register uint32_t _a2 __asm__("r2") = data_2;
+    register uint32_t _a3 __asm__("r3") = data_3;
+    
+    __asm__ volatile ("stm %0!, { %1, %2, %3, %4 }"
+                      : "+&l" (p)
+                      : "r" (_a0), "r" (_a1), "r" (_a2), "r" (_a3)
+                      : "memory");
+}
+
+static inline void armv6m_core_store_5(volatile uint32_t *p, uint32_t data_0, uint32_t data_1, uint32_t data_2, uint32_t data_3, uint32_t data_4)
+{
+    register uint32_t _a0 __asm__("r0") = data_0;
+    register uint32_t _a1 __asm__("r1") = data_1;
+    register uint32_t _a2 __asm__("r2") = data_2;
+    register uint32_t _a3 __asm__("r3") = data_3;
+    register uint32_t _a4 __asm__("r4") = data_4;
+    
+    __asm__ volatile ("stm %0!, { %1, %2, %3, %4, %5 }"
+                      : "+&l" (p)
+                      : "r" (_a0), "r" (_a1), "r" (_a2), "r" (_a3), "r" (_a4)
+                      : "memory");
+}
+
+static inline void armv6m_core_store_6(volatile uint32_t *p, uint32_t data_0, uint32_t data_1, uint32_t data_2, uint32_t data_3, uint32_t data_4, uint32_t data_5)
+{
+    register uint32_t _a0 __asm__("r0") = data_0;
+    register uint32_t _a1 __asm__("r1") = data_1;
+    register uint32_t _a2 __asm__("r2") = data_2;
+    register uint32_t _a3 __asm__("r3") = data_3;
+    register uint32_t _a4 __asm__("r4") = data_4;
+    register uint32_t _a5 __asm__("r5") = data_5;
+    
+    __asm__ volatile ("stm %0!, { %1, %2, %3, %4, %5, %6 }"
+                      : "+&l" (p)
+                      : "r" (_a0), "r" (_a1), "r" (_a2), "r" (_a3), "r" (_a4), "r" (_a5)
+                      : "memory");
+}
+  
 #ifdef __cplusplus
 }
 #endif

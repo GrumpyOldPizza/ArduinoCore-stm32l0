@@ -354,7 +354,7 @@ void GNSSClass::begin(Uart &uart, GNSSmode mode, GNSSrate rate)
 
 #if defined(STM32L0_CONFIG_PIN_GNSS_PPS)
     stm32l0_gpio_pin_configure(STM32L0_CONFIG_PIN_GNSS_PPS, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
-    stm32l0_exti_attach(STM32L0_CONFIG_PIN_GNSS_PPS, STM32L0_EXTI_CONTROL_EDGE_FALLING, (stm32l0_exti_callback_t)ppsCallback, (void*)this);
+    stm32l0_exti_attach(STM32L0_CONFIG_PIN_GNSS_PPS, STM32L0_EXTI_CONTROL_EDGE_FALLING | STM32L0_EXTI_CONTROL_PRIORITY_CRITICAL, (stm32l0_exti_callback_t)ppsCallback, (void*)this);
 #endif
 
     _uart = &uart; 
@@ -459,7 +459,7 @@ bool GNSSClass::resume()
 
 #if defined(STM32L0_CONFIG_PIN_GNSS_PPS)
     stm32l0_gpio_pin_configure(STM32L0_CONFIG_PIN_GNSS_PPS, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
-    stm32l0_exti_attach(STM32L0_CONFIG_PIN_GNSS_PPS, STM32L0_EXTI_CONTROL_EDGE_FALLING, (stm32l0_exti_callback_t)ppsCallback, (void*)this);
+    stm32l0_exti_attach(STM32L0_CONFIG_PIN_GNSS_PPS, STM32L0_EXTI_CONTROL_EDGE_FALLING | STM32L0_EXTI_CONTROL_PRIORITY_CRITICAL, (stm32l0_exti_callback_t)ppsCallback, (void*)this);
 #endif
     
     return true;

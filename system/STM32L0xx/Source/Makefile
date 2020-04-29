@@ -1,4 +1,5 @@
-TOOLS    = /opt/gcc-arm-none-eabi-4.8.3-2014q1
+TOOLS    = ~/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/
+#TOOLS    = ~/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/4.8.3-2014q1/
 CPP      = $(TOOLS)/bin/arm-none-eabi-cpp
 CC       = $(TOOLS)/bin/arm-none-eabi-gcc
 CXX      = $(TOOLS)/bin/arm-none-eabi-g++
@@ -68,7 +69,7 @@ SRCS = \
 	./USB/usbd_cdc_msc.c \
 	./USB/usbd_conf.c \
 	./USB/usbd_desc.c \
-	armv6m_atomic.S \
+	armv6m_atomic.c \
 	armv6m_core.c \
 	armv6m_event.c \
 	armv6m_pendsv.c \

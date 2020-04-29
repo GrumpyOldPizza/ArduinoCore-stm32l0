@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -82,15 +82,17 @@ enum {
 #define STM32L0_SYSTEM_MCO_MODE_LSE            7
 #define STM32L0_SYSTEM_MCO_MODE_HSI48          8
 
-#define STM32L0_SYSTEM_LOCK_CLOCKS             0
+#define STM32L0_SYSTEM_LOCK_RUN                0
 #define STM32L0_SYSTEM_LOCK_SLEEP              1
-#define STM32L0_SYSTEM_LOCK_STOP               2
-#define STM32L0_SYSTEM_LOCK_STANDBY            3
-#define STM32L0_SYSTEM_LOCK_RANGE_2_3          4
-#define STM32L0_SYSTEM_LOCK_RANGE_3            5
-#define STM32L0_SYSTEM_LOCK_REGULATOR          6
-#define STM32L0_SYSTEM_LOCK_VREFINT            7
-#define STM32L0_SYSTEM_LOCK_COUNT              8
+#define STM32L0_SYSTEM_LOCK_DEEPSLEEP          2
+  //#define STM32L0_SYSTEM_LOCK_CLOCKS             0  // ###
+//#define STM32L0_SYSTEM_LOCK_STOP               2  // ###
+//#define STM32L0_SYSTEM_LOCK_STANDBY            3  // ###
+#define STM32L0_SYSTEM_LOCK_RANGE_2_3          3
+#define STM32L0_SYSTEM_LOCK_RANGE_3            4
+#define STM32L0_SYSTEM_LOCK_REGULATOR          5
+#define STM32L0_SYSTEM_LOCK_VREFINT            6
+#define STM32L0_SYSTEM_LOCK_COUNT              7
 
 #define STM32L0_SYSTEM_REFERENCE_USB           0x00000001  /* force pclk1  >= 16MHz */
 #define STM32L0_SYSTEM_REFERENCE_I2C1          0x00000002  /* force sysclk >= 32MHz */
@@ -121,23 +123,23 @@ typedef struct _stm32l0_system_notify_t {
 #define STM32L0_SYSTEM_RESET_OTHER             5
 #define STM32L0_SYSTEM_RESET_STANDBY           6
 
-#define STM32L0_SYSTEM_WAKEUP_WKUP             0x00000001
+#define STM32L0_SYSTEM_WAKEUP_PIN              0x00000001
 #define STM32L0_SYSTEM_WAKEUP_ALARM            0x00000002
 #define STM32L0_SYSTEM_WAKEUP_TIMEOUT          0x00000004
 #define STM32L0_SYSTEM_WAKEUP_WATCHDOG         0x00000008
 #define STM32L0_SYSTEM_WAKEUP_RESET            0x00000010
 
+#define STM32L0_SYSTEM_TIMEOUT_NONE            0x00000000
 #define STM32L0_SYSTEM_TIMEOUT_FOREVER         0xffffffff
 
-#define STM32L0_SYSTEM_POLICY_NONE             0
-#define STM32L0_SYSTEM_POLICY_RUN              1
-#define STM32L0_SYSTEM_POLICY_SLEEP            2
-#define STM32L0_SYSTEM_POLICY_STOP             3
+#define STM32L0_SYSTEM_POLICY_RUN              0
+#define STM32L0_SYSTEM_POLICY_SLEEP            1
+#define STM32L0_SYSTEM_POLICY_DEEPSLEEP        2
 
-#define STM32L0_SYSTEM_CONFIG_WKUP1            0x00000001
-#define STM32L0_SYSTEM_CONFIG_WKUP2            0x00000002
+#define STM32L0_SYSTEM_CONTROL_WKUP1_RISING    0x00000001
+#define STM32L0_SYSTEM_CONTROL_WKUP2_RISING    0x00000002
 #if defined(STM32L072xx)
-#define STM32L0_SYSTEM_CONFIG_WKUP3            0x00000004
+#define STM32L0_SYSTEM_CONTROL_WKUP3_RISING    0x00000004
 #endif /* STM32L072xx */
 
 /* This bit is documented in the reference manuals,
@@ -183,10 +185,9 @@ extern void     stm32l0_system_lock(uint32_t lock);
 extern void     stm32l0_system_unlock(uint32_t lock);
 extern void     stm32l0_system_reference(uint32_t reference); 
 extern void     stm32l0_system_unreference(uint32_t reference); 
-extern uint32_t stm32l0_system_policy(uint32_t policy);
 extern void     stm32l0_system_sleep(uint32_t policy, uint32_t timeout);
 extern void     stm32l0_system_wakeup(void);
-extern void     stm32l0_system_standby(uint32_t config);
+extern void     stm32l0_system_standby(uint32_t control, uint32_t timeout);
 extern void     stm32l0_system_reset(void);
 extern void     stm32l0_system_dfu(void);
 

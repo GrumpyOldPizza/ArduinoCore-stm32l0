@@ -66,7 +66,6 @@ void init( void )
     armv6m_core_initialize();
     stm32l0_system_initialize(_SYSTEM_CORE_CLOCK_, 0, 0, STM32L0_CONFIG_LSECLK, STM32L0_CONFIG_HSECLK, STM32L0_CONFIG_SYSOPT);
 
-    stm32l0_exti_configure(STM32L0_EXTI_IRQ_PRIORITY);
     stm32l0_rtc_configure(STM32L0_RTC_IRQ_PRIORITY);
     stm32l0_dma_configure(STM32L0_ADC_IRQ_PRIORITY, STM32L0_UART_IRQ_PRIORITY, STM32L0_UART_IRQ_PRIORITY);
     stm32l0_lptim_configure(STM32L0_LPTIM_IRQ_PRIORITY);

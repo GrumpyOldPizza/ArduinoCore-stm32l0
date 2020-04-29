@@ -22,8 +22,10 @@ Maintainer: Miguel Luis and Gregory Cristian
  */
 typedef struct TimerEvent_s
 {
-    stm32l0_rtc_timer_t rtc_timer;
-    uint32_t ReloadValue;       //! Timer delay value
+    stm32l0_rtc_timer_t Timer;
+    uint32_t Ticks;             //! Timer delay value
+    bool IsRunning;             //! Is the timer currently running
+    void ( *Callback )( void ); //! Timer IRQ callback function
 }TimerEvent_t;
 
 /*!

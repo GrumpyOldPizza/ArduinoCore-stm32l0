@@ -98,26 +98,15 @@ static const stm32l0_spi_params_t RADIO_SPI_PARAMS = {
 
 static stm32l0_spi_t RADIO_SPI;
 
-static void SX1272ExtiCallbackDio0( void *context )
+void SWI_RADIO_IRQHandler(void)
 {
-    armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)context, NULL, 0);
+    SX1272OnDio0Irq();
 }
 
-static void SX1272ExtiCallbackDio1( void *context )
+static void SX1272OnRadioDone( void )
 {
-    armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)context, NULL, 0);
-}
-
-static void SX1272ExtiCallbackDio2( void *context )
-{
-    if( SX1272.Modem == MODEM_FSK )
-    {
-        armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)context, NULL, 0);
-    }
-    else
-    {
-        ((armv6m_pendsv_routine_t)context)(NULL, 0);
-    }
+    // ### CAPUTRE RTC here
+    armv6m_pendsv_raise(ARMV6M_PENDSV_SWI_RADIO);
 }
 
 void SX1272Reset( void )
@@ -186,17 +175,24 @@ void SX1272DioInit( void )
     stm32l0_gpio_pin_configure(RADIO_DIO_1, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
     stm32l0_gpio_pin_configure(RADIO_DIO_2, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
 
+    stm32l0_exti_attach(RADIO_DIO_0, (STM32L0_EXTI_CONTROL_PRIORITY_CRITICAL | STM32L0_EXTI_CONTROL_EDGE_RISING), (stm32l0_exti_callback_t)SX1272OnRadioDone, NULL);
+
     if( ( SX1272.Modem == MODEM_FSK ) && ( SX1272.State == RF_TX_RUNNING ) )
     {
-        stm32l0_exti_attach(RADIO_DIO_0, STM32L0_EXTI_CONTROL_EDGE_RISING,  SX1272ExtiCallbackDio0, SX1272OnDio0Irq);
-        stm32l0_exti_attach(RADIO_DIO_1, STM32L0_EXTI_CONTROL_EDGE_FALLING, SX1272ExtiCallbackDio1, SX1272OnDio1Irq);
-        stm32l0_exti_attach(RADIO_DIO_2, STM32L0_EXTI_CONTROL_EDGE_RISING,  SX1272ExtiCallbackDio2, SX1272OnDio2Irq);
+        stm32l0_exti_attach(RADIO_DIO_1, (STM32L0_EXTI_CONTROL_PRIORITY_LOW | STM32L0_EXTI_CONTROL_EDGE_FALLING), (stm32l0_exti_callback_t)SX1272OnDio1Irq, NULL);
     }
     else
     {
-        stm32l0_exti_attach(RADIO_DIO_0, STM32L0_EXTI_CONTROL_EDGE_RISING,  SX1272ExtiCallbackDio0, SX1272OnDio0Irq);
-        stm32l0_exti_attach(RADIO_DIO_1, STM32L0_EXTI_CONTROL_EDGE_RISING,  SX1272ExtiCallbackDio1, SX1272OnDio1Irq);
-        stm32l0_exti_attach(RADIO_DIO_2, STM32L0_EXTI_CONTROL_EDGE_RISING,  SX1272ExtiCallbackDio2, SX1272OnDio2Irq);
+        stm32l0_exti_attach(RADIO_DIO_1, (STM32L0_EXTI_CONTROL_PRIORITY_LOW | STM32L0_EXTI_CONTROL_EDGE_RISING), (stm32l0_exti_callback_t)SX1272OnDio1Irq, NULL);
+    }
+
+    if( SX1272.Modem == MODEM_FSK )
+    {
+        stm32l0_exti_attach(RADIO_DIO_2, (STM32L0_EXTI_CONTROL_PRIORITY_LOW | STM32L0_EXTI_CONTROL_EDGE_RISING), (stm32l0_exti_callback_t)SX1272OnDio2Irq, NULL);
+    }
+    else
+    {
+        stm32l0_exti_attach(RADIO_DIO_2, (STM32L0_EXTI_CONTROL_PRIORITY_CRITICAL | STM32L0_EXTI_CONTROL_EDGE_RISING), (stm32l0_exti_callback_t)SX1272OnDio2Irq, NULL);
     }
 }
 

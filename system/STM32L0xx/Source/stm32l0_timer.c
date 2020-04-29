@@ -345,7 +345,7 @@ bool stm32l0_timer_start(stm32l0_timer_t *timer, uint32_t period, bool oneshot)
 
     if (timer->state == STM32L0_TIMER_STATE_READY)
     {
-        stm32l0_system_lock(STM32L0_SYSTEM_LOCK_CLOCKS);
+        stm32l0_system_lock(STM32L0_SYSTEM_LOCK_RUN);
     }
     else
     {
@@ -381,7 +381,7 @@ bool stm32l0_timer_stop(stm32l0_timer_t *timer)
 
     armv6m_atomic_and(&TIM->CR1, ~TIM_CR1_CEN);
 
-    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_CLOCKS);
+    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_RUN);
 
     timer->state = STM32L0_TIMER_STATE_READY;
 

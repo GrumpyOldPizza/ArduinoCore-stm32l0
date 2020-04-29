@@ -132,31 +132,35 @@ void STM32L0Class::stop(uint32_t timeout)
 	g_swdStatus = 2;
     }
 
-    stm32l0_system_sleep(STM32L0_SYSTEM_POLICY_STOP, timeout);
+    stm32l0_system_sleep(STM32L0_SYSTEM_POLICY_DEEPSLEEP, timeout);
 }
 
-void STM32L0Class::standby()
+void STM32L0Class::standby(uint32_t timeout)
 {
-    stm32l0_system_standby(0);
+    stm32l0_system_standby(0, timeout);
 }
 
-void STM32L0Class::standby(uint32_t pin)
+void STM32L0Class::standby(uint32_t pin, uint32_t mode, uint32_t timeout)
 {
-    uint32_t config;
+    uint32_t control;
 
-    if ( (pin >= PINS_COUNT) || !(g_APinDescription[pin].attr & (PIN_ATTR_WKUP1 | PIN_ATTR_WKUP2)))  {
+    if ( (pin >= PINS_COUNT) || !(g_APinDescription[pin].attr & (PIN_ATTR_WKUP1 | PIN_ATTR_WKUP2)) )  {
+	return;
+    }
+
+    if ( (mode != RISING) ) {
 	return;
     }
     
     if (g_APinDescription[pin].attr & PIN_ATTR_WKUP1) {
-	config = STM32L0_SYSTEM_CONFIG_WKUP1;
+	control = STM32L0_SYSTEM_CONTROL_WKUP1_RISING;
     }
 
     if (g_APinDescription[pin].attr & PIN_ATTR_WKUP2) {
-	config = STM32L0_SYSTEM_CONFIG_WKUP2;
+	control = STM32L0_SYSTEM_CONTROL_WKUP2_RISING;
     }
 
-    stm32l0_system_standby(config);
+    stm32l0_system_standby(control, timeout);
 }
 
 void STM32L0Class::reset()

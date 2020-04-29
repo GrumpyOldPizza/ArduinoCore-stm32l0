@@ -20,28 +20,43 @@ Maintainer: Miguel Luis and Gregory Cristian
 
 #include "timer.h"
 
+static void TimerCallback( TimerEvent_t *obj )
+{
+    if (obj->IsRunning)
+    {
+        obj->IsRunning = false;
+
+        if (obj->Callback)
+        {
+            (*obj->Callback)();
+        }
+    }
+}
+
 void TimerInit( TimerEvent_t *obj, void ( *callback )( void ) )
 {
-    stm32l0_rtc_timer_create(&obj->rtc_timer, (stm32l0_rtc_timer_callback_t)callback, NULL);
+    stm32l0_rtc_timer_create(&obj->Timer, (stm32l0_rtc_timer_callback_t)TimerCallback, (void*)obj);
 
-    obj->ReloadValue = 0;
+    obj->Ticks = 0;
+    obj->IsRunning = false;
+    obj->Callback = callback;
 }
 
 void TimerStart( TimerEvent_t *obj )
 {
-    uint32_t seconds;
-    uint16_t subseconds;
-
-    if (obj->ReloadValue)
+    if (obj->Ticks)
     {
-	stm32l0_rtc_millis_to_time(obj->ReloadValue, &seconds, &subseconds);
-	stm32l0_rtc_timer_start(&obj->rtc_timer, seconds, subseconds, false);
+        obj->IsRunning = true;
+
+        stm32l0_rtc_timer_start(&obj->Timer, obj->Ticks, STM32L0_RTC_TIMER_MODE_RELATIVE);
     }
 }
 
 void TimerStop( TimerEvent_t *obj )
 {
-    stm32l0_rtc_timer_stop(&obj->rtc_timer);
+    stm32l0_rtc_timer_stop(&obj->Timer);
+
+    obj->IsRunning = false;
 }
 
 void TimerReset( TimerEvent_t *obj )
@@ -52,38 +67,30 @@ void TimerReset( TimerEvent_t *obj )
 
 bool TimerIsRunning( TimerEvent_t *obj )
 {
-    return !stm32l0_rtc_timer_done(&obj->rtc_timer);
+    return obj->IsRunning;
 }
 
 void TimerSetValue( TimerEvent_t *obj, uint32_t value )
 {
     TimerStop( obj );
 
-    obj->ReloadValue = value;
+    obj->Ticks = stm32l0_rtc_millis_to_ticks(value);
 }
 
 TimerTime_t TimerGetCurrentTime( void )
 {
-    uint32_t seconds;
-    uint16_t subseconds;
     TimerTime_t currentTime;
 
-    stm32l0_rtc_get_time(&seconds, &subseconds);
-
-    currentTime = (seconds * 1000) + ((subseconds * 1000) / 32768);
+    currentTime = stm32l0_rtc_clock_to_millis(stm32l0_rtc_clock_read());
 
     return currentTime;
 }
 
 TimerTime_t TimerGetElapsedTime( TimerTime_t savedTime )
 {
-    uint32_t seconds;
-    uint16_t subseconds;
     TimerTime_t currentTime;
 
-    stm32l0_rtc_get_time(&seconds, &subseconds);
-
-    currentTime = (seconds * 1000) + ((subseconds * 1000) / 32768);
+    currentTime = stm32l0_rtc_clock_to_millis(stm32l0_rtc_clock_read());
 
     return currentTime - savedTime;
 }

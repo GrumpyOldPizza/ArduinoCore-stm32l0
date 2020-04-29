@@ -32,7 +32,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+  
 typedef void (*armv6m_pendsv_callback_t)(void);
 typedef void (*armv6m_pendsv_routine_t)(void *context, uint32_t data);
 
@@ -40,6 +40,57 @@ extern void armv6m_pendsv_initialize(void);
 extern void armv6m_pendsv_notify(armv6m_pendsv_callback_t callback);
 extern bool armv6m_pendsv_enqueue(armv6m_pendsv_routine_t routine, void *context, uint32_t data);
 
+extern bool armv6m_pendsv_raise(uint32_t index);
+extern void armv6m_pendsv_block(uint32_t mask);
+extern void armv6m_pendsv_unblock(uint32_t mask);
+
+extern void SWI0_IRQHandler(void);
+extern void SWI1_IRQHandler(void);
+extern void SWI2_IRQHandler(void);
+extern void SWI3_IRQHandler(void);
+extern void SWI4_IRQHandler(void);
+extern void SWI5_IRQHandler(void);
+extern void SWI6_IRQHandler(void);
+extern void SWI7_IRQHandler(void);
+extern void SWI9_IRQHandler(void);
+extern void SWI10_IRQHandler(void);
+extern void SWI11_IRQHandler(void);
+extern void SWI12_IRQHandler(void);
+extern void SWI13_IRQHandler(void);
+extern void SWI14_IRQHandler(void);
+extern void SWI15_IRQHandler(void);
+extern void SWI16_IRQHandler(void);
+extern void SWI17_IRQHandler(void);
+extern void SWI18_IRQHandler(void);
+extern void SWI19_IRQHandler(void);
+extern void SWI20_IRQHandler(void);
+extern void SWI21_IRQHandler(void);
+extern void SWI22_IRQHandler(void);
+extern void SWI23_IRQHandler(void);
+extern void SWI24_IRQHandler(void);
+extern void SWI25_IRQHandler(void);
+extern void SWI26_IRQHandler(void);
+extern void SWI27_IRQHandler(void);
+extern void SWI28_IRQHandler(void);
+extern void SWI29_IRQHandler(void);
+extern void SWI30_IRQHandler(void);
+extern void SWI31_IRQHandler(void);
+
+  
+#define ARMV6M_PENDSV_SWI_RADIO             0
+#define ARMV6M_PENDSV_SWI_EXTI              1
+#define ARMV6M_PENDSV_SWI_LPTIM             2
+#define ARMV6M_PENDSV_SWI_RTC_MODIFY        3
+#define ARMV6M_PENDSV_SWI_RTC_ALARM         4
+#define ARMV6M_PENDSV_SWI_RTC_TIMER         5
+
+#define SWI_RADIO_IRQHandler                SWI0_IRQHandler
+#define SWI_EXTI_IRQHandler                 SWI1_IRQHandler
+#define SWI_LPTIM_IRQHandler                SWI2_IRQHandler
+#define SWI_RTC_MODIFY_IRQHandler           SWI3_IRQHandler
+#define SWI_RTC_ALARM_IRQHandler            SWI4_IRQHandler
+#define SWI_RTC_TIMER_IRQHandler            SWI5_IRQHandler
+  
 #ifdef __cplusplus
 }
 #endif

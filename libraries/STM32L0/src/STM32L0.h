@@ -55,10 +55,10 @@ public:
     uint32_t resetCause();
 
     void  wakeup();
-    void  sleep(uint32_t timeout = 0);
-    void  stop(uint32_t timeout = 0);
-    void  standby();
-    void  standby(uint32_t pin);
+    void  sleep(uint32_t timeout = 0xffffffff);
+    void  stop(uint32_t timeout = 0xffffffff);
+    void  standby(uint32_t timeout = 0xffffffff);
+    void  standby(uint32_t pin, uint32_t mode, uint32_t timeout = 0xffffffff);
     void  reset();
 
     void  swdEnable();

@@ -104,9 +104,9 @@ static stm32l0_sdspi_t stm32l0_sdspi;
 #define SD_DATA_ERROR_CARD_ECC_FAILED  0x04
 #define SD_DATA_ERROR_OUT_OF_RANGE     0x08
 
-#define SD_READ_TIMEOUT       100
-#define SD_WRITE_TIMEOUT      250
-#define SD_WRITE_STOP_TIMEOUT 250
+#define SD_READ_TIMEOUT       100000
+#define SD_WRITE_TIMEOUT      250000
+#define SD_WRITE_STOP_TIMEOUT 250000
 
 static inline __attribute__((optimize("O3"),always_inline)) uint32_t stm32l0_sdspi_slice(const uint8_t *data, uint32_t size, uint32_t start, uint32_t width)
 {
@@ -595,11 +595,11 @@ static int stm32l0_sdspi_wait_ready(stm32l0_sdspi_t *sdspi, uint32_t timeout)
      * before the data is valid again.
      */
 
-    tstart = armv6m_systick_millis();
+    tstart = armv6m_systick_micros();
 
     do
     {
-        tend = armv6m_systick_millis();
+        tend = armv6m_systick_micros();
 
         token = stm32l0_spi_data(spi, 0xff);
 
@@ -788,7 +788,7 @@ static int stm32l0_sdspi_receive(stm32l0_sdspi_t *sdspi, uint8_t *data, uint32_t
     total = count;
     blksz = (count >= 512) ? 512 : count;
 
-    tstart = armv6m_systick_millis();
+    tstart = armv6m_systick_micros();
 
     do
     {
@@ -804,7 +804,7 @@ static int stm32l0_sdspi_receive(stm32l0_sdspi_t *sdspi, uint8_t *data, uint32_t
          * The maximum documented timeout is 100ms for SDHC.
          */
 
-        tend = armv6m_systick_millis();
+        tend = armv6m_systick_micros();
 
         token = stm32l0_spi_data(spi, 0xff);
 
@@ -834,7 +834,7 @@ static int stm32l0_sdspi_receive(stm32l0_sdspi_t *sdspi, uint8_t *data, uint32_t
                 data  += blksz;
                 total -= blksz;
 
-                tstart = armv6m_systick_millis();
+                tstart = armv6m_systick_micros();
             }
         }
 
@@ -888,11 +888,11 @@ static int stm32l0_sdspi_transmit(stm32l0_sdspi_t *sdspi, uint8_t start, const u
     total = count;
     blksz = (count >= 512) ? 512 : count;
 
-    tstart = armv6m_systick_millis();
+    tstart = armv6m_systick_micros();
 
     do
     {
-        tend = armv6m_systick_millis();
+        tend = armv6m_systick_micros();
 
         token = stm32l0_spi_data(spi, 0xff);
 
@@ -966,7 +966,7 @@ static int stm32l0_sdspi_transmit(stm32l0_sdspi_t *sdspi, uint8_t start, const u
                 data  += blksz;
                 total -= blksz;
 
-                tstart = armv6m_systick_millis();
+                tstart = armv6m_systick_micros();
             }
         }
         else
@@ -1235,7 +1235,7 @@ static uint32_t stm32l0_sdspi_au_size_table[16] = {
 static int stm32l0_sdspi_reset(stm32l0_sdspi_t *sdspi, uint32_t media)
 {
     int status = F_NO_ERROR;
-    uint32_t millis, count;
+    uint32_t micros, count;
 
     SDSPI_STATISTICS_COUNT(sdcard_reset);
 
@@ -1243,7 +1243,7 @@ static int stm32l0_sdspi_reset(stm32l0_sdspi_t *sdspi, uint32_t media)
      * 1000ms to complete this initialization process.
      */
 
-    millis = armv6m_systick_millis();
+    micros = armv6m_systick_micros();
     
     do
     {
@@ -1260,7 +1260,7 @@ static int stm32l0_sdspi_reset(stm32l0_sdspi_t *sdspi, uint32_t media)
                     break;
                 }
                     
-                if (((uint32_t)armv6m_systick_millis() - millis) > 1000)
+                if (((uint32_t)armv6m_systick_micros() - micros) > 1000000)
                 {
                     status = F_ERR_ONDRIVE;
                 }
@@ -1398,8 +1398,8 @@ static int stm32l0_sdspi_reset(stm32l0_sdspi_t *sdspi, uint32_t media)
             sdspi->shift = 0;
             sdspi->au_size = stm32l0_sdspi_au_size_table[stm32l0_sdspi_slice(sdspi->SSR, 512, 428, 4)];
             sdspi->erase_size = stm32l0_sdspi_slice(sdspi->SSR, 512, 408, 16);
-            sdspi->erase_timeout = stm32l0_sdspi_slice(sdspi->SSR, 512, 402, 6) * 1000;
-            sdspi->erase_offset = stm32l0_sdspi_slice(sdspi->SSR, 512, 400, 2) * 1000;
+            sdspi->erase_timeout = stm32l0_sdspi_slice(sdspi->SSR, 512, 402, 6) * 1000000;
+            sdspi->erase_offset = stm32l0_sdspi_slice(sdspi->SSR, 512, 400, 2) * 10000000;
 
             if (!sdspi->au_size || !sdspi->erase_size || !sdspi->erase_timeout)
             {
@@ -1434,8 +1434,7 @@ static int stm32l0_sdspi_lock(stm32l0_sdspi_t *sdspi, int state, uint32_t addres
     if (status == F_NO_ERROR)
 #endif /* DOSFS_PORT_SDCARD_LOCK */
     {
-        stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
-        stm32l0_system_lock(STM32L0_SYSTEM_LOCK_CLOCKS);
+        stm32l0_system_lock(STM32L0_SYSTEM_LOCK_RUN);
 
         if (sdspi->state == STM32L0_SDSPI_STATE_INIT)
         {
@@ -1524,8 +1523,7 @@ static int stm32l0_sdspi_unlock(stm32l0_sdspi_t *sdspi, int status)
         }
     }
 
-    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_CLOCKS);
-    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
+    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_RUN);
 
 #if defined(DOSFS_PORT_SDCARD_UNLOCK)
     DOSFS_PORT_SDCARD_UNLOCK();
@@ -1636,19 +1634,19 @@ static int stm32l0_sdspi_erase(void *context, uint32_t address, uint32_t length)
 
         timeout = ((sdspi->erase_timeout * (au_end - au_start)) / sdspi->erase_size) + sdspi->erase_offset;
 
-        if (timeout < 1000)
+        if (timeout < 1000000)
         {
-            timeout = 1000;
+            timeout = 1000000;
         }
 
         if (address != (au_start * sdspi->au_size))
         {
-            timeout += 250;
+            timeout += 250000;
         }
 
         if ((address + length) != (au_end * sdspi->au_size))
         {
-            timeout += 250;
+            timeout += 250000;
         }
         
         status = stm32l0_sdspi_lock(sdspi, STM32L0_SDSPI_STATE_READY, 0);
