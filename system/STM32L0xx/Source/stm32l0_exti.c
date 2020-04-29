@@ -387,7 +387,7 @@ void SPI1_IRQHandler(void)
 
     armv6m_atomic_andh(&stm32l0_exti_device.pending, ~mask);
 
-    for (bit = 0x0010, index = 4; index < 16; bit <<= 1, index++)
+    for (bit = 0x0001, index = 0; index < 16; bit <<= 1, index++)
     {
         if (mask & bit)
         {
@@ -406,7 +406,7 @@ void SPI2_IRQHandler(void)
 
     armv6m_atomic_andh(&stm32l0_exti_device.pending, ~mask);
 
-    for (bit = 0x0010, index = 4; index < 16; bit <<= 1, index++)
+    for (bit = 0x0001, index = 0; index < 16; bit <<= 1, index++)
     {
         if (mask & bit)
         {
@@ -423,7 +423,7 @@ void SWI_EXTI_IRQHandler(void)
 
     armv6m_atomic_andh(&stm32l0_exti_device.pending, ~mask);
 
-    for (bit = 0x0010, index = 4; index < 16; bit <<= 1, index++)
+    for (bit = 0x0001, index = 0; index < 16; bit <<= 1, index++)
     {
         if (mask & bit)
         {
