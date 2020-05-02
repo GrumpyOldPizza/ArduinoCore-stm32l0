@@ -212,7 +212,6 @@ void __attribute__((naked)) PendSV_Handler(void)
         "    mrs      r2, PSP                                \n"
         "    bcs      1f                                     \n"
         "    mov      r2, sp                                 \n"
-        "    msr      PSP, r2                                \n" // Save MSP into PSP
         "1:  push     { r2, r3 }                             \n"
         "    ldr      r1, =armv6m_pendsv_control             \n"
         "    ldr      r0, [r1, %[offset_SWI_PENDING]]        \n"

@@ -105,6 +105,7 @@ public:
     void disableAlarm();
 
     void attachInterrupt(void(*callback)(void));
+    void attachInterruptWakeup(void(*callback)(void));
     void detachInterrupt();
 
     int32_t getTzOffset();

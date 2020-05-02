@@ -36,7 +36,11 @@ extern void serialEvent1() __attribute__((weak));
 
 bool Serial1_available() { return Serial1.available(); }
 
+#if defined(USBCON)
+extern stm32l0_uart_t g_Serial1;
+#else
 static stm32l0_uart_t g_Serial1;
+#endif
 extern const stm32l0_uart_params_t g_Serial1Params;
 
 Uart Serial1(&g_Serial1, &g_Serial1Params, (serialEvent1 ? serialEventRun : NULL));

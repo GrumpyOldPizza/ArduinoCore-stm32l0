@@ -3045,6 +3045,8 @@ void LoRaWANClass::__McpsConfirm( McpsConfirm_t *mcpsConfirm )
 		if (LoRaWAN._Band->DutyCycle) {
 		    LoRaMacTestSetDutyCycleOn(LoRaWAN._DutyCycle);
 		}
+
+		stm32l0_system_wakeup();
 	    }
 	}
 	else
@@ -3191,6 +3193,8 @@ void LoRaWANClass::__McpsIndication( McpsIndication_t *mcpsIndication )
 			if (LoRaWAN._Band->DutyCycle) {
 			    LoRaMacTestSetDutyCycleOn(LoRaWAN._DutyCycle);
 			}
+
+			stm32l0_system_wakeup();
 			break;
 
 		    case 1: // (iii, iv)

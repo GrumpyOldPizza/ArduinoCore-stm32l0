@@ -67,19 +67,7 @@
   * @{
   */ 
 
-static armv6m_event_t USBD_MSC_Event;
-
-void USBD_MSC_Notify(uint8_t lun, int acquire)
-{
-    if (acquire)
-    {
-	armv6m_event_lock(&USBD_MSC_Event);
-    }
-    else
-    {
-	armv6m_event_unlock(&USBD_MSC_Event);
-    }
-}
+static void USBD_MSC_Callback(void *context);
 
 #define USBD_MSC_BOT_EVENT_DATA_IN           0x00000001
 #define USBD_MSC_BOT_EVENT_DATA_OUT          0x00000002
@@ -87,14 +75,35 @@ void USBD_MSC_Notify(uint8_t lun, int acquire)
 #define USBD_MSC_BOT_EVENT_CLEAR_FEATURE_OUT 0x00000008
 #define USBD_MSC_BOT_EVENT_RESET             0x00000010
 
-static volatile uint32_t USBD_MSC_Pending = 0;
+static volatile uint32_t USBD_MSC_Events = 0;
+static volatile uint32_t USBD_MSC_Lock = 0;
+
+static armv6m_work_t USBD_MSC_Work;
+
+void USBD_MSC_Notify(uint8_t lun, int acquire)
+{
+    if (acquire)
+    {
+	armv6m_atomic_add(&USBD_MSC_Lock, 1);
+    }
+    else
+    {
+	if (armv6m_atomic_sub(&USBD_MSC_Lock, 1) == 1)
+	{
+	    if (USBD_MSC_Events)
+	    {
+		armv6m_work_submit(&USBD_MSC_Work);
+	    }
+	}
+    }
+}
 
 static void USBD_MSC_Callback(void *context)
 {
     uint32_t events;
     USBD_HandleTypeDef *pdev = (USBD_HandleTypeDef *)context;
 
-    events = armv6m_atomic_swap(&USBD_MSC_Pending, 0);
+    events = armv6m_atomic_swap(&USBD_MSC_Events, 0);
   
     if (events & USBD_MSC_BOT_EVENT_DATA_IN)
     {
@@ -124,15 +133,12 @@ static void USBD_MSC_Callback(void *context)
 
 static void USBD_MSC_Enqueue(uint32_t events)
 {
-    if (USBD_MSC_Pending)
+    if (armv6m_atomic_or(&USBD_MSC_Events, events) == 0)
     {
-	USBD_MSC_Pending |= events;
-    }
-    else
-    {
-	USBD_MSC_Pending = events;
-
-	armv6m_event_enqueue(&USBD_MSC_Event);
+	if (USBD_MSC_Lock == 0)
+	{
+	    armv6m_work_submit(&USBD_MSC_Work);
+	}
     }
 }
 
@@ -220,7 +226,7 @@ uint8_t  USBD_MSC_Init (USBD_HandleTypeDef *pdev,
     ret = 0;
   }
 
-  armv6m_event_create(&USBD_MSC_Event, USBD_MSC_Callback, pdev, 8);
+  armv6m_work_create(&USBD_MSC_Work, USBD_MSC_Callback, pdev);
 
   return ret;
 }

@@ -39,9 +39,9 @@
 
 #include "armv6m_atomic.h"
 #include "armv6m_core.h"
-#include "armv6m_event.h"
 #include "armv6m_pendsv.h"
 #include "armv6m_svcall.h"
 #include "armv6m_systick.h"
+#include "armv6m_work.h"
 
 #endif /* _ARMV6M_H */

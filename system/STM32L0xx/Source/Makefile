@@ -71,10 +71,10 @@ SRCS = \
 	./USB/usbd_desc.c \
 	armv6m_atomic.c \
 	armv6m_core.c \
-	armv6m_event.c \
 	armv6m_pendsv.c \
 	armv6m_svcall.c \
 	armv6m_systick.c \
+	armv6m_work.c \
 	dosfs_core.c \
 	dosfs_device.c \
 	dosfs_sflash.c \

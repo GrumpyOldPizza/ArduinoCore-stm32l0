@@ -543,8 +543,19 @@ void RTCClass::attachInterrupt(void(*callback)(void))
     SyncAlarm();
 }
 
+void RTCClass::attachInterruptWakeup(void(*callback)(void))
+{
+    armv6m_atomic_or(&g_wakeupControl, STM32L0_SYSTEM_CONTROL_RTC_ALARM);
+
+    _alarm_callback = callback;
+
+    SyncAlarm();
+}
+
 void RTCClass::detachInterrupt()
 {
+    armv6m_atomic_and(&g_wakeupControl, ~STM32L0_SYSTEM_CONTROL_RTC_ALARM);
+  
     _alarm_callback = NULL; 
 
     SyncAlarm();
@@ -680,11 +691,12 @@ void RTCClass::SyncAlarm()
 
 void RTCClass::_alarmCallback()
 {
-
     if (_alarm_match == MATCH_YYMMDDHHMMSS) {
         // Once, on a specific date and a specific time
         _alarm_match = MATCH_OFF;
     }
+
+    stm32l0_system_wakeup();
 
     if (_alarm_callback) {
         (*_alarm_callback)();

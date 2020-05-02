@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2016-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -58,9 +58,6 @@ CDC::CDC(struct _stm32l0_usbd_cdc_t *usbd_cdc, void (*serialEventRun)(void))
     _tx_write = 0;
     _tx_count = 0;
     _tx_size = 0;
-
-    _tx_data2 = NULL;
-    _tx_size2 = 0;
 
     if (serialEventRun) {
 	g_serialEventRun = serialEventRun;
@@ -121,10 +118,6 @@ int CDC::availableForWrite(void)
 	return 0;
     }
 
-    if (_tx_size2 != 0) {
-	return 0;
-    }
-
     return CDC_TX_BUFFER_SIZE - _tx_count;
 }
 
@@ -182,16 +175,6 @@ size_t CDC::write(const uint8_t *buffer, size_t size)
 	return 0;
     }
 
-    if (_tx_size2 != 0) {
-	if (_nonblocking || (__get_IPSR() != 0)) {
-	    return 0;
-	}
-	
-	while (_tx_size2 != 0) {
-	    armv6m_core_wait();
-	}
-    }
-      
     count = 0;
 
     while (count < size) {
@@ -278,49 +261,6 @@ size_t CDC::write(const uint8_t *buffer, size_t size)
     }
 
     return count;
-}
-
-bool CDC::write(const uint8_t *buffer, size_t size, void(*callback)(void))
-{
-    return write(buffer, size, Callback(callback));
-}
-
-bool CDC::write(const uint8_t *buffer, size_t size, Callback callback)
-{
-    if (!_enabled) {
-	return false;
-    }
-
-    if (size == 0) {
-	return false;
-    }
-
-    if (_tx_size2 != 0) {
-	return false;
-    }
-
-    _completionCallback = callback;
-
-    _tx_data2 = buffer;
-    _tx_size2 = size;
-
-    if (!_tx_busy) {
-
-	_tx_busy = true;
-
-	if (!stm32l0_usbd_cdc_transmit(_usbd_cdc, _tx_data2, _tx_size2, (stm32l0_usbd_cdc_done_callback_t)CDC::_doneCallback, (void*)this)) {
-	    _tx_busy = false;
-
-	    _completionCallback = Callback();
-
-	    _tx_data2 = NULL;
-	    _tx_size2 = 0;
-
-	    return false;
-	}
-    }
-
-    return true;
 }
 
 void CDC::setNonBlocking(bool enabled)
@@ -416,36 +356,8 @@ void CDC::_doneCallback(class CDC *self)
 		self->_tx_size = 0;
 		self->_tx_count = 0;
 		self->_tx_read = self->_tx_write;
-
-		if (self->_tx_size2 != 0) {
-		    self->_tx_size2 = 0;
-		    self->_tx_data2 = NULL;
-		    
-                    self->_completionCallback.queue();
-		    self->_completionCallback = Callback();
-		}
-	    }
-	} else {
-	    if (self->_tx_size2 != 0) {
-		self->_tx_busy = true;
-
-		if (!stm32l0_usbd_cdc_transmit(self->_usbd_cdc, self->_tx_data2, self->_tx_size2, (stm32l0_usbd_cdc_done_callback_t)CDC::_doneCallback, (void*)self)) {
-		    self->_tx_busy = false;
-
-		    self->_tx_size2 = 0;
-		    self->_tx_data2 = NULL;
-		    
-                    self->_completionCallback.queue();
-		    self->_completionCallback = Callback();
-		}
 	    }
 	}
-    } else {
-	self->_tx_size2 = 0;
-	self->_tx_data2 = NULL;
-	
-	self->_completionCallback.queue();
-	self->_completionCallback = Callback();
     }
 }
 

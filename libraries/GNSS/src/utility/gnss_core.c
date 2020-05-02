@@ -172,8 +172,7 @@ typedef struct _nmea_context_t {
 #define UBX_MESSAGE_MASK_NAV_DOP                      0x00010000
 #define UBX_MESSAGE_MASK_NAV_PVT                      0x00040000
 #define UBX_MESSAGE_MASK_NAV_SAT                      0x00080000
-#define UBX_MESSAGE_MASK_NAV_SVINFO                   0x00100000
-#define UBX_MESSAGE_MASK_NAV_TIMEGPS                  0x00200000
+#define UBX_MESSAGE_MASK_NAV_TIMEGPS                  0x00100000
 #define UBX_MESSAGE_MASK_SOLUTION                     0x00008000
 
 typedef struct _ubx_context_t {
@@ -184,7 +183,9 @@ typedef struct _ubx_context_t {
     uint16_t            week;
     uint32_t            tow;
     uint32_t            itow;
-    uint8_t             generation;
+    uint8_t             protocol[2];
+    uint8_t             firmware[24];
+    uint32_t            llc[5];
     struct {
         uint8_t         supported;
         uint8_t         enabled;
@@ -264,50 +265,6 @@ static void ubx_timeout(void);
 static void ubx_sleep(void);
 static void ubx_wakeup(gnss_device_t *device);
 static void ubx_configure(gnss_device_t *device, unsigned int response, uint32_t command);
-
-/************************************************************************************/
-
-static const uint16_t utc_days_since_month[2][12] = {
-    {   0,  31,  59,  90, 120, 151, 181, 212, 243, 273, 304, 334, },
-    {   0,  31,  60,  91, 121, 152, 182, 213, 244, 274, 305, 335, },
-};
-
-static int utc_diff_time(const utc_time_t *t0, uint32_t offset0, const utc_time_t *t1, uint32_t offset1)
-{
-    /* The difference between t0 and t1 in seconds.
-     */
-  return (((((((((t0->year * 365 + (1 + ((t0->year -1) / 4))) +
-                 utc_days_since_month[(t0->year & 3) == 0][t0->month -1] +
-                 (t0->day -1)) -
-                ((t1->year * 365 + (1 + ((t1->year -1) / 4))) +
-                   utc_days_since_month[(t1->year & 3) == 0][t1->month -1] +
-                 (t1->day -1))) * 24) +
-              t0->hours -
-              t1->hours) * 60) +
-            t0->minutes -
-            t1->minutes) * 60) +
-          (t0->seconds + offset0) -
-          (t1->seconds + offset1));
-}
-
-/* utc_offset_time:
- *
- * Compute the UTC offset (or GPS leap second) by computing the elapsed UTC seconds
- * since 01/06/1980, and subtract that from week/tow (which is ahead by said 
- * leap seconds).
- */
-
-static int utc_offset_time(const utc_time_t *time, uint16_t week, uint32_t tow)
-{
-    return ((((uint32_t)week * 604800) + ((tow + 500) / 1000)) -
-            ((((((((time->year * 365 + (1 + ((time->year -1) / 4))) +
-                   utc_days_since_month[(time->year & 3) == 0][time->month -1] +
-                   (time->day -1)) -
-                  (6 -1) * 24) +
-                 time->hours) * 60) +
-               time->minutes) * 60) +
-             time->seconds));
-}
 
 /************************************************************************************/
 
@@ -754,7 +711,7 @@ static void nmea_start_sentence(gnss_device_t *device)
     context->sequence = NMEA_FIELD_SEQUENCE_START;
 }
 
-static void nmea_parse_sentence(gnss_device_t *device, const uint8_t *data, unsigned int length)
+static void nmea_parse_sentence(gnss_device_t *device, const uint8_t *data)
 {
     nmea_context_t *context = &device->nmea;
     uint32_t sequence, sequence_next;
@@ -1703,18 +1660,8 @@ static inline uint32_t ubx_data_uint32(const uint8_t *data, unsigned int offset)
     return *((const uint32_t*)((const void*)(&data[offset])));
 }
 
-static void ubx_start_message(gnss_device_t *device, unsigned int message, unsigned int length)
+static void ubx_start_message(gnss_device_t *device, unsigned int message)
 {
-    if (message == 0x0130)
-    {
-        /* UBX-NAV-SVINFO */
-            
-        device->rx_chunk = 20;
-        device->satellites.count = 0;
-        
-        device->seen &= ~UBX_MESSAGE_MASK_NAV_SVINFO;
-    }
-
     if (message == 0x0135)
     {
         /* UBX-NAV-SAT */
@@ -1724,85 +1671,20 @@ static void ubx_start_message(gnss_device_t *device, unsigned int message, unsig
         
         device->seen &= ~UBX_MESSAGE_MASK_NAV_SAT;
     }
+
+    if (message == 0x0a04)
+    {
+        /* UBX-MON-VER */
+            
+        device->rx_chunk = 40;
+
+	stm32l0_lptim_timeout_stop(&device->ubx.timeout);
+    }
 }
 
-static void ubx_parse_message(gnss_device_t *device, unsigned int message, uint8_t *data, unsigned int count)
+static void ubx_parse_message(gnss_device_t *device, unsigned int message, uint8_t *data)
 {
     unsigned int gnss, svid;
-
-    if (message == 0x0130)
-    {
-        /* UBX-NAV-SVINFO */
-
-        svid = ubx_data_uint8(data, 9);
-
-        if (svid && (device->satellites.count < GNSS_SATELLITES_COUNT_MAX))
-        {
-            device->satellites.info[device->satellites.count].svid = svid;
-
-            if (ubx_data_int8(data, 13) > 0)
-            {
-                device->satellites.info[device->satellites.count].elevation = ubx_data_int8(data, 13);
-                device->satellites.info[device->satellites.count].azimuth = ubx_data_int16(data, 14);
-            }
-            else
-            {
-                device->satellites.info[device->satellites.count].elevation = 0;
-                device->satellites.info[device->satellites.count].azimuth = 0;
-            }
-
-            device->satellites.info[device->satellites.count].snr = ubx_data_uint8(data, 12);
-
-            if (ubx_data_uint8(data, 10) & 0x10)
-            {
-                device->satellites.info[device->satellites.count].state = GNSS_SATELLITES_STATE_UNHEALTHY;
-            }
-            else
-            {
-                device->satellites.info[device->satellites.count].state = 0;
-
-                if ((ubx_data_uint8(data, 10) & 0x0c) == 0x0c)
-                {
-                    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_EPHEMERIS;
-                }
-
-                if (ubx_data_uint8(data, 10) & 0x02)
-                {
-                    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_CORRECTION;
-                }
-
-                switch (ubx_data_uint8(data, 11) & 0x0f) {
-                case 0x00: /* NO SIGNAL */
-                case 0x01: /* SEARCHING */ 
-                    break;
-                case 0x02: /* SIGNAL ACQUIRED */
-                case 0x03: /* SIGNAL ACQUIRED, BUT UNUSABLE */
-                    device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_ACQUIRED;
-                    break;
-                    
-                case 0x04: /* SIGNAL ACQUIRED, CODE LOCKED */
-                case 0x05: /* SIGNAL ACQUIRED, CODE LOCKED, CARRIER LOCKED */
-                case 0x06: /* SIGNAL ACQUIRED, CODE LOCKED, CARRIER LOCKED */
-                case 0x07: /* SIGNAL ACQUIRED, CODE LOCKED, CARRIER LOCKED */
-                    device->satellites.info[device->satellites.count].state |= (GNSS_SATELLITES_STATE_ACQUIRED | GNSS_SATELLITES_STATE_LOCKED);
-
-                    if (ubx_data_uint8(data, 10) & 0x01)
-                    {
-                        device->satellites.info[device->satellites.count].state |= GNSS_SATELLITES_STATE_NAVIGATING;
-                    }
-                    break;
-                    
-                default:
-                    break;
-                }
-            }
-
-            device->satellites.count++;
-        }
-        
-        device->rx_offset += 12;
-        device->rx_chunk += 12;
-    }
 
     if (message == 0x0135)
     {
@@ -1923,9 +1805,38 @@ static void ubx_parse_message(gnss_device_t *device, unsigned int message, uint8
         device->rx_offset += 12;
         device->rx_chunk += 12;
     }
+
+    if (message == 0x0a04)
+    {
+        /* UBX-MON-VER */
+
+	// printf("STRING \"%s\"\n\r", data);
+
+	if (!strncmp((const char*)data, "PROTVER=", 8))
+	{
+	    device->ubx.protocol[0] = (data[8] - 0x30) * 10 + (data[9] - 0x30);
+	    device->ubx.protocol[1] = (data[11] - 0x30) * 10 + (data[12] - 0x30);
+	}
+
+	if (!strncmp((const char*)data, "FWVER=", 6))
+	{
+	    memcpy(&device->ubx.firmware[0], &data[6], 24);
+	}
+	
+	if (device->rx_offset == 0)
+	{
+	    device->rx_offset += 40;
+	    device->rx_chunk += 30;
+	}
+	else
+	{
+	    device->rx_offset += 30;
+	    device->rx_chunk += 30;
+	}
+    }
 }
 
-static void ubx_end_message(gnss_device_t *device, unsigned int message, uint8_t *data, unsigned int count)
+static void ubx_end_message(gnss_device_t *device, unsigned int message, uint8_t *data)
 {
     ubx_context_t *context = &device->ubx;
     unsigned int expected;
@@ -1938,7 +1849,7 @@ static void ubx_end_message(gnss_device_t *device, unsigned int message, uint8_t
     {
         if (device->seen & (UBX_MESSAGE_MASK_NAV_DOP |
                             UBX_MESSAGE_MASK_NAV_PVT |
-                            UBX_MESSAGE_MASK_NAV_SVINFO |
+                            UBX_MESSAGE_MASK_NAV_SAT |
                             UBX_MESSAGE_MASK_NAV_TIMEGPS |
                             UBX_MESSAGE_MASK_SOLUTION))
         {
@@ -2126,23 +2037,6 @@ static void ubx_end_message(gnss_device_t *device, unsigned int message, uint8_t
             device->seen &= ~UBX_MESSAGE_MASK_SOLUTION;
             break;
 
-        case 0x30:
-            /* UBX-NAV-SVINFO */
-
-            device->ubx.generation = ubx_data_uint8(data, 5) & 7;
-
-            if (message == device->command)
-            {
-                device->command = ~0l;
-                
-                ubx_configure(device, GNSS_RESPONSE_ACK, message);
-            }
-            else
-            {
-                device->seen |= UBX_MESSAGE_MASK_NAV_SVINFO;
-            }
-            break;
-
         case 0x35:
             /* UBX-NAV-SAT */
 
@@ -2184,6 +2078,37 @@ static void ubx_end_message(gnss_device_t *device, unsigned int message, uint8_t
         }
     }
 
+    else if (message == 0x0a04)
+    {
+        // printf("RESPONSE %04x\r\n", message);
+	
+        if (message == device->command)
+        {
+            device->command = ~0l;
+            
+            ubx_configure(device, GNSS_RESPONSE_ACK, message);
+        }
+    }
+    
+    else if (message == 0x0a0d)
+    {
+        // printf("RESPONSE %04x\r\n", message);
+
+        /* UBX-NON-LLC */
+	device->ubx.llc[0] = ubx_data_uint32(data, 0);
+	device->ubx.llc[1] = ubx_data_uint32(data, 4);
+	device->ubx.llc[2] = ubx_data_uint32(data, 8);
+	device->ubx.llc[3] = ubx_data_uint32(data, 16);
+	device->ubx.llc[4] = ubx_data_uint32(data, 20);
+	
+        if (message == device->command)
+        {
+            device->command = ~0l;
+            
+            ubx_configure(device, GNSS_RESPONSE_ACK, message);
+        }
+    }
+    
     else if (message == 0x0a28)
     {
         // printf("RESPONSE %04x\r\n", message);
@@ -2209,16 +2134,6 @@ static void ubx_end_message(gnss_device_t *device, unsigned int message, uint8_t
         
         if (expected && ((device->seen & expected) == expected))
         {
-            if (context->week && device->location.time.year)
-            {
-                if (!(device->seen & UBX_MESSAGE_MASK_NAV_TIMEGPS))
-                {
-                    device->location.correction = utc_offset_time(&device->location.time, context->week, context->tow);
-
-                    device->location.mask |= (GNSS_LOCATION_MASK_TIME | GNSS_LOCATION_MASK_CORRECTION);
-                }
-            }
-
             gnss_location(device);
             
             device->seen &= ~(UBX_MESSAGE_MASK_NAV_DOP |
@@ -2228,13 +2143,13 @@ static void ubx_end_message(gnss_device_t *device, unsigned int message, uint8_t
             device->seen |= UBX_MESSAGE_MASK_SOLUTION;
         }
         
-        expected = device->expected & (UBX_MESSAGE_MASK_NAV_SAT | UBX_MESSAGE_MASK_NAV_SVINFO);
+        expected = device->expected & (UBX_MESSAGE_MASK_NAV_SAT);
         
         if ((device->seen & UBX_MESSAGE_MASK_SOLUTION) && expected && ((device->seen & expected) == expected))
         {
             gnss_satellites(device);
             
-            device->seen &= ~(UBX_MESSAGE_MASK_NAV_SAT | UBX_MESSAGE_MASK_NAV_SVINFO);
+            device->seen &= ~(UBX_MESSAGE_MASK_NAV_SAT);
         }
     }
 }
@@ -2327,51 +2242,6 @@ static const uint8_t ubx_cfg_msg_nav_sat_10hz[] = {
     0x00,                                           /* RATE SPI                  */
     0x00,                                           /*                           */
     0x4f, 0x50,                                     /* CK_A, CK_B                */
-};
-
-static const uint8_t ubx_cfg_msg_nav_svinfo_1hz[] = {
-    0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
-    0x06, 0x01,                                     /* CLASS, ID                 */
-    0x08, 0x00,                                     /* LENGTH                    */
-    0x01,                                           /* CLASS                     */
-    0x30,                                           /* ID                        */
-    0x00,                                           /* RATE DDC                  */
-    0x01,                                           /* RATE UART1                */
-    0x00,                                           /* RATE UART2                */
-    0x00,                                           /* RATE USB                  */
-    0x00,                                           /* RATE SPI                  */
-    0x00,                                           /*                           */
-    0x41, 0x00,                                     /* CK_A, CK_B                */
-};
-
-static const uint8_t ubx_cfg_msg_nav_svinfo_5hz[] = {
-    0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
-    0x06, 0x01,                                     /* CLASS, ID                 */
-    0x08, 0x00,                                     /* LENGTH                    */
-    0x01,                                           /* CLASS                     */
-    0x30,                                           /* ID                        */
-    0x00,                                           /* RATE DDC                  */
-    0x05,                                           /* RATE UART1                */
-    0x00,                                           /* RATE UART2                */
-    0x00,                                           /* RATE USB                  */
-    0x00,                                           /* RATE SPI                  */
-    0x00,                                           /*                           */
-    0x45, 0x14,                                     /* CK_A, CK_B                */
-};
-
-static const uint8_t ubx_cfg_msg_nav_svinfo_10hz[] = {
-    0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
-    0x06, 0x01,                                     /* CLASS, ID                 */
-    0x08, 0x00,                                     /* LENGTH                    */
-    0x01,                                           /* CLASS                     */
-    0x30,                                           /* ID                        */
-    0x00,                                           /* RATE DDC                  */
-    0x0a,                                           /* RATE UART1                */
-    0x00,                                           /* RATE UART2                */
-    0x00,                                           /* RATE USB                  */
-    0x00,                                           /* RATE SPI                  */
-    0x00,                                           /*                           */
-    0x4a, 0x2d,                                     /* CK_A, CK_B                */
 };
 
 static const uint8_t ubx_cfg_msg_nmea_gga[] = {
@@ -2745,11 +2615,18 @@ static const uint8_t ubx_rxm_pmreq[] = {
     0x4d, 0x3b,                                     /* CK_A, CK_B                */
 };
 
-static const uint8_t ubx_nav_svinfo[] = {
+static const uint8_t ubx_mon_ver[] = {
     0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
-    0x01, 0x30,                                     /* CLASS, ID                 */
+    0x0a, 0x04,                                     /* CLASS, ID                 */
     0x00, 0x00,                                     /* LENGTH                    */
-    0x31, 0x94,                                     /* CK_A, CK_B                */
+    0x0e, 0x34,                                     /* CK_A, CK_B                */
+};
+
+static const uint8_t ubx_mon_llc[] = {
+    0xb5, 0x62,                                     /* SYNC_CHAR_1, SYNC_CHAR_2  */
+    0x0a, 0x0d,                                     /* CLASS, ID                 */
+    0x00, 0x00,                                     /* LENGTH                    */
+    0x17, 0x4f,                                     /* CK_A, CK_B                */
 };
 
 static const uint8_t ubx_mon_gnss[] = {
@@ -2773,69 +2650,13 @@ static const uint8_t * const ubx_init_table[] = {
     ubx_cfg_rxm_continuous,
     ubx_cfg_pm2,
     ubx_cfg_tp5,
-    ubx_nav_svinfo,
-    NULL,
-};
-
-static const uint8_t * const ubx_init_ublox7_1hz_table[] = {
-    ubx_cfg_msg_nav_pvt,
-    ubx_cfg_msg_nav_timegps,
-    ubx_cfg_msg_nav_dop,
-    ubx_cfg_msg_nav_svinfo_1hz,
-    ubx_cfg_msg_nmea_gga,
-    ubx_cfg_msg_nmea_gll,
-    ubx_cfg_msg_nmea_gsa,
-    ubx_cfg_msg_nmea_gsv,
-    ubx_cfg_msg_nmea_rmc,
-    ubx_cfg_msg_nmea_vtg,
-    ubx_cfg_rate_1hz,
-    ubx_cfg_gnss_sbas_enable,
-    ubx_cfg_sbas_auto,
-    ubx_cfg_gnss_qzss_disable,
-    ubx_cfg_save,
-    NULL,
-};
-
-static const uint8_t * const ubx_init_ublox7_5hz_table[] = {
-    ubx_cfg_msg_nav_pvt,
-    ubx_cfg_msg_nav_timegps,
-    ubx_cfg_msg_nav_dop,
-    ubx_cfg_msg_nav_svinfo_5hz,
-    ubx_cfg_msg_nmea_gga,
-    ubx_cfg_msg_nmea_gll,
-    ubx_cfg_msg_nmea_gsa,
-    ubx_cfg_msg_nmea_gsv,
-    ubx_cfg_msg_nmea_rmc,
-    ubx_cfg_msg_nmea_vtg,
-    ubx_cfg_rate_5hz,
-    ubx_cfg_gnss_sbas_enable,
-    ubx_cfg_sbas_auto,
-    ubx_cfg_gnss_qzss_disable,
-    ubx_cfg_save,
-    NULL,
-};
-
-static const uint8_t * const ubx_init_ublox7_10hz_table[] = {
-    ubx_cfg_msg_nav_pvt,
-    ubx_cfg_msg_nav_timegps,
-    ubx_cfg_msg_nav_dop,
-    ubx_cfg_msg_nav_svinfo_10hz,
-    ubx_cfg_msg_nmea_gga,
-    ubx_cfg_msg_nmea_gll,
-    ubx_cfg_msg_nmea_gsa,
-    ubx_cfg_msg_nmea_gsv,
-    ubx_cfg_msg_nmea_rmc,
-    ubx_cfg_msg_nmea_vtg,
-    ubx_cfg_rate_10hz,
-    ubx_cfg_gnss_sbas_enable,
-    ubx_cfg_sbas_auto,
-    ubx_cfg_gnss_qzss_disable,
-    ubx_cfg_save,
-    NULL,
-};
-
-static const uint8_t * const ubx_init_ublox8_1hz_table[] = {
+    ubx_mon_ver,
+    ubx_mon_llc,
     ubx_mon_gnss,
+    NULL,
+};
+
+static const uint8_t * const ubx_init_ublox_1hz_table[] = {
     ubx_cfg_msg_nav_pvt,
     ubx_cfg_msg_nav_timegps,
     ubx_cfg_msg_nav_dop,
@@ -2856,8 +2677,7 @@ static const uint8_t * const ubx_init_ublox8_1hz_table[] = {
     NULL,
 };
 
-static const uint8_t * const ubx_init_ublox8_5hz_table[] = {
-    ubx_mon_gnss,
+static const uint8_t * const ubx_init_ublox_5hz_table[] = {
     ubx_cfg_msg_nav_pvt,
     ubx_cfg_msg_nav_timegps,
     ubx_cfg_msg_nav_dop,
@@ -2878,8 +2698,7 @@ static const uint8_t * const ubx_init_ublox8_5hz_table[] = {
     NULL,
 };
 
-static const uint8_t * const ubx_init_ublox8_10hz_table[] = {
-    ubx_mon_gnss,
+static const uint8_t * const ubx_init_ublox_10hz_table[] = {
     ubx_cfg_msg_nav_pvt,
     ubx_cfg_msg_nav_timegps,
     ubx_cfg_msg_nav_dop,
@@ -2982,18 +2801,13 @@ static const uint8_t * const ubx_aop_disable_table[] = {
     NULL,
 };
 
-static const uint8_t * const ubx_gnss_stop_table[] = {
-    ubx_gnss_stop,
-    NULL,
-};
-
 static const uint8_t * const ubx_gnss_wakeup_table[] = {
     ubx_cfg_rxm_continuous,
     NULL,
 };
 
 
-static void ubx_checksum(gnss_device_t *device, uint8_t *data)
+static void ubx_checksum(uint8_t *data)
 {
     uint8_t ck_a, ck_b;
     unsigned int i, count;
@@ -3049,19 +2863,22 @@ static void ubx_table(gnss_device_t *device, const uint8_t * const * table)
     stm32l0_lptim_timeout_start(&device->ubx.timeout, stm32l0_lptim_millis_to_ticks(125), (stm32l0_lptim_callback_t)ubx_timeout); // 125ms
 }
 
-static void ubx_configure(gnss_device_t *device, unsigned int response, uint32_t command)
+static void ubx_configure(gnss_device_t *device, __attribute__((unused)) unsigned int response, uint32_t command)
 {
     const uint8_t *data = NULL;
 
     stm32l0_lptim_timeout_stop(&device->ubx.timeout);
 
+    // printf("CONFIGURE %04x\r\n", command);
+    
     if (device->table)
     {
         if (device->init == GNSS_INIT_UBX_BAUD_RATE)
         {
             device->init = GNSS_INIT_UBX_INIT_TABLE;
 
-            device->ubx.generation = 0;
+            device->ubx.protocol[0] = 0;
+            device->ubx.protocol[1] = 0;
             device->ubx.gnss.supported = 0;
             device->ubx.gnss.enabled = 0;
             device->ubx.gnss.simultaneous = 0;
@@ -3071,20 +2888,11 @@ static void ubx_configure(gnss_device_t *device, unsigned int response, uint32_t
         }
         else
         {
-            if (command == 0x0130)
+            if (command == 0x0a28)
             {
-                if (device->ubx.generation <= 3)
-                {
-                    if      (device->rate >= 10) { device->table = ubx_init_ublox7_10hz_table; }
-                    else if (device->rate >=  5) { device->table = ubx_init_ublox7_5hz_table;  }
-                    else                         { device->table = ubx_init_ublox7_1hz_table;  }
-                }
-                else
-                {
-                    if      (device->rate >= 10) { device->table = ubx_init_ublox8_10hz_table; }
-                    else if (device->rate >=  5) { device->table = ubx_init_ublox8_5hz_table;  }
-                    else                         { device->table = ubx_init_ublox8_1hz_table;  }
-                }
+		if      (device->rate >= 10) { device->table = ubx_init_ublox_10hz_table; }
+		else if (device->rate >=  5) { device->table = ubx_init_ublox_5hz_table;  }
+		else                         { device->table = ubx_init_ublox_1hz_table;  }
 
                 data = device->table[0];
                 device->table = device->table + 1;
@@ -3104,22 +2912,12 @@ static void ubx_configure(gnss_device_t *device, unsigned int response, uint32_t
                     {
                         device->init = GNSS_INIT_DONE;
                 
-                        if (device->ubx.gnss.simultaneous == 0)
-                        {
-                            device->expected = (UBX_MESSAGE_MASK_NAV_DOP |
-                                                UBX_MESSAGE_MASK_NAV_PVT |
-                                                UBX_MESSAGE_MASK_NAV_SVINFO |
-                                                UBX_MESSAGE_MASK_NAV_TIMEGPS);
-                        }
-                        else
-                        {
-                            device->ubx.gnss.enabled = GNSS_CONSTELLATION_GPS;
+			device->ubx.gnss.enabled = GNSS_CONSTELLATION_GPS;
 
-                            device->expected = (UBX_MESSAGE_MASK_NAV_DOP |
-                                                UBX_MESSAGE_MASK_NAV_PVT |
-                                                UBX_MESSAGE_MASK_NAV_SAT |
-                                                UBX_MESSAGE_MASK_NAV_TIMEGPS);
-                        }
+			device->expected = (UBX_MESSAGE_MASK_NAV_DOP |
+					    UBX_MESSAGE_MASK_NAV_PVT |
+					    UBX_MESSAGE_MASK_NAV_SAT |
+					    UBX_MESSAGE_MASK_NAV_TIMEGPS);
                         
                         device->seen = 0;
                         device->location.type = 0;
@@ -3156,55 +2954,52 @@ static void ubx_wakeup(gnss_device_t *device)
     uint32_t seconds, ticks, nanoseconds;
     stm32l0_rtc_tod_t tod;
 
-    if (device->ubx.generation >= 4)
+    if (device->pps_resolved)
     {
-        if (device->pps_resolved)
-        {
-	    stm32l0_rtc_time_read(&seconds, &ticks);
+	stm32l0_rtc_time_read(&seconds, &ticks);
 
-            stm32l0_rtc_time_to_tod(seconds - device->pps_correction, ticks, &tod);
+	stm32l0_rtc_time_to_tod(seconds + 432000 - device->pps_correction, ticks, &tod);
 
-            nanoseconds = (uint64_t)((uint32_t)ticks * (uint32_t)1000000000) / STM32L0_RTC_CLOCK_TICKS_PER_SECOND;
+	nanoseconds = (uint64_t)((uint32_t)ticks * (uint32_t)1000000000) / STM32L0_RTC_CLOCK_TICKS_PER_SECOND;
 
-            data = &device->tx_data[0];
+	data = &device->tx_data[0];
 
-            memset(&data[0], 0, sizeof(GNSS_TX_DATA_SIZE));
+	memset(&data[0], 0, sizeof(GNSS_TX_DATA_SIZE));
         
-            data[ 0] = 0xb5;
-            data[ 1] = 0x62;
-            data[ 2] = 0x13;
-            data[ 3] = 0x40;
-            data[ 4] = 0x18;
-            data[ 5] = 0x00;
-            data[ 6] = 0x10;
-            data[ 7] = 0x00;
-            data[ 8] = 0x00;
-            data[ 9] = device->pps_correction;
-            data[10] = (1980 + tod.year) >> 0;
-            data[11] = (1980 + tod.year) >> 8;
-            data[12] = tod.month;
-            data[13] = tod.day;
-            data[14] = tod.hours;
-            data[15] = tod.minutes;
-            data[16] = tod.seconds;
-            data[17] = 0;
-            data[18] = nanoseconds >> 0;
-            data[19] = nanoseconds >> 8;
-            data[20] = nanoseconds >> 16;
-            data[21] = nanoseconds >> 24;
-            data[22] = 0;
-            data[23] = 0;
-            data[24] = 0;
-            data[25] = 0;
-            data[26] = 0;
-            data[27] = 0;
-            data[28] = 0;
-            data[29] = 0;
+	data[ 0] = 0xb5;
+	data[ 1] = 0x62;
+	data[ 2] = 0x13;
+	data[ 3] = 0x40;
+	data[ 4] = 0x18;
+	data[ 5] = 0x00;
+	data[ 6] = 0x10;
+	data[ 7] = 0x00;
+	data[ 8] = 0x00;
+	data[ 9] = device->pps_correction;
+	data[10] = (1980 + tod.year) >> 0;
+	data[11] = (1980 + tod.year) >> 8;
+	data[12] = tod.month;
+	data[13] = tod.day;
+	data[14] = tod.hours;
+	data[15] = tod.minutes;
+	data[16] = tod.seconds;
+	data[17] = 0;
+	data[18] = nanoseconds >> 0;
+	data[19] = nanoseconds >> 8;
+	data[20] = nanoseconds >> 16;
+	data[21] = nanoseconds >> 24;
+	data[22] = 0;
+	data[23] = 0;
+	data[24] = 0;
+	data[25] = 0;
+	data[26] = 0;
+	data[27] = 0;
+	data[28] = 0;
+	data[29] = 0;
                 
-            ubx_checksum(device, data);
+	ubx_checksum(data);
 
-            ubx_send(device, data);
-        }
+	ubx_send(device, data);
     }
 }
 
@@ -3299,7 +3094,7 @@ void gnss_receive(const uint8_t *data, uint32_t count)
                 {
                     device->rx_data[device->rx_count] = '\0';
 
-                    nmea_parse_sentence(device, &device->rx_data[0], device->rx_count);
+                    nmea_parse_sentence(device, &device->rx_data[0]);
 
                     device->state = GNSS_STATE_NMEA_CHECKSUM_1;
                 }
@@ -3319,7 +3114,7 @@ void gnss_receive(const uint8_t *data, uint32_t count)
                         {
                             device->rx_data[device->rx_count] = '\0';
                             
-                            nmea_parse_sentence(device, &device->rx_data[0], device->rx_count);
+                            nmea_parse_sentence(device, &device->rx_data[0]);
 
                             device->rx_count = 0;
                         }
@@ -3436,7 +3231,7 @@ void gnss_receive(const uint8_t *data, uint32_t count)
                 device->rx_chunk = ~0l;
                 device->ubx.length |= (c << 8);
 
-                ubx_start_message(device, device->ubx.message, device->ubx.length);
+                ubx_start_message(device, device->ubx.message);
 
                 if (device->rx_count == device->ubx.length)
                 {
@@ -3461,7 +3256,7 @@ void gnss_receive(const uint8_t *data, uint32_t count)
                 
                 if (device->rx_count == device->rx_chunk)
                 {
-                    ubx_parse_message(device, device->ubx.message, &device->rx_data[0], device->rx_count);
+                    ubx_parse_message(device, device->ubx.message, &device->rx_data[0]);
                 }
 
                 if (device->rx_count == device->ubx.length)
@@ -3490,7 +3285,7 @@ void gnss_receive(const uint8_t *data, uint32_t count)
 
                     if ((device->rx_count - device->rx_offset) <= GNSS_RX_DATA_SIZE)
                     {
-                        ubx_end_message(device, device->ubx.message, &device->rx_data[0], device->rx_count);
+                        ubx_end_message(device, device->ubx.message, &device->rx_data[0]);
                     }
                 }
 
@@ -3661,7 +3456,7 @@ bool gnss_set_pps(unsigned int width)
         data[36] = 0x00;
         data[37] = 0x00;
         
-        ubx_checksum(device, data);
+        ubx_checksum(data);
 
         table[0] = ubx_cfg_rxm_continuous;
         table[1] = ubx_cfg_pm2;
@@ -3756,9 +3551,7 @@ bool gnss_set_autonomous(bool enable)
     case GNSS_MODE_NMEA:
         break;
     case GNSS_MODE_UBLOX:
-        if (device->ubx.generation >= 4) {
-            ubx_table(device, (enable ? ubx_aop_enable_table :  ubx_aop_disable_table));
-        }
+	ubx_table(device, (enable ? ubx_aop_enable_table :  ubx_aop_disable_table));
         break;
     }
 
@@ -3810,7 +3603,7 @@ bool gnss_set_platform(unsigned int platform)
         data[ 7] = 0x00;
         data[ 8] = ubx_platform_table[platform];
         
-        ubx_checksum(device, data);
+        ubx_checksum(data);
 
         table[0] = ubx_cfg_rxm_continuous;
         table[1] = ubx_cfg_pm2;
@@ -3897,7 +3690,7 @@ bool gnss_set_periodic(unsigned int acqTime, unsigned int onTime, unsigned int p
         data[28] = minAcqTime >> 0;
         data[29] = minAcqTime >> 8;
         
-        ubx_checksum(device, data);
+        ubx_checksum(data);
 
         table[0] = ubx_cfg_rxm_continuous;
         table[1] = &data[0];
@@ -3985,4 +3778,36 @@ bool gnss_busy(void)
     }
 
     return false;
+}
+
+bool gnss_info(uint8_t *p_protocol, uint8_t *p_firmware, uint32_t *p_llc)
+{
+    gnss_device_t *device = &gnss_device;
+
+    if (gnss_busy())
+    {
+        return false;
+    }
+
+    if (device->mode != GNSS_MODE_UBLOX) {
+	return false;
+    }
+
+    if (p_protocol)
+    {
+	p_protocol[0] = device->ubx.protocol[0];
+	p_protocol[1] = device->ubx.protocol[1];
+    }
+
+    if (p_firmware)
+    {
+	memcpy(p_firmware, &device->ubx.firmware[0], sizeof(device->ubx.firmware[0]));
+    }
+    
+    if (p_llc)
+    {
+	memcpy((uint8_t*)p_llc, (uint8_t*)&device->ubx.llc[0], sizeof(device->ubx.llc[0]));
+    }
+
+    return true;
 }

@@ -55,6 +55,8 @@ typedef struct _stm32l0_rtc_device_t {
     volatile uint32_t                      ticks_offset;
     volatile int8_t                        utc_offset;
     volatile uint8_t                       status;
+    volatile uint8_t                       tamp1_wakeup; 
+    volatile uint8_t                       tamp2_wakeup; 
     volatile stm32l0_rtc_alarm_routine_t   alarm_routine;
     uint64_t                               alarm_clock;
     stm32l0_rtc_alarm_t                    alarm_current;
@@ -698,7 +700,7 @@ int32_t stm32l0_rtc_utc_to_utc_offset(uint32_t seconds)
 
     if ((seconds + STM32L0_RTC_UTC_OFFSET_DEFAULT) > STM32L0_RTC_UTC_OFFSET_EXPIRATION)
     {
-        return 19;
+        return stm32l0_rtc_device.utc_offset;
     }
 
     for (utc_offset = STM32L0_RTC_UTC_OFFSET_DEFAULT; utc_offset >= 0; utc_offset--)
@@ -1499,6 +1501,11 @@ bool stm32l0_rtc_tamp_attach(uint16_t pin, uint32_t control, stm32l0_rtc_callbac
 	    stm32l0_rtc_device.tamp1_callback = callback;
 	    stm32l0_rtc_device.tamp1_context = context;
 
+	    if (control & STM32L0_RTC_TAMP_CONTROL_WAKEUP)
+	    {
+		stm32l0_rtc_device.tamp1_wakeup = 1;
+	    }
+	    
 	    armv6m_atomic_or(&RTC->TAMPCR, (RTC_TAMPCR_TAMP1IE | RTC_TAMPCR_TAMP1E | ((control & STM32L0_RTC_TAMP_CONTROL_EDGE_FALLING) ? RTC_TAMPCR_TAMP1TRG : 0)));;
 	}
 
@@ -1515,6 +1522,11 @@ bool stm32l0_rtc_tamp_attach(uint16_t pin, uint32_t control, stm32l0_rtc_callbac
 	{
 	    stm32l0_rtc_device.tamp2_callback = callback;
 	    stm32l0_rtc_device.tamp2_context = context;
+
+	    if (control & STM32L0_RTC_TAMP_CONTROL_WAKEUP)
+	    {
+		stm32l0_rtc_device.tamp2_wakeup = 1;
+	    }
 
 	    armv6m_atomic_or(&RTC->TAMPCR, (RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2E | ((control & STM32L0_RTC_TAMP_CONTROL_EDGE_FALLING) ? RTC_TAMPCR_TAMP2TRG : 0)));;
 	}
@@ -1535,6 +1547,8 @@ bool stm32l0_rtc_tamp_detach(uint16_t pin)
 
 	RTC->ISR = ~(RTC_ISR_TAMP1F | RTC_ISR_INIT);
 
+	stm32l0_rtc_device.tamp1_wakeup = 0;
+
 	return true;
     }
 
@@ -1543,6 +1557,8 @@ bool stm32l0_rtc_tamp_detach(uint16_t pin)
 	armv6m_atomic_and(&RTC->TAMPCR, ~(RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2TRG | RTC_TAMPCR_TAMP2E));
 
 	RTC->ISR = ~(RTC_ISR_TAMP2F | RTC_ISR_INIT);
+
+	stm32l0_rtc_device.tamp2_wakeup = 0;
 
 	return true;
     }
@@ -1561,6 +1577,11 @@ void stm32l0_rtc_stamp_attach(uint32_t control, stm32l0_rtc_callback_t callback,
 	stm32l0_rtc_device.tamp1_callback = callback;
 	stm32l0_rtc_device.tamp1_context = context;
 
+	if (control & STM32L0_RTC_STAMP_CONTROL_WAKEUP)
+	{
+	    stm32l0_rtc_device.tamp1_wakeup = 1;
+	}
+	
 	armv6m_atomic_or(&RTC->CR, (RTC_CR_TSIE | RTC_CR_TSE | ((control & STM32L0_RTC_STAMP_CONTROL_EDGE_FALLING) ? RTC_CR_TSEDGE : 0)));
     }
 }
@@ -1570,6 +1591,8 @@ void stm32l0_rtc_stamp_detach()
     armv6m_atomic_and(&RTC->CR, ~(RTC_CR_TSIE | RTC_CR_TSE | RTC_CR_TSEDGE));
 
     RTC->ISR = ~(RTC_ISR_TSF | RTC_ISR_INIT);
+
+    stm32l0_rtc_device.tamp1_wakeup = 0;
 }
 
 uint64_t stm32l0_rtc_stamp_read()
@@ -1600,9 +1623,17 @@ void stm32l0_rtc_standby(uint32_t control, uint32_t timeout)
     /* Called with interrupts disabled.
      */
 
-    RTC->CR &= ~(RTC_CR_TSIE | RTC_CR_WUTIE | RTC_CR_ALRBIE | RTC_CR_ALRAIE | RTC_CR_TSE | RTC_CR_WUTE | RTC_CR_ALRBE | RTC_CR_ALRAE);
-    RTC->ISR = ~(RTC_ISR_TSF | RTC_ISR_WUTF | RTC_ISR_ALRBF | RTC_ISR_ALRAF | RTC_ISR_INIT);
-
+    if (control & STM32L0_SYSTEM_CONTROL_RTC_ALARM)
+    {
+	RTC->CR &= ~(RTC_CR_TSIE | RTC_CR_WUTIE | RTC_CR_ALRBIE | RTC_CR_TSE | RTC_CR_WUTE | RTC_CR_ALRBE);
+	RTC->ISR = ~(RTC_ISR_TSF | RTC_ISR_WUTF | RTC_ISR_ALRBF | RTC_ISR_INIT);
+    }
+    else
+    {
+	RTC->CR &= ~(RTC_CR_TSIE | RTC_CR_WUTIE | RTC_CR_ALRBIE | RTC_CR_ALRAIE | RTC_CR_TSE | RTC_CR_WUTE | RTC_CR_ALRBE | RTC_CR_ALRAE);
+	RTC->ISR = ~(RTC_ISR_TSF | RTC_ISR_WUTF | RTC_ISR_ALRBF | RTC_ISR_ALRAF | RTC_ISR_INIT);
+    }
+    
     if (control & STM32L0_SYSTEM_CONTROL_WKUP1_RISING)
     {
 	RTC->TAMPCR &= ~(RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2E);
@@ -1810,6 +1841,11 @@ void RTC_IRQHandler(void)
 	    if (RTC->ISR & (RTC_ISR_TAMP1F | RTC_ISR_TSF))
 	    {
 		RTC->ISR = ~(RTC_ISR_TAMP1F | RTC_ISR_TSF | RTC_ISR_INIT);
+
+		if (stm32l0_rtc_device.tamp1_wakeup)
+		{
+		    stm32l0_system_wakeup();
+		}
 		
 		callback = stm32l0_rtc_device.tamp1_callback;
 
@@ -1823,6 +1859,11 @@ void RTC_IRQHandler(void)
 	    {
 		RTC->ISR = ~(RTC_ISR_TAMP2F | RTC_ISR_INIT);
 		
+		if (stm32l0_rtc_device.tamp2_wakeup)
+		{
+		    stm32l0_system_wakeup();
+		}
+
 		callback = stm32l0_rtc_device.tamp2_callback;
 
 		if (callback)

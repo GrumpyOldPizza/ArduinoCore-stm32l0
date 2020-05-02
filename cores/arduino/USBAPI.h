@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2016-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -96,10 +96,6 @@ public:
 	SPACE_PARITY = 4,
     };
 
-    // STM32L0 EXTENSTION: asynchronous write with callback
-    bool write(const uint8_t *buffer, size_t size, void(*callback)(void));
-    bool write(const uint8_t *buffer, size_t size, Callback callback);
-
     // STM32L0 EXTENSTION: enable/disable non-blocking writes
     void setNonBlocking(bool enable);
 
@@ -119,10 +115,6 @@ private:
     volatile uint32_t _tx_count;
     volatile uint32_t _tx_size;
 
-    const uint8_t *_tx_data2;
-    volatile uint32_t _tx_size2;
-
-    Callback _completionCallback;
     Callback _receiveCallback;
 
     static void _eventCallback(class CDC *self, uint32_t events);

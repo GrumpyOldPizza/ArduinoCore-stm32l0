@@ -136,6 +136,8 @@ void TimerMillis::timeout(class TimerMillis *self)
 	    self->_clock = 0;
 	}
 
+	stm32l0_system_wakeup();
+
 	if (self->_callback) {
 	    (*self->_callback)();
 	}

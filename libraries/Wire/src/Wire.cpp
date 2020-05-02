@@ -173,7 +173,6 @@ uint8_t TwoWire::endTransmission(bool stopBit)
 size_t TwoWire::requestFrom(uint8_t address, size_t size, bool stopBit)
 {
     stm32l0_i2c_transaction_t transaction;
-    uint8_t tx_data[3];
 
     if (__get_IPSR() != 0) {
         return 0;
@@ -521,6 +520,8 @@ void TwoWire::_eventCallback(class TwoWire *self, uint32_t events)
         self->_rx_read = 0;
         self->_rx_write = (events & STM32L0_I2C_EVENT_COUNT_MASK) >> STM32L0_I2C_EVENT_COUNT_SHIFT;
 
+	stm32l0_system_wakeup();
+
         if (self->_receiveCallback) {
             (*self->_receiveCallback)(self->_rx_write);
         }
@@ -529,6 +530,8 @@ void TwoWire::_eventCallback(class TwoWire *self, uint32_t events)
     if (events & STM32L0_I2C_EVENT_TRANSMIT_REQUEST) {
         self->_tx_active = true;
         self->_tx_write = 0;
+
+	stm32l0_system_wakeup();
 
         if (self->_requestCallback) {
             (*self->_requestCallback)();
@@ -540,6 +543,8 @@ void TwoWire::_eventCallback(class TwoWire *self, uint32_t events)
     }
 
     if (events & STM32L0_I2C_EVENT_TRANSMIT_DONE) {
+	stm32l0_system_wakeup();
+
         if (self->_transmitCallback) {
             (*self->_transmitCallback)((events & STM32L0_I2C_EVENT_COUNT_MASK) >> STM32L0_I2C_EVENT_COUNT_SHIFT);
         }

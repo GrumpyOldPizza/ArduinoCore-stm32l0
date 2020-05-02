@@ -56,7 +56,7 @@ void armv6m_core_initialize(void)
     armv6m_pendsv_initialize();
     armv6m_svcall_initialize();
     armv6m_systick_initialize();
-    armv6m_event_initialize();
+    armv6m_work_initialize();
     armv6m_core_stack_fill();
 }
 

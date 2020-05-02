@@ -29,19 +29,14 @@
 #include "Arduino.h"
 #include "wiring_private.h"
 
-Callback::Callback(class EventHandler *event)
-{
-    _callback = reinterpret_cast<void (*)(void*)>(armv6m_event_enqueue);
-    _context = reinterpret_cast<void*>(event);
-}
-
-
 /* The format of a member pointer is defined in the C++ ABI.
  * For ARM that document is IHI0041D, which describes the differences
  * to the Itanium C++ ABI.
  */
 
 bool Callback::queue() {
+    stm32l0_system_wakeup();
+
     if (_callback) {
 	return armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)_callback, _context, 0);
     } else {
@@ -50,6 +45,8 @@ bool Callback::queue() {
 }
 
 void Callback::call() {
+    stm32l0_system_wakeup();
+
     if (_callback) {
 	(*_callback)(_context);
     }
