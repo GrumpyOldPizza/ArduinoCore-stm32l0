@@ -116,7 +116,7 @@ public:
     int begin(const struct LoRaWANBand &band);
 
     int joinOTAA();
-    int joinOTAA(const char *appEui, const char *appKey, const char *devEui = NULL);
+    int joinOTAA(const char *appEui, const char *appKey, const char *devEui = nullptr);
     int rejoinOTAA();
 
     int joinABP();

@@ -61,7 +61,7 @@ public:
     bool queue();
     void call();
 
-    operator bool() { return (_callback != NULL); }
+    operator bool() { return (_callback != nullptr); }
 
 private:
     void (*_callback)(void*);
