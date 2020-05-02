@@ -634,6 +634,17 @@ void GNSSClass::uartEnd()
 
 	_enabled = false;
     }
+
+    if (_pins.pps != STM32L0_GPIO_PIN_NONE)
+    {
+	stm32l0_exti_detach(_pins.pps);
+	stm32l0_gpio_pin_configure(_pins.pps, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
+    }
+
+    if (_pins.enable != STM32L0_GPIO_PIN_NONE)
+    {
+	stm32l0_gpio_pin_configure(_pins.enable, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
+    }
     
     if (_pins.backup != STM32L0_GPIO_PIN_NONE)
     {
