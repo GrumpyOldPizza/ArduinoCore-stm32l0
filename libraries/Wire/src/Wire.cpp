@@ -520,34 +520,34 @@ void TwoWire::_eventCallback(class TwoWire *self, uint32_t events)
         self->_rx_read = 0;
         self->_rx_write = (events & STM32L0_I2C_EVENT_COUNT_MASK) >> STM32L0_I2C_EVENT_COUNT_SHIFT;
 
-	stm32l0_system_wakeup();
-
         if (self->_receiveCallback) {
             (*self->_receiveCallback)(self->_rx_write);
-        }
+        } else {
+	    stm32l0_system_wakeup();
+	}
     }
     
     if (events & STM32L0_I2C_EVENT_TRANSMIT_REQUEST) {
         self->_tx_active = true;
         self->_tx_write = 0;
 
-	stm32l0_system_wakeup();
-
         if (self->_requestCallback) {
             (*self->_requestCallback)();
-        }
-
+        } else {
+	    stm32l0_system_wakeup();
+	}
+	
         self->_tx_active = false;
 
         stm32l0_i2c_transmit(self->_i2c, &self->_tx_data[0], self->_tx_write);
     }
 
     if (events & STM32L0_I2C_EVENT_TRANSMIT_DONE) {
-	stm32l0_system_wakeup();
-
         if (self->_transmitCallback) {
             (*self->_transmitCallback)((events & STM32L0_I2C_EVENT_COUNT_MASK) >> STM32L0_I2C_EVENT_COUNT_SHIFT);
-        }
+        } else {
+	    stm32l0_system_wakeup();
+	}
     }
 }
 
