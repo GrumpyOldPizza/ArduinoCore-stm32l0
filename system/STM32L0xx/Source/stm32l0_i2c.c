@@ -1081,7 +1081,7 @@ bool stm32l0_i2c_create(stm32l0_i2c_t *i2c, const stm32l0_i2c_params_t *params)
 
     if (!stm32l0_i2c_device.notify.callback)
     {
-        stm32l0_system_notify(&stm32l0_i2c_device.notify, stm32l0_i2c_notify_callback, NULL, (STM32L0_SYSTEM_EVENT_STOP_ENTER | STM32L0_SYSTEM_EVENT_STOP_LEAVE));
+        stm32l0_system_register(&stm32l0_i2c_device.notify, stm32l0_i2c_notify_callback, NULL, (STM32L0_SYSTEM_EVENT_STOP_ENTER | STM32L0_SYSTEM_EVENT_STOP_LEAVE));
     }
 
     return true;

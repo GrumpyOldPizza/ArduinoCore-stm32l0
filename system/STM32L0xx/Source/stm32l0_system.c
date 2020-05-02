@@ -305,41 +305,41 @@ void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, ui
     if (PWR->CSR & PWR_CSR_SBF)
     {
         stm32l0_system_device.reset = STM32L0_SYSTEM_RESET_STANDBY;
-        stm32l0_system_device.wakeup = 0;
+        stm32l0_system_device.wakeup = STM32L0_SYSTEM_WAKEUP_NONE;
         
         if (PWR->CSR & PWR_CSR_WUF)
         {
-	    stm32l0_system_device.wakeup |= STM32L0_SYSTEM_WAKEUP_PIN;
-	}
-	
-	if (RTC->ISR & RTC_ISR_ALRAF)
-	{
-	    stm32l0_system_device.wakeup |= STM32L0_SYSTEM_WAKEUP_ALARM;
-	}
+            stm32l0_system_device.wakeup |= STM32L0_SYSTEM_WAKEUP_PIN;
+        }
+        
+        if (RTC->ISR & RTC_ISR_ALRAF)
+        {
+            stm32l0_system_device.wakeup |= STM32L0_SYSTEM_WAKEUP_ALARM;
+        }
 
-	if (RTC->ISR & RTC_ISR_ALRBF)
-	{
-	    stm32l0_system_device.wakeup |= STM32L0_SYSTEM_WAKEUP_TIMEOUT;
-	}
+        if (RTC->ISR & RTC_ISR_ALRBF)
+        {
+            stm32l0_system_device.wakeup |= STM32L0_SYSTEM_WAKEUP_TIMEOUT;
+        }
 
-	if (RCC->CSR & RCC_CSR_IWDGRSTF)
-	{
-	    stm32l0_system_device.wakeup |= STM32L0_SYSTEM_WAKEUP_WATCHDOG;
-	}
+        if (RCC->CSR & RCC_CSR_IWDGRSTF)
+        {
+            stm32l0_system_device.wakeup |= STM32L0_SYSTEM_WAKEUP_WATCHDOG;
+        }
 
-	if (stm32l0_system_device.wakeup == 0)
-	{
-	    stm32l0_system_device.wakeup = STM32L0_SYSTEM_WAKEUP_RESET;
-	}
+        if (stm32l0_system_device.wakeup == STM32L0_SYSTEM_WAKEUP_NONE)
+        {
+            stm32l0_system_device.wakeup = STM32L0_SYSTEM_WAKEUP_RESET;
+        }
     }
     else
     {
         stm32l0_system_device.reset = STM32L0_SYSTEM_RESET_POWERON;
-        stm32l0_system_device.wakeup = 0;
+        stm32l0_system_device.wakeup = STM32L0_SYSTEM_WAKEUP_NONE;
         
-        if (RCC->CSR & (RCC_CSR_LPWRRSTF | RCC_CSR_OBLRSTF))
-       {
-            stm32l0_system_device.reset = STM32L0_SYSTEM_RESET_OTHER;
+        if (RCC->CSR & (RCC_CSR_IWDGRSTF | RCC_CSR_WWDGRSTF))
+        {
+            stm32l0_system_device.reset = STM32L0_SYSTEM_RESET_WATCHDOG;
         }
         
         else if (RCC->CSR & RCC_CSR_FWRSTF)
@@ -347,14 +347,14 @@ void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, ui
             stm32l0_system_device.reset = STM32L0_SYSTEM_RESET_FIREWALL;
         }
         
-        else if (RCC->CSR & (RCC_CSR_IWDGRSTF | RCC_CSR_WWDGRSTF))
-        {
-            stm32l0_system_device.reset = STM32L0_SYSTEM_RESET_WATCHDOG;
-        }
-        
         else if (RCC->CSR & RCC_CSR_SFTRSTF)
         {
             stm32l0_system_device.reset = STM32L0_SYSTEM_RESET_SOFTWARE;
+        }
+        
+        else if (RCC->CSR & (RCC_CSR_LPWRRSTF | RCC_CSR_OBLRSTF))
+        {
+            stm32l0_system_device.reset = STM32L0_SYSTEM_RESET_INTERNAL;
         }
         
         else if (RCC->CSR & RCC_CSR_PINRSTF)
@@ -598,9 +598,9 @@ void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, ui
          */
 
         RTC->BKP4R = ((RTC->BKP4R & ~(STM32L0_RTC_BKP4R_LSICLK_MASK | STM32L0_RTC_BKP4R_HSEON_MASK | STM32L0_RTC_BKP4R_HSITRIM_MASK)) |
-		      (((stm32l0_system_device.lsiclk + (STM32L0_RTC_BKP4R_LSICLK_SCALE / 2)) / STM32L0_RTC_BKP4R_LSICLK_SCALE) << STM32L0_RTC_BKP4R_LSICLK_SHIFT) |
-		      (stm32l0_system_device.hseclk ? STM32L0_RTC_BKP4R_HSEON : 0) |
-		      (((RCC->ICSCR & RCC_ICSCR_HSITRIM) >> RCC_ICSCR_HSITRIM_Pos) << STM32L0_RTC_BKP4R_HSITRIM_SHIFT));
+                      (((stm32l0_system_device.lsiclk + (STM32L0_RTC_BKP4R_LSICLK_SCALE / 2)) / STM32L0_RTC_BKP4R_LSICLK_SCALE) << STM32L0_RTC_BKP4R_LSICLK_SHIFT) |
+                      (stm32l0_system_device.hseclk ? STM32L0_RTC_BKP4R_HSEON : 0) |
+                      (((RCC->ICSCR & RCC_ICSCR_HSITRIM) >> RCC_ICSCR_HSITRIM_Pos) << STM32L0_RTC_BKP4R_HSITRIM_SHIFT));
     }
 
     /* Setup some default sleep mode clock gating.
@@ -641,7 +641,6 @@ void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, ui
 
 bool stm32l0_system_sysclk_configure(uint32_t hclk, uint32_t pclk1, uint32_t pclk2)
 {
-    stm32l0_system_notify_t *entry;
     uint32_t primask, sysclk, hpre, ppre1, ppre2, msirange, pllmul, plldiv;
 
     if (hclk < 8000000)
@@ -956,13 +955,7 @@ bool stm32l0_system_sysclk_configure(uint32_t hclk, uint32_t pclk1, uint32_t pcl
 
     armv6m_systick_enable();
 
-    for (entry = stm32l0_system_device.notify; entry; entry = entry->next)
-    {
-        if (entry->events & STM32L0_SYSTEM_EVENT_CLOCKS)
-        {
-            (*entry->callback)(entry->context, STM32L0_SYSTEM_EVENT_CLOCKS);
-        }
-    }
+    stm32l0_system_notify(STM32L0_SYSTEM_EVENT_CLOCKS);
 
     __set_PRIMASK(primask);
 
@@ -1325,335 +1318,279 @@ void stm32l0_system_swd_disable(void)
 
     __set_PRIMASK(primask);
 }
-
-uint32_t stm32l0_system_read_backup(unsigned int index)
-{
-    if (index <= 3)
-    {
-        return (&RTC->BKP0R)[index];
-    }
-
-    return 0xffffffff;
-}
-
-void stm32l0_system_write_backup(unsigned int index, uint32_t data)
-{
-    if (index <= 3)
-    {
-        (&RTC->BKP0R)[index] = data;
-    }
-}
-
-void stm32l0_system_notify(stm32l0_system_notify_t *notify, stm32l0_system_callback_t callback, void *context, uint32_t events)
+void stm32l0_system_register(stm32l0_system_notify_t *notify, stm32l0_system_callback_t callback, void *context, uint32_t events)
 {
     stm32l0_system_notify_t **pp_entry, *entry;
 
-    notify->events = 0;
-
     for (pp_entry = &stm32l0_system_device.notify, entry = *pp_entry; entry; pp_entry = &entry->next, entry = *pp_entry)
     {
-        if (entry == notify)
-        {
-            if (callback == NULL)
-            {
-                *pp_entry = notify->next;
-
-                notify->next = NULL;
-            }
-            else
-            {
-                notify->callback = callback;
-                notify->context = context;
-                notify->events = events;
-            }
-
-            return;
-        }
     }
+
+    *pp_entry = notify;
 
     notify->next = NULL;
     notify->callback = callback;
     notify->context = context;
     notify->events = events;
+}
 
-    *pp_entry = notify;
+void stm32l0_system_unregister(stm32l0_system_notify_t *notify)
+{
+    stm32l0_system_notify_t **pp_entry, *entry;
+
+    notify->events = 0;
+    notify->callback = NULL;
+
+    for (pp_entry = &stm32l0_system_device.notify, entry = *pp_entry; entry; pp_entry = &entry->next, entry = *pp_entry)
+    {
+        if (entry == notify)
+        {
+            *pp_entry = notify->next;
+            
+            notify->next = NULL;
+
+            break;
+        }
+    }
+}
+
+void stm32l0_system_notify(uint32_t events)
+{
+    stm32l0_system_notify_t *entry;
+
+    for (entry = stm32l0_system_device.notify; entry; entry = entry->next)
+    {
+        if (entry->events & events)
+        {
+            (*entry->callback)(entry->context, entry->events & events);
+        }
+    }
 }
 
 void stm32l0_system_lock(uint32_t lock)
 {
-    uint32_t primask;
-
-    primask = __get_PRIMASK();
-
-    __disable_irq();
-
-    stm32l0_system_device.lock[lock]++;
-
-    __set_PRIMASK(primask);
+    __armv6m_atomic_incb(&stm32l0_system_device.lock[lock]);
 }
 
 void stm32l0_system_unlock(uint32_t lock)
 {
-    uint32_t primask;
-
-    primask = __get_PRIMASK();
-
-    __disable_irq();
-
-    stm32l0_system_device.lock[lock]--;
-
-    __set_PRIMASK(primask);
+    __armv6m_atomic_decb(&stm32l0_system_device.lock[lock]);
 }
 
 void stm32l0_system_reference(uint32_t reference)
 {
-    uint32_t primask;
-
-    primask = __get_PRIMASK();
-
-    __disable_irq();
-
-    stm32l0_system_device.reference |= reference;
-
-    __set_PRIMASK(primask);
+    __armv6m_atomic_or(&stm32l0_system_device.reference, reference);
 }
 
 void stm32l0_system_unreference(uint32_t reference)
 {
-    uint32_t primask;
-
-    primask = __get_PRIMASK();
-
-    __disable_irq();
-
-    stm32l0_system_device.reference &= ~reference;
-
-    __set_PRIMASK(primask);
+    __armv6m_atomic_and(&stm32l0_system_device.reference, ~reference);
 }
 
 void stm32l0_system_sleep(uint32_t policy, uint32_t timeout)
 {
     uint32_t primask;
     stm32l0_gpio_state_t gpio_state;
-    stm32l0_system_notify_t *entry;
 
     if (timeout != STM32L0_SYSTEM_TIMEOUT_NONE)
     {
-	if (!stm32l0_system_device.event)
-	{
-	    if (timeout != STM32L0_SYSTEM_TIMEOUT_FOREVER)
-	    {
-		stm32l0_rtc_timer_start(&stm32l0_system_device.timeout, stm32l0_rtc_millis_to_clock(timeout), STM32L0_RTC_TIMER_MODE_RELATIVE);
-	    }
+        if (!stm32l0_system_device.event)
+        {
+            if (timeout != STM32L0_SYSTEM_TIMEOUT_FOREVER)
+            {
+                stm32l0_rtc_timer_start(&stm32l0_system_device.timeout, stm32l0_rtc_millis_to_clock(timeout), STM32L0_RTC_TIMER_MODE_RELATIVE);
+            }
 
-	    if (!stm32l0_system_device.event)
-	    {
-		if (policy >= STM32L0_SYSTEM_POLICY_SLEEP)
-		{
-		    for (entry = stm32l0_system_device.notify; entry; entry = entry->next)
-		    {
-			if (entry->events & STM32L0_SYSTEM_EVENT_SLEEP)
-			{
-			    (*entry->callback)(entry->context, STM32L0_SYSTEM_EVENT_SLEEP);
-			}
-		    }
-		}
+            if (!stm32l0_system_device.event)
+            {
+                if (policy >= STM32L0_SYSTEM_POLICY_SLEEP)
+                {
+                    stm32l0_system_notify(STM32L0_SYSTEM_EVENT_SLEEP);
+                }
 
-		while (!stm32l0_system_device.event)
-		{
-		    if ((policy <= STM32L0_SYSTEM_POLICY_RUN) || stm32l0_system_device.lock[STM32L0_SYSTEM_LOCK_RUN])
-		    {
-			__WFE();
-			__NOP();
-			__NOP();
-			__NOP();
-			__NOP();
-		    }
-		    else
-		    {
-			primask = __get_PRIMASK();
+                while (!stm32l0_system_device.event)
+                {
+                    if ((policy <= STM32L0_SYSTEM_POLICY_RUN) || stm32l0_system_device.lock[STM32L0_SYSTEM_LOCK_RUN])
+                    {
+                        __WFE();
+                        __NOP();
+                        __NOP();
+                        __NOP();
+                        __NOP();
+                    }
+                    else
+                    {
+                        primask = __get_PRIMASK();
 
-			__disable_irq();
+                        __disable_irq();
 
-			if (!stm32l0_system_device.lock[STM32L0_SYSTEM_LOCK_RUN])
-			{
-			    if ((policy <= STM32L0_SYSTEM_POLICY_SLEEP) || stm32l0_system_device.lock[STM32L0_SYSTEM_LOCK_SLEEP])
-			    {
-				/* ### add to downclock AHB/APB 
-				 */
-				__WFI();
-				__NOP();
-				__NOP();
-				__NOP();
-				__NOP();
-			    }
-			    else
-			    {
-				if (!(SCB->ICSR & SCB_ICSR_ISRPENDING_Msk))
-				{
-				    for (entry = stm32l0_system_device.notify; entry; entry = entry->next)
-				    {
-					if (entry->events & STM32L0_SYSTEM_EVENT_STOP_ENTER)
-					{
-					    (*entry->callback)(entry->context, STM32L0_SYSTEM_EVENT_STOP_ENTER);
-					}
-				    }
+                        if (!stm32l0_system_device.lock[STM32L0_SYSTEM_LOCK_RUN])
+                        {
+                            if ((policy <= STM32L0_SYSTEM_POLICY_SLEEP) || stm32l0_system_device.lock[STM32L0_SYSTEM_LOCK_SLEEP])
+                            {
+                                /* ### add to downclock AHB/APB 
+                                 */
+                                __WFI();
+                                __NOP();
+                                __NOP();
+                                __NOP();
+                                __NOP();
+                            }
+                            else
+                            {
+                                if (!(SCB->ICSR & SCB_ICSR_ISRPENDING_Msk))
+                                {
+                                    stm32l0_system_notify(STM32L0_SYSTEM_EVENT_STOP_ENTER);
 
-				    if (!(SCB->ICSR & SCB_ICSR_ISRPENDING_Msk))
-				    {
-					stm32l0_gpio_save(&gpio_state);
+                                    if (!(SCB->ICSR & SCB_ICSR_ISRPENDING_Msk))
+                                    {
+                                        stm32l0_gpio_save(&gpio_state);
 
-					if (!(SCB->ICSR & SCB_ICSR_ISRPENDING_Msk))
-					{
-					    RCC->APB1ENR |= RCC_APB1ENR_PWREN;
+                                        if (!(SCB->ICSR & SCB_ICSR_ISRPENDING_Msk))
+                                        {
+                                            RCC->APB1ENR |= RCC_APB1ENR_PWREN;
                     
-					    /* The lowpower voltage regulator adds 3.3uS wakeup time, plus it prevents HSIKERON, 
-					     * which may be needed by USART1/USART2/LPUART to wakeup. In those cases do not
-					     * enable the low power voltage regulator in stop mode.
-					     */
-					    if (!stm32l0_system_device.lock[STM32L0_SYSTEM_LOCK_REGULATOR])
-					    {
-						PWR->CR |= PWR_CR_LPSDSR;
-					    }
+                                            /* The lowpower voltage regulator adds 3.3uS wakeup time, plus it prevents HSIKERON, 
+                                             * which may be needed by USART1/USART2/LPUART to wakeup. In those cases do not
+                                             * enable the low power voltage regulator in stop mode.
+                                             */
+                                            if (!stm32l0_system_device.lock[STM32L0_SYSTEM_LOCK_REGULATOR])
+                                            {
+                                                PWR->CR |= PWR_CR_LPSDSR;
+                                            }
                     
-					    if (!stm32l0_system_device.lock[STM32L0_SYSTEM_LOCK_VREFINT])
-					    {
-						/* Set ULP to disable VREFINT */
-						SYSCFG->CFGR3 &= ~SYSCFG_CFGR3_EN_VREFINT;
+                                            if (!stm32l0_system_device.lock[STM32L0_SYSTEM_LOCK_VREFINT])
+                                            {
+                                                /* Set ULP to disable VREFINT */
+                                                SYSCFG->CFGR3 &= ~SYSCFG_CFGR3_EN_VREFINT;
                         
-						PWR->CR |= (PWR_CR_FWU | PWR_CR_ULP);
-					    }
+                                                PWR->CR |= (PWR_CR_FWU | PWR_CR_ULP);
+                                            }
 
-					    /* Clear WUF flag */
-					    PWR->CR |= PWR_CR_CWUF;
+                                            /* Clear WUF flag */
+                                            PWR->CR |= PWR_CR_CWUF;
                     
-					    /* Select STOP */
-					    PWR->CR &= ~PWR_CR_PDDS;
+                                            /* Select STOP */
+                                            PWR->CR &= ~PWR_CR_PDDS;
                     
-					    if (!(SCB->ICSR & SCB_ICSR_ISRPENDING_Msk))
-					    {
-						SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
+                                            if (!(SCB->ICSR & SCB_ICSR_ISRPENDING_Msk))
+                                            {
+                                                SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
 
-						if (RCC->APB2ENR & RCC_APB2ENR_DBGEN)
-						{
-						    __WFI();
-						    __NOP();
-						    __NOP();
-						    __NOP();
-						    __NOP();
-						}
-						else
-						{
-						    FLASH->ACR |= FLASH_ACR_SLEEP_PD;
+                                                if (RCC->APB2ENR & RCC_APB2ENR_DBGEN)
+                                                {
+                                                    __WFI();
+                                                    __NOP();
+                                                    __NOP();
+                                                    __NOP();
+                                                    __NOP();
+                                                }
+                                                else
+                                                {
+                                                    FLASH->ACR |= FLASH_ACR_SLEEP_PD;
                         
-						    __WFI();
-						    __NOP();
-						    __NOP();
-						    __NOP();
-						    __NOP();
+                                                    __WFI();
+                                                    __NOP();
+                                                    __NOP();
+                                                    __NOP();
+                                                    __NOP();
                         
-						    FLASH->ACR &= ~FLASH_ACR_SLEEP_PD;
-						}
+                                                    FLASH->ACR &= ~FLASH_ACR_SLEEP_PD;
+                                                }
 
-						SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
-					    
-						/* Clear ULP to enable VREFINT, disable lowpower voltage regulator */
-						PWR->CR &= ~(PWR_CR_FWU | PWR_CR_ULP | PWR_CR_LPSDSR);
+                                                SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
+                                            
+                                                /* Clear ULP to enable VREFINT, disable lowpower voltage regulator */
+                                                PWR->CR &= ~(PWR_CR_FWU | PWR_CR_ULP | PWR_CR_LPSDSR);
 
-						if (stm32l0_system_device.hclk <= 4200000)
-						{
-						    /* Range 3, MSI is wakeup clock */
+                                                if (stm32l0_system_device.hclk <= 4200000)
+                                                {
+                                                    /* Range 3, MSI is wakeup clock */
                         
-						    if (stm32l0_system_device.hsi16)
-						    {
-							RCC->CR |= RCC_CR_HSION;
+                                                    if (stm32l0_system_device.hsi16)
+                                                    {
+                                                        RCC->CR |= RCC_CR_HSION;
                             
-							while (!(RCC->CR & RCC_CR_HSIRDY))
-							{
-							}
-						    }
-						}
-						else
-						{
-						    /* Range 1 & 2, HSI16 is wakeup clock */
+                                                        while (!(RCC->CR & RCC_CR_HSIRDY))
+                                                        {
+                                                        }
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    /* Range 1 & 2, HSI16 is wakeup clock */
 
-						    if (stm32l0_system_device.hseclk == 8000000)
-						    {
-							RCC->CR |= RCC_CR_HSEON;
+                                                    if (stm32l0_system_device.hseclk == 8000000)
+                                                    {
+                                                        RCC->CR |= RCC_CR_HSEON;
                             
-							while (!(RCC->CR & RCC_CR_HSERDY))
-							{
-							}
+                                                        while (!(RCC->CR & RCC_CR_HSERDY))
+                                                        {
+                                                        }
                             
-							RCC->CR |= RCC_CR_PLLON;
+                                                        RCC->CR |= RCC_CR_PLLON;
                             
-							while (!(RCC->CR & RCC_CR_PLLRDY))
-							{
-							}
+                                                        while (!(RCC->CR & RCC_CR_PLLRDY))
+                                                        {
+                                                        }
                             
-							RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_SW) | RCC_CFGR_SW_PLL;
+                                                        RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_SW) | RCC_CFGR_SW_PLL;
                             
-							while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL)
-							{
-							}
-						    }
-						    else
-						    {
-							if (stm32l0_system_device.hclk > 16000000)
-							{
-							    RCC->CR |= RCC_CR_PLLON;
+                                                        while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL)
+                                                        {
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        if (stm32l0_system_device.hclk > 16000000)
+                                                        {
+                                                            RCC->CR |= RCC_CR_PLLON;
                                 
-							    while (!(RCC->CR & RCC_CR_PLLRDY))
-							    {
-							    }
+                                                            while (!(RCC->CR & RCC_CR_PLLRDY))
+                                                            {
+                                                            }
                                 
-							    RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_SW) | RCC_CFGR_SW_PLL;
+                                                            RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_SW) | RCC_CFGR_SW_PLL;
                                 
-							    while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL)
-							    {
-							    }
-							}
-						    }
-						}
+                                                            while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL)
+                                                            {
+                                                            }
+                                                        }
+                                                    }
+                                                }
                     
-						if (!stm32l0_system_device.hsi16)
-						{
-						    RCC->CR &= ~RCC_CR_HSION;
-						}
-					    }
-					    else
-					    {
-						/* Clear ULP to enable VREFINT, disable lowpower voltage regulator */
-						PWR->CR &= ~(PWR_CR_FWU | PWR_CR_ULP | PWR_CR_LPSDSR);
-					    }
-					    
-					    RCC->APB1ENR &= ~RCC_APB1ENR_PWREN;
-					}
-					
-					stm32l0_gpio_restore(&gpio_state);
-				    }
-				    
-				    for (entry = stm32l0_system_device.notify; entry; entry = entry->next)
-				    {
-					if (entry->events & STM32L0_SYSTEM_EVENT_STOP_LEAVE)
-					{
-					    (*entry->callback)(entry->context, STM32L0_SYSTEM_EVENT_STOP_LEAVE);
-					}
-				    }
-				}
-			    }
-			}
-		    
-			__set_PRIMASK(primask);
-		    }
-		}
-	    }
-	    
-	    if (timeout != STM32L0_SYSTEM_TIMEOUT_FOREVER)
-	    {
-		stm32l0_rtc_timer_stop(&stm32l0_system_device.timeout);
-	    }
-	}
+                                                if (!stm32l0_system_device.hsi16)
+                                                {
+                                                    RCC->CR &= ~RCC_CR_HSION;
+                                                }
+                                            }
+                                            else
+                                            {
+                                                /* Clear ULP to enable VREFINT, disable lowpower voltage regulator */
+                                                PWR->CR &= ~(PWR_CR_FWU | PWR_CR_ULP | PWR_CR_LPSDSR);
+                                            }
+                                            
+                                            RCC->APB1ENR &= ~RCC_APB1ENR_PWREN;
+                                        }
+                                        
+                                        stm32l0_gpio_restore(&gpio_state);
+                                    }
+                                    
+                                    stm32l0_system_notify(STM32L0_SYSTEM_EVENT_STOP_LEAVE);
+                                }
+                            }
+                        }
+                    
+                        __set_PRIMASK(primask);
+                    }
+                }
+            }
+            
+            if (timeout != STM32L0_SYSTEM_TIMEOUT_FOREVER)
+            {
+                stm32l0_rtc_timer_stop(&stm32l0_system_device.timeout);
+            }
+        }
     }
     
     stm32l0_system_device.event = 0;
@@ -1667,11 +1604,10 @@ void stm32l0_system_wakeup(void)
 void stm32l0_system_standby(uint32_t control, uint32_t timeout)
 {
     uint32_t primask;
-    stm32l0_system_notify_t *entry;
 
     if (timeout == STM32L0_SYSTEM_TIMEOUT_NONE)
     {
-	return;
+        return;
     }
     
     primask = __get_PRIMASK();
@@ -1679,21 +1615,15 @@ void stm32l0_system_standby(uint32_t control, uint32_t timeout)
     __disable_irq();
     
     if (stm32l0_system_device.lock[STM32L0_SYSTEM_LOCK_RUN] ||
-	stm32l0_system_device.lock[STM32L0_SYSTEM_LOCK_SLEEP] ||
-	stm32l0_system_device.lock[STM32L0_SYSTEM_LOCK_DEEPSLEEP])
+        stm32l0_system_device.lock[STM32L0_SYSTEM_LOCK_SLEEP] ||
+        stm32l0_system_device.lock[STM32L0_SYSTEM_LOCK_DEEPSLEEP])
     {
         __set_PRIMASK(primask);
                         
         return;
     }
     
-    for (entry = stm32l0_system_device.notify; entry; entry = entry->next)
-    {
-        if (entry->events & STM32L0_SYSTEM_EVENT_STANDBY)
-        {
-            (*entry->callback)(entry->context, STM32L0_SYSTEM_EVENT_STANDBY);
-        }
-    }
+    stm32l0_system_notify(STM32L0_SYSTEM_EVENT_STANDBY);
 
     stm32l0_rtc_standby(control, timeout);
     
@@ -1745,17 +1675,9 @@ void stm32l0_system_standby(uint32_t control, uint32_t timeout)
 
 void stm32l0_system_reset(void)
 {
-    stm32l0_system_notify_t *entry;
-
     __disable_irq();
 
-    for (entry = stm32l0_system_device.notify; entry; entry = entry->next)
-    {
-        if (entry->events & STM32L0_SYSTEM_EVENT_RESET)
-        {
-            (*entry->callback)(entry->context, STM32L0_SYSTEM_EVENT_RESET);
-        }
-    }
+    stm32l0_system_notify(STM32L0_SYSTEM_EVENT_RESET);
 
     stm32l0_rtc_reset();
 
@@ -1770,10 +1692,18 @@ void stm32l0_system_dfu(void)
 {
     __disable_irq();
 
+    stm32l0_system_notify(STM32L0_SYSTEM_EVENT_DFU);
+
     /* Set the BCK bit to flag a reboot into the booloader */
     RTC->CR |= RTC_CR_BCK;
 
-    stm32l0_system_reset();
+    stm32l0_rtc_reset();
+
+    NVIC_SystemReset();
+    
+    while (1)
+    {
+    }
 }
 
 static void __empty() { }

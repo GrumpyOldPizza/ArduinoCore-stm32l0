@@ -331,21 +331,21 @@ static void stm32l0_sfspi_callback(void *context, uint32_t events)
     {
         if (sfspi->ID[0] == SFLASH_MID_MACRONIX)
         {
-            /* lock/unlock will block shared interrupts and USB/MSC.
+            /* acquire/release will block shared interrupts and USB/MSC.
              */
 
-            stm32l0_sfspi_lock(sfspi);
-            
             if (sfspi->state == STM32L0_SFSPI_STATE_READY)
             {
-                stm32l0_sfspi_select(sfspi);
+		stm32l0_spi_acquire(sfspi->spi, 32000000, 0);
+
+		stm32l0_sfspi_select(sfspi);
                 stm32l0_spi_data(sfspi->spi, SFLASH_CMD_DPD);
                 stm32l0_sfspi_unselect(sfspi);
                 
-                sfspi->state = STM32L0_SFSPI_STATE_SLEEP;
-            }
+		stm32l0_spi_release(sfspi->spi);
 
-            stm32l0_sfspi_unlock(sfspi);
+		sfspi->state = STM32L0_SFSPI_STATE_SLEEP;
+            }
         }
     }
 }
@@ -409,7 +409,7 @@ bool stm32l0_sfspi_initialize(stm32l0_spi_t *spi, const stm32l0_sfspi_params_t *
         {
             sfspi->state = STM32L0_SFSPI_STATE_READY;
 
-            stm32l0_system_notify(&stm32l0_sfspi.notify, stm32l0_sfspi_callback, (void*)&stm32l0_sfspi, STM32L0_SYSTEM_EVENT_SLEEP);
+            stm32l0_system_register(&stm32l0_sfspi.notify, stm32l0_sfspi_callback, (void*)&stm32l0_sfspi, STM32L0_SYSTEM_EVENT_SLEEP);
         }
     }
 

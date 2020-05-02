@@ -85,9 +85,6 @@ enum {
 #define STM32L0_SYSTEM_LOCK_RUN                0
 #define STM32L0_SYSTEM_LOCK_SLEEP              1
 #define STM32L0_SYSTEM_LOCK_DEEPSLEEP          2
-  //#define STM32L0_SYSTEM_LOCK_CLOCKS             0  // ###
-//#define STM32L0_SYSTEM_LOCK_STOP               2  // ###
-//#define STM32L0_SYSTEM_LOCK_STANDBY            3  // ###
 #define STM32L0_SYSTEM_LOCK_RANGE_2_3          3
 #define STM32L0_SYSTEM_LOCK_RANGE_3            4
 #define STM32L0_SYSTEM_LOCK_REGULATOR          5
@@ -105,6 +102,7 @@ enum {
 #define STM32L0_SYSTEM_EVENT_STOP_LEAVE        0x00000008
 #define STM32L0_SYSTEM_EVENT_STANDBY           0x00000010
 #define STM32L0_SYSTEM_EVENT_RESET             0x00000020
+#define STM32L0_SYSTEM_EVENT_DFU               0x00000040
 
 typedef void (*stm32l0_system_callback_t)(void *context, uint32_t events);
 
@@ -117,12 +115,14 @@ typedef struct _stm32l0_system_notify_t {
 
 #define STM32L0_SYSTEM_RESET_POWERON           0
 #define STM32L0_SYSTEM_RESET_EXTERNAL          1
-#define STM32L0_SYSTEM_RESET_SOFTWARE          2
-#define STM32L0_SYSTEM_RESET_WATCHDOG          3
+#define STM32L0_SYSTEM_RESET_INTERNAL          2
+#define STM32L0_SYSTEM_RESET_SOFTWARE          3
 #define STM32L0_SYSTEM_RESET_FIREWALL          4
-#define STM32L0_SYSTEM_RESET_OTHER             5
-#define STM32L0_SYSTEM_RESET_STANDBY           6
+#define STM32L0_SYSTEM_RESET_WATCHDOG          5
+#define STM32L0_SYSTEM_RESET_CRASH             6
+#define STM32L0_SYSTEM_RESET_STANDBY           7
 
+#define STM32L0_SYSTEM_WAKEUP_NONE             0x00000000
 #define STM32L0_SYSTEM_WAKEUP_PIN              0x00000001
 #define STM32L0_SYSTEM_WAKEUP_ALARM            0x00000002
 #define STM32L0_SYSTEM_WAKEUP_TIMEOUT          0x00000004
@@ -179,9 +179,9 @@ extern void     stm32l0_system_periph_enable(unsigned int periph);
 extern void     stm32l0_system_periph_disable(unsigned int periph);
 extern void     stm32l0_system_swd_enable(void);
 extern void     stm32l0_system_swd_disable(void);
-extern uint32_t stm32l0_system_read_backup(unsigned int index);
-extern void     stm32l0_system_write_backup(unsigned int index, uint32_t data);
-extern void     stm32l0_system_notify(stm32l0_system_notify_t *notify, stm32l0_system_callback_t callback, void *context, uint32_t events); 
+extern void     stm32l0_system_register(stm32l0_system_notify_t *notify, stm32l0_system_callback_t callback, void *context, uint32_t events); 
+extern void     stm32l0_system_unregister(stm32l0_system_notify_t *notify);
+extern void     stm32l0_system_notify(uint32_t events); 
 extern void     stm32l0_system_lock(uint32_t lock); 
 extern void     stm32l0_system_unlock(uint32_t lock);
 extern void     stm32l0_system_reference(uint32_t reference); 

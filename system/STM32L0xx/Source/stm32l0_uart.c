@@ -1051,7 +1051,7 @@ bool stm32l0_uart_create(stm32l0_uart_t *uart, const stm32l0_uart_params_t *para
 
     if (!stm32l0_uart_device.notify.callback)
     {
-        stm32l0_system_notify(&stm32l0_uart_device.notify, stm32l0_uart_notify_callback, NULL, (STM32L0_SYSTEM_EVENT_STOP_ENTER | STM32L0_SYSTEM_EVENT_STOP_LEAVE));
+        stm32l0_system_register(&stm32l0_uart_device.notify, stm32l0_uart_notify_callback, NULL, (STM32L0_SYSTEM_EVENT_STOP_ENTER | STM32L0_SYSTEM_EVENT_STOP_LEAVE));
     }
 
     return true;
