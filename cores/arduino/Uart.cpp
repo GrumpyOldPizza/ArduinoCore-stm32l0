@@ -143,7 +143,7 @@ int Uart::read()
     return data;
 }
 
-size_t Uart::read(uint8_t *buffer, size_t size)
+int Uart::read(uint8_t *buffer, size_t size)
 {
     return stm32l0_uart_receive(_uart, (uint8_t*)buffer, size, false);
 }

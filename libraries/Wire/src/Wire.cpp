@@ -275,7 +275,7 @@ int TwoWire::read(void)
     return _rx_data[_rx_read++];
 }
 
-size_t TwoWire::read(uint8_t *buffer, size_t size)
+int TwoWire::read(uint8_t *buffer, size_t size)
 {
     if (size > (unsigned int)(_rx_write - _rx_read))
     {

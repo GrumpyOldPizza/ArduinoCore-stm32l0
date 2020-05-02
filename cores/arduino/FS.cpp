@@ -118,7 +118,7 @@ int File::read() {
     return -1;
 }
 
-size_t File::read(uint8_t* data, size_t size) {
+int File::read(uint8_t* data, size_t size) {
     if (_handle) {
 	return _handle->read(data, size);
     }

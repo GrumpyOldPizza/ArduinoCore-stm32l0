@@ -65,7 +65,7 @@ public:
     // Stream methods:
     int available() override;
     int read() override;
-    size_t read(uint8_t* data, size_t size) override;
+    int read(uint8_t* data, size_t size) override;
     int peek() override;
 
     // File methods

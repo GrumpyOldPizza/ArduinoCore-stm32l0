@@ -143,7 +143,7 @@ int CDC::read()
     return data;
 }
 
-size_t CDC::read(uint8_t *buffer, size_t size)
+int CDC::read(uint8_t *buffer, size_t size)
 {
     return stm32l0_usbd_cdc_receive(_usbd_cdc, (uint8_t*)buffer, size, false);
 }

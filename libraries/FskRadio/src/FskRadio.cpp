@@ -425,7 +425,7 @@ int FskRadioClass::read()
     return data;
 }
 
-size_t FskRadioClass::read(uint8_t *buffer, size_t size)
+int FskRadioClass::read(uint8_t *buffer, size_t size)
 {
     size_t count;
 

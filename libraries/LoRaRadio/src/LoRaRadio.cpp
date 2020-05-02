@@ -397,7 +397,7 @@ int LoRaRadioClass::read()
     return data;
 }
 
-size_t LoRaRadioClass::read(uint8_t *buffer, size_t size)
+int LoRaRadioClass::read(uint8_t *buffer, size_t size)
 {
     size_t count;
 

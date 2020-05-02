@@ -94,7 +94,7 @@ public:
     int parsePacket();
     virtual int available();
     virtual int read();
-    virtual size_t read(uint8_t *buffer, size_t size);
+    virtual int read(uint8_t *buffer, size_t size);
     virtual int peek();
     virtual void purge();
 

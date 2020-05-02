@@ -989,7 +989,7 @@ int LoRaWANClass::read()
     return data;
 }
 
-size_t LoRaWANClass::read(uint8_t *buffer, size_t size)
+int LoRaWANClass::read(uint8_t *buffer, size_t size)
 {
     size_t count;
 

@@ -27,7 +27,7 @@
 
 #define PARSE_TIMEOUT 1000  // default number of milli-seconds to wait
 
-size_t Stream::read(uint8_t *buffer, size_t size)
+int Stream::read(uint8_t *buffer, size_t size)
 {
   size_t count = 0;
 
