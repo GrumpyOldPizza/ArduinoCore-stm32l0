@@ -101,8 +101,8 @@ typedef struct _stm32l0_i2c_pins_t {
 typedef struct _stm32l0_i2c_params_t {
     uint8_t                             instance;
     uint8_t                             priority;
-    uint8_t                             rx_dma;
-    uint8_t                             tx_dma;
+    uint16_t                            rx_dma;
+    uint16_t                            tx_dma;
     stm32l0_i2c_pins_t                  pins;
 } stm32l0_i2c_params_t;
 
@@ -125,8 +125,8 @@ typedef struct _stm32l0_i2c_t {
     uint8_t                             instance;
     uint8_t                             interrupt;
     uint8_t                             priority;
-    uint8_t                             rx_dma;
-    uint8_t                             tx_dma;
+    uint16_t                            rx_dma;
+    uint16_t                            tx_dma;
     stm32l0_i2c_pins_t                  pins;
     uint32_t                            option;
     uint32_t                            timeout;

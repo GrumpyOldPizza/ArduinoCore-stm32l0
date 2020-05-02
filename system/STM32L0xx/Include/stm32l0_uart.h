@@ -101,8 +101,8 @@ typedef struct _stm32l0_uart_pins_t {
 typedef struct _stm32l0_uart_params_t {
     uint8_t                       instance;
     uint8_t                       priority;
-    uint8_t                       rx_dma;
-    uint8_t                       tx_dma;
+    uint16_t                      rx_dma;
+    uint16_t                      tx_dma;
     uint8_t                       *rx_fifo;
     uint16_t                      rx_entries;
     stm32l0_uart_pins_t           pins;
@@ -114,8 +114,8 @@ typedef struct _stm32l0_uart_t {
     uint8_t                       instance;
     uint8_t                       interrupt;
     uint8_t                       priority;
-    uint8_t                       rx_dma;
-    uint8_t                       tx_dma;
+    uint16_t                      rx_dma;
+    uint16_t                      tx_dma;
     stm32l0_uart_pins_t           pins;
     uint32_t                      baudrate;
     uint32_t                      option;

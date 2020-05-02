@@ -69,8 +69,8 @@ typedef struct _stm32l0_spi_pins_t {
 typedef struct _stm32l0_spi_params_t {
     uint8_t                     instance;
     uint8_t                     priority;
-    uint8_t                     rx_dma;
-    uint8_t                     tx_dma;
+    uint16_t                    rx_dma;
+    uint16_t                    tx_dma;
     stm32l0_spi_pins_t          pins;
 } stm32l0_spi_params_t;
 
@@ -81,9 +81,9 @@ typedef struct _stm32l0_spi_t {
     volatile uint8_t              state;
     uint8_t                       instance;
     uint8_t                       priority;
-    uint8_t                       rx_dma;
-    uint8_t                       tx_dma;
     uint8_t                       lock;
+    uint16_t                      rx_dma;
+    uint16_t                      tx_dma;
     stm32l0_spi_pins_t            pins;
     stm32l0_spi_notify_callback_t callback;
     void                          *context;

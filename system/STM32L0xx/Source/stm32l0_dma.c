@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -30,6 +30,8 @@
 #include "stm32l0_dma.h"
 #include "stm32l0_system.h"
 
+#define STM32L0_DMA_CHANNEL_LOCKED               0x8000
+
 extern void DMA1_Channel1_IRQHandler(void);
 extern void DMA1_Channel2_3_IRQHandler(void);
 extern void DMA1_Channel4_5_6_7_IRQHandler(void);
@@ -45,7 +47,7 @@ static DMA_Channel_TypeDef * const  stm32l0_dma_xlate_DMA[7] = {
 };
 
 typedef struct _stm32l0_dma_t {
-    uint8_t                channel;
+    volatile uint16_t      channel;
     uint16_t               size;
     stm32l0_dma_callback_t callback;
     void*                  context;
@@ -56,8 +58,7 @@ typedef struct _stm32l0_dma_device_t {
     uint8_t                priority_1;
     uint8_t                priority_2_3;
     uint8_t                priority_4_5_6_7;
-    volatile uint16_t      dma;
-    volatile uint16_t      lock;
+    volatile uint8_t       dma;
 } stm32l0_dma_device_t;
 
 static stm32l0_dma_device_t stm32l0_dma_device;
@@ -109,80 +110,47 @@ unsigned int stm32l0_dma_priority(unsigned int channel)
 
 unsigned int stm32l0_dma_channel(unsigned int channel)
 {
-    return ((stm32l0_dma_device.dma & (1ul << (channel & 7))) ? stm32l0_dma_device.channels[channel & 7].channel : STM32L0_DMA_CHANNEL_UNDEFINED);
+    uint32_t index, mask;
+
+    index = channel & 7;
+    mask = 1ul << index;
+
+    return ((stm32l0_dma_device.dma & mask) ? (stm32l0_dma_device.channels[index].channel & STM32L0_DMA_CHANNEL_MASK): STM32L0_DMA_CHANNEL_UNDEFINED);
 }
 
 bool stm32l0_dma_lock(unsigned int channel)
 {
     stm32l0_dma_t *dma = &stm32l0_dma_device.channels[channel & 7];
-    uint32_t primask, mask;
 
-    mask = 1ul << (channel & 7);
-
-    primask = __get_PRIMASK();
-
-    __disable_irq();
-
-    if (stm32l0_dma_device.lock & mask)
-    {
-        __set_PRIMASK(primask);
-
-        return false;
-    }
-
-    dma->channel = channel;
-
-    stm32l0_dma_device.lock |= mask;
-
-    __set_PRIMASK(primask);
-
-    return true;
+    return (armv6m_atomic_cash(&dma->channel, STM32L0_DMA_CHANNEL_NONE, channel) == STM32L0_DMA_CHANNEL_NONE);
 }
 
 void stm32l0_dma_unlock(unsigned int channel)
 {
-    uint32_t primask, mask;
+    stm32l0_dma_t *dma = &stm32l0_dma_device.channels[channel & 7];
 
-    mask = 1ul << (channel & 7);
-
-    primask = __get_PRIMASK();
-
-    __disable_irq();
-
-    stm32l0_dma_device.lock &= ~mask;
-
-    __set_PRIMASK(primask);
+    dma->channel = STM32L0_DMA_CHANNEL_NONE;
 }
 
 bool stm32l0_dma_enable(unsigned int channel, stm32l0_dma_callback_t callback, void *context)
 {
     stm32l0_dma_t *dma = &stm32l0_dma_device.channels[channel & 7];
     unsigned int shift;
-    uint32_t primask, mask;
+    uint32_t primask, mask, o_channel;
 
+    o_channel = armv6m_atomic_cash(&dma->channel, STM32L0_DMA_CHANNEL_NONE, channel);
+
+    if ((o_channel != STM32L0_DMA_CHANNEL_NONE) && (o_channel != (STM32L0_DMA_CHANNEL_LOCKED | channel)))
+    {
+	return false;
+    }
+    
     shift = (channel & 7) << 2;
     mask = 1ul << (channel & 7);
 
     primask = __get_PRIMASK();
 
     __disable_irq();
-
-    if (stm32l0_dma_device.dma & mask)
-    {
-        __set_PRIMASK(primask);
-
-        return false;
-    }
-
-    if (stm32l0_dma_device.lock & mask)
-    {
-        if (dma->channel != channel)
-        {
-            __set_PRIMASK(primask);
-
-            return false;
-        }
-    }
 
     if (!stm32l0_dma_device.dma)
     {
@@ -192,10 +160,10 @@ bool stm32l0_dma_enable(unsigned int channel, stm32l0_dma_callback_t callback, v
 
     stm32l0_dma_device.dma |= mask;
 
-    DMA1_CSELR->CSELR = (DMA1_CSELR->CSELR & ~(15 << shift)) | ((channel >> 4) << shift);
-
     __set_PRIMASK(primask);
 
+    armv6m_atomic_modify(&DMA1_CSELR->CSELR, (15 << shift), ((channel >> 4) << shift));
+    
     dma->channel = channel;
     dma->callback = callback;
     dma->context = context;
@@ -205,6 +173,7 @@ bool stm32l0_dma_enable(unsigned int channel, stm32l0_dma_callback_t callback, v
 
 void stm32l0_dma_disable(unsigned int channel)
 {
+    stm32l0_dma_t *dma = &stm32l0_dma_device.channels[channel & 7];
     uint32_t primask, mask;
 
     mask = 1ul << (channel & 7);
@@ -222,6 +191,11 @@ void stm32l0_dma_disable(unsigned int channel)
     }
 
     __set_PRIMASK(primask);
+
+    if (!(dma->channel & STM32L0_DMA_CHANNEL_LOCKED))
+    {
+	dma->channel = STM32L0_DMA_CHANNEL_NONE;
+    }
 }
 
 void stm32l0_dma_start(unsigned int channel, uint32_t tx_data, uint32_t rx_data, uint16_t xf_count, uint32_t option)

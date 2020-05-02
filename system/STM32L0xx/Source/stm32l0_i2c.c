@@ -339,7 +339,7 @@ static void stm32l0_i2c_master_transmit(stm32l0_i2c_t *i2c)
 {
     I2C_TypeDef *I2C = i2c->I2C;
     uint32_t i2c_cr2, count;
-    uint8_t tx_dma;
+    uint16_t tx_dma;
 
     i2c->state = STM32L0_I2C_STATE_MASTER_TRANSMIT;
 
@@ -408,7 +408,7 @@ static void stm32l0_i2c_master_receive(stm32l0_i2c_t *i2c)
 {
     I2C_TypeDef *I2C = i2c->I2C;
     uint32_t i2c_cr2, count;
-    uint8_t rx_dma;
+    uint16_t rx_dma;
 
     i2c->state = STM32L0_I2C_STATE_MASTER_RECEIVE;
 
