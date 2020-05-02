@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -77,11 +77,9 @@ typedef struct _stm32l0_rtc_timer_t {
 
 #define STM32L0_RTC_TAMP_CONTROL_EDGE_FALLING   0x00000001
 #define STM32L0_RTC_TAMP_CONTROL_EDGE_RISING    0x00000002
-#define STM32L0_RTC_TAMP_CONTROL_WAKEUP         0x00000004
 
 #define STM32L0_RTC_STAMP_CONTROL_EDGE_FALLING  0x00000001
 #define STM32L0_RTC_STAMP_CONTROL_EDGE_RISING   0x00000002
-#define STM32L0_RTC_STAMP_CONTROL_WAKEUP        0x00000004
 
 #define STM32L0_RTC_ALARM_MODE_TIME             0x00000000
 #define STM32L0_RTC_ALARM_MODE_UTC_OFFSET       0x00000001
@@ -187,16 +185,16 @@ static inline uint32_t stm32l0_rtc_micros_to_ticks(uint32_t micros)
 {
     if (micros < 1000000)
     {
-	return ((micros * STM32L0_RTC_CLOCK_TICKS_PER_SECOND + 999999) / 1000000);
+        return ((micros * STM32L0_RTC_CLOCK_TICKS_PER_SECOND + 999999) / 1000000);
     }
     else
-    {	
-	uint32_t seconds;
+    {   
+        uint32_t seconds;
 
-	seconds = (micros / 1000000);
-	micros = micros - seconds * 1000000;
+        seconds = (micros / 1000000);
+        micros = micros - seconds * 1000000;
 
-	return (seconds * STM32L0_RTC_CLOCK_TICKS_PER_SECOND) + ((micros * STM32L0_RTC_CLOCK_TICKS_PER_SECOND + 999999) / 1000000);
+        return (seconds * STM32L0_RTC_CLOCK_TICKS_PER_SECOND) + ((micros * STM32L0_RTC_CLOCK_TICKS_PER_SECOND + 999999) / 1000000);
     }
 }
 
@@ -204,16 +202,16 @@ static inline uint32_t stm32l0_rtc_millis_to_ticks(uint32_t millis)
 {
     if (millis < 60000)
     {
-	return ((millis * STM32L0_RTC_CLOCK_TICKS_PER_SECOND + 999) / 1000);
+        return ((millis * STM32L0_RTC_CLOCK_TICKS_PER_SECOND + 999) / 1000);
     }
     else
     {
-	uint32_t seconds;
+        uint32_t seconds;
 
-	seconds = (millis / 1000);
-	millis = millis - seconds * 1000;
+        seconds = (millis / 1000);
+        millis = millis - seconds * 1000;
 
-	return (seconds * STM32L0_RTC_CLOCK_TICKS_PER_SECOND) + ((millis * STM32L0_RTC_CLOCK_TICKS_PER_SECOND + 999) / 1000);
+        return (seconds * STM32L0_RTC_CLOCK_TICKS_PER_SECOND) + ((millis * STM32L0_RTC_CLOCK_TICKS_PER_SECOND + 999) / 1000);
     }
 }
 

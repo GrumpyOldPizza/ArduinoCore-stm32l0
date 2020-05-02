@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -55,7 +55,7 @@ bool STM32L0Class::getVBUS()
 {
 #if defined(STM32L0_CONFIG_PIN_VBUS)
     if (STM32L0_CONFIG_PIN_VBUS == STM32L0_GPIO_PIN_NONE) {
-	return false;
+        return false;
     }
 
     return !!stm32l0_gpio_pin_read(STM32L0_CONFIG_PIN_VBUS);
@@ -114,6 +114,16 @@ uint32_t STM32L0Class::resetCause()
     return stm32l0_system_reset_cause();
 }
 
+uint32_t STM32L0Class::wakeupReason()
+{
+    return stm32l0_system_wakeup_reason();
+}
+
+void STM32L0Class::wakeup()
+{
+    stm32l0_system_wakeup();
+}
+
 void STM32L0Class::sleep(uint32_t timeout)
 {
     stm32l0_system_sleep(STM32L0_SYSTEM_POLICY_SLEEP, timeout);
@@ -122,9 +132,9 @@ void STM32L0Class::sleep(uint32_t timeout)
 void STM32L0Class::stop(uint32_t timeout)
 {
     if (g_swdStatus == 0) {
-	stm32l0_system_swd_disable();
+        stm32l0_system_swd_disable();
 
-	g_swdStatus = 2;
+        g_swdStatus = 2;
     }
 
     stm32l0_system_sleep(STM32L0_SYSTEM_POLICY_DEEPSLEEP, timeout);
@@ -143,18 +153,18 @@ void STM32L0Class::reset()
 void STM32L0Class::swdEnable()
 {
     if (g_swdStatus != 3) {
-	stm32l0_system_swd_enable();
+        stm32l0_system_swd_enable();
 
-	g_swdStatus = 1;
+        g_swdStatus = 1;
     }
 }
 
 void STM32L0Class::swdDisable()
 {
     if (g_swdStatus != 3) {
-	stm32l0_system_swd_disable();
+        stm32l0_system_swd_disable();
 
-	g_swdStatus = 2;
+        g_swdStatus = 2;
     }
 }
 
@@ -171,13 +181,13 @@ void STM32L0Class::wdtReset()
 bool STM32L0Class::flashErase(uint32_t address, uint32_t count)
 {
     if (address & 127) {
-	return false;
+        return false;
     }
 
     count = (count + 127) & ~127;
 
     if ((address < FLASHSTART) || ((address + count) > FLASHEND)) {
-	return false;
+        return false;
     }
 
     stm32l0_flash_unlock();
@@ -190,17 +200,17 @@ bool STM32L0Class::flashErase(uint32_t address, uint32_t count)
 bool STM32L0Class::flashProgram(uint32_t address, const void *data, uint32_t count)
 {
     if ((address & 3) || (count & 3)) {
-	return false;
+        return false;
     }
 
     if ((address < FLASHSTART) || ((address + count) > FLASHEND)) {
-	return false;
+        return false;
     }
 
     if (count) {
-	stm32l0_flash_unlock();
-	stm32l0_flash_program(address, (const uint8_t*)data, count);
-	stm32l0_flash_lock();
+        stm32l0_flash_unlock();
+        stm32l0_flash_program(address, (const uint8_t*)data, count);
+        stm32l0_flash_lock();
     }
 
     return true;

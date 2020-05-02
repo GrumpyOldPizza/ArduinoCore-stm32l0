@@ -263,7 +263,7 @@ void SystemInit(void)
                           "   isb                                    \n"
                           "   bx      r1                             \n");
     }
-
+    
     /* We should be at a 2MHz MSI clock, so switch to HSI16 for the
      * init code to be half way fast.
      */
@@ -309,27 +309,37 @@ void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, ui
         
         if (PWR->CSR & PWR_CSR_WUF)
         {
-            stm32l0_system_device.wakeup |= STM32L0_SYSTEM_WAKEUP_PIN;
+            if (RTC->ISR & (RTC_ISR_ALRAF | RTC_ISR_ALRBF))
+            {
+                if (RTC->ISR & RTC_ISR_ALRAF)
+                {
+                    stm32l0_system_device.wakeup |= STM32L0_SYSTEM_WAKEUP_ALARM;
+                }
+                
+                if (RTC->ISR & RTC_ISR_ALRBF)
+                {
+                    stm32l0_system_device.wakeup |= STM32L0_SYSTEM_WAKEUP_TIMEOUT;
+                }
+            }
+            else
+            {
+                stm32l0_system_device.wakeup |= STM32L0_SYSTEM_WAKEUP_PIN;
+            }
+
+            PWR->CR |= PWR_CR_CSBF;
         }
         
-        if (RTC->ISR & RTC_ISR_ALRAF)
-        {
-            stm32l0_system_device.wakeup |= STM32L0_SYSTEM_WAKEUP_ALARM;
-        }
+        RTC->CR &= ~(RTC_CR_ALRBIE | RTC_CR_ALRAIE | RTC_CR_ALRBE | RTC_CR_ALRAE);
+        RTC->ISR = ~(RTC_ISR_ALRBF | RTC_ISR_ALRAF | RTC_ISR_INIT);
 
-        if (RTC->ISR & RTC_ISR_ALRBF)
-        {
-            stm32l0_system_device.wakeup |= STM32L0_SYSTEM_WAKEUP_TIMEOUT;
-        }
-
-        if (RCC->CSR & RCC_CSR_IWDGRSTF)
+        if (RCC->CSR & (RCC_CSR_IWDGRSTF | RCC_CSR_WWDGRSTF))
         {
             stm32l0_system_device.wakeup |= STM32L0_SYSTEM_WAKEUP_WATCHDOG;
         }
-
-        if (stm32l0_system_device.wakeup == STM32L0_SYSTEM_WAKEUP_NONE)
+        
+        if (RCC->CSR & (RCC_CSR_FWRSTF | RCC_CSR_SFTRSTF | RCC_CSR_LPWRRSTF | RCC_CSR_OBLRSTF | RCC_CSR_PINRSTF))
         {
-            stm32l0_system_device.wakeup = STM32L0_SYSTEM_WAKEUP_RESET;
+            stm32l0_system_device.wakeup |= STM32L0_SYSTEM_WAKEUP_RESET;
         }
     }
     else
@@ -365,8 +375,6 @@ void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, ui
     
     RCC->CSR |= RCC_CSR_RMVF;
     RCC->CSR &= ~RCC_CSR_RMVF;
-    
-    PWR->CR |= (PWR_CR_CSBF | PWR_CR_CWUF);
     
     stm32l0_system_device.lseclk = lseclk;
     stm32l0_system_device.hseclk = hseclk;

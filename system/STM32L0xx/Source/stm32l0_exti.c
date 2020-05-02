@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -40,7 +40,6 @@ extern void SPI2_IRQHandler(void);
 typedef struct _stm32l0_exti_device_t {
     uint16_t                events;
     uint16_t                mask;
-    uint16_t                wakeup;
     volatile uint16_t       pending;
     volatile uint16_t       priority[4];
     stm32l0_exti_callback_t callback[16];
@@ -70,7 +69,6 @@ void __stm32l0_exti_initialize(void)
     
     stm32l0_exti_device.events = 0;
     stm32l0_exti_device.mask = ~0;
-    stm32l0_exti_device.wakeup = 0;
     stm32l0_exti_device.pending = 0;
     stm32l0_exti_device.priority[0] = 0;
     stm32l0_exti_device.priority[1] = 0;
@@ -126,11 +124,6 @@ bool stm32l0_exti_attach(uint16_t pin, uint32_t control, stm32l0_exti_callback_t
     {
         armv6m_atomic_and(&EXTI->FTSR, ~mask);
     }
-
-    if (control & STM32L0_EXTI_CONTROL_WAKEUP)
-    {
-	armv6m_atomic_orh(&stm32l0_exti_device.wakeup, mask);
-    }
     
     armv6m_atomic_andh(&stm32l0_exti_device.priority[0], ~mask);
     armv6m_atomic_andh(&stm32l0_exti_device.priority[1], ~mask);
@@ -175,7 +168,6 @@ bool stm32l0_exti_control(uint16_t pin, uint32_t control)
     armv6m_atomic_andh(&stm32l0_exti_device.priority[1], ~mask);
     armv6m_atomic_andh(&stm32l0_exti_device.priority[2], ~mask);
     armv6m_atomic_andh(&stm32l0_exti_device.priority[3], ~mask);
-    armv6m_atomic_andh(&stm32l0_exti_device.wakeup, ~mask);
     armv6m_atomic_andh(&stm32l0_exti_device.events, ~mask);
 
     return true;
@@ -207,10 +199,9 @@ void stm32l0_exti_unblock(uint32_t mask)
 
 void EXTI0_1_IRQHandler(void)
 {
-    uint32_t mask, wakeup, pending;
+    uint32_t mask, pending;
 
     mask = (EXTI->PR & stm32l0_exti_device.mask) & 0x0003;
-    wakeup = stm32l0_exti_device.wakeup;
 
     EXTI->PR = mask;
 
@@ -267,19 +258,13 @@ void EXTI0_1_IRQHandler(void)
             }
         }
     }
-
-    if (wakeup & mask)
-    {
-	stm32l0_system_wakeup();
-    }
 }
 
 void EXTI2_3_IRQHandler(void)
 {
-    uint32_t mask, wakeup, pending;
+    uint32_t mask, pending;
 
     mask = (EXTI->PR & stm32l0_exti_device.mask) & 0x000c;
-    wakeup = stm32l0_exti_device.wakeup;
     
     EXTI->PR = mask;
     
@@ -336,19 +321,13 @@ void EXTI2_3_IRQHandler(void)
             }
         }
     }
-
-    if (wakeup & mask)
-    {
-	stm32l0_system_wakeup();
-    }
 }
 
 void EXTI4_15_IRQHandler(void)
 {
-    uint32_t mask, wakeup, pending, bit, index;
+    uint32_t mask, pending, bit, index;
 
     mask = (EXTI->PR & stm32l0_exti_device.mask) & 0xfff0;
-    wakeup = stm32l0_exti_device.wakeup;
 
     EXTI->PR = mask;
 
@@ -395,11 +374,6 @@ void EXTI4_15_IRQHandler(void)
                 armv6m_pendsv_raise(ARMV6M_PENDSV_SWI_EXTI);
             }
         }
-    }
-
-    if (wakeup & mask)
-    {
-	stm32l0_system_wakeup();
     }
 }
 

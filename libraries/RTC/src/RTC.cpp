@@ -56,7 +56,7 @@ void RTCClass::begin(bool resetTime)
 {
     if (resetTime && !(stm32l0_rtc_status() & (STM32L0_RTC_STATUS_TIME_INTERNAL | STM32L0_RTC_STATUS_TIME_EXTERNAL)))
     {
-	stm32l0_rtc_time_write(0, Y2K_TO_GPS_OFFSET + Y2K_UTC_OFFSET, 0, false);
+        stm32l0_rtc_time_write(0, Y2K_TO_GPS_OFFSET + Y2K_UTC_OFFSET, 0, false);
     }
 }
 
@@ -530,7 +530,7 @@ void RTCClass::enableAlarm(AlarmMatch match)
 void RTCClass::disableAlarm()
 {
     if (_alarm_match != MATCH_OFF) {
-	_alarm_match = MATCH_OFF;
+        _alarm_match = MATCH_OFF;
 
         stm32l0_rtc_alarm_stop();
     }
@@ -624,68 +624,68 @@ void RTCClass::SyncAlarm()
     uint32_t seconds, ticks, period;
 
     if (_alarm_match != MATCH_OFF) {
-	if (_alarm_epoch) {
-	    seconds = _alarm_epoch;
-	    ticks = 0;
-	    
-	    switch (_alarm_match) {
-	    default:
-	    case MATCH_ANY: // Every Second
-		period = 1;
-		break;
-	    case MATCH_SS:  // Every Minute
-		period = 60;
-		break;
-	    case MATCH_MMSS: // Every Hour
-		period = 3600;
-		break;
-	    case MATCH_HHMMSS: // Every Day
-		period = 86400;
-		break;
-	    case MATCH_YYMMDDHHMMSS: // Once, on a specific date and a specific time
-		period = 0;
-		break;
-	    }
-	} else {
-	    if (_alarm_match != MATCH_YYMMDDHHMMSS) {
-		seconds = Y2K_TO_GPS_OFFSET - _tz_offset; // offset by a day to avoid underflow
-		ticks = 0;
-	    
-		switch (_alarm_match) {
-		default:
-		case MATCH_ANY: // Every Second
-		    period = 1;
-		    break;
-		case MATCH_SS:  // Every Minute
-		    period = 60;
-		    seconds += _alarm_seconds;
-		    break;
-		case MATCH_MMSS: // Every Hour
-		    period = 3600;
-		    seconds += (_alarm_seconds + 60 * _alarm_minutes);
-		    break;
-		case MATCH_HHMMSS: // Every Day
-		    period = 86400;
-		    seconds += (_alarm_seconds + 60 * _alarm_minutes + 3600 * _alarm_hours);
-		    break;
-		}
-	    } else {
-		tod.year = _alarm_year;
-		tod.month = _alarm_month;
-		tod.day = _alarm_day;
-		tod.hours = _alarm_hours;
-		tod.minutes = _alarm_minutes;
-		tod.seconds = _alarm_seconds;
-		tod.ticks = 0;
-	    
-		stm32l0_rtc_tod_to_time(&tod, &seconds, &ticks);
+        if (_alarm_epoch) {
+            seconds = _alarm_epoch;
+            ticks = 0;
+            
+            switch (_alarm_match) {
+            default:
+            case MATCH_ANY: // Every Second
+                period = 1;
+                break;
+            case MATCH_SS:  // Every Minute
+                period = 60;
+                break;
+            case MATCH_MMSS: // Every Hour
+                period = 3600;
+                break;
+            case MATCH_HHMMSS: // Every Day
+                period = 86400;
+                break;
+            case MATCH_YYMMDDHHMMSS: // Once, on a specific date and a specific time
+                period = 0;
+                break;
+            }
+        } else {
+            if (_alarm_match != MATCH_YYMMDDHHMMSS) {
+                seconds = Y2K_TO_GPS_OFFSET - _tz_offset; // offset by a day to avoid underflow
+                ticks = 0;
+            
+                switch (_alarm_match) {
+                default:
+                case MATCH_ANY: // Every Second
+                    period = 1;
+                    break;
+                case MATCH_SS:  // Every Minute
+                    period = 60;
+                    seconds += _alarm_seconds;
+                    break;
+                case MATCH_MMSS: // Every Hour
+                    period = 3600;
+                    seconds += (_alarm_seconds + 60 * _alarm_minutes);
+                    break;
+                case MATCH_HHMMSS: // Every Day
+                    period = 86400;
+                    seconds += (_alarm_seconds + 60 * _alarm_minutes + 3600 * _alarm_hours);
+                    break;
+                }
+            } else {
+                tod.year = _alarm_year;
+                tod.month = _alarm_month;
+                tod.day = _alarm_day;
+                tod.hours = _alarm_hours;
+                tod.minutes = _alarm_minutes;
+                tod.seconds = _alarm_seconds;
+                tod.ticks = 0;
+            
+                stm32l0_rtc_tod_to_time(&tod, &seconds, &ticks);
 
-		seconds = seconds + Y2K_TO_GPS_OFFSET - _tz_offset;
-		period = 0;
-	    }
-	}
+                seconds = seconds + Y2K_TO_GPS_OFFSET - _tz_offset;
+                period = 0;
+            }
+        }
 
-	stm32l0_rtc_alarm_start(seconds, ticks, period, STM32L0_RTC_ALARM_MODE_UTC_OFFSET, (stm32l0_rtc_alarm_callback_t)_alarmCallback, (void*)NULL);
+        stm32l0_rtc_alarm_start(seconds, ticks, period, STM32L0_RTC_ALARM_MODE_UTC_OFFSET, (stm32l0_rtc_alarm_callback_t)_alarmCallback, (void*)NULL);
     }
 }
 
@@ -696,10 +696,10 @@ void RTCClass::_alarmCallback()
         _alarm_match = MATCH_OFF;
     }
 
-    stm32l0_system_wakeup();
-
     if (_alarm_callback) {
         (*_alarm_callback)();
+    } else {
+        stm32l0_system_wakeup();
     }
 }
 

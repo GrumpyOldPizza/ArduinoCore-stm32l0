@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -35,20 +35,19 @@
  */
 
 bool Callback::queue() {
-    stm32l0_system_wakeup();
-
     if (_callback) {
-	return armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)_callback, _context, 0);
+        return armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)_callback, _context, 0);
     } else {
-	return false;
+        stm32l0_system_wakeup();
+        return false;
     }
 }
 
 void Callback::call() {
-    stm32l0_system_wakeup();
-
     if (_callback) {
-	(*_callback)(_context);
+        (*_callback)(_context);
+    } else {
+        stm32l0_system_wakeup();
     }
 }
 
@@ -57,12 +56,12 @@ void Callback::bind(const void *method, const void *object) {
     ptrdiff_t adj = ((ptrdiff_t)(((const uint32_t*)method)[1]) >> 1);
     
     if (!((const uint32_t*)method)[1] & 1) {
-	/* non-virtual function */
-	_callback = (void(*)(void*))ptr;
+        /* non-virtual function */
+        _callback = (void(*)(void*))ptr;
     } else {
-	/* virtual function */
-	void *vptr = *((void**)((uintptr_t)object + adj)); 
-	_callback = (void(*)(void*))(*((void**)((uint8_t*)vptr + (ptrdiff_t)ptr)));
+        /* virtual function */
+        void *vptr = *((void**)((uintptr_t)object + adj)); 
+        _callback = (void(*)(void*))(*((void**)((uint8_t*)vptr + (ptrdiff_t)ptr)));
     }
     _context = (void*)((uintptr_t)object + adj);
 }
