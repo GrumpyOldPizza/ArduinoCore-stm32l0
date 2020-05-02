@@ -125,9 +125,9 @@ bool stm32l0_dma_lock(unsigned int channel)
 
     if (stm32l0_dma_device.lock & mask)
     {
-        __set_PRIMASK(primask);
+	__set_PRIMASK(primask);
 
-        return false;
+	return false;
     }
 
     dma->channel = channel;
@@ -176,18 +176,18 @@ bool stm32l0_dma_enable(unsigned int channel, stm32l0_dma_callback_t callback, v
 
     if (stm32l0_dma_device.lock & mask)
     {
-        if (dma->channel != channel)
-        {
-            __set_PRIMASK(primask);
+	if (dma->channel != channel)
+	{
+	    __set_PRIMASK(primask);
 
-            return false;
-        }
+	    return false;
+	}
     }
 
     if (!stm32l0_dma_device.dma)
     {
-        RCC->AHBENR |= RCC_AHBENR_DMAEN;
-        RCC->AHBSMENR |= (RCC_AHBSMENR_SRAMSMEN | RCC_AHBSMENR_MIFSMEN);
+	RCC->AHBENR |= RCC_AHBENR_DMAEN;
+	RCC->AHBSMENR |= (RCC_AHBSMENR_SRAMSMEN | RCC_AHBSMENR_MIFSMEN);
     }
 
     stm32l0_dma_device.dma |= mask;
@@ -217,8 +217,8 @@ void stm32l0_dma_disable(unsigned int channel)
         
     if (!stm32l0_dma_device.dma)
     {
-        RCC->AHBSMENR &= ~(RCC_AHBSMENR_SRAMSMEN | RCC_AHBSMENR_MIFSMEN);
-        RCC->AHBENR &= ~RCC_AHBENR_DMAEN;
+	RCC->AHBSMENR &= ~(RCC_AHBSMENR_SRAMSMEN | RCC_AHBSMENR_MIFSMEN);
+	RCC->AHBENR &= ~RCC_AHBENR_DMAEN;
     }
 
     __set_PRIMASK(primask);
@@ -315,7 +315,7 @@ void DMA1_Channel4_5_6_7_IRQHandler(void)
 
     if (((dma_isr >> 12) & 0x0000000e) & DMA1_Channel4->CCR)
     {
-        stm32l0_dma_interrupt(&stm32l0_dma_device.channels[3], 12);
+	stm32l0_dma_interrupt(&stm32l0_dma_device.channels[3], 12);
     }
 
     if (((dma_isr >> 16) & 0x0000000e) & DMA1_Channel5->CCR)

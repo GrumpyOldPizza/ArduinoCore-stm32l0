@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -39,17 +39,10 @@
 
 #define STM32L0_EXTI_CONTROL_EDGE_FALLING       0x00000001
 #define STM32L0_EXTI_CONTROL_EDGE_RISING        0x00000002
-#define STM32L0_EXTI_CONTROL_PRIORITY_SHIFT     2
-#define STM32L0_EXTI_CONTROL_PRIORITY_MASK      0x0000000c
-#define STM32L0_EXTI_CONTROL_PRIORITY_CRITICAL  0x00000000
-#define STM32L0_EXTI_CONTROL_PRIORITY_HIGH      0x00000004
-#define STM32L0_EXTI_CONTROL_PRIORITY_MEDIUM    0x00000008
-#define STM32L0_EXTI_CONTROL_PRIORITY_LOW       0x0000000c
 
 typedef void (*stm32l0_exti_callback_t)(void *context);
 
-extern void __stm32l0_exti_initialize(void);
-
+extern void stm32l0_exti_configure(unsigned int priority);
 extern bool stm32l0_exti_attach(uint16_t pin, uint32_t control, stm32l0_exti_callback_t callback, void *context);
 extern void stm32l0_exti_detach(uint16_t pin);
 extern bool stm32l0_exti_control(uint16_t pin, uint32_t control);

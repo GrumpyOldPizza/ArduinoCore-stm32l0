@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2016-2018 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -35,95 +35,96 @@
 class RTCClass {
 public:
     enum AlarmMatch: uint8_t {
-        MATCH_OFF          = 0,      // Never
-        MATCH_ANY          = 1,      // Every Second
-        MATCH_SS           = 2,      // Every Minute
-        MATCH_MMSS         = 3,      // Every Hour
-        MATCH_HHMMSS       = 4,      // Every Day
-        MATCH_YYMMDDHHMMSS = 5,      // Once, on a specific date and a specific time
+        MATCH_ANY          = 0,      // Every Second
+        MATCH_SS           = 1,      // Every Minute
+        MATCH_MMSS         = 2,      // Every Hour
+        MATCH_HHMMSS       = 3,      // Every Day
+        MATCH_DHHMMSS      = 4,      // Every Month
+        MATCH_MMDDHHMMSS   = 5,      // Every Year
+        MATCH_YYMMDDHHMMSS = 6,      // Once, on a specific date and a specific time
     };
 
     RTCClass();
 
-    void begin(bool resetTime = false);
-
-    uint16_t getMilliSeconds();
-    uint8_t getSeconds();
-    uint8_t getMinutes();
-    uint8_t getHours();
-    uint8_t getDay();
-    uint8_t getMonth();
-    uint8_t getYear();
-    void getTime(uint8_t &hours, uint8_t &minutes, uint8_t &seconds);
-    void getTime(uint8_t &hours, uint8_t &minutes, uint8_t &seconds, uint16_t &milliSeconds);
-    void getDate(uint8_t &day, uint8_t &month, uint8_t &year);
-    void getDateTime(uint8_t &day, uint8_t &month, uint8_t &year, uint8_t &hours, uint8_t &minutes, uint8_t &seconds);
-    void getDateTime(uint8_t &day, uint8_t &month, uint8_t &year, uint8_t &hours, uint8_t &minutes, uint8_t &seconds, uint16_t &milliSeconds);
-
-    void setSeconds(uint8_t seconds);
-    void setMinutes(uint8_t minutes);
-    void setHours(uint8_t hours);
-    void setDay(uint8_t day);
-    void setMonth(uint8_t month);
-    void setYear(uint8_t year);
-    void setTime(uint8_t hours, uint8_t minutes, uint8_t seconds);
-    void setDate(uint8_t day, uint8_t month, uint8_t year);
-    void setDateTime(uint8_t day, uint8_t month, uint8_t year, uint8_t hours, uint8_t minutes, uint8_t seconds);
-
-    uint32_t getEpoch();
-    void getEpoch(uint32_t &seconds, uint16_t &milliSeconds);
-    void setEpoch(uint32_t seconds);
-    uint32_t getY2kEpoch();
-    void getY2kEpoch(uint32_t &seconds, uint16_t &milliSeconds);
-    void setY2kEpoch(uint32_t seconds);
-    uint32_t getGpsEpoch();
-    void getGpsEpoch(uint32_t &seconds, uint16_t &milliSeconds);
-    void setGpsEpoch(uint32_t seconds);
-    
-    uint8_t getAlarmSeconds();
-    uint8_t getAlarmMinutes();
-    uint8_t getAlarmHours();
-    uint8_t getAlarmDay();
-    uint8_t getAlarmMonth();
-    uint8_t getAlarmYear();
-    void getAlarmTime(uint8_t &hours, uint8_t &minutes, uint8_t &seconds);
-    void getAlarmDate(uint8_t &day, uint8_t &month, uint8_t &year);
-    void getAlarmDateTime(uint8_t &day, uint8_t &month, uint8_t &year, uint8_t &hours, uint8_t &minutes, uint8_t &seconds);
-
-    void setAlarmSeconds(uint8_t seconds);
-    void setAlarmMinutes(uint8_t minutes);
-    void setAlarmHours(uint8_t hours);
-    void setAlarmDay(uint8_t day);
-    void setAlarmMonth(uint8_t month);
-    void setAlarmYear(uint8_t year);
-    void setAlarmTime(uint8_t hours, uint8_t minutes, uint8_t seconds);
-    void setAlarmDate(uint8_t day, uint8_t month, uint8_t year);
-    void setAlarmDateTime(uint8_t day, uint8_t month, uint8_t year, uint8_t hours, uint8_t minutes, uint8_t seconds);
-    void setAlarmEpoch(uint32_t seconds);
-    
     void enableAlarm(AlarmMatch match);
     void disableAlarm();
 
     void attachInterrupt(void(*callback)(void));
     void detachInterrupt();
+  
+    // Get Functions
+    uint32_t getSubSeconds();
+    uint8_t getSeconds();
+    uint8_t getMinutes();
+    uint8_t getHours();
+    void getTime(uint8_t &hours, uint8_t &minutes, uint8_t &seconds);
+    void getTime(uint8_t &hours, uint8_t &minutes, uint8_t &seconds, uint32_t &subSeconds);
+  
+    uint8_t getDay();
+    uint8_t getMonth();
+    uint8_t getYear();
+    void getDate(uint8_t &day, uint8_t &month, uint8_t &year);
+  
+    uint8_t getAlarmSeconds();
+    uint8_t getAlarmMinutes();
+    uint8_t getAlarmHours();
+    void getAlarmTime(uint8_t &hours, uint8_t &minutes, uint8_t &seconds);
 
-    int32_t getTzOffset();
-    void setTzOffset(int32_t seconds);
+    uint8_t getAlarmDay();
+    uint8_t getAlarmMonth();
+    uint8_t getAlarmYear();
+    void getAlarmDate(uint8_t &day, uint8_t &month, uint8_t &year);
 
-    int32_t getUtcOffset();
-    void setUtcOffset(int32_t seconds);
 
-    uint32_t status();
+    // Set Functions
+    void setSeconds(uint8_t seconds);
+    void setMinutes(uint8_t minutes);
+    void setHours(uint8_t hours);
+    void setTime(uint8_t hours, uint8_t minutes, uint8_t seconds);
+
+    void setDay(uint8_t day);
+    void setMonth(uint8_t month);
+    void setYear(uint8_t year);
+    void setDate(uint8_t day, uint8_t month, uint8_t year);
+
+    void setAlarmSeconds(uint8_t seconds);
+    void setAlarmMinutes(uint8_t minutes);
+    void setAlarmHours(uint8_t hours);
+    void setAlarmTime(uint8_t hours, uint8_t minutes, uint8_t seconds);
+
+    void setAlarmDay(uint8_t day);
+    void setAlarmMonth(uint8_t month);
+    void setAlarmYear(uint8_t year);
+    void setAlarmDate(uint8_t day, uint8_t month, uint8_t year);
+
+    // Epoch Functions
+    uint32_t getEpoch();
+    uint32_t getY2kEpoch();
+    void setEpoch(uint32_t ts);
+    void setY2kEpoch(uint32_t ts);
+    void setAlarmEpoch(uint32_t ts);
 
     bool isConfigured() { return true; }
 
 private:
-    void GetTod(stm32l0_rtc_tod_t *tod);
-    void SetTod(const stm32l0_rtc_tod_t *tod);
+    uint8_t _alarm_enable;
+    uint8_t _alarm_wakeup;
+    uint8_t _alarm_match;
+    uint8_t _alarm_year;
+    uint8_t _alarm_month;
+    uint8_t _alarm_day;
+    uint8_t _alarm_hours;
+    uint8_t _alarm_minutes;
+    uint8_t _alarm_seconds;
+
+    void (*_alarm_callback)(void);
+
+    stm32l0_rtc_calendar_t _alarm_calendar;
 
     void SyncAlarm();
+    void AdvanceAlarm();
 
-    static void _alarmCallback();
+    static void _alarmCallback(class RTCClass *self);
 };
 
 extern RTCClass RTC;

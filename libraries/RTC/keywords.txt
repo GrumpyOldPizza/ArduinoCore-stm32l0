@@ -6,76 +6,51 @@
 # Datatypes (KEYWORD1)
 #######################################
 
-RTC	KEYWORD1
+RTCZero	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 
-begin		 	KEYWORD2
+getDay					KEYWORD2
+getMonth				KEYWORD2
+getYear					KEYWORD2
+getHours 				KEYWORD2
+getMinutes			KEYWORD2
+getSeconds 			KEYWORD2
 
-getMilliSeconds 	KEYWORD2
-getSeconds 		KEYWORD2
-getMinutes		KEYWORD2
-getHours 		KEYWORD2
-getDay			KEYWORD2
-getMonth		KEYWORD2
-getYear			KEYWORD2
-getTime			KEYWORD2
-getDate			KEYWORD2
-getDateTime		KEYWORD2
+setDay					KEYWORD2
+setMonth				KEYWORD2
+setYear					KEYWORD2
+setHours 				KEYWORD2
+setMinutes			KEYWORD2
+setSeconds 			KEYWORD2
+setDate					KEYWORD2
+setTime					KEYWORD2
 
-setSeconds 		KEYWORD2
-setMinutes		KEYWORD2
-setHours 		KEYWORD2
-setDay			KEYWORD2
-setMonth		KEYWORD2
-setYear			KEYWORD2
-setTime			KEYWORD2
-setDate			KEYWORD2
-setDateTime		KEYWORD2
+getEpoch			KEYWORD2
+getY2kEpoch			KEYWORD2
+setEpoch			KEYWORD2
+setY2kEpoch			KEYWORD2
 
-getEpoch		KEYWORD2
-setEpoch		KEYWORD2
-getY2kEpoch		KEYWORD2
-setY2kEpoch		KEYWORD2
-getGpsEpoch		KEYWORD2
-setGpsEpoch		KEYWORD2
-
-getAlarmSeconds 	KEYWORD2
-getAlarmMinutes		KEYWORD2
-getAlarmHours		KEYWORD2
-getAlarmDay		KEYWORD2
+getAlarmDay			KEYWORD2
 getAlarmMonth		KEYWORD2
 getAlarmYear		KEYWORD2
-getAlarmTime		KEYWORD2
-getAlarmDate		KEYWORD2
-getAlarmDateTime	KEYWORD2
+getAlarmHours 	KEYWORD2
+getAlarmMinutes	KEYWORD2
+getAlarmSeconds KEYWORD2
 
-setAlarmSeconds 	KEYWORD2
-setAlarmMinutes		KEYWORD2
-setAlarmHours		KEYWORD2
-setAlarmDay		KEYWORD2
+setAlarmDay			KEYWORD2
 setAlarmMonth		KEYWORD2
 setAlarmYear		KEYWORD2
-setAlarmTime		KEYWORD2
+setAlarmHours 	KEYWORD2
+setAlarmMinutes	KEYWORD2
+setAlarmSeconds KEYWORD2
 setAlarmDate		KEYWORD2
-setAlarmDateTime	KEYWORD2
-setAlarmEpoch		KEYWORD2
+setAlarmTime		KEYWORD2
 
 enableAlarm 		KEYWORD2
 disableAlarm 		KEYWORD2
-
-attachInterrupt		KEYWORD2
-detachInterrupt		KEYWORD2
-
-getTzOffset	 	KEYWORD2
-setTzOffset	 	KEYWORD2
-
-getUtcOffset	 	KEYWORD2
-setUtcOffset	 	KEYWORD2
-
-isConfigured	 	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)

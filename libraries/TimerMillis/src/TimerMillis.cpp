@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2016-2018 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -32,22 +32,30 @@
 
 TimerMillis::TimerMillis()
 {
-    stm32l0_rtc_timer_create(&_timer, (stm32l0_rtc_timer_callback_t)TimerMillis::timeout, (void*)this);
+    _timer = new stm32l0_rtc_timer_t;
 
-    _clock = 0;
+    if (_timer) {
+	stm32l0_rtc_timer_create(_timer, (stm32l0_rtc_timer_callback_t)timeout, (void*)this);
+    }
+
+    _adjust = 0xffff;
 }
 
 TimerMillis::~TimerMillis()
 {
-    if (!stm32l0_rtc_timer_destroy(&_timer)) {
-	__BKPT();
+    if (_timer) {
+	stm32l0_rtc_timer_destroy(_timer);
     }
 }
 
-int TimerMillis::start(void(*callback)(void), uint32_t delay, uint32_t period)
+int TimerMillis::start(Callback callback, uint32_t delay, uint32_t period)
 {
-    uint64_t clock;
-    uint32_t seconds, ticks;
+    uint32_t seconds;
+    uint16_t subseconds, adjust;
+
+    if (!_timer) {
+	return 0;
+    }
 
     if (active()) {
 	return 0;
@@ -61,24 +69,32 @@ int TimerMillis::start(void(*callback)(void), uint32_t delay, uint32_t period)
 	delay = period;
     }
 
-    clock = stm32l0_rtc_clock_read();
-    seconds = delay / 1000;
-    ticks = ((delay - seconds * 1000) * STM32L0_RTC_CLOCK_TICKS_PER_SECOND + 999) / 1000;
-
-    _clock = clock + (seconds * STM32L0_RTC_CLOCK_TICKS_PER_SECOND);
-    _millis = delay - (seconds * 1000);
-    _period = period;
     _callback = callback;
-    
-    stm32l0_rtc_timer_start(&_timer, _clock + ticks, STM32L0_RTC_TIMER_MODE_ABSOLUTE);
+
+    stm32l0_rtc_get_time(&seconds, &subseconds);
+    stm32l0_rtc_millis_to_time(delay, &_seconds, &_subseconds);
+
+    stm32l0_rtc_time_offset(_seconds, _subseconds, seconds, subseconds, &_seconds, &_subseconds);
+
+    adjust = (_subseconds & (STM32L0_RTC_PREDIV_A -1)) ? (STM32L0_RTC_PREDIV_A - (_subseconds & (STM32L0_RTC_PREDIV_A -1))) : 0;
+
+    _period = period;
+    _subseconds += adjust;
+    _adjust = adjust;
+
+    stm32l0_rtc_timer_start(_timer, _seconds, _subseconds, true);
 
     return 1;
 }
 
 int TimerMillis::restart(uint32_t delay, uint32_t period)
 {
-    uint64_t clock;
-    uint32_t seconds, ticks;
+    uint32_t seconds;
+    uint16_t subseconds, adjust;
+
+    if (!_timer) {
+	return 0;
+    }
 
     if (delay == 0) {
 	if (period == 0) {
@@ -88,56 +104,71 @@ int TimerMillis::restart(uint32_t delay, uint32_t period)
 	delay = period;
     }
 
-    stm32l0_rtc_timer_stop(&_timer);
+    _adjust = 0xffff;
 
-    clock = stm32l0_rtc_clock_read();
-    seconds = delay / 1000;
-    ticks = ((delay - seconds * 1000) * STM32L0_RTC_CLOCK_TICKS_PER_SECOND + 999) / 1000;
+    stm32l0_rtc_timer_stop(_timer);
 
-    _clock = clock + (seconds * STM32L0_RTC_CLOCK_TICKS_PER_SECOND);
-    _millis = delay - (seconds * 1000);
+    stm32l0_rtc_get_time(&seconds, &subseconds);
+    stm32l0_rtc_millis_to_time(delay, &_seconds, &_subseconds);
+
+    stm32l0_rtc_time_offset(_seconds, _subseconds, seconds, subseconds, &_seconds, &_subseconds);
+
+    adjust = (_subseconds & (STM32L0_RTC_PREDIV_A -1)) ? (STM32L0_RTC_PREDIV_A - (_subseconds & (STM32L0_RTC_PREDIV_A -1))) : 0;
+
     _period = period;
+    _subseconds += adjust;
+    _adjust = adjust;
 
-    stm32l0_rtc_timer_start(&_timer, _clock + ticks, STM32L0_RTC_TIMER_MODE_ABSOLUTE);
+    stm32l0_rtc_timer_start(_timer, _seconds, _subseconds, true);
 
     return 1;
 }
 
 int TimerMillis::stop()
 {
-    stm32l0_rtc_timer_stop(&_timer);
+    if (!_timer) {
+	return 0;
+    }
 
-    _clock = 0;
+    _adjust = 0xffff;
+
+    stm32l0_rtc_timer_stop(_timer);
 
     return 1;
 }
 
 bool TimerMillis::active()
 {
-    return _clock != 0;
+    return (_adjust != 0xffff);
 }
 
-void TimerMillis::timeout(class TimerMillis *self)
+void TimerMillis::timeout(class TimerMillis *self, stm32l0_rtc_timer_t *timer)
 {
-    uint32_t seconds, ticks;
+    uint32_t seconds;
+    uint16_t subseconds, adjust;
 
-    if (self->_clock) {
+    if (timer != NULL) {
+	delete timer;
+	return;
+    }
+
+    if (self->_adjust != 0xffff) {
 	if (self->_period) {
-	    self->_millis += self->_period;
+	    stm32l0_rtc_millis_to_time(self->_period, &seconds, &subseconds);
 
-	    seconds = self->_millis / 1000;
-	    ticks = ((self->_millis - seconds * 1000) * STM32L0_RTC_CLOCK_TICKS_PER_SECOND + 999) / 1000;
-	    
-	    self->_clock += (seconds * STM32L0_RTC_CLOCK_TICKS_PER_SECOND);
-	    self->_millis -= (seconds * 1000);
-	    
-	    stm32l0_rtc_timer_start(&self->_timer, self->_clock + ticks, STM32L0_RTC_TIMER_MODE_ABSOLUTE);
+	    stm32l0_rtc_time_offset(self->_seconds, self->_subseconds, seconds, subseconds, &self->_seconds, &self->_subseconds);
+	    stm32l0_rtc_time_subtract(self->_seconds, self->_subseconds, 0, self->_adjust, (int32_t*)&self->_seconds, &self->_subseconds);
+
+	    adjust = (self->_subseconds & (STM32L0_RTC_PREDIV_A -1)) ? (STM32L0_RTC_PREDIV_A - (self->_subseconds & (STM32L0_RTC_PREDIV_A -1))) : 0;
+
+	    self->_subseconds += adjust;
+	    self->_adjust = adjust;
+
+	    stm32l0_rtc_timer_start(self->_timer, self->_seconds, self->_subseconds, true);
 	} else {
-	    self->_clock = 0;
+	    self->_adjust = 0xffff;
 	}
 
-	if (self->_callback) {
-	    (*self->_callback)();
-	}
+	self->_callback.queue();
     }
 }

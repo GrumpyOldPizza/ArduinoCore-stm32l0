@@ -287,12 +287,12 @@ static void stm32l0_usbd_cdc_rx_ready(uint8_t *data, uint32_t length)
 
         if (length && usbd_cdc->rx_event)
         {
-            usbd_cdc->rx_event = false;
+	    usbd_cdc->rx_event = false;
 
-            if (usbd_cdc->ev_callback)
-            {
-                (*usbd_cdc->ev_callback)(usbd_cdc->ev_context, STM32L0_USBD_CDC_EVENT_RECEIVE);
-            }
+	    if (usbd_cdc->ev_callback)
+	    {
+		(*usbd_cdc->ev_callback)(usbd_cdc->ev_context, STM32L0_USBD_CDC_EVENT_RECEIVE);
+	    }
         }
     }
 }
@@ -499,7 +499,7 @@ uint32_t stm32l0_usbd_cdc_receive(stm32l0_usbd_cdc_t *usbd_cdc, uint8_t *rx_data
     {
         usbd_cdc->rx_wrap = rx_wrap;
         usbd_cdc->rx_read = rx_read;
-        usbd_cdc->rx_event = true;
+	usbd_cdc->rx_event = true;
 
         armv6m_atomic_sub(&usbd_cdc->rx_count, rx_count);
 

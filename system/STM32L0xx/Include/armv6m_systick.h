@@ -37,6 +37,8 @@ extern void armv6m_systick_initialize(void);
 extern void armv6m_systick_enable(void);
 extern void armv6m_systick_disable(void);
 extern uint32_t armv6m_systick_micros(void);
+extern uint32_t armv6m_systick_millis(void);
+extern void armv6m_systick_delay(uint32_t delay);
 
 #ifdef __cplusplus
 }

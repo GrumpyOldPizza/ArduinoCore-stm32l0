@@ -8532,7 +8532,7 @@ int f_initvolume(void)
         {
             n_lock = o_lock | DOSFS_DEVICE_LOCK_VOLUME;
             
-            if (armv6m_atomic_cas(&device->lock, o_lock, n_lock) == o_lock)
+            if (armv6m_atomic_compare_and_swap(&device->lock, o_lock, n_lock) == o_lock)
             {
                 break;
             }

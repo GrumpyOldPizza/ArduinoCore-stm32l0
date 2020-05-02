@@ -40,7 +40,7 @@ void loop( void )
     if (GNSS.location(myLocation))
     {
         uint8_t year, month, day, hours, minutes, seconds;
-        uint16_t milliSeconds;
+        uint32_t subSeconds, milliSeconds;
 
         static const char *fixTypeString[] = {
             "NONE",
@@ -71,7 +71,10 @@ void loop( void )
             }
         }
 
-        RTC.getDateTime(day, month, year, hours, minutes, seconds, milliSeconds);
+        RTC.getDate(day, month, year);
+        RTC.getTime(hours, minutes, seconds, subSeconds);
+
+        milliSeconds = ((subSeconds >> 17) * 1000 + 16384) / 32768;
 
         Serial.print("RTC: ");
         Serial.print(2000 + year);
@@ -102,16 +105,7 @@ void loop( void )
             Serial.print("0");
         }
         Serial.print(milliSeconds);
-
-	if (RTC.status() & 0x02) {
-	    Serial.print(", TIME-SYNCHRONIZED");
-	}
-	
-	if (RTC.status() & 0x08) {
-	    Serial.print(", UTC_OFFSET-SYNCHRONIZED");
-	}
-
-	Serial.println();
+        Serial.println();
 
         Serial.print("LOCATION: ");
         Serial.print(fixTypeString[myLocation.fixType()]);

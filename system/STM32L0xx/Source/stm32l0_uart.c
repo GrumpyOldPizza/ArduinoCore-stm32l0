@@ -207,7 +207,7 @@ static uint32_t stm32l0_uart_dma_receive(stm32l0_uart_t *uart, uint32_t count)
         
         if (rx_count && uart->rx_event)
         {
-            uart->rx_event = false;
+	    uart->rx_event = false;
 
             events |= STM32L0_UART_EVENT_RECEIVE;
         }
@@ -266,7 +266,7 @@ static void stm32l0_uart_stop_enter(stm32l0_uart_t *uart)
         {
             uart->rx_sequence = 1;
         
-            stm32l0_system_lock(STM32L0_SYSTEM_LOCK_SLEEP);
+            stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
         }
     }
 }
@@ -354,22 +354,12 @@ static void stm32l0_uart_start(stm32l0_uart_t *uart)
     {
         stm32l0_system_hsi16_enable();
     }
+    
+    if ((uart->instance == STM32L0_UART_INSTANCE_LPUART1) && ((RCC->CCIPR & (RCC_CCIPR_LPUART1SEL_1 | RCC_CCIPR_LPUART1SEL_0)) == RCC_CCIPR_LPUART1SEL_1))
+    {
+        stm32l0_system_hsi16_enable();
+    }
 
-#if defined(STM32L072xx) || defined(STM32L082xx)
-    if ((uart->instance == STM32L0_UART_INSTANCE_USART4) || (uart->instance == STM32L0_UART_INSTANCE_USART5))
-    {
-	stm32l0_system_lock(STM32L0_SYSTEM_LOCK_RUN);
-    }
-#endif /* STM32L072xx || STM32L082xx */
-    
-    if (uart->instance == STM32L0_UART_INSTANCE_LPUART1)
-    {
-	if ((RCC->CCIPR & (RCC_CCIPR_LPUART1SEL_1 | RCC_CCIPR_LPUART1SEL_0)) == RCC_CCIPR_LPUART1SEL_1)
-	{
-	    stm32l0_system_hsi16_enable();
-	}
-    }
-    
     if (uart->rx_dma != STM32L0_DMA_CHANNEL_NONE)
     {
         stm32l0_dma_enable(uart->rx_dma, (stm32l0_dma_callback_t)stm32l0_uart_dma_callback, uart);
@@ -557,25 +547,15 @@ static void stm32l0_uart_stop(stm32l0_uart_t *uart)
     {
         stm32l0_system_hsi16_disable();
     }
+    
+    if ((uart->instance == STM32L0_UART_INSTANCE_LPUART1) && ((RCC->CCIPR & (RCC_CCIPR_LPUART1SEL_1 | RCC_CCIPR_LPUART1SEL_0)) == RCC_CCIPR_LPUART1SEL_1))
+    {
+        stm32l0_system_hsi16_disable();
+    }
 
-#if defined(STM32L072xx) || defined(STM32L082xx)
-    if ((uart->instance == STM32L0_UART_INSTANCE_USART4) || (uart->instance == STM32L0_UART_INSTANCE_USART5))
-    {
-	stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_RUN);
-    }
-#endif /* STM32L072xx || STM32L082xx */
-    
-    if (uart->instance == STM32L0_UART_INSTANCE_LPUART1)
-    {
-	if ((RCC->CCIPR & (RCC_CCIPR_LPUART1SEL_1 | RCC_CCIPR_LPUART1SEL_0)) == RCC_CCIPR_LPUART1SEL_1)
-	{
-	    stm32l0_system_hsi16_disable();
-	}
-    }
-    
     if (uart->rx_sequence)
     {
-        stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_SLEEP);
+        stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
         
         uart->rx_sequence = 0;
     }
@@ -597,7 +577,7 @@ static void stm32l0_uart_exti_callback(stm32l0_uart_t *uart)
     {
         uart->rx_sequence = 1;
         
-        stm32l0_system_lock(STM32L0_SYSTEM_LOCK_SLEEP);
+        stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
     }
     
     (*uart->ev_callback)(uart->ev_context, STM32L0_UART_EVENT_WAKEUP);
@@ -684,7 +664,7 @@ static void stm32l0_uart_interrupt(stm32l0_uart_t *uart)
             
                     if (uart->rx_event)
                     {
-                        uart->rx_event = false;
+			uart->rx_event = false;
 
                         events |= STM32L0_UART_EVENT_RECEIVE;
                     }
@@ -718,7 +698,7 @@ static void stm32l0_uart_interrupt(stm32l0_uart_t *uart)
             {
                 uart->rx_sequence = 1;
         
-                stm32l0_system_lock(STM32L0_SYSTEM_LOCK_SLEEP);
+                stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
             }
         }
 
@@ -744,7 +724,7 @@ static void stm32l0_uart_interrupt(stm32l0_uart_t *uart)
                     {
                         uart->rx_sequence = 1;
                         
-                        stm32l0_system_lock(STM32L0_SYSTEM_LOCK_SLEEP);
+                        stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
                     }
                 }
             }
@@ -760,7 +740,7 @@ static void stm32l0_uart_interrupt(stm32l0_uart_t *uart)
 
         if (uart->rx_sequence)
         {
-            stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_SLEEP);
+            stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
             
             uart->rx_sequence = 0;
 
@@ -858,7 +838,7 @@ static void stm32l0_uart_interrupt(stm32l0_uart_t *uart)
                 
             uart->state = STM32L0_UART_STATE_READY; 
                     
-            stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_SLEEP);
+            stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
 
             if (uart->tx_callback)
             {
@@ -895,7 +875,7 @@ static void stm32l0_uart_interrupt(stm32l0_uart_t *uart)
                 
                 uart->state = STM32L0_UART_STATE_WAIT;
 
-                stm32l0_system_lock(STM32L0_SYSTEM_LOCK_SLEEP);
+                stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
             }
         }
         else
@@ -916,7 +896,7 @@ static void stm32l0_uart_interrupt(stm32l0_uart_t *uart)
                 
                 uart->state = STM32L0_UART_STATE_READY; 
                 
-                stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_SLEEP);
+                stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
             }
             else
             {
@@ -972,7 +952,7 @@ static void stm32l0_uart_interrupt(stm32l0_uart_t *uart)
 
                 uart->state = STM32L0_UART_STATE_READY;
 
-                stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_SLEEP);
+                stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_STOP);
             }
         }
     }
@@ -989,13 +969,13 @@ static void stm32l0_uart_interrupt(stm32l0_uart_t *uart)
             
             uart->state = STM32L0_UART_STATE_WAIT;
 
-            stm32l0_system_lock(STM32L0_SYSTEM_LOCK_SLEEP);
+            stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
         }
         else
         {
             if (uart->tx_data && (uart->rx_xonoff == UART_DATA_XON))
             {
-                stm32l0_system_lock(STM32L0_SYSTEM_LOCK_SLEEP);
+                stm32l0_system_lock(STM32L0_SYSTEM_LOCK_STOP);
 
                 if (uart->tx_dma == stm32l0_dma_channel(uart->tx_dma))
                 {

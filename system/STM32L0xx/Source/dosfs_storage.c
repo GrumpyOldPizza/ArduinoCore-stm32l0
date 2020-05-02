@@ -38,15 +38,16 @@
 
 static bool dosfs_storage_delay(void)
 {
-    uint64_t clock;
+    uint32_t seconds;
+    uint16_t subseconds;
 
     static bool delay = true;
 
     if (delay)
     {
-	clock = stm32l0_rtc_clock_read();
+        stm32l0_rtc_get_time(&seconds, &subseconds);
 
-        if (clock >= (2 * STM32L0_RTC_CLOCK_TICKS_PER_SECOND))
+        if (seconds >= 2)
         {
             delay = false;
         }

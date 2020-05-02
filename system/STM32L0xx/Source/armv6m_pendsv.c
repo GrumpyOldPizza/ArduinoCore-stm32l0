@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2020 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2014-2018 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -39,8 +39,6 @@ typedef struct _armv6m_pendsv_entry_t {
 } armv6m_pendsv_entry_t;
 
 typedef struct _armv6m_pendsv_control_t {
-    volatile uint32_t                swi_pending;
-    volatile uint32_t                swi_mask;
     armv6m_pendsv_callback_t         notify_callback;
     volatile armv6m_pendsv_entry_t   *queue_read;
     volatile armv6m_pendsv_entry_t   *queue_write;
@@ -49,79 +47,12 @@ typedef struct _armv6m_pendsv_control_t {
 
 static armv6m_pendsv_control_t armv6m_pendsv_control;
 
-static const armv6m_pendsv_callback_t armv6m_pendsv_swi_callback[] = {
-    SWI0_IRQHandler,
-    SWI1_IRQHandler,
-    SWI2_IRQHandler,
-    SWI3_IRQHandler,
-    SWI4_IRQHandler,
-    SWI5_IRQHandler,
-    SWI6_IRQHandler,
-    SWI7_IRQHandler,
-    SWI9_IRQHandler,
-    SWI10_IRQHandler,
-    SWI11_IRQHandler,
-    SWI12_IRQHandler,
-    SWI13_IRQHandler,
-    SWI14_IRQHandler,
-    SWI15_IRQHandler,
-    SWI16_IRQHandler,
-    SWI17_IRQHandler,
-    SWI18_IRQHandler,
-    SWI19_IRQHandler,
-    SWI20_IRQHandler,
-    SWI21_IRQHandler,
-    SWI22_IRQHandler,
-    SWI23_IRQHandler,
-    SWI24_IRQHandler,
-    SWI25_IRQHandler,
-    SWI26_IRQHandler,
-    SWI27_IRQHandler,
-    SWI28_IRQHandler,
-    SWI29_IRQHandler,
-    SWI30_IRQHandler,
-    SWI31_IRQHandler,
-};
-    
 void armv6m_pendsv_initialize(void)
 {
-    armv6m_pendsv_control.swi_pending = 0;
-    armv6m_pendsv_control.swi_mask = ~0ul;
     armv6m_pendsv_control.queue_read = &armv6m_pendsv_control.queue_data[0];
     armv6m_pendsv_control.queue_write = &armv6m_pendsv_control.queue_data[0];
 
-    NVIC_SetPriority(PendSV_IRQn, ARMV6M_IRQ_PRIORITY_LOW);
-}
-
-bool armv6m_pendsv_raise(uint32_t index)
-{
-    uint32_t mask = (1ul << index);
-    
-    if (!(armv6m_atomic_or(&armv6m_pendsv_control.swi_pending, mask) & mask))
-    {
-	SCB->ICSR = SCB_ICSR_PENDSVSET_Msk;
-
-	return true;
-    }
-
-    return false;
-}
-
-void armv6m_pendsv_block(uint32_t mask)
-{
-    armv6m_atomic_and(&armv6m_pendsv_control.swi_mask, ~mask);
-}
-
-void armv6m_pendsv_unblock(uint32_t mask)
-{
-    uint32_t o_mask;
-
-    o_mask = armv6m_atomic_or(&armv6m_pendsv_control.swi_mask, mask);
-
-    if (armv6m_pendsv_control.swi_pending & (mask & ~o_mask))
-    {
-        SCB->ICSR = SCB_ICSR_PENDSVSET_Msk;
-    }
+    NVIC_SetPriority(PendSV_IRQn, ((1 << __NVIC_PRIO_BITS) -1));
 }
 
 void armv6m_pendsv_notify(armv6m_pendsv_callback_t callback)
@@ -150,7 +81,7 @@ bool armv6m_pendsv_enqueue(armv6m_pendsv_routine_t routine, void *context, uint3
             return false;
         }
     }
-    while (armv6m_atomic_cas((volatile uint32_t*)&armv6m_pendsv_control.queue_write, (uint32_t)queue_write, (uint32_t)queue_write_next) != (uint32_t)queue_write);
+    while (armv6m_atomic_compare_and_swap((volatile uint32_t*)&armv6m_pendsv_control.queue_write, (uint32_t)queue_write, (uint32_t)queue_write_next) != (uint32_t)queue_write);
 
     queue_write->routine = routine;
     queue_write->context = context;
@@ -161,24 +92,7 @@ bool armv6m_pendsv_enqueue(armv6m_pendsv_routine_t routine, void *context, uint3
     return true;
 }
 
-static __attribute__((used)) void armv6m_pendsv_swi_process(uint32_t mask)
-{
-    uint32_t index, bit;
-
-    armv6m_atomic_and(&armv6m_pendsv_control.swi_pending, ~mask);
-
-    for (bit = 0x00000001, index = 0; mask; bit <<= 1, index++)
-    {
-        if (mask & bit)
-        {
-            (*armv6m_pendsv_swi_callback[index])();
-            
-            mask &= ~bit;
-        }
-    }
-}
-
-static __attribute__((used)) void armv6m_pendsv_queue_process(volatile armv6m_pendsv_entry_t *queue_read)
+static __attribute__((used)) void armv6m_pendsv_dequeue(volatile armv6m_pendsv_entry_t *queue_read)
 {
     armv6m_pendsv_routine_t routine;
     void *context;
@@ -207,78 +121,27 @@ static __attribute__((used)) void armv6m_pendsv_queue_process(volatile armv6m_pe
 void __attribute__((naked)) PendSV_Handler(void)
 {
     __asm__(
-        "    mov      r3, lr                                 \n"
-        "    lsr      r2, r3, #3                             \n" // bit 2 is SPSEL
-        "    mrs      r2, PSP                                \n"
-        "    bcs      1f                                     \n"
-        "    mov      r2, sp                                 \n"
-        "    msr      PSP, r2                                \n" // Save MSP into PSP
-        "1:  push     { r2, r3 }                             \n"
-        "    ldr      r1, =armv6m_pendsv_control             \n"
-        "    ldr      r0, [r1, %[offset_SWI_PENDING]]        \n"
-        "    ldr      r2, [r1, %[offset_SWI_MASK]]           \n"
-        "    and      r0, r2                                 \n"
-        "    beq      2f                                     \n"
-        "    bl       armv6m_pendsv_swi_process              \n" // R0 is pending & mask
-        "    ldr      r1, =armv6m_pendsv_control             \n"
-        "2:  ldr      r0, [r1, %[offset_QUEUE_READ]]         \n"
-        "    ldr      r2, [r1, %[offset_QUEUE_WRITE]]        \n"
-        "    cmp      r0, r2                                 \n"
-        "    beq      3f                                     \n"
-        "    bl       armv6m_pendsv_queue_process            \n" // R0 is queue_read
-        "    ldr      r1, =armv6m_pendsv_control             \n"
-        "3:  ldr      r0, [r1, %[offset_NOTIFY_CALLBACK]]    \n"
-        "    pop      { r2, r3 }                             \n"
-        "    mov      lr, r3                                 \n"
-        "    cmp      r0, #0                                 \n"
-        "    bne      4f                                     \n"
-        "    bx       lr                                     \n"
-        "4:  mov      r2, #0                                 \n"
-        "    str      r2, [r1, %[offset_NOTIFY_CALLBACK]]    \n"
-        "    bx       r0                                     \n" // R0 is notify callback
+        "  ldr     r2, =armv6m_pendsv_control          \n"
+        "  ldr     r0, [r2, %[offset_QUEUE_READ]]      \n"
+        "  ldr     r1, [r2, %[offset_QUEUE_WRITE]]     \n"
+        "  cmp     r0, r1                              \n"
+        "  beq     .Lnotify                            \n"
+        "  push    { r2, lr }                          \n"
+        "  bl      armv6m_pendsv_dequeue               \n"
+        "  pop     { r2, r3 }                          \n"
+        "  mov     lr, r3                              \n"
+        ".Lnotify:                                     \n"
+        "  ldr     r0, [r2, %[offset_NOTIFY_CALLBACK]] \n"
+        "  cmp     r0, #0                              \n"
+        "  bne     .Lcall                              \n"
+        "  bx      lr                                  \n"
+        ".Lcall:                                       \n"
+        "  mov     r1, #0                              \n"
+        "  str     r1, [r2, %[offset_NOTIFY_CALLBACK]] \n"
+        "  bx      r0                                  \n"
         :
-        : [offset_SWI_PENDING]     "I" (offsetof(armv6m_pendsv_control_t, swi_pending)),
-          [offset_SWI_MASK]        "I" (offsetof(armv6m_pendsv_control_t, swi_mask)),
+        : [offset_NOTIFY_CALLBACK] "I" (offsetof(armv6m_pendsv_control_t, notify_callback)),
           [offset_QUEUE_READ]      "I" (offsetof(armv6m_pendsv_control_t, queue_read)),
-          [offset_QUEUE_WRITE]     "I" (offsetof(armv6m_pendsv_control_t, queue_write)),
-          [offset_NOTIFY_CALLBACK] "I" (offsetof(armv6m_pendsv_control_t, notify_callback))
+          [offset_QUEUE_WRITE]     "I" (offsetof(armv6m_pendsv_control_t, queue_write))
         );
 }
-
-static void __attribute__((naked)) Default_Handler(void)
-{
-    while (1);
-}
-
-void SWI0_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI1_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI2_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI3_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI4_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI5_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI6_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI7_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI9_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI10_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI11_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI12_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI13_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI14_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI15_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI16_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI17_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI18_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI19_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI20_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI21_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI22_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI23_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI24_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI25_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI26_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI27_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI28_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI29_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI30_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-void SWI31_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
-

@@ -28,6 +28,7 @@
 #include "stm32l0_gpio.h"
 #include "stm32l0_exti.h"
 #include "stm32l0_lptim.h"
+#include "stm32l0_rtc.h"
 #include "stm32l0_spi.h"
 #include "radio.h"
 #include "sx1272Regs-Fsk.h"
@@ -150,18 +151,16 @@ typedef struct
  */
 typedef struct SX1272_s
 {
-    RadioState_t            State;
-    RadioModems_t           Modem;
-    uint8_t                 OpMode;
-    bool                    TcxoOn;
-    bool                    OscOn;
-    bool                    AntSwOn;
-    bool                    DioOn;
-    const RadioEvents_t     *Events;
-    RadioSettings_t         Settings;
-    RadioPacketHandler_t    PacketHandler;
-    stm32l0_lptim_timeout_t Wakeup;
-    stm32l0_lptim_timeout_t Timeout;
+    RadioState_t         State;
+    RadioModems_t        Modem;
+    uint8_t              OpMode;
+    bool                 TcxoOn;
+    bool                 OscOn;
+    bool                 AntSwOn;
+    bool                 DioOn;
+    const RadioEvents_t  *Events;
+    RadioSettings_t      Settings;
+    RadioPacketHandler_t PacketHandler;
 }SX1272_t;
 
 /*!

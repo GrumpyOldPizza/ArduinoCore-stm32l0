@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -31,11 +31,12 @@
 
 unsigned long millis(void) 
 {
-    uint64_t clock;
+    uint32_t seconds;
+    uint16_t subseconds;
 
-    clock = stm32l0_rtc_clock_read();
+    stm32l0_rtc_get_time(&seconds, &subseconds);
 
-    return stm32l0_rtc_clock_to_millis(clock);
+    return (seconds * 1000) + ((subseconds * 1000) / 32768);
 }
 
 unsigned long micros(void) 
@@ -43,33 +44,53 @@ unsigned long micros(void)
     return armv6m_systick_micros();
 }
 
-void delay(uint32_t timeout) 
+void delay(uint32_t msec) 
 {
-    uint32_t now, start, end;
+    uint32_t timeout, start;
 
-    if (timeout == 0)
+    if (msec == 0)
 	return;
 
-    now = millis();
-    start = now;
-    end = start + timeout;
-    
     if (__get_IPSR() == 0) {
 	do
 	{
-	    timeout = end - now;
+	    timeout = msec;
 
-	    stm32l0_system_sleep(STM32L0_SYSTEM_POLICY_RUN, timeout);
-	    
-	    now = millis();
+	    /* The wakeup timer can count either in terms of seconds (17 bit),
+	     * of in 1/2048 seconds (16 bit). Hence choose the appropriate
+	     * timeout ...
+	     */
+
+	    if (timeout > (128 * 1024 * 1000))
+	    {
+		timeout = (128 * 1024 * 1000);
+	    }
+	    else
+	    {
+		if (timeout > (32 * 1000)) {
+		    // timeout = (timeout / (32 * 1000)) * (32 * 1000);
+		    timeout = timeout - (timeout % (32 * 1000));
+		}
+	    }
+
+	    stm32l0_rtc_wakeup_start(timeout, NULL, NULL);
+
+	    do
+	    {
+		armv6m_core_wait();
+	    }
+	    while (!stm32l0_rtc_wakeup_done());
+
+	    msec -= timeout;
 	}
-	while ((now - start) < (end - start));
+	while (msec);
 	
     } else {
+	start = millis();
+	
 	do
 	{
-	    now = millis();
 	}
-	while ((now - start) < (end - start));
+	while ((millis() - start) < msec);
     }
 }
