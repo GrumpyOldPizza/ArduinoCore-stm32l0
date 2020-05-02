@@ -11,6 +11,7 @@ ArduinoCore-stm32l0 is targeted at ultra low power scenarios, sensor hubs, with 
  * [Grasshopper-L082CZ](https://www.tindie.com/products/TleraCorp/grasshopper-lora-development-board)
  * [Cricket-L082CZ](https://www.tindie.com/products/TleraCorp/cricket-lorawangnss-asset-tracker)
  * [Cicada-L082CZ](https://www.tindie.com/products/TleraCorp/lorasensortile)
+ * [Gnat-L082CZ](https://www.tindie.com/products/TleraCorp/gnat-loragnss-asset-tracker/)
 
 ### STMicroelectronics
  * [B-L072Z-LRWAN1](http://www.st.com/en/evaluation-tools/b-l072z-lrwan1.html)
@@ -75,7 +76,7 @@ ArduinoCore-stm32l0 is targeted at ultra low power scenarios, sensor hubs, with 
 
 ## Recovering from a faulty sketch for Tlera Corp Boards
 
- Sometimes a faulty sketch can render the normal USB Serial based integration into the Arduindo IDE not working. In this case plugin the STM32L0 board and toggle the RESET button while holding down the BOOT button and program a known to be working sketch to go ack to a working USB Serial setup.
+ Sometimes a faulty sketch can render the normal USB Serial based integration into the Arduindo IDE not working. In this case plugin the STM32L0 board and toggle the RESET button while holding down the BOOT button and program a known to be working sketch to go back to a working USB Serial setup.
 
 ## Credits
 
