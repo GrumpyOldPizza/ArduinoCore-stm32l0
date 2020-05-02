@@ -31,6 +31,8 @@
 
 void attachInterrupt(uint32_t pin, voidFuncPtr callback, uint32_t mode)
 {
+    uint32_t control;
+    
     if ((pin >= PINS_COUNT) || !(g_APinDescription[pin].attr & (PIN_ATTR_EXTI | PIN_ATTR_TAMP)) || !callback) {
 	return;
     }
@@ -38,28 +40,55 @@ void attachInterrupt(uint32_t pin, voidFuncPtr callback, uint32_t mode)
     if (g_APinDescription[pin].attr & PIN_ATTR_EXTI) {
 	switch (mode) {
 	case CHANGE:
-	    stm32l0_exti_attach(g_APinDescription[pin].pin, STM32L0_EXTI_CONTROL_EDGE_FALLING | STM32L0_EXTI_CONTROL_EDGE_RISING | STM32L0_EXTI_CONTROL_PRIORITY_MEDIUM, (stm32l0_exti_callback_t)callback, NULL);
+	    control = (STM32L0_EXTI_CONTROL_EDGE_FALLING | STM32L0_EXTI_CONTROL_EDGE_RISING | STM32L0_EXTI_CONTROL_WAKEUP | STM32L0_EXTI_CONTROL_PRIORITY_MEDIUM);
 	    break;
 	case FALLING:
-	    stm32l0_exti_attach(g_APinDescription[pin].pin, STM32L0_EXTI_CONTROL_EDGE_FALLING | STM32L0_EXTI_CONTROL_PRIORITY_MEDIUM, (stm32l0_exti_callback_t)callback, NULL);
+	    control = (STM32L0_EXTI_CONTROL_EDGE_FALLING | STM32L0_EXTI_CONTROL_WAKEUP | STM32L0_EXTI_CONTROL_PRIORITY_MEDIUM);
 	    break;
 	case RISING:
-	    stm32l0_exti_attach(g_APinDescription[pin].pin, STM32L0_EXTI_CONTROL_EDGE_RISING | STM32L0_EXTI_CONTROL_PRIORITY_MEDIUM, (stm32l0_exti_callback_t)callback, NULL);
+	    control = (STM32L0_EXTI_CONTROL_EDGE_RISING | STM32L0_EXTI_CONTROL_WAKEUP | STM32L0_EXTI_CONTROL_PRIORITY_MEDIUM);
 	    break;
 	default:
+	    control = 0;
 	    break;
+	}
+
+	if (control) {
+	    stm32l0_exti_attach(g_APinDescription[pin].pin, control, (stm32l0_exti_callback_t)callback, NULL);
 	}
     } else {
 	switch (mode) {
 	case FALLING:
-	    stm32l0_rtc_tamp_attach(g_APinDescription[pin].pin, STM32L0_RTC_TAMP_CONTROL_EDGE_FALLING, (stm32l0_rtc_callback_t)callback, NULL);
+	    control = (STM32L0_RTC_TAMP_CONTROL_EDGE_FALLING | STM32L0_RTC_TAMP_CONTROL_WAKEUP);
 	    break;
 	case RISING:
-	    stm32l0_rtc_tamp_attach(g_APinDescription[pin].pin, STM32L0_RTC_TAMP_CONTROL_EDGE_RISING, (stm32l0_rtc_callback_t)callback, NULL);
+	    control = (STM32L0_RTC_TAMP_CONTROL_EDGE_RISING | STM32L0_RTC_TAMP_CONTROL_WAKEUP);
 	    break;
 	default:
+	    control = 0;
 	    break;
 	}
+
+	if (control) {
+	    stm32l0_rtc_tamp_attach(g_APinDescription[pin].pin, control, (stm32l0_rtc_callback_t)callback, NULL);
+	}
+    }
+}
+
+void attachInterruptWakeup(uint32_t pin, voidFuncPtr callback, uint32_t mode)
+{
+    attachInterrupt(pin, callback, mode);
+
+    if ((pin >= PINS_COUNT) || !(g_APinDescription[pin].attr & (PIN_ATTR_EXTI | PIN_ATTR_TAMP))) {
+	return;
+    }
+
+    if ((g_APinDescription[pin].attr & PIN_ATTR_WKUP1) && (mode == RISING)) {
+	armv6m_atomic_or(&g_wakeupControl, STM32L0_SYSTEM_CONTROL_WKUP1_RISING);
+    }
+
+    if ((g_APinDescription[pin].attr & PIN_ATTR_WKUP2) && (mode == RISING)) {
+	armv6m_atomic_or(&g_wakeupControl, STM32L0_SYSTEM_CONTROL_WKUP2_RISING);
     }
 }
 
@@ -76,5 +105,13 @@ void detachInterrupt(uint32_t pin)
 	stm32l0_exti_detach(g_APinDescription[pin].pin);
     } else {
 	stm32l0_rtc_tamp_detach(g_APinDescription[pin].pin);
+    }
+
+    if (g_APinDescription[pin].attr & PIN_ATTR_WKUP1) {
+	armv6m_atomic_and(&g_wakeupControl, ~STM32L0_SYSTEM_CONTROL_WKUP1_RISING);
+    }
+
+    if (g_APinDescription[pin].attr & PIN_ATTR_WKUP2) {
+	armv6m_atomic_and(&g_wakeupControl, ~STM32L0_SYSTEM_CONTROL_WKUP1_RISING);
     }
 }

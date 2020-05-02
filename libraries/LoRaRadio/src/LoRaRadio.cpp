@@ -113,7 +113,6 @@ int LoRaRadioClass::begin(unsigned long frequency)
     _iqInverted = false;
     _crcOn = true;
 
-    _wakeup = false;
     _implicitHeader = false;
     _timeout = 0;
 
@@ -672,16 +671,6 @@ int LoRaRadioClass::setIdleMode(IdleMode mode)
     return 1;
 }
 
-void LoRaRadioClass::enableWakeup()
-{
-    _wakeup = true;
-}
-
-void LoRaRadioClass::disableWakeup()
-{
-    _wakeup = false;
-}
-
 void LoRaRadioClass::onTransmit(void(*callback)(void))
 {
     _transmitCallback = Callback(callback);
@@ -919,10 +908,6 @@ void LoRaRadioClass::__TxDone(void)
 {
     LoRaRadioClass *self = LoRaRadioInstance;
 
-    if (self->_wakeup) {
-        stm32l0_system_wakeup();
-    }
-
     self->_busy = 0;
 
     self->_transmitCallback.queue();
@@ -932,10 +917,6 @@ void LoRaRadioClass::__RxDone(uint8_t *data, uint16_t size, int16_t rssi, int8_t
 {
     LoRaRadioClass *self = LoRaRadioInstance;
     uint32_t rx_write, rx_size;
-
-    if (self->_wakeup) {
-        stm32l0_system_wakeup();
-    }
 
     rx_write = self->_rx_write;
 
@@ -1007,10 +988,6 @@ void LoRaRadioClass::__RxTimeout(void)
 {
     LoRaRadioClass *self = LoRaRadioInstance;
 
-    if (self->_wakeup) {
-        stm32l0_system_wakeup();
-    }
-
     self->_busy = 0;
 
     self->_receiveCallback.queue();
@@ -1019,10 +996,6 @@ void LoRaRadioClass::__RxTimeout(void)
 void LoRaRadioClass::__CadDone(bool cadDetected)
 {
     LoRaRadioClass *self = LoRaRadioInstance;
-
-    if (self->_wakeup) {
-        stm32l0_system_wakeup();
-    }
 
     self->_cadDetected = cadDetected;
 

@@ -141,6 +141,7 @@ typedef struct _stm32l0_system_notify_t {
 #if defined(STM32L072xx)
 #define STM32L0_SYSTEM_CONTROL_WKUP3_RISING    0x00000004
 #endif /* STM32L072xx */
+#define STM32L0_SYSTEM_CONTROL_RTC_ALARM       0x00000100
 
 /* This bit is documented in the reference manuals,
  * but is not part of the CMSIS/Device headers. Turns out

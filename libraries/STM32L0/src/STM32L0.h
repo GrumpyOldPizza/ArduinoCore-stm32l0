@@ -54,11 +54,9 @@ public:
 
     uint32_t resetCause();
 
-    void  wakeup();
     void  sleep(uint32_t timeout = 0xffffffff);
     void  stop(uint32_t timeout = 0xffffffff);
     void  standby(uint32_t timeout = 0xffffffff);
-    void  standby(uint32_t pin, uint32_t mode, uint32_t timeout = 0xffffffff);
     void  reset();
 
     void  swdEnable();
@@ -69,6 +67,9 @@ public:
 
     bool  flashErase(uint32_t address, uint32_t count);
     bool  flashProgram(uint32_t address, const void *data, uint32_t count);
+
+public:    
+    void __attribute__ ((deprecated)) wakeup() { };
 };
 
 extern STM32L0Class STM32L0;

@@ -55,8 +55,6 @@ disableWhitening	KEYWORD2
 enableCrc		KEYWORD2
 disableCrc		KEYWORD2
 setIdleMode		KEYWORD2
-enableWakeup		KEYWORD2
-disableWakeup		KEYWORD2
 onReceive		KEYWORD2
 onTransmit		KEYWORD2
 

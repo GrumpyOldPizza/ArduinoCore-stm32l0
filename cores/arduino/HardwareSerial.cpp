@@ -47,7 +47,7 @@ extern bool Serial_available() __attribute__((weak));
 
 bool Serial_available() { return Serial.available(); }
 
-static stm32l0_uart_t g_Serial;
+extern stm32l0_uart_t g_Serial;
 extern const stm32l0_uart_params_t g_SerialParams;
 
 Uart Serial(&g_Serial, &g_SerialParams, (serialEvent ? serialEventRun : NULL));

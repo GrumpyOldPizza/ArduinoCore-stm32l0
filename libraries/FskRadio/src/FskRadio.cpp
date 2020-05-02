@@ -117,7 +117,6 @@ int FskRadioClass::begin(unsigned long frequency)
     _afcOn = true;
     _crcOn = true;
 
-    _wakeup = false;
     _implicitHeader = false;
     _timeout = 0;
 
@@ -900,16 +899,6 @@ int FskRadioClass::setIdleMode(IdleMode mode)
     return 1;
 }
 
-void FskRadioClass::enableWakeup()
-{
-    _wakeup = true;
-}
-
-void FskRadioClass::disableWakeup()
-{
-    _wakeup = false;
-}
-
 void FskRadioClass::onTransmit(void(*callback)(void))
 {
     _transmitCallback = Callback(callback);
@@ -1093,10 +1082,6 @@ void FskRadioClass::__TxDone(void)
 {
     FskRadioClass *self = FskRadioInstance;
 
-    if (self->_wakeup) {
-        stm32l0_system_wakeup();
-    }
-
     self->_busy = 0;
 
     self->_transmitCallback.queue();
@@ -1107,10 +1092,6 @@ void FskRadioClass::__RxDone(uint8_t *data, uint16_t size, int16_t rssi, int8_t 
     FskRadioClass *self = FskRadioInstance;
     uint32_t rx_write, rx_size;
     bool broadcast;
-
-    if (self->_wakeup) {
-        stm32l0_system_wakeup();
-    }
 
     rx_write = self->_rx_write;
 
@@ -1193,10 +1174,6 @@ void FskRadioClass::__RxDone(uint8_t *data, uint16_t size, int16_t rssi, int8_t 
 void FskRadioClass::__RxTimeout(void)
 {
     FskRadioClass *self = FskRadioInstance;
-
-    if (self->_wakeup) {
-        stm32l0_system_wakeup();
-    }
 
     self->_busy = 0;
 

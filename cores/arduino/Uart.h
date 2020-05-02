@@ -59,20 +59,12 @@ public:
     using Print::write; // pull in write(str) and write(buf, size) from Print
     operator bool() { return true; }
 
-
     // STM32L0 EXTENSION: RTS/CTS state/control
     void rts(bool enable);
     bool cts();
 
-    // STM32L0 EXTENSION: asynchronous write with callback
-    bool write(const uint8_t *buffer, size_t size, void(*callback)(void));
-    bool write(const uint8_t *buffer, size_t size, Callback callback);
-
     // STM32L0 EXTENSION: enable/disable non-blocking writes
     void setNonBlocking(bool enable);
-
-    // STM32L0 EXTENSION: enable/disable wakeup from STOP
-    void setWakeup(bool enable);
 
     // STM32L0 EXTENSION: configure flow control
     void setFlowControl(enum FlowControl mode);
@@ -81,7 +73,11 @@ public:
     void onReceive(void(*callback)(void));
     void onReceive(Callback callback);
 
-private:
+    // STM32L0 EXTENSTION: enable/disable wakeup from STOP
+    void enableWakeup();
+    void disableWakeup();
+
+ private:
     struct _stm32l0_uart_t *_uart;
     bool _enabled;
     bool _nonblocking;
@@ -95,12 +91,14 @@ private:
     volatile uint32_t _tx_count;
     volatile uint32_t _tx_size;
 
-    const uint8_t *_tx_data2;
-    volatile uint32_t _tx_size2;
-
-    Callback _completionCallback;
     Callback _receiveCallback;
 
     static void _eventCallback(class Uart *self, uint32_t events);
     static void _doneCallback(class Uart *self);
+
+    friend class GNSSClass;
+    
+public:
+    void __attribute__ ((deprecated)) setWakeup(bool enable) { if (enable) { enableWakeup(); } else { disableWakeup(); } } 
+
 };

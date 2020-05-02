@@ -285,6 +285,6 @@ SPIClass SPI(&g_SPI, &g_SPIParams);
 static stm32l0_spi_t g_SPI1;
 extern const stm32l0_spi_params_t g_SPI1Params;
 
-SPIClass SPI2(&g_SPI1, &g_SPI1Params);
+SPIClass SPI1(&g_SPI1, &g_SPI1Params);
 
 #endif

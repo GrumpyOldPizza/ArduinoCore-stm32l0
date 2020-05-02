@@ -39,6 +39,14 @@ void USBD_Poll(void) __attribute__((weak));
 void USBD_Poll(void) { };
 #endif
 
+#if defined(USBCON)
+stm32l0_uart_t g_Serial1;
+extern const stm32l0_uart_params_t g_Serial1Params;
+#else
+stm32l0_uart_t g_Serial;
+extern const stm32l0_uart_params_t g_SerialParams;
+#endif
+  
 stm32l0_spi_t g_SPI;
 extern const stm32l0_spi_params_t g_SPIParams;
 
@@ -60,6 +68,8 @@ void HardFault_Handler(void)
 }
 
 int g_swdStatus = 0;
+
+uint32_t g_wakeupControl = 0;
 
 void init( void )
 {

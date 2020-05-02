@@ -178,6 +178,7 @@ extern bool gnss_set_periodic(unsigned int acqTime, unsigned int onTime, unsigne
 extern bool gnss_suspend(void);
 extern bool gnss_resume(void);
 extern bool gnss_busy(void);
+extern bool gnss_info(uint8_t *p_protocol, uint8_t *p_firmware, uint32_t *p_llc);
 
 #ifdef __cplusplus
 }

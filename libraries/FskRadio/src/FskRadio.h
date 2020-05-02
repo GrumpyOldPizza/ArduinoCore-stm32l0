@@ -117,9 +117,6 @@ public:
 
     int setIdleMode(IdleMode mode);
 
-    void enableWakeup();
-    void disableWakeup();
-
     void onTransmit(void(*callback)(void));
     void onTransmit(Callback callback);
     void onReceive(void(*callback)(void));
@@ -164,7 +161,6 @@ private:
     bool              _afcOn;
     bool              _crcOn;
 
-    bool              _wakeup;
     bool              _implicitHeader;
     uint32_t          _timeout;
 
@@ -179,6 +175,10 @@ private:
     static void       __TxDone(void);
     static void       __RxDone(uint8_t *data, uint16_t size, int16_t rssi, int8_t snr);
     static void       __RxTimeout(void);
+
+public:
+    void __attribute__ ((deprecated)) enableWakeup() { };
+    void __attribute__ ((deprecated)) disableWakeup() { };
 };
 
 extern FskRadioClass FskRadio;
