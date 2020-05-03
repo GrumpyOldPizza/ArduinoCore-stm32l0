@@ -93,7 +93,6 @@ typedef struct _stm32l0_rtc_timer_t {
 #define STM32L0_RTC_PREDIV_A         16
 
 #define STM32L0_RTC_ALRMSSR_MASKSS   (RTC_ALRMBSSR_MASKSS_3 | RTC_ALRMBSSR_MASKSS_1 | RTC_ALRMBSSR_MASKSS_0)
-#define STM32L0_RTC_CR_WUCKSEL       (0)
 
 #define STM32L0_RTC_CLOCK_TICKS_PER_SECOND STM32L0_RTC_PREDIV_S
 
@@ -165,7 +164,7 @@ extern void stm32l0_rtc_timer_start(stm32l0_rtc_timer_t *timer, uint64_t clock, 
 extern void stm32l0_rtc_timer_stop(stm32l0_rtc_timer_t *timer);
 extern bool stm32l0_rtc_timer_done(stm32l0_rtc_timer_t *timer);
 
-extern void stm32l0_rtc_wakeup_start(uint32_t ticks, stm32l0_rtc_wakeup_callback_t callback, void *context);
+extern void stm32l0_rtc_wakeup_start(uint32_t seconds, stm32l0_rtc_wakeup_callback_t callback, void *context);
 extern void stm32l0_rtc_wakeup_stop();
 extern bool stm32l0_rtc_wakeup_done();
 

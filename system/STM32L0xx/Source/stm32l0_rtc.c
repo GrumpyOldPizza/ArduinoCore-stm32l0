@@ -239,7 +239,7 @@ void __stm32l0_rtc_initialize(void)
     stm32l0_rtc_device.timer_active = STM32L0_RTC_TIMER_TAIL;
     stm32l0_rtc_device.timer_modify = STM32L0_RTC_TIMER_TAIL;
 
-    RTC->CR = (RTC->CR & ~RTC_CR_WUCKSEL) | STM32L0_RTC_CR_WUCKSEL;
+    RTC->CR = (RTC->CR & ~RTC_CR_WUCKSEL) | RTC_CR_WUCKSEL_2;
 }
 
 void stm32l0_rtc_configure(unsigned int priority)
@@ -1422,8 +1422,13 @@ bool stm32l0_rtc_timer_done(stm32l0_rtc_timer_t *timer)
     return (timer->next == STM32L0_RTC_TIMER_NULL);
 }
 
-void stm32l0_rtc_wakeup_start(uint32_t ticks, stm32l0_rtc_wakeup_callback_t callback, void *context)
+void stm32l0_rtc_wakeup_start(uint32_t seconds, stm32l0_rtc_wakeup_callback_t callback, void *context)
 {
+    if (seconds > 65536)
+    {
+	return false;
+    }
+    
     if (stm32l0_rtc_device.wakeup_busy)
     {
         armv6m_atomic_and(&RTC->CR, ~(RTC_CR_WUTIE | RTC_CR_WUTE));
@@ -1451,13 +1456,15 @@ void stm32l0_rtc_wakeup_start(uint32_t ticks, stm32l0_rtc_wakeup_callback_t call
         __NOP();
     }
 
-    RTC->WUTR = ticks -1;
+    RTC->WUTR = seconds -1;
 
     stm32l0_system_lock(STM32L0_SYSTEM_LOCK_DEEPSLEEP);
 
     stm32l0_rtc_device.wakeup_busy = 1;
     
     armv6m_atomic_or(&RTC->CR, RTC_CR_WUTIE | RTC_CR_WUTE);
+
+    return true;
 }
 
 void stm32l0_rtc_wakeup_stop()
@@ -1848,26 +1855,16 @@ void RTC_IRQHandler(void)
 
         if (RTC->ISR & RTC_ISR_WUTF)
         {
+	    RTC->ISR = ~(RTC_ISR_WUTF | RTC_ISR_INIT);
+
             if (stm32l0_rtc_device.wakeup_busy)
             {
-                armv6m_atomic_and(&RTC->CR, ~(RTC_CR_WUTIE | RTC_CR_WUTE));
-
-                RTC->ISR = ~(RTC_ISR_WUTF | RTC_ISR_INIT);
-
-                stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_DEEPSLEEP);
-
-                stm32l0_rtc_device.wakeup_busy = 0;
-
                 callback = stm32l0_rtc_device.wakeup_callback;
                             
                 if (callback)
                 {
                     (*callback)(stm32l0_rtc_device.wakeup_context);
                 }
-            }
-            else
-            {
-                RTC->ISR = ~(RTC_ISR_WUTF | RTC_ISR_INIT);
             }
         }
     }
