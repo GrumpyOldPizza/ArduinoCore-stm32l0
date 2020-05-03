@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2016-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -607,10 +607,10 @@ bool TwoWireTransaction::submit(class TwoWire &wire, uint8_t address, const uint
     _callback = callback;
 
     if (!stm32l0_i2c_submit(wire._i2c, &_transaction)) {
-        return 1;
+	return false;
     }
 
-    return 0;
+    return true;
 }
 
 bool TwoWireTransaction::done()

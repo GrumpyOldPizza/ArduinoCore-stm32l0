@@ -42,8 +42,8 @@
 class SPISettings {
 public:
   SPISettings() : _clock(4000000), _option(0) { }
-  SPISettings(uint32_t clock, BitOrder bitOrder, uint8_t dataMode, bool halfduplex = false) :
-    _clock(clock), _option((dataMode & (SPI_CR1_CPHA | SPI_CR1_CPOL)) | ((bitOrder != MSBFIRST) ? SPI_CR1_LSBFIRST : 0) | (halfduplex ? 0x80000000 : 0x00000000)) { }
+  SPISettings(uint32_t clock, BitOrder bitOrder, uint8_t dataMode) :
+  _clock(clock), _option((dataMode & (SPI_CR1_CPHA | SPI_CR1_CPOL)) | ((bitOrder != MSBFIRST) ? SPI_CR1_LSBFIRST : 0)) { }
   
 private:
   uint32_t _clock;
@@ -54,61 +54,61 @@ private:
 
 class SPIClass {
 public:
-  SPIClass(struct _stm32l0_spi_t *spi, const struct _stm32l0_spi_params_t *params);
+    SPIClass(struct _stm32l0_spi_t *spi, const struct _stm32l0_spi_params_t *params);
 
-  inline uint8_t transfer(uint8_t data) { return _transfer(data); }
-  inline uint16_t transfer16(uint16_t data) { return _transfer16(data); }
-  inline void transfer(void *buffer, size_t count) { return transfer(buffer, buffer, count); }
+    inline uint8_t transfer(uint8_t data) { return _transfer8(data); }
+    inline uint16_t transfer16(uint16_t data) { return _transfer16(data); }
+    inline void transfer(void *buffer, size_t count) { return transfer(buffer, buffer, count); }
 
-  // Transaction Functions
-  void usingInterrupt(uint32_t pin);
-  void notUsingInterrupt(uint32_t pin);
-  void beginTransaction(SPISettings settings);
-  void endTransaction(void);
+    // Transaction Functions
+    void usingInterrupt(uint32_t pin);
+    void notUsingInterrupt(uint32_t pin);
+    void beginTransaction(SPISettings settings);
+    void endTransaction(void);
 
-  // SPI Configuration methods
-  void attachInterrupt();
-  void detachInterrupt();
+    // SPI Configuration methods
+    void attachInterrupt();
+    void detachInterrupt();
 
-  void begin();
-  void end();
+    void begin();
+    void end();
 
-  void setBitOrder(BitOrder bitOrder);
-  void setDataMode(uint8_t dataMode);
-  void setClockDivider(uint8_t divider);
-  void setHalfDuplex(bool enable);
+    void setBitOrder(BitOrder bitOrder);
+    void setDataMode(uint8_t dataMode);
+    void setClockDivider(uint8_t divider);
 
-  // STM32L0 EXTENSION: transfer of a 32 bit chunk
-  inline uint32_t transfer32(uint32_t data) { return _transfer32(data); }
-
-  // STM32L0 EXTENSION: transfer with separate read/write buffer
-  void transfer(const void *txBuffer, void *rxBuffer, size_t count);
-
+    // STM32L0 EXTENSION: transfer with separate read/write buffer
+    void transfer(const void *txBuffer, void *rxBuffer, size_t count);
+    
+    // STM32L0 EXTENSTION: asynchronous transfer with separate read/write buffer
+    bool transfer(const void *txBuffer, void *rxBuffer, size_t count, void(*callback)(void));
+    bool transfer(const void *txBuffer, void *rxBuffer, size_t count, Callback callback);
+    size_t cancel(void);
+    bool done(void);
+  
 private:
     struct _stm32l0_spi_t *_spi;
     bool _active;
     uint32_t _clock;
     uint32_t _option;
 
-    uint8_t (*_transferRoutine)(struct _stm32l0_spi_t*, uint8_t);
-    uint16_t (*_transfer16Routine)(struct _stm32l0_spi_t*, uint16_t);
-    uint32_t (*_transfer32Routine)(struct _stm32l0_spi_t*, uint32_t);
+    Callback _callback;
 
-    uint8_t _transfer(uint8_t data)  __attribute__((__always_inline__)) {
-	return (*_transferRoutine)(_spi, data);
+    uint8_t (*_transfer8Routine)(struct _stm32l0_spi_t*, uint8_t);
+    uint16_t (*_transfer16Routine)(struct _stm32l0_spi_t*, uint16_t);
+    
+    uint8_t _transfer8(uint8_t data)  __attribute__((__always_inline__)) {
+	return (*_transfer8Routine)(_spi, data);
     }
 
     uint16_t _transfer16(uint16_t data) __attribute__((__always_inline__)) {
 	return (*_transfer16Routine)(_spi, data);
     }
 
-    uint32_t _transfer32(uint32_t data) __attribute__((__always_inline__)) {
-	return (*_transfer32Routine)(_spi, data);
-    }
-    
-    static uint8_t _transferSelect(struct _stm32l0_spi_t *spi, uint8_t data);
+    static uint8_t _transfer8Select(struct _stm32l0_spi_t *spi, uint8_t data);
     static uint16_t _transfer16Select(struct _stm32l0_spi_t *spi, uint16_t data);
-    static uint32_t _transfer32Select(struct _stm32l0_spi_t *spi, uint32_t data);
+
+    static void _doneCallback(class SPIClass *self);
 };
 
 #if SPI_INTERFACES_COUNT > 0

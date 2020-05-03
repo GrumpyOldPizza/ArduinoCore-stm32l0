@@ -277,10 +277,10 @@ static uint16_t stm32l0_sdspi_receive_crc16(stm32l0_sdspi_t *sdspi, uint8_t *dat
     stm32l0_spi_t *spi = sdspi->spi;
     uint16_t crc16;
 
-    stm32l0_spi_receive(spi, data, count);
+    stm32l0_spi_data(spi, NULL, data, count);
 
-    crc16 = stm32l0_spi_data(spi, 0xff) << 8;
-    crc16 |= stm32l0_spi_data(spi, 0xff);
+    crc16 = stm32l0_spi_data8(spi, 0xff) << 8;
+    crc16 |= stm32l0_spi_data8(spi, 0xff);
 
     crc16 ^= stm32l0_sdspi_compute_crc16(data, count);
 
@@ -296,12 +296,12 @@ static void stm32l0_sdspi_transmit_crc16(stm32l0_sdspi_t *sdspi, const uint8_t *
     stm32l0_spi_t *spi = sdspi->spi;
     uint16_t crc16;
 
-    stm32l0_spi_transmit(spi, data, count);
+    stm32l0_spi_data(spi, data, NULL, count);
 
     crc16 = stm32l0_sdspi_compute_crc16(data, count);
 
-    stm32l0_spi_data(spi, crc16 >> 8);
-    stm32l0_spi_data(spi, crc16 >> 0);
+    stm32l0_spi_data8(spi, crc16 >> 8);
+    stm32l0_spi_data8(spi, crc16 >> 0);
 }
 
 #endif
@@ -517,7 +517,7 @@ static void stm32l0_sdspi_unselect(stm32l0_sdspi_t *sdspi)
      * clock cycle after CS goes H. Hence send
      * one extra byte over the bus.
      */
-    stm32l0_spi_data(spi, 0xff);
+    stm32l0_spi_data8(spi, 0xff);
 
     stm32l0_spi_release(spi);
 }
@@ -564,7 +564,7 @@ static void stm32l0_sdspi_mode(stm32l0_sdspi_t *sdspi, uint32_t mode)
     
             for (n = 0; n < 10; n++)
             {
-                stm32l0_spi_data(sdspi->spi, 0xff);
+                stm32l0_spi_data8(sdspi->spi, 0xff);
             }
     
             stm32l0_gpio_pin_alternate(spi->pins.mosi);
@@ -601,7 +601,7 @@ static int stm32l0_sdspi_wait_ready(stm32l0_sdspi_t *sdspi, uint32_t timeout)
     {
         tend = armv6m_systick_micros();
 
-        token = stm32l0_spi_data(spi, 0xff);
+        token = stm32l0_spi_data8(spi, 0xff);
 
         if (token == SD_READY_TOKEN)
         {
@@ -660,14 +660,14 @@ static int stm32l0_sdspi_command(stm32l0_sdspi_t *sdspi, uint8_t index, uint32_t
         /* A command needs at least one back to back idle cycle.
          */
         
-        stm32l0_spi_data(spi, 0xff);
+        stm32l0_spi_data8(spi, 0xff);
 
-        stm32l0_spi_data(spi, data[0]);
-        stm32l0_spi_data(spi, data[1]);
-        stm32l0_spi_data(spi, data[2]);
-        stm32l0_spi_data(spi, data[3]);
-        stm32l0_spi_data(spi, data[4]);
-        stm32l0_spi_data(spi, crc7);
+        stm32l0_spi_data8(spi, data[0]);
+        stm32l0_spi_data8(spi, data[1]);
+        stm32l0_spi_data8(spi, data[2]);
+        stm32l0_spi_data8(spi, data[3]);
+        stm32l0_spi_data8(spi, data[4]);
+        stm32l0_spi_data8(spi, crc7);
 
         /* NCR is 1..8 bytes, so simply always discard the first byte,
          * and then read up to 8 bytes or till a vaild response
@@ -677,11 +677,11 @@ static int stm32l0_sdspi_command(stm32l0_sdspi_t *sdspi, uint8_t index, uint32_t
          * takes care of that here.
          */
 
-        stm32l0_spi_data(spi, 0xff);
+        stm32l0_spi_data8(spi, 0xff);
 
         for (n = 0; n < 8; n++)
         {
-            response = stm32l0_spi_data(spi, 0xff);
+            response = stm32l0_spi_data8(spi, 0xff);
         
             if (!(response & 0x80))
             {
@@ -708,7 +708,7 @@ static int stm32l0_sdspi_command(stm32l0_sdspi_t *sdspi, uint8_t index, uint32_t
          */
         for (n = 1; n <= wait; n++)
         {
-            sdspi->response[n] = stm32l0_spi_data(spi, 0xff);
+            sdspi->response[n] = stm32l0_spi_data8(spi, 0xff);
         } 
 
         if (response & 0x88)
@@ -806,7 +806,7 @@ static int stm32l0_sdspi_receive(stm32l0_sdspi_t *sdspi, uint8_t *data, uint32_t
 
         tend = armv6m_systick_micros();
 
-        token = stm32l0_spi_data(spi, 0xff);
+        token = stm32l0_spi_data8(spi, 0xff);
 
         if (token == SD_START_READ_TOKEN)
         {
@@ -894,11 +894,11 @@ static int stm32l0_sdspi_transmit(stm32l0_sdspi_t *sdspi, uint8_t start, const u
     {
         tend = armv6m_systick_micros();
 
-        token = stm32l0_spi_data(spi, 0xff);
+        token = stm32l0_spi_data8(spi, 0xff);
 
         if (token == SD_READY_TOKEN)
         {
-            stm32l0_spi_data(spi, start);
+            stm32l0_spi_data8(spi, start);
             stm32l0_sdspi_transmit_crc16(sdspi, data, blksz);
 
             /* At last read back the "Data Response Token":
@@ -908,7 +908,7 @@ static int stm32l0_sdspi_transmit(stm32l0_sdspi_t *sdspi, uint8_t start, const u
              * 0x0d Write Error
              */
             
-            response = stm32l0_spi_data(spi, 0xff) & SD_DATA_RESPONSE_MASK;
+            response = stm32l0_spi_data8(spi, 0xff) & SD_DATA_RESPONSE_MASK;
 
             if (response != SD_DATA_RESPONSE_ACCEPTED)
             {
@@ -1042,8 +1042,8 @@ static int stm32l0_sdspi_write_stop(stm32l0_sdspi_t *sdspi)
     
     if (status == F_NO_ERROR)
     {
-        stm32l0_spi_data(spi, SD_STOP_TRANSMISSION_TOKEN);
-        stm32l0_spi_data(spi, 0xff);
+        stm32l0_spi_data8(spi, SD_STOP_TRANSMISSION_TOKEN);
+        stm32l0_spi_data8(spi, 0xff);
 
         sdspi->state = STM32L0_SDSPI_STATE_WRITE_STOP;
     }
@@ -1140,7 +1140,7 @@ static int stm32l0_sdspi_idle(stm32l0_sdspi_t *sdspi, uint32_t *p_media)
         {
             for (n = 0; n < 1024; n++)
             {
-                stm32l0_spi_data(spi, 0xff);
+                stm32l0_spi_data8(spi, 0xff);
             }
 
             stm32l0_sdspi_command(sdspi, SD_CMD_GO_IDLE_STATE, 0, 0);
@@ -1547,7 +1547,7 @@ static int stm32l0_sdspi_release(void *context)
 
             stm32l0_sdspi_mode(sdspi, STM32L0_SDSPI_MODE_NONE);
 
-            stm32l0_spi_notify(sdspi->spi, NULL, NULL);
+            stm32l0_spi_hook(sdspi->spi, NULL, NULL);
 
             sdspi->state = STM32L0_SDSPI_STATE_INIT;
         }
@@ -1611,7 +1611,7 @@ static int stm32l0_sdspi_notify(void *context, dosfs_device_notify_callback_t ca
     stm32l0_sdspi_t *sdspi = (stm32l0_sdspi_t*)context;
     int status = F_NO_ERROR;
 
-    stm32l0_spi_notify(sdspi->spi, callback, cookie);
+    stm32l0_spi_hook(sdspi->spi, callback, cookie);
 
     return status;
 }

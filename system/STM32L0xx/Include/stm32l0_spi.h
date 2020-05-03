@@ -52,12 +52,12 @@ enum {
 #define STM32L0_SPI_OPTION_MODE_3              0x00000003
 #define STM32L0_SPI_OPTION_MSB_FIRST           0x00000000
 #define STM32L0_SPI_OPTION_LSB_FIRST           0x00000080
-#define STM32L0_SPI_OPTION_HALFDUPLEX          0x80000000
 
 #define STM32L0_SPI_STATE_NONE                 0
 #define STM32L0_SPI_STATE_INIT                 1
 #define STM32L0_SPI_STATE_READY                2
 #define STM32L0_SPI_STATE_DATA                 3
+#define STM32L0_SPI_STATE_DMA                  4
 
 typedef struct _stm32l0_spi_pins_t {
     uint16_t                    mosi;
@@ -74,40 +74,49 @@ typedef struct _stm32l0_spi_params_t {
     stm32l0_spi_pins_t          pins;
 } stm32l0_spi_params_t;
 
-typedef void (*stm32l0_spi_notify_callback_t)(void *context, int acquire);
+typedef void (*stm32l0_spi_lock_callback_t)(void *context, int acquire);
 
-typedef struct _stm32l0_spi_t {
-    SPI_TypeDef                   *SPI;
-    volatile uint8_t              state;
-    uint8_t                       instance;
-    uint8_t                       priority;
-    uint8_t                       lock;
-    uint16_t                      rx_dma;
-    uint16_t                      tx_dma;
-    stm32l0_spi_pins_t            pins;
-    stm32l0_spi_notify_callback_t callback;
-    void                          *context;
-    uint32_t                      pclk;
-    uint32_t                      clock;
-    uint32_t                      option;
-    uint32_t                      mask;
+typedef void (*stm32l0_spi_done_callback_t)(void *context);
+
+  typedef struct _stm32l0_spi_t {
+    SPI_TypeDef                 *SPI;
+    volatile uint8_t            state;
+    uint8_t                     instance;
+    uint8_t                     priority;
+    uint8_t                     nesting;
+    uint16_t                    rx_dma;
+    uint16_t                    tx_dma; 
+    uint8_t                     rx_none;
+    uint8_t                     tx_default;
+    stm32l0_spi_pins_t          pins;
+    uint32_t                    pclk;
+    uint32_t                    clock;
+    uint32_t                    option;
+    uint32_t                    mask;
+    stm32l0_spi_lock_callback_t lck_callback;
+    void                        *lck_context;
+    stm32l0_spi_done_callback_t xf_callback;
+    void                        *xf_context;
+    uint8_t                     *rx_data;
 } stm32l0_spi_t;
 
 extern bool stm32l0_spi_create(stm32l0_spi_t *spi, const stm32l0_spi_params_t *params);
 extern bool stm32l0_spi_destroy(stm32l0_spi_t *spi);
 extern bool stm32l0_spi_enable(stm32l0_spi_t *spi);
 extern bool stm32l0_spi_disable(stm32l0_spi_t *spi);
-extern bool stm32l0_spi_notify(stm32l0_spi_t *spi, stm32l0_spi_notify_callback_t callback, void *context);
+extern bool stm32l0_spi_hook(stm32l0_spi_t *spi, stm32l0_spi_lock_callback_t callback, void *context);
 extern bool stm32l0_spi_block(stm32l0_spi_t *spi, uint16_t pin);
 extern bool stm32l0_spi_unblock(stm32l0_spi_t *spi, uint16_t pin);
 extern bool stm32l0_spi_acquire(stm32l0_spi_t *spi, uint32_t clock, uint32_t option);
 extern bool stm32l0_spi_release(stm32l0_spi_t *spi);
-extern uint8_t stm32l0_spi_data(stm32l0_spi_t *spi, uint8_t data);
+extern void stm32l0_spi_data(stm32l0_spi_t *spi, const uint8_t *tx_data, uint8_t *rx_data, uint32_t xf_count);
+extern uint8_t stm32l0_spi_data8(stm32l0_spi_t *spi, uint8_t data);
 extern uint16_t stm32l0_spi_data16(stm32l0_spi_t *spi, uint16_t data);
-extern uint32_t stm32l0_spi_data32(stm32l0_spi_t *spi, uint32_t data);
-extern bool stm32l0_spi_receive(stm32l0_spi_t *spi, uint8_t *rx_data, uint32_t count);
-extern bool stm32l0_spi_transmit(stm32l0_spi_t *spi, const uint8_t *tx_data, uint32_t count);
-extern bool stm32l0_spi_transfer(stm32l0_spi_t *spi, const uint8_t *tx_data, uint8_t *rx_data, uint32_t count);
+extern bool stm32l0_spi_receive(stm32l0_spi_t *spi, uint8_t *rx_data, uint32_t rx_count, stm32l0_spi_done_callback_t callback, void *context);
+extern bool stm32l0_spi_transmit(stm32l0_spi_t *spi, const uint8_t *tx_data, uint32_t tx_count, stm32l0_spi_done_callback_t callback, void *context);
+extern bool stm32l0_spi_transfer(stm32l0_spi_t *spi, const uint8_t *tx_data, uint8_t *rx_data, uint32_t xf_count, stm32l0_spi_done_callback_t callback, void *context);
+extern uint32_t stm32l0_spi_cancel(stm32l0_spi_t *spi);
+extern bool stm32l0_spi_done(stm32l0_spi_t *spi);
 
 #ifdef __cplusplus
 }

@@ -115,8 +115,8 @@ static uint8_t stm32l0_usart2_rx_fifo[32];
 extern const stm32l0_uart_params_t g_Serial2Params = {
     STM32L0_UART_INSTANCE_USART2,
     STM32L0_UART_IRQ_PRIORITY,
-    STM32L0_DMA_CHANNEL_DMA1_CH5_USART2_RX,
-    STM32L0_DMA_CHANNEL_DMA1_CH4_USART2_TX,
+    STM32L0_DMA_CHANNEL_DMA1_CH6_USART2_RX,
+    STM32L0_DMA_CHANNEL_NONE,
     &stm32l0_usart2_rx_fifo[0],
     sizeof(stm32l0_usart2_rx_fifo),
     {
@@ -147,8 +147,8 @@ extern const stm32l0_uart_params_t g_Serial3Params = {
 extern const stm32l0_spi_params_t g_SPIParams = {
     STM32L0_SPI_INSTANCE_SPI2,
     STM32L0_SPI_IRQ_PRIORITY,
-    STM32L0_DMA_CHANNEL_DMA1_CH6_SPI2_RX,
-    STM32L0_DMA_CHANNEL_NONE,
+    STM32L0_DMA_CHANNEL_DMA1_CH4_SPI2_RX,
+    STM32L0_DMA_CHANNEL_DMA1_CH5_SPI2_TX,
     {
         STM32L0_GPIO_PIN_PB15_SPI2_MOSI,
         STM32L0_GPIO_PIN_PB14_SPI2_MISO,
@@ -243,7 +243,7 @@ void initVariant()
 
     armv6m_core_udelay(20);
 
-    stm32l0_spi_data(&g_SPI, 0xb9);
+    stm32l0_spi_data8(&g_SPI, 0xb9);
 
     armv6m_core_udelay(20);
 

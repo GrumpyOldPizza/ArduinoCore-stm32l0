@@ -98,8 +98,8 @@ static uint8_t stm32l0_usart2_rx_fifo[32];
 extern const stm32l0_uart_params_t g_Serial2Params = {
     STM32L0_UART_INSTANCE_USART2,
     STM32L0_UART_IRQ_PRIORITY,
-    STM32L0_DMA_CHANNEL_DMA1_CH5_USART2_RX,
-    STM32L0_DMA_CHANNEL_DMA1_CH4_USART2_TX,
+    STM32L0_DMA_CHANNEL_DMA1_CH6_USART2_RX,
+    STM32L0_DMA_CHANNEL_NONE,
     &stm32l0_usart2_rx_fifo[0],
     sizeof(stm32l0_usart2_rx_fifo),
     {

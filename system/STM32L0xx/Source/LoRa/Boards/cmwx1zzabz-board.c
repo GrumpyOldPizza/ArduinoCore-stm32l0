@@ -344,8 +344,8 @@ void SX1276Write( uint8_t addr, uint8_t data )
 
     stm32l0_gpio_pin_write(RADIO_NSS, 0);
 
-    stm32l0_spi_data(&RADIO_SPI, addr | 0x80);
-    stm32l0_spi_data(&RADIO_SPI, data);
+    stm32l0_spi_data8(&RADIO_SPI, addr | 0x80);
+    stm32l0_spi_data8(&RADIO_SPI, data);
 
     stm32l0_gpio_pin_write(RADIO_NSS, 1);
 }
@@ -358,8 +358,8 @@ uint8_t SX1276Read( uint8_t addr )
 
     stm32l0_gpio_pin_write(RADIO_NSS, 0);
 
-    stm32l0_spi_data(&RADIO_SPI, addr & ~0x80);
-    data = stm32l0_spi_data(&RADIO_SPI, 0xff);
+    stm32l0_spi_data8(&RADIO_SPI, addr & ~0x80);
+    data = stm32l0_spi_data8(&RADIO_SPI, 0xff);
 
     stm32l0_gpio_pin_write(RADIO_NSS, 1);
 
@@ -372,8 +372,8 @@ void SX1276WriteBuffer( uint8_t addr, uint8_t *buffer, uint8_t size )
 
     stm32l0_gpio_pin_write(RADIO_NSS, 0);
 
-    stm32l0_spi_data(&RADIO_SPI, addr | 0x80);
-    stm32l0_spi_transmit(&RADIO_SPI, buffer, size);
+    stm32l0_spi_data8(&RADIO_SPI, addr | 0x80);
+    stm32l0_spi_data(&RADIO_SPI, buffer, NULL, size);
 
     stm32l0_gpio_pin_write(RADIO_NSS, 1);
 }
@@ -384,8 +384,8 @@ void SX1276ReadBuffer( uint8_t addr, uint8_t *buffer, uint8_t size )
 
     stm32l0_gpio_pin_write(RADIO_NSS, 0);
 
-    stm32l0_spi_data(&RADIO_SPI, addr & ~0x80);
-    stm32l0_spi_receive(&RADIO_SPI, buffer, size);
+    stm32l0_spi_data8(&RADIO_SPI, addr & ~0x80);
+    stm32l0_spi_data(&RADIO_SPI, NULL, buffer, size);
 
     stm32l0_gpio_pin_write(RADIO_NSS, 1);
 }

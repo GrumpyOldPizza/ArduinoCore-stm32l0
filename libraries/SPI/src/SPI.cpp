@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2016-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -53,9 +53,8 @@ SPIClass::SPIClass(struct _stm32l0_spi_t *spi, const struct _stm32l0_spi_params_
     _clock = 4000000;
     _option = STM32L0_SPI_OPTION_MODE_0 | STM32L0_SPI_OPTION_MSB_FIRST;
 
-    _transferRoutine = SPIClass::_transferSelect;
+    _transfer8Routine = SPIClass::_transfer8Select;
     _transfer16Routine = SPIClass::_transfer16Select;
-    _transfer32Routine = SPIClass::_transfer32Select;
 
     _spi_class[spi->instance] = this;
 }
@@ -70,9 +69,8 @@ void SPIClass::end()
     if (_active) {
 	stm32l0_spi_release(_spi);
     
-	_transferRoutine = SPIClass::_transferSelect;
+	_transfer8Routine = SPIClass::_transfer8Select;
 	_transfer16Routine = SPIClass::_transfer16Select;
-	_transfer32Routine = SPIClass::_transfer32Select;
     
 	_active = false;
     }
@@ -108,18 +106,16 @@ void SPIClass::beginTransaction(SPISettings settings)
 
     _active = true;
 
-    _transferRoutine = stm32l0_spi_data;
+    _transfer8Routine = stm32l0_spi_data8;
     _transfer16Routine = stm32l0_spi_data16;
-    _transfer32Routine = stm32l0_spi_data32;
 }
 
 void SPIClass::endTransaction(void)
 {
     stm32l0_spi_release(_spi);
 
-    _transferRoutine = SPIClass::_transferSelect;
+    _transfer8Routine = SPIClass::_transfer8Select;
     _transfer16Routine = SPIClass::_transfer16Select;
-    _transfer32Routine = SPIClass::_transfer32Select;
     
     _active = false;
 }
@@ -129,9 +125,8 @@ void SPIClass::setBitOrder(BitOrder bitOrder)
     if (_active) {
 	stm32l0_spi_release(_spi);
     
-	_transferRoutine = SPIClass::_transferSelect;
+	_transfer8Routine = SPIClass::_transfer8Select;
 	_transfer16Routine = SPIClass::_transfer16Select;
-	_transfer32Routine = SPIClass::_transfer32Select;
     
 	_active = false;
     }
@@ -144,9 +139,8 @@ void SPIClass::setDataMode(uint8_t dataMode)
     if (_active) {
 	stm32l0_spi_release(_spi);
     
-	_transferRoutine = SPIClass::_transferSelect;
+	_transfer8Routine = SPIClass::_transfer8Select;
 	_transfer16Routine = SPIClass::_transfer16Select;
-	_transfer32Routine = SPIClass::_transfer32Select;
     
 	_active = false;
     }
@@ -159,9 +153,8 @@ void SPIClass::setClockDivider(uint8_t divider)
     if (_active) {
 	stm32l0_spi_release(_spi);
     
-	_transferRoutine = SPIClass::_transferSelect;
+	_transfer8Routine = SPIClass::_transfer8Select;
 	_transfer16Routine = SPIClass::_transfer16Select;
-	_transfer32Routine = SPIClass::_transfer32Select;
     
 	_active = false;
     }
@@ -169,21 +162,6 @@ void SPIClass::setClockDivider(uint8_t divider)
     if (divider != 0) {
 	_clock = SystemCoreClock / divider;
     }
-}
-
-void SPIClass::setHalfDuplex(bool enable)
-{
-    if (_active) {
-	stm32l0_spi_release(_spi);
-    
-	_transferRoutine = SPIClass::_transferSelect;
-	_transfer16Routine = SPIClass::_transfer16Select;
-	_transfer32Routine = SPIClass::_transfer32Select;
-    
-	_active = false;
-    }
-
-    _option = (_option & ~STM32L0_SPI_OPTION_HALFDUPLEX) | (enable ? STM32L0_SPI_OPTION_HALFDUPLEX : 0);
 }
 
 void SPIClass::attachInterrupt()
@@ -196,7 +174,7 @@ void SPIClass::detachInterrupt()
   // Should be disableInterrupt()
 }
 
-uint8_t SPIClass::_transferSelect(struct _stm32l0_spi_t *spi, uint8_t data)
+uint8_t SPIClass::_transfer8Select(struct _stm32l0_spi_t *spi, uint8_t data)
 {
     SPIClass *spi_class = _spi_class[spi->instance];
 
@@ -204,11 +182,10 @@ uint8_t SPIClass::_transferSelect(struct _stm32l0_spi_t *spi, uint8_t data)
 
     spi_class->_active = true;
 
-    spi_class->_transferRoutine = stm32l0_spi_data;
+    spi_class->_transfer8Routine = stm32l0_spi_data8;
     spi_class->_transfer16Routine = stm32l0_spi_data16;
-    spi_class->_transfer32Routine = stm32l0_spi_data32;
   
-    return (*spi_class->_transferRoutine)(spi, data);
+    return (*spi_class->_transfer8Routine)(spi, data);
 }
 
 uint16_t SPIClass::_transfer16Select(struct _stm32l0_spi_t *spi, uint16_t data)
@@ -219,26 +196,10 @@ uint16_t SPIClass::_transfer16Select(struct _stm32l0_spi_t *spi, uint16_t data)
 
     spi_class->_active = true;
 
-    spi_class->_transferRoutine = stm32l0_spi_data;
+    spi_class->_transfer8Routine = stm32l0_spi_data8;
     spi_class->_transfer16Routine = stm32l0_spi_data16;
-    spi_class->_transfer32Routine = stm32l0_spi_data32;
   
     return (*spi_class->_transfer16Routine)(spi, data);
-}
-
-uint32_t SPIClass::_transfer32Select(struct _stm32l0_spi_t *spi, uint32_t data)
-{
-    SPIClass *spi_class = _spi_class[spi->instance];
-
-    stm32l0_spi_acquire(spi, spi_class->_clock, spi_class->_option);
-
-    spi_class->_active = true;
-
-    spi_class->_transferRoutine = stm32l0_spi_data;
-    spi_class->_transfer16Routine = stm32l0_spi_data16;
-    spi_class->_transfer32Routine = stm32l0_spi_data32;
-  
-    return (*spi_class->_transfer32Routine)(spi, data);
 }
 
 void SPIClass::transfer(const void *txBuffer, void *rxBuffer, size_t count) 
@@ -249,26 +210,71 @@ void SPIClass::transfer(const void *txBuffer, void *rxBuffer, size_t count)
 	
 	_active = true;
 	
-	_transferRoutine = stm32l0_spi_data;
+	_transfer8Routine = stm32l0_spi_data8;
 	_transfer16Routine = stm32l0_spi_data16;
-	_transfer32Routine = stm32l0_spi_data32;
     }
 
-    if (txBuffer)
+    stm32l0_spi_data(_spi, (const uint8_t*)txBuffer, (uint8_t*)rxBuffer, count);
+}
+
+bool SPIClass::transfer(const void *txBuffer, void *rxBuffer, size_t count, void(*callback)(void))
+{
+    return transfer(txBuffer, rxBuffer, count, Callback(callback));
+}
+
+bool SPIClass::transfer(const void *txBuffer, void *rxBuffer, size_t count, Callback callback)
+{
+    if (!stm32l0_spi_done(_spi))
     {
-	if (rxBuffer)
-	{
-	    stm32l0_spi_transfer(_spi, (const uint8_t*)txBuffer, (uint8_t*)rxBuffer, count);
-	}
-	else
-	{
-	    stm32l0_spi_transmit(_spi, (const uint8_t*)txBuffer, count);
+	return false;
+    }
+
+    if (!_active)
+    {
+	stm32l0_spi_acquire(_spi, _clock, _option);
+	
+	_active = true;
+	
+	_transfer8Routine = stm32l0_spi_data8;
+	_transfer16Routine = stm32l0_spi_data16;
+    }
+
+    _callback = callback;
+
+    if (txBuffer) {
+	if (rxBuffer) {
+	    if (!stm32l0_spi_transfer(_spi, static_cast<const uint8_t*>(txBuffer), static_cast<uint8_t*>(rxBuffer), count, (stm32l0_spi_done_callback_t)SPIClass::_doneCallback, (void*)this)) {
+		return false;
+	    }
+	} else {
+	    if (!stm32l0_spi_transmit(_spi, static_cast<const uint8_t*>(txBuffer), count, (stm32l0_spi_done_callback_t)SPIClass::_doneCallback, (void*)this)) {
+		return false;
+	    }
 	}
     }
     else
     {
-	stm32l0_spi_receive(_spi, (uint8_t*)rxBuffer, count);
+	if (!stm32l0_spi_receive(_spi, static_cast<uint8_t*>(rxBuffer), count, (stm32l0_spi_done_callback_t)SPIClass::_doneCallback, (void*)this)) {	
+	    return false;
+	}
     }
+
+    return true;
+}
+
+size_t SPIClass::cancel(void)
+{
+    return stm32l0_spi_cancel(_spi);
+}
+
+bool SPIClass::done(void)
+{
+    return stm32l0_spi_done(_spi);
+}
+
+void SPIClass::_doneCallback(class SPIClass *self)
+{
+    self->_callback.queue();;
 }
 
 #if SPI_INTERFACES_COUNT > 0
