@@ -19,11 +19,14 @@ getVREF				KEYWORD2
 getTemperature			KEYWORD2
 resetCause			KEYWORD2
 wakeupReason			KEYWORD2
+enablePowerSave			KEYWORD2
+disablePowerSave		KEYWORD2
 wakeup				KEYWORD2
 sleep				KEYWORD2
-stop				KEYWORD2
+deepsleep			KEYWORD2
 standby				KEYWORD2
 reset				KEYWORD2
+dfu				KEYWORD2
 wdtEnable 			KEYWORD2
 wdtReset 			KEYWORD2
 flashErase			KEYWORD2

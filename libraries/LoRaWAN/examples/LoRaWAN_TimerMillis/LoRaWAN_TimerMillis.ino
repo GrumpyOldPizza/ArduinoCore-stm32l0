@@ -2,7 +2,7 @@
  *  
  *  Idea is to start a periodic timer, where every 10 seconds a packet
  *  is send to the gateway in the background. The main "loop()" could
- *  be reading sensors in the forground, or use STM32L0.stop() to enter
+ *  be reading sensors in the forground, or use STM32L0.deepsleep() to enter
  *  STOP mode.
  *  
  *  In setup() below please replace the argument to LoRaWAN.begin()

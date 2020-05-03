@@ -119,6 +119,16 @@ uint32_t STM32L0Class::wakeupReason()
     return stm32l0_system_wakeup_reason();
 }
 
+void STM32L0Class::enablePowerSave()
+{
+    g_defaultPolicy = STM32L0_SYSTEM_POLICY_SLEEP;
+}
+
+void STM32L0Class::disablePowerSave()
+{
+    g_defaultPolicy = STM32L0_SYSTEM_POLICY_RUN;
+}
+
 void STM32L0Class::wakeup()
 {
     stm32l0_system_wakeup();
@@ -126,10 +136,10 @@ void STM32L0Class::wakeup()
 
 void STM32L0Class::sleep(uint32_t timeout)
 {
-    stm32l0_system_sleep(STM32L0_SYSTEM_POLICY_SLEEP, timeout);
+    stm32l0_system_sleep(g_defaultPolicy, timeout);
 }
 
-void STM32L0Class::stop(uint32_t timeout)
+void STM32L0Class::deepsleep(uint32_t timeout)
 {
     if (g_swdStatus == 0) {
         stm32l0_system_swd_disable();
@@ -148,6 +158,11 @@ void STM32L0Class::standby(uint32_t timeout)
 void STM32L0Class::reset()
 {
     stm32l0_system_reset();
+}
+
+void STM32L0Class::dfu()
+{
+    stm32l0_system_dfu();
 }
 
 void STM32L0Class::swdEnable()

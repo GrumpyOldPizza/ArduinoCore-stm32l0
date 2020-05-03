@@ -62,11 +62,14 @@ public:
     uint32_t resetCause();
     uint32_t wakeupReason();
 
+    void  enablePowerSave();
+    void  disablePowerSave();
     void  wakeup();
     void  sleep(uint32_t timeout = 0xffffffff);
-    void  stop(uint32_t timeout = 0xffffffff);
+    void  deepsleep(uint32_t timeout = 0xffffffff);
     void  standby(uint32_t timeout = 0xffffffff);
     void  reset();
+    void  dfu();
 
     void  swdEnable();
     void  swdDisable();
@@ -76,6 +79,10 @@ public:
 
     bool  flashErase(uint32_t address, uint32_t count);
     bool  flashProgram(uint32_t address, const void *data, uint32_t count);
+
+ public:
+    void  stop(uint32_t timeout = 0xffffffff) __attribute__((deprecated("use STM32L0.deepsleep() instead"))) { deepsleep(timeout); }
+    
 };
 
 extern STM32L0Class STM32L0;

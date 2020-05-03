@@ -69,6 +69,8 @@ void HardFault_Handler(void)
 
 int g_swdStatus = 0;
 
+int g_defaultPolicy = STM32L0_SYSTEM_POLICY_RUN;
+  
 uint32_t g_wakeupControl = 0;
 
 void init( void )

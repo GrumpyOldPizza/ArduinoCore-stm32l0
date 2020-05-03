@@ -75,6 +75,8 @@ extern void WMSGSM42_Initialize(void);
 
 extern int g_swdStatus;  /* 0, default, 1 = enable, 2 = disable, 3 = forced disable */
 
+extern int g_defaultPolicy;
+
 extern uint32_t g_wakeupControl;
 
 extern void (*g_serialEventRun)(void);

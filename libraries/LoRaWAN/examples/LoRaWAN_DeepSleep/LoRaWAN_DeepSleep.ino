@@ -2,7 +2,7 @@
  *  
  *  The code joins the network and sends 50 packets. Then it
  *  shuts down the USB connection (which blocks STOP mode),
- *  and then uses STM32L0.stop() instead of delay() to
+ *  and then uses STM32L0.deepsleep() instead of delay() to
  *  wait. STOP mode consumes about 2.1uA for the MCU and
  *  SX1272/SX176. SLEEP mode (which is used during delay())
  *  consumes about 2mA. 
@@ -132,6 +132,6 @@ void loop( void )
     }
     else
     {
-        STM32L0.stop(30000);
+        STM32L0.deepsleep(30000);
     }
 }

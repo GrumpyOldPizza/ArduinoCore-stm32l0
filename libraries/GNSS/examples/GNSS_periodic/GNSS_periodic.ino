@@ -33,7 +33,7 @@ void setup( void )
 
 void loop( void )
 {
-    STM32L0.stop();
+    STM32L0.deepsleep();
 
     if (GNSS.location(myLocation))
     {

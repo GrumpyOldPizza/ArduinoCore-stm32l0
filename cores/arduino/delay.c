@@ -59,7 +59,7 @@ void delay(uint32_t timeout)
 	{
 	    timeout = end - now;
 
-	    stm32l0_system_sleep(STM32L0_SYSTEM_POLICY_RUN, timeout);
+	    stm32l0_system_sleep(g_defaultPolicy, timeout);
 	    
 	    now = millis();
 	}

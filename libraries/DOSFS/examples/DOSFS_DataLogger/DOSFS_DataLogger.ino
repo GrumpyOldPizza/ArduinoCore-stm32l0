@@ -15,7 +15,7 @@
  * that if no wok is pending, the SDCARD/SFLASH can go
  * to sleep, hence consuming less power.
  *
- * The loop is run every 5 seconds (STM32L0.stop() to
+ * The loop is run every 5 seconds (STM32L0.deepsleep() to
  * put STM32L0 into STOP mode). Every 60 seconds the current
  * log file is printed out.
  *
@@ -75,7 +75,7 @@ void loop( void )
         }
     }
 
-    STM32L0.stop(5000);
+    STM32L0.deepsleep(5000);
 }
 
 
