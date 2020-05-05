@@ -1559,7 +1559,7 @@ static void SX1276OnRxSingleTimeoutIrq( void )
 {
     if ( SX1276.PacketHandler.Fsk.SyncWordDetected == false)
     {
-	SX1276SetIdle( );
+        SX1276SetIdle( );
             
         if( ( SX1276.Events != NULL ) && ( SX1276.Events->RxTimeout != NULL ) )
         {
@@ -1824,7 +1824,7 @@ void SX1276OnDio1Irq( void )
         case RF_IDLE:
             break;
         case RF_RX_RUNNING:
-	    // Sync time out
+            // Sync time out
             SX1276SetIdle( );
             
             if( ( SX1276.Events != NULL ) && ( SX1276.Events->RxTimeout != NULL ) )
