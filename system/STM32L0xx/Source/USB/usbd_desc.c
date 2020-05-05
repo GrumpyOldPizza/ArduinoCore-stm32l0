@@ -207,7 +207,7 @@ const uint8_t *USBD_CDC_MSC_ProductStrDescriptor(USBD_SpeedTypeDef speed, uint16
     USBD_ConvertString(USBD_StringData, USBD_ProductString);
 
     if (USBD_SuffixString) {
-	USBD_AppendString(USBD_StringData, USBD_SuffixString);
+        USBD_AppendString(USBD_StringData, USBD_SuffixString);
     }
 
     *length = USBD_StringData[0];
@@ -257,7 +257,6 @@ static const char *USBD_StringTable[] = {
   "CDC Data",         // 6
   "Mass Storage",     // 7
   "Keyboard + Mouse", // 8
-  "CMSIS-DAP",        // 9
 };
 
 const uint8_t *USBD_CDC_MSC_GetUsrStrDescriptor(USBD_HandleTypeDef *pdev, uint8_t index, uint16_t *length)  

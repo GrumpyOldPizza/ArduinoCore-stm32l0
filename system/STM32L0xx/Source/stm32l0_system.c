@@ -1457,7 +1457,14 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t timeout)
                                         if (!(SCB->ICSR & SCB_ICSR_ISRPENDING_Msk))
                                         {
                                             RCC->APB1ENR |= RCC_APB1ENR_PWREN;
-                    
+
+                                            if (stm32l0_system_device.hsi48)
+                                            {
+                                                CRS->CR &= ~(CRS_CR_AUTOTRIMEN | CRS_CR_CEN);
+
+                                                RCC->CRRCR &= ~RCC_CRRCR_HSI48ON;
+                                            }
+
                                             /* The lowpower voltage regulator adds 3.3uS wakeup time, plus it prevents HSIKERON, 
                                              * which may be needed by USART1/USART2/LPUART to wakeup. In those cases do not
                                              * enable the low power voltage regulator in stop mode.
@@ -1541,7 +1548,7 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t timeout)
                                                         while (!(RCC->CR & RCC_CR_PLLRDY))
                                                         {
                                                         }
-                            
+                                                        
                                                         RCC->CFGR = (RCC->CFGR & ~RCC_CFGR_SW) | RCC_CFGR_SW_PLL;
                             
                                                         while ((RCC->CFGR & RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL)
@@ -1566,7 +1573,7 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t timeout)
                                                         }
                                                     }
                                                 }
-                    
+                                                
                                                 if (!stm32l0_system_device.hsi16)
                                                 {
                                                     RCC->CR &= ~RCC_CR_HSION;
@@ -1576,6 +1583,17 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t timeout)
                                             {
                                                 /* Clear ULP to enable VREFINT, disable lowpower voltage regulator */
                                                 PWR->CR &= ~(PWR_CR_FWU | PWR_CR_ULP | PWR_CR_LPSDSR);
+                                            }
+                                                    
+                                            if (stm32l0_system_device.hsi48)
+                                            {
+                                                RCC->CRRCR |= RCC_CRRCR_HSI48ON;
+
+                                                while(!(RCC->CRRCR & RCC_CRRCR_HSI48RDY))
+                                                {
+                                                }
+                                                
+                                                CRS->CR |= (CRS_CR_AUTOTRIMEN | CRS_CR_CEN);
                                             }
                                             
                                             RCC->APB1ENR &= ~RCC_APB1ENR_PWREN;

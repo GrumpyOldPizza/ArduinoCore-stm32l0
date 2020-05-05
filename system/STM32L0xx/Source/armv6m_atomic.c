@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2019 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2014-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -84,6 +84,11 @@ uint32_t armv6m_atomic_orh(volatile uint16_t *p_data, uint32_t data)
     return __armv6m_atomic_orh(p_data, data);
 }
 
+uint32_t armv6m_atomic_swaph(volatile uint16_t *p_data, uint32_t data)
+{
+    return __armv6m_atomic_swaph(p_data, data);
+}
+
 uint32_t armv6m_atomic_cash(volatile uint16_t *p_data, uint32_t data_expected, uint32_t data)
 {
     return __armv6m_atomic_cash(p_data, data_expected, data);
@@ -107,6 +112,11 @@ uint32_t armv6m_atomic_decb(volatile uint8_t *p_data)
 uint32_t armv6m_atomic_incb(volatile uint8_t *p_data)
 {
     return __armv6m_atomic_incb(p_data);
+}
+
+uint32_t armv6m_atomic_swapb(volatile uint8_t *p_data, uint32_t data)
+{
+    return __armv6m_atomic_swapb(p_data, data);
 }
 
 uint32_t armv6m_atomic_casb(volatile uint8_t *p_data, uint32_t data_expected, uint32_t data)

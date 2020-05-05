@@ -86,9 +86,12 @@ static void stm32l0_usbd_hid_do_send_report(uint8_t *tx_data, uint32_t tx_count)
 {
     NVIC_DisableIRQ(USB_IRQn);
 
-    USBD_HID_SendReport(stm32l0_usbd_hid_device.USBD, tx_data, tx_count);
+    if (stm32l0_usbd_hid_device.USBD)
+    {
+        USBD_HID_SendReport(stm32l0_usbd_hid_device.USBD, tx_data, tx_count);
         
-    NVIC_EnableIRQ(USB_IRQn);
+        NVIC_EnableIRQ(USB_IRQn);
+    }
 }
 
 bool stm32l0_usbd_hid_send_report(uint8_t id, const uint8_t *data, uint32_t count)

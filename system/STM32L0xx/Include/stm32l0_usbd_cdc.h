@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2016-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -40,6 +40,9 @@
 #define STM32L0_USBD_CDC_DATA_MAX_PACKET_SIZE    64
 #define STM32L0_USBD_CDC_FIFO_SIZE               128
 
+#define STM32L0_USBD_CDC_TX_TIMEOUT              50
+#define STM32L0_USBD_CDC_DFU_TIMEOUT             250
+   
 typedef struct _stm32l0_usbd_cdc_info_t {
     volatile int32_t               dwDTERate;
     volatile uint8_t               bCharFormat;
@@ -59,8 +62,6 @@ typedef void (*stm32l0_usbd_cdc_done_callback_t)(void *context);
 #define STM32L0_USBD_CDC_STATE_NONE              0
 #define STM32L0_USBD_CDC_STATE_INIT              1
 #define STM32L0_USBD_CDC_STATE_READY             2
-#define STM32L0_USBD_CDC_STATE_SUSPENDED         3
-#define STM32L0_USBD_CDC_STATE_RESET             4
 
 typedef struct _stm32l0_usbd_cdc_t {
     volatile uint8_t                  state;
@@ -74,6 +75,9 @@ typedef struct _stm32l0_usbd_cdc_t {
     volatile uint16_t                 rx_wrap;
     volatile uint32_t                 rx_count;
     volatile uint8_t                  rx_event;
+    volatile uint8_t                  tx_busy;
+    const uint8_t *                   tx_data;
+    uint32_t                          tx_count;
     stm32l0_usbd_cdc_done_callback_t  tx_callback;
     void                              *tx_context;
 } stm32l0_usbd_cdc_t;

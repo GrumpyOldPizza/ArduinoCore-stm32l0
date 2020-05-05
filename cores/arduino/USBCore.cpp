@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2016-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -59,20 +59,37 @@
 #endif
 #endif
 
-void USBDeviceClass::init()
+bool USBDeviceClass::begin()
 {
 #if defined(USB_CLASS)
-    USBD_Initialize(USB_VID, USB_PID, (const uint8_t*)USB_MANUFACTURER, (const uint8_t*)USB_PRODUCT, USB_CLASS, STM32L0_CONFIG_PIN_VBUS, STM32L0_USB_IRQ_PRIORITY);
-#endif
+    if (!_enabled) {
+        _enabled = USBD_Initialize(USB_VID, USB_PID, (const uint8_t*)USB_MANUFACTURER, (const uint8_t*)USB_PRODUCT, USB_CLASS,
+                                   STM32L0_CONFIG_PIN_VBUS, STM32L0_USB_IRQ_PRIORITY,
+                                   &USBDeviceClass::connectCallback, &USBDeviceClass::disconnectCallback, &USBDeviceClass::suspendCallback, &USBDeviceClass::resumeCallback);
+    }
 
-    _initialized = true;
+    return _enabled;
+#endif
+    return false;
+}
+
+void USBDeviceClass::end()
+{
+#if defined(USB_CLASS)
+    if (_enabled)
+    {
+        USBD_Teardown();
+        
+        _enabled = false;
+    }
+#endif    
 }
 
 bool USBDeviceClass::attach()
 {
 #if defined(USB_CLASS)
-    if (!_initialized) {
-	return false;
+    if (!_enabled) {
+        return false;
     }
 
     USBD_Attach();
@@ -86,8 +103,8 @@ bool USBDeviceClass::attach()
 bool USBDeviceClass::detach()
 {
 #if defined(USB_CLASS)
-    if (!_initialized) {
-	return false;
+    if (!_enabled) {
+        return false;
     }
 
     USBD_Detach();
@@ -98,15 +115,24 @@ bool USBDeviceClass::detach()
 #endif
 }
 
-void USBDeviceClass::poll()
+void USBDeviceClass::wakeup()
 {
 #if defined(USB_CLASS)
-    if (_initialized) {
-	USBD_Poll();
+    if (_enabled) {
+        USBD_Wakeup();
     }
 #endif
 }
     
+bool USBDeviceClass::attached()
+{
+#if defined(USB_CLASS)
+    return USBD_Attached();
+#else
+    return false;
+#endif
+}
+
 bool USBDeviceClass::connected()
 {
 #if defined(USB_CLASS)
@@ -132,6 +158,80 @@ bool USBDeviceClass::suspended()
 #else
     return false;
 #endif
+}
+
+void USBDeviceClass::onConnect(void(*callback)(void))
+{
+    _connectCallback = Callback(callback);
+}
+
+void USBDeviceClass::onConnect(Callback callback)
+{
+    _connectCallback = callback;
+}
+
+void USBDeviceClass::onDisconnect(void(*callback)(void))
+{
+    _disconnectCallback = Callback(callback);
+}
+
+void USBDeviceClass::onDisconnect(Callback callback)
+{
+    _disconnectCallback = callback;
+}
+
+void USBDeviceClass::onSuspend(void(*callback)(void))
+{
+    _suspendCallback = Callback(callback);
+}
+
+void USBDeviceClass::onSuspend(Callback callback)
+{
+    _suspendCallback = callback;
+}
+
+void USBDeviceClass::onResume(void(*callback)(void))
+{
+    _resumeCallback = Callback(callback);
+}
+
+void USBDeviceClass::onResume(Callback callback)
+{
+    _resumeCallback = callback;
+}
+
+void USBDeviceClass::enableWakeup()
+{
+    if (_enabled) {
+        USBD_SetupVBUS(false);
+    }
+}
+
+void USBDeviceClass::disableWakeup()
+{
+    if (_enabled) {
+        USBD_SetupVBUS(true);
+    }
+}
+
+void USBDeviceClass::connectCallback(void)
+{
+    USBDevice._connectCallback.queue();
+}
+
+void USBDeviceClass::disconnectCallback(void)
+{
+    USBDevice._disconnectCallback.queue();
+}
+
+void USBDeviceClass::suspendCallback(void)
+{
+    USBDevice._suspendCallback.queue();
+}
+
+void USBDeviceClass::resumeCallback(void)
+{
+    USBDevice._resumeCallback.queue();
 }
 
 USBDeviceClass USBDevice;

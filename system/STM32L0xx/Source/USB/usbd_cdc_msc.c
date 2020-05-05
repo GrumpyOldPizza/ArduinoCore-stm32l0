@@ -88,19 +88,19 @@ extern const char *USBD_SuffixString;
 
 
 static uint8_t  USBD_CDC_MSC_Init (USBD_HandleTypeDef *pdev, 
-				   uint8_t cfgidx);
+                                   uint8_t cfgidx);
 
 static uint8_t  USBD_CDC_MSC_DeInit (USBD_HandleTypeDef *pdev, 
-				     uint8_t cfgidx);
+                                     uint8_t cfgidx);
 
 static uint8_t  USBD_CDC_MSC_Setup (USBD_HandleTypeDef *pdev, 
-				    USBD_SetupReqTypedef *req);
+                                    USBD_SetupReqTypedef *req);
 
 static uint8_t  USBD_CDC_MSC_DataIn (USBD_HandleTypeDef *pdev, 
-				     uint8_t epnum);
+                                     uint8_t epnum);
 
 static uint8_t  USBD_CDC_MSC_DataOut (USBD_HandleTypeDef *pdev, 
-				      uint8_t epnum);
+                                      uint8_t epnum);
 
 static uint8_t  USBD_CDC_MSC_EP0_RxReady (USBD_HandleTypeDef *pdev);
 
@@ -239,7 +239,7 @@ static const uint8_t USBD_CDC_MSC_ConigurationDescriptor_1[USB_CDC_CONFIG_DESC_S
   0x01,                                                        /* bConfigurationValue */
   0x00,                                                        /* iConfiguration */
   0x80,                                                        /* bmAttributes */
-  0x32,                                                        /* bMaxPower */
+  0xfa,                                                        /* bMaxPower */
 
   /**** IAD to associate the two CDC interfaces ****/
   0x08,                                                        /* bLength */
@@ -339,7 +339,7 @@ static const uint8_t USBD_CDC_MSC_ConigurationDescriptor_2[USB_CDC_MSC_CONFIG_DE
   0x01,                                                        /* bConfigurationValue */
   0x00,                                                        /* iConfiguration */
   0x80,                                                        /* bmAttributes */
-  0x32,                                                        /* bMaxPower */
+  0xfa,                                                        /* bMaxPower */
 
   /**** IAD to associate the two CDC interfaces ****/
   0x08,                                                        /* bLength */
@@ -461,8 +461,8 @@ static const uint8_t USBD_CDC_MSC_ConigurationDescriptor_2[USB_CDC_MSC_CONFIG_DE
 
 static const uint8_t USBD_HID_ReportDescriptor[USB_HID_REPORT_DESC_SIZ] = 
 {
-  //	Mouse
-  0x05, 0x01,                    // USAGE_PAGE (Generic Desktop)	// 54
+  //    Mouse
+  0x05, 0x01,                    // USAGE_PAGE (Generic Desktop)        // 54
   0x09, 0x02,                    // USAGE (Mouse)
   0xa1, 0x01,                    // COLLECTION (Application)
   0x09, 0x01,                    //   USAGE (Pointer)
@@ -491,8 +491,8 @@ static const uint8_t USBD_HID_ReportDescriptor[USB_HID_REPORT_DESC_SIZ] =
   0xc0,                          //   END_COLLECTION
   0xc0,                          // END_COLLECTION
 
-  //	Keyboard
-  0x05, 0x01,                    // USAGE_PAGE (Generic Desktop)	// 47
+  //    Keyboard
+  0x05, 0x01,                    // USAGE_PAGE (Generic Desktop)        // 47
   0x09, 0x06,                    // USAGE (Keyboard)
   0xa1, 0x01,                    // COLLECTION (Application)
   0x85, 0x02,                    //   REPORT_ID (2)
@@ -529,7 +529,7 @@ static const uint8_t USBD_CDC_MSC_ConigurationDescriptor_3[USB_CDC_HID_CONFIG_DE
   0x01,                                                        /* bConfigurationValue */
   0x00,                                                        /* iConfiguration */
   0x80,                                                        /* bmAttributes */
-  0x32,                                                        /* bMaxPower */
+  0xfa,                                                        /* bMaxPower */
 
   /**** IAD to associate the two CDC interfaces ****/
   0x08,                                                        /* bLength */
@@ -669,7 +669,7 @@ static const uint8_t USBD_CDC_MSC_ConigurationDescriptor_4[USB_CDC_MSC_HID_CONFI
   0x01,                                                        /* bConfigurationValue */
   0x00,                                                        /* iConfiguration */
   0x80,                                                        /* bmAttributes */
-  0x32,                                                        /* bMaxPower */
+  0xfa,                                                        /* bMaxPower */
 
   /**** IAD to associate the two CDC interfaces ****/
   0x08,                                                        /* bLength */
@@ -827,25 +827,6 @@ static const uint8_t USBD_CDC_MSC_ConigurationDescriptor_4[USB_CDC_MSC_HID_CONFI
   0x01,                                                        /* bInterval */
 };
 
-#define USB_DAP_REPORT_DESC_SIZ 28
-
-static const uint8_t USBD_DAP_ReportDescriptor[USB_DAP_REPORT_DESC_SIZ] = 
-{
-  0x06, 0xc0, 0xff,                                            /* Usage Page */
-  0x0a, 0x00, 0x0c,                                            /* Usage */
-  0xa1, 0x01,                                                  /* Collection (Application) */
-  0x75, 0x08,                                                  /* Report Size (8) */
-  0x15, 0x00,                                                  /* Logical Minimum (0) */
-  0x26, 0xff, 0x00,                                            /* Logical Maximum (255) */
-  0x95, 0x40,                                                  /* Report Count (64) */
-  0x09, 0x01,                                                  /* Usage (Vendor-Defined 1) */
-  0x81, 0x02,                                                  /* Input (Data,Var,Abs,NWrp,Lin,Pref,NNul,Bit) */
-  0x95, 0x40,                                                  /* Report Count (64) */
-  0x09, 0x02,                                                  /* Usage (Vendor-Defined 2) */
-  0x91, 0x02,                                                  /* Output (Data,Var,Abs,NWrp,Lin,Pref,NNul,NVol,Bit) */
-  0xc0,                                                        /* End Collection */
-};
-
 static const uint8_t * USBD_CDC_MSC_ConigurationDescriptorData = NULL;
 static uint16_t USBD_CDC_MSC_ConigurationDescriptorLength = 0;
 
@@ -865,10 +846,8 @@ static uint16_t USBD_CDC_MSC_ConigurationDescriptorLength = 0;
   * @retval status
   */
 static uint8_t  USBD_CDC_MSC_Init (USBD_HandleTypeDef *pdev, 
-				  uint8_t cfgidx)
+                                  uint8_t cfgidx)
 {
-  USBD_Configure();
-
   USBD_CDC_Init(pdev, cfgidx);
 
   if (USBD_MSC_Class_Interface) (*USBD_MSC_Class_Interface->Init)(pdev, cfgidx);
@@ -885,7 +864,7 @@ static uint8_t  USBD_CDC_MSC_Init (USBD_HandleTypeDef *pdev,
   * @retval status
   */
 static uint8_t  USBD_CDC_MSC_DeInit (USBD_HandleTypeDef *pdev, 
-				     uint8_t cfgidx)
+                                     uint8_t cfgidx)
 {
   if (USBD_HID_Class_Interface) (*USBD_HID_Class_Interface->DeInit)(pdev, cfgidx);
   if (USBD_MSC_Class_Interface) (*USBD_MSC_Class_Interface->DeInit)(pdev, cfgidx);
@@ -903,45 +882,45 @@ static uint8_t  USBD_CDC_MSC_DeInit (USBD_HandleTypeDef *pdev,
   * @retval status
   */
 static uint8_t  USBD_CDC_MSC_Setup (USBD_HandleTypeDef *pdev, 
-				    USBD_SetupReqTypedef *req)
+                                    USBD_SetupReqTypedef *req)
 {
   switch (req->bmRequest & USB_REQ_RECIPIENT_MASK)
     {
     case USB_REQ_RECIPIENT_INTERFACE:
       if (req->wIndex == USBD_HID_Interface)
-	{
-	  if (USBD_HID_Class_Interface) {
-	    return (*USBD_HID_Class_Interface->Setup)(pdev, req);
-	  }
-	}
+        {
+          if (USBD_HID_Class_Interface) {
+            return (*USBD_HID_Class_Interface->Setup)(pdev, req);
+          }
+        }
       else if (req->wIndex == USBD_MSC_Interface)
-	{
-	  if (USBD_MSC_Class_Interface) {
-	    return (*USBD_MSC_Class_Interface->Setup)(pdev, req);
-	  }
-	}
+        {
+          if (USBD_MSC_Class_Interface) {
+            return (*USBD_MSC_Class_Interface->Setup)(pdev, req);
+          }
+        }
       else
-	{
-	  return (USBD_CDC_Setup(pdev, req));
-	}
+        {
+          return (USBD_CDC_Setup(pdev, req));
+        }
     
     case USB_REQ_RECIPIENT_ENDPOINT:
       if ((req->wIndex == HID_EPIN_ADDR) || (req->wIndex == HID_EPOUT_ADDR))
-	{
-	  if (USBD_HID_Class_Interface) {
-	    return (*USBD_HID_Class_Interface->Setup)(pdev, req);
-	  }
-	}
+        {
+          if (USBD_HID_Class_Interface) {
+            return (*USBD_HID_Class_Interface->Setup)(pdev, req);
+          }
+        }
       else if ((req->wIndex == MSC_EPIN_ADDR) || (req->wIndex == MSC_EPOUT_ADDR))
-	{
-	  if (USBD_MSC_Class_Interface) {
-	    return (*USBD_MSC_Class_Interface->Setup)(pdev, req);
-	  }
-	}
+        {
+          if (USBD_MSC_Class_Interface) {
+            return (*USBD_MSC_Class_Interface->Setup)(pdev, req);
+          }
+        }
       else
-	{
-	  return (USBD_CDC_Setup(pdev, req));
-	}
+        {
+          return (USBD_CDC_Setup(pdev, req));
+        }
     }   
   return USBD_OK;
 }

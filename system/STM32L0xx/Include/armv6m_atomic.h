@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -592,11 +592,13 @@ extern uint32_t armv6m_atomic_cas(volatile uint32_t *p_data, uint32_t data_expec
 
 extern uint32_t armv6m_atomic_andh(volatile uint16_t *p_data, uint32_t data);
 extern uint32_t armv6m_atomic_orh(volatile uint16_t *p_data, uint32_t data);
+extern uint32_t armv6m_atomic_swaph(volatile uint16_t *p_data, uint32_t data);
 extern uint32_t armv6m_atomic_cash(volatile uint16_t *p_data, uint32_t data_expected, uint32_t data);
 extern uint32_t armv6m_atomic_andb(volatile uint8_t *p_data, uint32_t data);
 extern uint32_t armv6m_atomic_orb(volatile uint8_t *p_data, uint32_t data);
 extern uint32_t armv6m_atomic_decb(volatile uint8_t *p_data);
 extern uint32_t armv6m_atomic_incb(volatile uint8_t *p_data);
+extern uint32_t armv6m_atomic_swapb(volatile uint8_t *p_data, uint32_t data);
 extern uint32_t armv6m_atomic_casb(volatile uint8_t *p_data, uint32_t data_expected, uint32_t data);
 
 /* *p_data = (*p_data & ~mask) ^ data */

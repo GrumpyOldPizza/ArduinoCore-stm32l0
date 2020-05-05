@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -61,13 +61,19 @@ extern void USBD_CDC_MSC_Initialize(void *);
 extern void USBD_CDC_HID_Initialize(void *);
 extern void USBD_CDC_MSC_HID_Initialize(void *);
 
-extern void USBD_Initialize(uint16_t vid, uint16_t pid, const uint8_t *manufacturer, const uint8_t *product, void(*initialize)(void *), unsigned int pin_vbus, unsigned int priority);
+extern bool USBD_Initialize(uint16_t vid, uint16_t pid, const uint8_t *manufacturer, const uint8_t *product, void(*initialize)(void *),
+                            unsigned int pin_vbus, unsigned int priority,
+                            void(*connect_callback)(void), void(*disconnect_callback)(void), void(*suspend_callback)(void), void(*resume_callback)(void));
+extern void USBD_Teardown(void);
 extern void USBD_Attach(void);
 extern void USBD_Detach(void);
+extern void USBD_Wakeup(void);
 extern void USBD_Poll(void);
+extern bool USBD_Attached(void);
 extern bool USBD_Connected(void);
 extern bool USBD_Configured(void);
 extern bool USBD_Suspended(void);
+extern void USBD_SetupVBUS(bool park);
 
 extern void CMWX1ZZABZ_Initialize(uint16_t pin_tcxo, uint16_t pin_stsafe);
 extern void SX1272MB2DAS_Initialize(void);
