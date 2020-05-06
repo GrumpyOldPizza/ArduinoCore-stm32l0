@@ -2138,6 +2138,27 @@ int LoRaWANClass::setAntennaGain(float gain)
     return 1;
 }
 
+int LoRaWANClass::setSystemMaxRxError(unsigned int error)
+{
+    MibRequestConfirm_t mibReq;
+
+    if (!_Band) {
+        return 0;
+    }
+
+    if (_tx_busy) {
+        return 0;
+    }
+
+    mibReq.Type = MIB_SYSTEM_MAX_RX_ERROR;
+    mibReq.Param.SystemMaxRxError = error;
+    if (LoRaWANMibSetRequestConfirm(&mibReq) != LORAMAC_STATUS_OK) {
+        return 0;
+    }
+
+    return 1;
+}
+
 int LoRaWANClass::setDutyCycle(bool enable)
 {
     if (!_Band) {
@@ -2155,6 +2176,21 @@ int LoRaWANClass::setDutyCycle(bool enable)
     LoRaMacTestSetDutyCycleOn(enable);
 
     _DutyCycle = enable;
+
+    return 1;
+}
+
+int LoRaWANClass::setRxWindows(bool enable)
+{
+    if (!_Band) {
+        return 0;
+    }
+
+    if (_tx_busy) {
+        return 0;
+    }
+
+    LoRaMacTestRxWindowsOn(enable);
 
     return 1;
 }

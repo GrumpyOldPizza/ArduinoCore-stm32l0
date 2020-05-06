@@ -214,8 +214,10 @@ public:
     int setDownLinkDwellTime(bool enable);
     int setMaxEIRP(float eirp);
     int setAntennaGain(float gain);
+    int setSystemMaxRxError(unsigned int error);
 
     int setDutyCycle(bool enable);
+    int setRxWindows(bool enable);
     int setComplianceTest(bool enable);
 
     int setBatteryLevel(unsigned int level);
