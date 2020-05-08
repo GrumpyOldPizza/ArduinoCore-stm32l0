@@ -46,6 +46,11 @@ TimerMillis::~TimerMillis()
 
 int TimerMillis::start(void(*callback)(void), uint32_t delay, uint32_t period)
 {
+    return start(Callback(callback), delay, period);
+}
+
+int TimerMillis::start(Callback callback, uint32_t delay, uint32_t period)
+{
     uint64_t clock;
     uint32_t seconds, ticks;
 
@@ -136,10 +141,6 @@ void TimerMillis::timeout(class TimerMillis *self)
 	    self->_clock = 0;
 	}
 
-	if (self->_callback) {
-	    (*self->_callback)();
-	} else {
-	    stm32l0_system_wakeup();
-	}
+	self->_callback.queue();
     }
 }

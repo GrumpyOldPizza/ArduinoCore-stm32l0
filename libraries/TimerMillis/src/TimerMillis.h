@@ -38,6 +38,7 @@ public:
     ~TimerMillis();
 
     int start(void(*callback)(void), uint32_t delay, uint32_t period = 0);
+    int start(Callback callback, uint32_t delay, uint32_t period = 0);
     int restart(uint32_t delay, uint32_t period = 0);
     int stop();
     bool active();
@@ -47,7 +48,7 @@ private:
     uint64_t            _clock;
     uint32_t            _millis;
     uint32_t            _period;
-    void                (*_callback)();
+    Callback            _callback;
     static void         timeout(class TimerMillis *self);
 };
 
