@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright (c) 2016-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -698,8 +698,6 @@ void RTCClass::_alarmCallback()
 
     if (_alarm_callback) {
         (*_alarm_callback)();
-    } else {
-        stm32l0_system_wakeup();
     }
 }
 

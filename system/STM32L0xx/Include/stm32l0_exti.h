@@ -45,11 +45,14 @@
 #define STM32L0_EXTI_CONTROL_PRIORITY_HIGH      0x00000004
 #define STM32L0_EXTI_CONTROL_PRIORITY_MEDIUM    0x00000008
 #define STM32L0_EXTI_CONTROL_PRIORITY_LOW       0x0000000c
+#define STM32L0_EXTI_CONTROL_NOWAKEUP           0x00000010
 
 typedef void (*stm32l0_exti_callback_t)(void *context);
 
 extern void __stm32l0_exti_initialize(void);
-
+extern void __stm32l0_exti_stop_enter(void);
+extern void __stm32l0_exti_stop_leave(void);
+   
 extern bool stm32l0_exti_attach(uint16_t pin, uint32_t control, stm32l0_exti_callback_t callback, void *context);
 extern void stm32l0_exti_detach(uint16_t pin);
 extern bool stm32l0_exti_control(uint16_t pin, uint32_t control);

@@ -66,13 +66,20 @@ void USBD_Detach();
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+
+#define USBD_STATE_NONE            0
+#define USBD_STATE_STARTED         1
+#define USBD_STATE_CONNECTED       2
+#define USBD_STATE_SUSPENDED       4
+
 static PCD_HandleTypeDef hpcd_USB;
 
-static unsigned int usbd_pin_vbus;
+static uint16_t usbd_pin_vbus;
+static uint32_t usbd_mask_vbus;
+static bool usbd_wakeup = false;
 static bool usbd_enabled = false;
 static bool usbd_attached = false;
-static bool usbd_connected = false;
-static bool usbd_suspended = false;
+static uint8_t usbd_state = USBD_STATE_NONE; 
 static void (*usbd_connect_callback)(void) = NULL;
 static void (*usbd_disconnect_callback)(void) = NULL;
 static void (*usbd_suspend_callback)(void) = NULL;
@@ -106,9 +113,9 @@ static void USBD_VBUSTimeoutIrq(void)
 
         if (usbd_enabled)
         {
-            if (!usbd_connected)
+            if (usbd_state == USBD_STATE_NONE)
             {
-                usbd_connected = true;
+                usbd_state = USBD_STATE_STARTED;
                 
                 stm32l0_system_lock(STM32L0_SYSTEM_LOCK_RUN);
                 
@@ -117,11 +124,6 @@ static void USBD_VBUSTimeoutIrq(void)
                 (*USBD_ClassInitialize)(&USBD_Device);
                 
                 USBD_Start(&USBD_Device);
-                
-                if (usbd_connect_callback)
-                {
-                    (*usbd_connect_callback)();
-                }
             }
         }
     }
@@ -150,24 +152,28 @@ static void USBD_VBUSChangedIrq(void)
         {
             usbd_attached = false;
 
-            if (usbd_connected)
+            if (usbd_state >= USBD_STATE_STARTED)
             {
                 NVIC_DisableIRQ(USB_IRQn);
                 
                 USBD_DeInit(&USBD_Device);
 
-                if (!usbd_suspended)
+                if (usbd_state == USBD_STATE_SUSPENDED)
                 {
                     stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_RUN);
                 }
-                
-                usbd_connected = false;
-                usbd_suspended = false;
 
-                if (usbd_disconnect_callback)
+                if (usbd_state >= USBD_STATE_CONNECTED)
                 {
-                    (*usbd_disconnect_callback)();
+                    if (usbd_disconnect_callback)
+                    {
+                        usbd_state = USBD_STATE_NONE;
+                        
+                        (*usbd_disconnect_callback)();
+                    }
                 }
+                
+                usbd_state = USBD_STATE_NONE;
             }
         }
     }
@@ -193,6 +199,7 @@ bool USBD_Initialize(uint16_t vid, uint16_t pid, const uint8_t *manufacturer, co
     USBD_ClassInitialize = initialize;
     
     usbd_pin_vbus = pin_vbus;
+    usbd_mask_vbus = 1 << ((pin_vbus & STM32L0_GPIO_PIN_INDEX_MASK) >> STM32L0_GPIO_PIN_INDEX_SHIFT);
     
     /* Set USB Interrupt priority */
     NVIC_SetPriority(USB_IRQn, priority);
@@ -212,8 +219,10 @@ bool USBD_Initialize(uint16_t vid, uint16_t pid, const uint8_t *manufacturer, co
         stm32l0_lptim_timeout_start(&USBD_VBUSTimeout, stm32l0_lptim_millis_to_ticks(40), (stm32l0_lptim_callback_t)USBD_VBUSTimeoutIrq); /* 40ms */
     }
     
-    stm32l0_exti_attach(usbd_pin_vbus, (STM32L0_EXTI_CONTROL_PRIORITY_LOW | STM32L0_EXTI_CONTROL_EDGE_RISING | STM32L0_EXTI_CONTROL_EDGE_FALLING), (stm32l0_exti_callback_t)USBD_VBUSChangedIrq, NULL);
-
+    stm32l0_exti_attach(usbd_pin_vbus,
+                        (STM32L0_EXTI_CONTROL_NOWAKEUP | STM32L0_EXTI_CONTROL_PRIORITY_LOW | STM32L0_EXTI_CONTROL_EDGE_RISING | STM32L0_EXTI_CONTROL_EDGE_FALLING),
+                        (stm32l0_exti_callback_t)USBD_VBUSChangedIrq, NULL);
+    
     return true;
 }
 
@@ -227,10 +236,10 @@ void USBD_Teardown()
 
     stm32l0_gpio_pin_configure(usbd_pin_vbus, STM32L0_GPIO_MODE_ANALOG);
 
+    usbd_wakeup = false;
     usbd_enabled = false;
     usbd_attached = false;
-    usbd_connected = false;
-    usbd_suspended = false;
+    usbd_state = USBD_STATE_NONE;
     usbd_connect_callback = NULL;
     usbd_disconnect_callback = NULL;
     usbd_suspend_callback = NULL;
@@ -247,11 +256,11 @@ void USBD_Attach(void)
     {
         usbd_enabled = true;
 
-        stm32l0_exti_block(usbd_pin_vbus);
+        stm32l0_exti_block(usbd_mask_vbus);
 
         if (usbd_attached)
         {
-            usbd_connected = true;
+            usbd_state = USBD_STATE_STARTED;
                 
             stm32l0_system_lock(STM32L0_SYSTEM_LOCK_RUN);
             
@@ -260,14 +269,9 @@ void USBD_Attach(void)
             (*USBD_ClassInitialize)(&USBD_Device);
             
             USBD_Start(&USBD_Device);
-            
-            if (usbd_connect_callback)
-            {
-                (*usbd_connect_callback)();
-            }
         }
 
-        stm32l0_exti_unblock(usbd_pin_vbus);
+        stm32l0_exti_unblock(usbd_mask_vbus);
     }
 }
 
@@ -277,61 +281,62 @@ void USBD_Detach(void)
     {
         usbd_enabled = false;
 
-        stm32l0_exti_block(usbd_pin_vbus);
+        stm32l0_exti_block(usbd_mask_vbus);
 
-        if (usbd_connected)
+        if (usbd_state >= USBD_STATE_STARTED)
         {
             NVIC_DisableIRQ(USB_IRQn);
             
             USBD_DeInit(&USBD_Device);
 
-            if (!usbd_suspended)
+            if (usbd_state == USBD_STATE_SUSPENDED)
             {
                 stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_RUN);
             }
             
-            usbd_connected = false;
-            usbd_suspended = false;
-
-            if (usbd_disconnect_callback)
+            if (usbd_state >= USBD_STATE_CONNECTED)
             {
-                (*usbd_disconnect_callback)();
+                if (usbd_disconnect_callback)
+                {
+                    usbd_state = USBD_STATE_NONE;
+                    
+                    (*usbd_disconnect_callback)();
+                }
             }
+                
+            usbd_state = USBD_STATE_NONE;
         }
 
-        stm32l0_exti_unblock(usbd_pin_vbus);
+        stm32l0_exti_unblock(usbd_mask_vbus);
         
     }
 }
 
 void USBD_Wakeup(void)
 {
-    stm32l0_exti_block(usbd_pin_vbus);
-    
-    NVIC_DisableIRQ(USB_IRQn);
-
-    if (usbd_connected)
+    if (usbd_state == USBD_STATE_SUSPENDED)
     {
-        if (usbd_suspended)
+        stm32l0_exti_block(usbd_mask_vbus);
+
+        NVIC_DisableIRQ(USB_IRQn);
+
+        if (USBD_Device.dev_remote_wakeup == 1)
         {
-            if (USBD_Device.dev_remote_wakeup == 1)
-            {
-                armv6m_core_udelay(5000);
-
-                HAL_PCD_ActivateRemoteWakeup(&hpcd_USB);
-
-                armv6m_core_udelay(5000);
-
-                HAL_PCD_DeActivateRemoteWakeup(&hpcd_USB);
-      
-                USBD_Device.dev_remote_wakeup = 0;
-            }
+            armv6m_core_udelay(5000);
+            
+            HAL_PCD_ActivateRemoteWakeup(&hpcd_USB);
+            
+            armv6m_core_udelay(5000);
+            
+            HAL_PCD_DeActivateRemoteWakeup(&hpcd_USB);
+            
+            USBD_Device.dev_remote_wakeup = 0;
         }
-
+        
         NVIC_EnableIRQ(USB_IRQn);
-    }
 
-    stm32l0_exti_unblock(usbd_pin_vbus);
+        stm32l0_exti_unblock(usbd_mask_vbus);
+    }
 }
 
 void USBD_Poll(void)
@@ -349,12 +354,12 @@ bool USBD_Attached(void)
 
 bool USBD_Connected(void)
 {
-    return usbd_connected;
-
+    return (usbd_state >= USBD_STATE_CONNECTED);
 }
+
 bool USBD_Configured(void)
 {
-    if (usbd_connected)
+    if (usbd_state >= USBD_STATE_CONNECTED)
     {
         return ((USBD_Device.dev_state == USBD_STATE_CONFIGURED) || ((USBD_Device.dev_state == USBD_STATE_SUSPENDED) && (USBD_Device.dev_old_state == USBD_STATE_CONFIGURED)));
     }
@@ -366,19 +371,26 @@ bool USBD_Configured(void)
 
 bool USBD_Suspended(void)
 {
-    return usbd_suspended;
+    return (usbd_state == USBD_STATE_SUSPENDED);
 }
 
-void USBD_RegisterCallbacks()
+void USBD_SetupVBUS(bool wakeup)
 {
-}
+    if (usbd_wakeup != wakeup)
+    {
+        usbd_wakeup = wakeup;
 
-void USBD_SetupVBUS(bool park)
-{
-    stm32l0_gpio_pin_configure(usbd_pin_vbus,
-                               (park
-                                ? (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT)
-                                : (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT)));
+        stm32l0_exti_detach(usbd_pin_vbus);
+        
+        stm32l0_gpio_pin_configure(usbd_pin_vbus,
+                                   (usbd_wakeup ? STM32L0_GPIO_PARK_NONE : STM32L0_GPIO_PARK_HIZ) |
+                                   (STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
+
+        stm32l0_exti_attach(usbd_pin_vbus,
+                            ((usbd_wakeup ? 0 : STM32L0_EXTI_CONTROL_NOWAKEUP) |
+                             (STM32L0_EXTI_CONTROL_PRIORITY_LOW | STM32L0_EXTI_CONTROL_EDGE_RISING | STM32L0_EXTI_CONTROL_EDGE_FALLING)),
+                            (stm32l0_exti_callback_t)USBD_VBUSChangedIrq, NULL);
+    }
 }
 
 /*******************************************************************************
@@ -459,6 +471,7 @@ void HAL_PCD_DataInStageCallback(PCD_HandleTypeDef *hpcd, uint8_t epnum)
     USBD_LL_DataInStage(hpcd->pData, epnum, hpcd->IN_ep[epnum].xfer_buff);
 }
 
+#if (USBD_SOF_ENABLE == 1)
 /**
   * @brief  SOF callback.
   * @param  hpcd: PCD handle
@@ -468,6 +481,7 @@ void HAL_PCD_SOFCallback(PCD_HandleTypeDef *hpcd)
 {
     USBD_LL_SOF(hpcd->pData);
 }
+#endif
 
 /**
   * @brief  Reset callback.
@@ -490,9 +504,9 @@ void HAL_PCD_ResetCallback(PCD_HandleTypeDef *hpcd)
  */
 void HAL_PCD_SuspendCallback(PCD_HandleTypeDef *hpcd)
 { 
-    if (!usbd_suspended)
+    if (usbd_state >= USBD_STATE_CONNECTED)
     {
-        usbd_suspended = true;
+        usbd_state = USBD_STATE_SUSPENDED;
 
         stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_RUN);
         
@@ -514,15 +528,25 @@ void HAL_PCD_ResumeCallback(PCD_HandleTypeDef *hpcd)
 {
     USBD_LL_Resume(hpcd->pData);
 
-    if (usbd_suspended)
+    if (usbd_state == USBD_STATE_SUSPENDED)
     {
-        usbd_suspended = false;
+        usbd_state = USBD_STATE_CONNECTED;
 
         stm32l0_system_lock(STM32L0_SYSTEM_LOCK_RUN);
         
         if (usbd_resume_callback)
         {
             (*usbd_resume_callback)();
+        }
+    }
+    
+    if (usbd_state == USBD_STATE_STARTED)
+    {
+        usbd_state = USBD_STATE_CONNECTED;
+
+        if (usbd_connect_callback)
+        {
+            (*usbd_connect_callback)();
         }
     }
 }
@@ -588,10 +612,16 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
     hpcd_USB.Init.speed = PCD_SPEED_FULL;
     hpcd_USB.Init.ep0_mps = DEP0CTL_MPS_64;
     hpcd_USB.Init.phy_itface = PCD_PHY_EMBEDDED;
-    hpcd_USB.Init.Sof_enable = 0;
     hpcd_USB.Init.low_power_enable = 1;
+#if (USBD_SOF_ENABLE == 1)
+    hpcd_USB.Init.Sof_enable = 0;
+#endif
+#if (USBD_LPM_ENABLE == 1)
     hpcd_USB.Init.lpm_enable = 0;
+#endif
+#if (USBD_LPM_ENABLE == 1)
     hpcd_USB.Init.battery_charging_enable = 0;
+#endif
     /* Link The driver to the stack */
     hpcd_USB.pData = pdev;
     pdev->pData = &hpcd_USB;
@@ -610,11 +640,6 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
     HAL_PCDEx_PMAConfig(&hpcd_USB, 0x84, PCD_SNG_BUF, 0x000001d0); /*  64 bytes EP4/HID in       */ 
     HAL_PCDEx_PMAConfig(&hpcd_USB, 0x04, PCD_SNG_BUF, 0x00000210); /*  64 bytes EP4/HID out      */ 
     
-#if 0
-    HAL_PCDEx_PMAConfig(&hpcd_USB, 0x82, PCD_DBL_BUF, 0x011000d0); /*  64 bytes EP2/CDC/DATA in  */
-    HAL_PCDEx_PMAConfig(&hpcd_USB, 0x05, PCD_DBL_BUF, 0x04400400); /*  64 bytes EP5/CDC/DATA out */
-#endif
-  
     return USBD_OK;
 }
 

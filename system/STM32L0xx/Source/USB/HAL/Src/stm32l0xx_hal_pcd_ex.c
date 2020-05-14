@@ -133,6 +133,7 @@ HAL_StatusTypeDef  HAL_PCDEx_PMAConfig(PCD_HandleTypeDef *hpcd,
   return HAL_OK; 
 }
 
+#if (USBD_BCD_ENABLE == 1)
 /**
   * @brief  Activate BatteryCharging feature.
   * @param  hpcd: PCD handle
@@ -228,7 +229,9 @@ void HAL_PCDEx_BCD_VBUSDetect(PCD_HandleTypeDef *hpcd)
   Start Enumeration*/
   HAL_PCDEx_BCD_Callback(hpcd, PCD_BCD_DISCOVERY_COMPLETED);
 }
+#endif
 
+#if (USBD_LPM_ENABLE == 1)
 /**
   * @brief  Activate LPM feature.
   * @param  hpcd: PCD handle
@@ -281,7 +284,9 @@ __weak void HAL_PCDEx_LPM_Callback(PCD_HandleTypeDef *hpcd, PCD_LPM_MsgTypeDef m
             the HAL_PCDEx_LPM_Callback could be implemented in the user file
    */ 
 }
+#endif
 
+#if (USBD_BCD_ENABLE == 1)
 /**
   * @brief  Send BatteryCharging message to user layer callback.
   * @param  hpcd: PCD handle
@@ -298,6 +303,7 @@ __weak void HAL_PCDEx_BCD_Callback(PCD_HandleTypeDef *hpcd, PCD_BCD_MsgTypeDef m
             the HAL_PCDEx_BCD_Callback could be implemented in the user file
    */ 
 }
+#endif
 
 /**
   * @}

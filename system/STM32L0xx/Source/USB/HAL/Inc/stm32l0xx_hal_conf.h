@@ -299,13 +299,7 @@
 #else
   #define assert_param(expr) ((void)0U)
 #endif /* USE_FULL_ASSERT */
-
-extern uint32_t armv6m_systick_millis(void);
-extern void armv6m_systick_delay(uint32_t delay);
-
-static inline uint32_t HAL_GetTick(void) { return armv6m_systick_millis(); }
-static inline void     HAL_Delay(uint32_t Delay) { armv6m_systick_delay(Delay); }
-
+   
 #ifdef __cplusplus
 }
 #endif

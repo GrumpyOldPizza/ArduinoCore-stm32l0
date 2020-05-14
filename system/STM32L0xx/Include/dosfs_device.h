@@ -77,6 +77,7 @@ struct _dosfs_device_t {
     volatile uint32_t              lock;
     const dosfs_device_interface_t *interface;
     void                           *context;
+    uint32_t                       cache[(512 / 4) * 2];
 };
 
 extern dosfs_device_t dosfs_device;

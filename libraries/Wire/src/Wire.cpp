@@ -96,7 +96,7 @@ void TwoWire::setClock(uint32_t clock)
     else                     { option |= STM32L0_I2C_OPTION_MODE_100K;  }
 
     if (stm32l0_i2c_configure(_i2c, option, _timeout)) {
-	_option = option;
+        _option = option;
     }
 }
 
@@ -309,7 +309,7 @@ void TwoWire::setClockLowTimeout(unsigned long timeout)
     }
 
     if (stm32l0_i2c_configure(_i2c, _option, timeout)) {
-	_timeout = timeout;
+        _timeout = timeout;
     }
 }
 
@@ -522,9 +522,7 @@ void TwoWire::_eventCallback(class TwoWire *self, uint32_t events)
 
         if (self->_receiveCallback) {
             (*self->_receiveCallback)(self->_rx_write);
-        } else {
-	    stm32l0_system_wakeup();
-	}
+        }
     }
     
     if (events & STM32L0_I2C_EVENT_TRANSMIT_REQUEST) {
@@ -533,10 +531,8 @@ void TwoWire::_eventCallback(class TwoWire *self, uint32_t events)
 
         if (self->_requestCallback) {
             (*self->_requestCallback)();
-        } else {
-	    stm32l0_system_wakeup();
-	}
-	
+        }
+
         self->_tx_active = false;
 
         stm32l0_i2c_transmit(self->_i2c, &self->_tx_data[0], self->_tx_write);
@@ -545,9 +541,7 @@ void TwoWire::_eventCallback(class TwoWire *self, uint32_t events)
     if (events & STM32L0_I2C_EVENT_TRANSMIT_DONE) {
         if (self->_transmitCallback) {
             (*self->_transmitCallback)((events & STM32L0_I2C_EVENT_COUNT_MASK) >> STM32L0_I2C_EVENT_COUNT_SHIFT);
-        } else {
-	    stm32l0_system_wakeup();
-	}
+        }
     }
 }
 
@@ -607,7 +601,7 @@ bool TwoWireTransaction::submit(class TwoWire &wire, uint8_t address, const uint
     _callback = callback;
 
     if (!stm32l0_i2c_submit(wire._i2c, &_transaction)) {
-	return false;
+        return false;
     }
 
     return true;

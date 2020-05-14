@@ -10,7 +10,7 @@ CFLAGS   = -mcpu=cortex-m0plus -mthumb -c -g -Os $(WARNINGS) -std=c99 -ffunction
 ASFLAGS  = -c -g -x assembler-with-cpp $(EXTRAS) $(DEFINES) $(INCLUDES)
 WARNINGS = -Wall -Wextra -Wno-unused-parameter
 EXTRAS   = -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft
-DEFINES  =
+DEFINES  = -DUSBD_SOF_ENABLE=0 -DUSBD_LPM_ENABLE=0 -DUSBD_BCD_ENABLE=0
 INCLUDES = \
 	-I../../../system/CMSIS/Include \
 	-I../../../system/CMSIS/Device/ST/STM32L0xx/Include \
@@ -58,7 +58,6 @@ SRCS = \
 	./USB/Class/CDC/Src/usbd_cdc.c \
 	./USB/Class/MSC/Src/usbd_msc.c \
 	./USB/Class/MSC/Src/usbd_msc_bot.c \
-	./USB/Class/MSC/Src/usbd_msc_data.c \
 	./USB/Class/MSC/Src/usbd_msc_scsi.c \
 	./USB/Class/HID/Src/usbd_hid.c \
 	./USB/Core/Src/usbd_core.c \

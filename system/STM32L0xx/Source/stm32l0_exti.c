@@ -40,6 +40,7 @@ extern void SPI2_IRQHandler(void);
 typedef struct _stm32l0_exti_device_t {
     uint16_t                events;
     uint16_t                mask;
+    uint16_t                nowakeup;
     volatile uint16_t       pending;
     volatile uint16_t       priority[4];
     stm32l0_exti_callback_t callback[16];
@@ -69,6 +70,7 @@ void __stm32l0_exti_initialize(void)
     
     stm32l0_exti_device.events = 0;
     stm32l0_exti_device.mask = ~0;
+    stm32l0_exti_device.nowakeup = 0;
     stm32l0_exti_device.pending = 0;
     stm32l0_exti_device.priority[0] = 0;
     stm32l0_exti_device.priority[1] = 0;
@@ -87,6 +89,16 @@ void __stm32l0_exti_initialize(void)
     NVIC_EnableIRQ(SPI1_IRQn);
     NVIC_EnableIRQ(SPI2_IRQn);
 }
+
+void __stm32l0_exti_stop_enter(void)
+{
+    EXTI->IMR &= ~stm32l0_exti_device.nowakeup;
+}
+
+void __stm32l0_exti_stop_leave(void)
+{
+    EXTI->IMR |= (stm32l0_exti_device.nowakeup & stm32l0_exti_device.mask);
+}  
 
 bool stm32l0_exti_attach(uint16_t pin, uint32_t control, stm32l0_exti_callback_t callback, void *context)
 {
@@ -124,6 +136,11 @@ bool stm32l0_exti_attach(uint16_t pin, uint32_t control, stm32l0_exti_callback_t
     {
         armv6m_atomic_and(&EXTI->FTSR, ~mask);
     }
+
+    if (control & STM32L0_EXTI_CONTROL_NOWAKEUP)
+    {
+        armv6m_atomic_orh(&stm32l0_exti_device.nowakeup, mask);
+    }
     
     armv6m_atomic_andh(&stm32l0_exti_device.priority[0], ~mask);
     armv6m_atomic_andh(&stm32l0_exti_device.priority[1], ~mask);
@@ -147,6 +164,7 @@ void stm32l0_exti_detach(uint16_t pin)
 
     armv6m_atomic_and(&EXTI->IMR, ~mask);
     armv6m_atomic_andh(&stm32l0_exti_device.events, ~mask);
+    armv6m_atomic_andh(&stm32l0_exti_device.nowakeup, ~mask);
 }
 
 bool stm32l0_exti_control(uint16_t pin, uint32_t control)

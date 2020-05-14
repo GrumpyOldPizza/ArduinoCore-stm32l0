@@ -1758,7 +1758,6 @@ int dosfs_sflash_init(uint32_t data_start)
 {
     dosfs_sflash_t *sflash = (dosfs_sflash_t*)&dosfs_sflash;
     int status = F_NO_ERROR;
-    uint32_t data[DOSFS_BLK_SIZE / sizeof(uint32_t)];
 
     if (!dosfs_sflash_device.interface)
     {
@@ -1795,7 +1794,7 @@ int dosfs_sflash_init(uint32_t data_start)
                 {
                     (*sflash->interface->unlock)(sflash->context);
 
-                    status = dosfs_device_format(&dosfs_device, (uint8_t*)data);
+                    status = dosfs_device_format(&dosfs_device, (uint8_t*)&dosfs_device.cache[0]);
 
                     if (status == F_NO_ERROR)
                     {

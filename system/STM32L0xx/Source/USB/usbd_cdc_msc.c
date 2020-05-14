@@ -146,7 +146,9 @@ static const USBD_ClassTypeDef  USBD_CDC_MSC_CLASS =
   USBD_CDC_MSC_EP0_RxReady,
   USBD_CDC_MSC_DataIn,
   USBD_CDC_MSC_DataOut,
+#if (USBD_SOF_ENABLE == 1)
   NULL,
+#endif  
   NULL,
   NULL,     
   USBD_CDC_MSC_GetHSCfgDesc,  
@@ -167,7 +169,9 @@ static const USBD_ClassTypeDef  USBD_MSC_CLASS_Interface =
   NULL,                 /* EP0_RxReady */
   USBD_MSC_DataIn,
   USBD_MSC_DataOut,
+#if (USBD_SOF_ENABLE == 1)
   NULL,
+#endif
   NULL,
   NULL,     
   NULL,
@@ -188,7 +192,9 @@ static const USBD_ClassTypeDef  USBD_HID_CLASS_Interface =
   USBD_HID_EP0_RxReady, /* EP0_RxReady */
   USBD_HID_DataIn,
   USBD_HID_DataOut,
+#if (USBD_SOF_ENABLE == 1)
   NULL,
+#endif
   NULL,
   NULL,     
   NULL,
@@ -238,7 +244,7 @@ static const uint8_t USBD_CDC_MSC_ConigurationDescriptor_1[USB_CDC_CONFIG_DESC_S
   0x02,                                                        /* bNumInterfaces */
   0x01,                                                        /* bConfigurationValue */
   0x00,                                                        /* iConfiguration */
-  0x80,                                                        /* bmAttributes */
+  0xa0,                                                        /* bmAttributes */
   0xfa,                                                        /* bMaxPower */
 
   /**** IAD to associate the two CDC interfaces ****/
@@ -338,7 +344,7 @@ static const uint8_t USBD_CDC_MSC_ConigurationDescriptor_2[USB_CDC_MSC_CONFIG_DE
   0x03,                                                        /* bNumInterfaces */
   0x01,                                                        /* bConfigurationValue */
   0x00,                                                        /* iConfiguration */
-  0x80,                                                        /* bmAttributes */
+  0xa0,                                                        /* bmAttributes */
   0xfa,                                                        /* bMaxPower */
 
   /**** IAD to associate the two CDC interfaces ****/
@@ -528,7 +534,7 @@ static const uint8_t USBD_CDC_MSC_ConigurationDescriptor_3[USB_CDC_HID_CONFIG_DE
   0x03,                                                        /* bNumInterfaces */
   0x01,                                                        /* bConfigurationValue */
   0x00,                                                        /* iConfiguration */
-  0x80,                                                        /* bmAttributes */
+  0xa0,                                                        /* bmAttributes */
   0xfa,                                                        /* bMaxPower */
 
   /**** IAD to associate the two CDC interfaces ****/
@@ -668,7 +674,7 @@ static const uint8_t USBD_CDC_MSC_ConigurationDescriptor_4[USB_CDC_MSC_HID_CONFI
   0x04,                                                        /* bNumInterfaces */
   0x01,                                                        /* bConfigurationValue */
   0x00,                                                        /* iConfiguration */
-  0x80,                                                        /* bmAttributes */
+  0xa0,                                                        /* bmAttributes */
   0xfa,                                                        /* bMaxPower */
 
   /**** IAD to associate the two CDC interfaces ****/

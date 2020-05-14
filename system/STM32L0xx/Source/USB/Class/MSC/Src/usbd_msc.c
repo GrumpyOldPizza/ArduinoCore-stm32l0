@@ -42,385 +42,233 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_msc.h"
-
 #include "armv6m.h"
 
-/** @addtogroup STM32_USB_DEVICE_LIBRARY
-  * @{
-  */
+USBD_MSC_BOT_HandleTypeDef USBD_MSC_Data;
 
-
-/** @defgroup MSC_CORE 
-  * @brief Mass storage core module
-  * @{
-  */ 
-
-/** @defgroup MSC_CORE_Private_TypesDefinitions
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup MSC_CORE_Private_Defines
-  * @{
-  */ 
-
-static void USBD_MSC_Callback(void *context);
-
-#define USBD_MSC_BOT_EVENT_DATA_IN           0x00000001
-#define USBD_MSC_BOT_EVENT_DATA_OUT          0x00000002
-#define USBD_MSC_BOT_EVENT_CLEAR_FEATURE_IN  0x00000004
-#define USBD_MSC_BOT_EVENT_CLEAR_FEATURE_OUT 0x00000008
-#define USBD_MSC_BOT_EVENT_RESET             0x00000010
-
-static volatile uint32_t USBD_MSC_Events = 0;
-static volatile uint32_t USBD_MSC_Lock = 0;
+static volatile uint32_t USBD_MSC_Lock;
 
 static armv6m_work_t USBD_MSC_Work;
 
+static void USBD_MSC_Process(USBD_HandleTypeDef *pdev)
+{
+    USBD_MSC_BOT_HandleTypeDef *hmsc = &USBD_MSC_Data;
+    USBD_MSC_BOT_CallbackTypeDef callback;
+    uint32_t queue_tail;
+    
+    queue_tail = hmsc->queue_tail;
+
+    while (hmsc->queue_head != queue_tail)
+    {
+        callback = hmsc->queue_data[queue_tail];
+
+        queue_tail++;
+
+        if (queue_tail == MSC_QUEUE_ENTRIES)
+        {
+            queue_tail = 0;
+        }
+
+        hmsc->queue_tail = queue_tail;
+
+        (*callback)(pdev);
+    }
+}
+
+static bool USBD_MSC_Submit(USBD_MSC_BOT_CallbackTypeDef callback)
+{
+    USBD_MSC_BOT_HandleTypeDef *hmsc = &USBD_MSC_Data;
+    uint32_t queue_head, queue_head_next;
+
+    queue_head = hmsc->queue_head;
+
+    queue_head_next = queue_head +1;
+
+    if (queue_head_next == MSC_QUEUE_ENTRIES)
+    {
+        queue_head_next = 0;
+    }
+
+    if (queue_head_next == hmsc->queue_tail)
+    {
+        return false;
+    }
+
+    hmsc->queue_data[queue_head] = callback;
+
+    hmsc->queue_head = queue_head_next;
+
+    if (USBD_MSC_Lock == 0)
+    {
+        armv6m_work_submit(&USBD_MSC_Work);
+    }
+
+    return true;
+}
+
 void USBD_MSC_Notify(uint8_t lun, int acquire)
 {
+    USBD_MSC_BOT_HandleTypeDef *hmsc = &USBD_MSC_Data;
+
     if (acquire)
     {
-	armv6m_atomic_add(&USBD_MSC_Lock, 1);
+        armv6m_atomic_add(&USBD_MSC_Lock, 1);
     }
     else
     {
-	if (armv6m_atomic_sub(&USBD_MSC_Lock, 1) == 1)
-	{
-	    if (USBD_MSC_Events)
-	    {
-		armv6m_work_submit(&USBD_MSC_Work);
-	    }
-	}
+        if (armv6m_atomic_sub(&USBD_MSC_Lock, 1) == 1)
+        {
+            if (hmsc->queue_head != hmsc->queue_tail)
+            {
+                armv6m_work_submit(&USBD_MSC_Work);
+            }
+        }
     }
 }
 
-static void USBD_MSC_Callback(void *context)
+uint8_t USBD_MSC_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 {
-    uint32_t events;
-    USBD_HandleTypeDef *pdev = (USBD_HandleTypeDef *)context;
+    USBD_MSC_BOT_HandleTypeDef *hmsc = &USBD_MSC_Data;
 
-    events = armv6m_atomic_swap(&USBD_MSC_Events, 0);
-  
-    if (events & USBD_MSC_BOT_EVENT_DATA_IN)
+    if (!USBD_MSC_Work.callback)
     {
-	MSC_BOT_DataIn(pdev, MSC_EPIN_ADDR);
+        armv6m_work_create(&USBD_MSC_Work, (armv6m_work_callback_t)USBD_MSC_Process, pdev);
     }
 
-    if (events & USBD_MSC_BOT_EVENT_DATA_OUT)
-    {
-	MSC_BOT_DataOut(pdev, MSC_EPOUT_ADDR);
-    }
-
-    if (events & USBD_MSC_BOT_EVENT_CLEAR_FEATURE_IN)
-    {
-	MSC_BOT_CplClrFeature(pdev, MSC_EPIN_ADDR);
-    }
-
-    if (events & USBD_MSC_BOT_EVENT_CLEAR_FEATURE_OUT)
-    {
-	MSC_BOT_CplClrFeature(pdev, MSC_EPOUT_ADDR);
-    }
-
-    if (events & USBD_MSC_BOT_EVENT_RESET)
-    {
-	MSC_BOT_Reset(pdev);
-    }
-}
-
-static void USBD_MSC_Enqueue(uint32_t events)
-{
-    if (armv6m_atomic_or(&USBD_MSC_Events, events) == 0)
-    {
-	if (USBD_MSC_Lock == 0)
-	{
-	    armv6m_work_submit(&USBD_MSC_Work);
-	}
-    }
-}
-
-/**
-  * @}
-  */ 
-
-
-/** @defgroup MSC_CORE_Private_Macros
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup MSC_CORE_Private_FunctionPrototypes
-  * @{
-  */ 
-uint8_t  USBD_MSC_Init (USBD_HandleTypeDef *pdev, 
-                            uint8_t cfgidx);
-
-uint8_t  USBD_MSC_DeInit (USBD_HandleTypeDef *pdev, 
-                              uint8_t cfgidx);
-
-uint8_t  USBD_MSC_Setup (USBD_HandleTypeDef *pdev, 
-                             USBD_SetupReqTypedef *req);
-
-uint8_t  USBD_MSC_DataIn (USBD_HandleTypeDef *pdev, 
-                              uint8_t epnum);
-
-
-uint8_t  USBD_MSC_DataOut (USBD_HandleTypeDef *pdev, 
-                               uint8_t epnum);
-
-/**
-  * @}
-  */ 
-
-
-/** @defgroup MSC_CORE_Private_Variables
-  * @{
-  */ 
-
-static USBD_MSC_BOT_HandleTypeDef USBD_MSC_BOT_Handle;
-
-/** @defgroup MSC_CORE_Private_Functions
-  * @{
-  */ 
-
-/**
-  * @brief  USBD_MSC_Init
-  *         Initialize  the mass storage configuration
-  * @param  pdev: device instance
-  * @param  cfgidx: configuration index
-  * @retval status
-  */
-uint8_t  USBD_MSC_Init (USBD_HandleTypeDef *pdev, 
-                            uint8_t cfgidx)
-{
-  int16_t ret = 0;
-   
-  /* Open EP OUT */
-  USBD_LL_OpenEP(pdev,
-		 MSC_EPOUT_ADDR,
-		 USBD_EP_TYPE_BULK,
-		 MSC_MAX_FS_PACKET);
-  
-  /* Open EP IN */
-  USBD_LL_OpenEP(pdev,
-		 MSC_EPIN_ADDR,
-		 USBD_EP_TYPE_BULK,
-		 MSC_MAX_FS_PACKET);  
-
-  pdev->pClassData[1] = &USBD_MSC_BOT_Handle;
-  
-  if(pdev->pClassData[1] == NULL)
-  {
-    ret = 1; 
-  }
-  else
-  {
-    /* Init the BOT  layer */
-    MSC_BOT_Init(pdev); 
-    ret = 0;
-  }
-
-  armv6m_work_create(&USBD_MSC_Work, USBD_MSC_Callback, pdev);
-
-  return ret;
-}
-
-/**
-  * @brief  USBD_MSC_DeInit
-  *         DeInitilaize  the mass storage configuration
-  * @param  pdev: device instance
-  * @param  cfgidx: configuration index
-  * @retval status
-  */
-uint8_t  USBD_MSC_DeInit (USBD_HandleTypeDef *pdev, 
-                              uint8_t cfgidx)
-{
-  /* Close MSC EPs */
-  USBD_LL_CloseEP(pdev,
-                  MSC_EPOUT_ADDR);
-  
-  /* Open EP IN */
-  USBD_LL_CloseEP(pdev,
-                  MSC_EPIN_ADDR);
-  
-  
-    /* De-Init the BOT layer */
-  MSC_BOT_DeInit(pdev);
-  
-  /* Free MSC Class Resources */
-  if(pdev->pClassData[1] != NULL)
-  {
-    pdev->pClassData[1]  = NULL; 
-  }
-  return 0;
-}
-/**
-* @brief  USBD_MSC_Setup
-*         Handle the MSC specific requests
-* @param  pdev: device instance
-* @param  req: USB request
-* @retval status
-*/
-uint8_t  USBD_MSC_Setup (USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
-{
-  USBD_MSC_BOT_HandleTypeDef     *hmsc = (USBD_MSC_BOT_HandleTypeDef*) pdev->pClassData[1];
-  
-  switch (req->bmRequest & USB_REQ_TYPE_MASK)
-  {
-
-  /* Class request */
-  case USB_REQ_TYPE_CLASS :
-    switch (req->bRequest)
-    {
-    case BOT_GET_MAX_LUN :
-
-      if((req->wValue  == 0) && 
-         (req->wLength == 1) &&
-         ((req->bmRequest & 0x80) == 0x80))
-      {
-        hmsc->max_lun = ((const USBD_StorageTypeDef *)pdev->pUserData[1])->GetMaxLun();
-        USBD_CtlSendData (pdev,
-                          (uint8_t *)&hmsc->max_lun,
-                          1);
-      }
-      else
-      {
-         USBD_CtlError(pdev , req);
-         return USBD_FAIL; 
-      }
-      break;
-      
-    case BOT_RESET :
-      if((req->wValue  == 0) && 
-         (req->wLength == 0) &&
-        ((req->bmRequest & 0x80) != 0x80))
-      {      
-	  USBD_MSC_Enqueue(USBD_MSC_BOT_EVENT_RESET);
-      }
-      else
-      {
-         USBD_CtlError(pdev , req);
-         return USBD_FAIL; 
-      }
-      break;
-
-    default:
-       USBD_CtlError(pdev , req);
-       return USBD_FAIL; 
-    }
-    break;
-  /* Interface & Endpoint request */
-  case USB_REQ_TYPE_STANDARD:
-    switch (req->bRequest)
-    {
-    case USB_REQ_GET_INTERFACE :
-      USBD_CtlSendData (pdev,
-                        (uint8_t *)&hmsc->interface,
-                        1);
-      break;
-      
-    case USB_REQ_SET_INTERFACE :
-      hmsc->interface = (uint8_t)(req->wValue);
-      break;
+    hmsc->max_lun = 0;
+    hmsc->feature = 0;
     
-    case USB_REQ_CLEAR_FEATURE:  
+    if (!USBD_MSC_Submit(MSC_BOT_Init))
+    {
+        return USBD_FAIL;
+    }
+
+    return USBD_OK;
+}
+
+uint8_t USBD_MSC_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
+{
+    if (!USBD_MSC_Submit(MSC_BOT_DeInit))
+    {
+        return USBD_FAIL;
+    }
+    
+    return USBD_OK;
+}
+
+uint8_t USBD_MSC_Setup(USBD_HandleTypeDef *pdev, USBD_SetupReqTypedef *req)
+{
+    USBD_MSC_BOT_HandleTypeDef *hmsc = &USBD_MSC_Data;
+    uint8_t ep_addr;
+    
+    switch (req->bmRequest & USB_REQ_TYPE_MASK) {
+
+        /* Class request */
+    case USB_REQ_TYPE_CLASS:
+        switch (req->bRequest) {
+        case BOT_GET_MAX_LUN:
+            if((req->wValue  == 0) && 
+               (req->wLength == 1) &&
+               ((req->bmRequest & 0x80) == 0x80))
+            {
+                USBD_CtlSendData(pdev, (uint8_t*)&hmsc->max_lun, 1);
+            }
+            else
+            {
+                USBD_CtlError(pdev, req);
+
+                return USBD_FAIL; 
+            }
+            break;
       
-      /* Flush the FIFO and Clear the stall status */    
-      USBD_LL_FlushEP(pdev, (uint8_t)req->wIndex);
+        case BOT_RESET:
+            if((req->wValue  == 0) && 
+               (req->wLength == 0) &&
+               ((req->bmRequest & 0x80) != 0x80))
+            {      
+                if (!USBD_MSC_Submit(MSC_BOT_Reset))
+                {
+                    return USBD_FAIL;
+                }
+            }
+            else
+            {
+                USBD_CtlError(pdev, req);
+
+                return USBD_FAIL; 
+            }
+            break;
+
+        default:
+            USBD_CtlError(pdev, req);
+
+            return USBD_FAIL; 
+        }
+        break;
+
+        /* Interface & Endpoint request */
+    case USB_REQ_TYPE_STANDARD:
+        switch (req->bRequest) {
+        case USB_REQ_GET_INTERFACE:
+            USBD_CtlSendData(pdev, (uint8_t *)&hmsc->interface, 1);
+            break;
       
-      /* Reactivate the EP */      
-      USBD_LL_CloseEP (pdev , (uint8_t)req->wIndex);
-      if((((uint8_t)req->wIndex) & 0x80) == 0x80)
-      {
-	/* Open EP IN */
-	USBD_LL_OpenEP(pdev,
-		       MSC_EPIN_ADDR,
-		       USBD_EP_TYPE_BULK,
-		       MSC_MAX_FS_PACKET);  
-      }
-      else
-      {
-	/* Open EP IN */
-	USBD_LL_OpenEP(pdev,
-		       MSC_EPOUT_ADDR,
-		       USBD_EP_TYPE_BULK,
-		       MSC_MAX_FS_PACKET);  
-      }
-      
-      /* Handle BOT error */
-      USBD_MSC_Enqueue(((uint8_t)req->wIndex & 0x80) ? USBD_MSC_BOT_EVENT_CLEAR_FEATURE_IN : USBD_MSC_BOT_EVENT_CLEAR_FEATURE_OUT);
-      break;
-      
-    }  
-    break;
+        case USB_REQ_SET_INTERFACE:
+            hmsc->interface = (uint8_t)(req->wValue);
+            break;
+            
+        case USB_REQ_CLEAR_FEATURE:  
+            if (req->wValue == USB_FEATURE_EP_HALT)
+            {
+                ep_addr = LOBYTE(req->wIndex);
+
+                if ((ep_addr == MSC_EPIN_ADDR) || (ep_addr == MSC_EPOUT_ADDR))
+                {
+                    hmsc->feature = ep_addr;
+            
+                    if (!USBD_MSC_Submit(MSC_BOT_ClearFeature))
+                    {
+                        return USBD_FAIL;
+                    }
+                }
+            }
+            break;
+        }  
+        break;
    
-  default:
-    break;
-  }
-  return 0;
+    default:
+        break;
+    }
+
+    return USBD_OK;
 }
 
-/**
-* @brief  USBD_MSC_DataIn
-*         handle data IN Stage
-* @param  pdev: device instance
-* @param  epnum: endpoint index
-* @retval status
-*/
-uint8_t  USBD_MSC_DataIn (USBD_HandleTypeDef *pdev, 
-                              uint8_t epnum)
+uint8_t USBD_MSC_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum)
 {
-    USBD_MSC_Enqueue(USBD_MSC_BOT_EVENT_DATA_IN);
-    return 0;
+    if (!USBD_MSC_Submit(MSC_BOT_DataIn))
+    {
+        return USBD_FAIL;
+    }
+
+    return USBD_OK;
 }
 
-/**
-* @brief  USBD_MSC_DataOut
-*         handle data OUT Stage
-* @param  pdev: device instance
-* @param  epnum: endpoint index
-* @retval status
-*/
-uint8_t  USBD_MSC_DataOut (USBD_HandleTypeDef *pdev, 
-                               uint8_t epnum)
+uint8_t USBD_MSC_DataOut(USBD_HandleTypeDef *pdev, uint8_t epnum)
 {
-    USBD_MSC_Enqueue(USBD_MSC_BOT_EVENT_DATA_OUT);
-    return 0;
+    if (!USBD_MSC_Submit(MSC_BOT_DataOut))
+    {
+        return USBD_FAIL;
+    }
+
+    return USBD_OK;
 }
 
-/**
-* @brief  USBD_MSC_RegisterStorage
-* @param  fops: storage callback
-* @retval status
-*/
-uint8_t  USBD_MSC_RegisterStorage  (USBD_HandleTypeDef   *pdev, 
-				    const USBD_StorageTypeDef *fops)
+uint8_t USBD_MSC_RegisterStorage(USBD_HandleTypeDef *pdev, const USBD_StorageTypeDef *fops)
 {
-  if(fops != NULL)
-  {
-    pdev->pUserData[1]= fops;
-  }
-  return 0;
+    if (fops != NULL)
+    {
+        USBD_MSC_Data.storage = fops;
+    }
+
+    return USBD_OK;
 }
-
-/**
-  * @}
-  */ 
-
-
-/**
-  * @}
-  */ 
-
-
-/**
-  * @}
-  */ 
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

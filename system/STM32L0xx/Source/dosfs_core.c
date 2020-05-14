@@ -150,8 +150,7 @@ static int dosfs_file_write(dosfs_volume_t *volume, dosfs_file_t *file, const ui
 
 dosfs_volume_t dosfs_volume;
 
-__attribute__((section(".noinit"))) static uint32_t dosfs_cache[(1 +
-                                                                 DOSFS_CONFIG_FAT_CACHE_ENTRIES +
+__attribute__((section(".noinit"))) static uint32_t dosfs_cache[(((DOSFS_CONFIG_FAT_CACHE_ENTRIES == 2) ? 1 : 0)+
                                                                  ((DOSFS_CONFIG_TRANSACTION_SAFE_SUPPORTED == 1) ? 1 : 0) +
                                                                  DOSFS_CONFIG_DATA_CACHE_ENTRIES)
                                                                 * (DOSFS_BLK_SIZE / sizeof(uint32_t))];
@@ -225,8 +224,7 @@ static int dosfs_volume_init(dosfs_volume_t *volume, dosfs_device_t *device)
 #endif /* (DOSFS_CONFIG_TRANSACTION_SAFE_SUPPORTED == 1) */
 
     cache = (uint8_t*)&dosfs_cache[0];
-    volume->dir_cache.data = cache;
-    cache += DOSFS_BLK_SIZE;
+    volume->dir_cache.data = (uint8_t*)&device->cache[0];
 #if (DOSFS_CONFIG_TRANSACTION_SAFE_SUPPORTED == 1)
     volume->map_cache.data = cache;
     cache += DOSFS_BLK_SIZE;
@@ -234,11 +232,9 @@ static int dosfs_volume_init(dosfs_volume_t *volume, dosfs_device_t *device)
 
 #if (DOSFS_CONFIG_FAT_CACHE_ENTRIES != 0)
 #if (DOSFS_CONFIG_FAT_CACHE_ENTRIES == 1)
-    volume->fat_cache.data = cache;
-    cache += DOSFS_BLK_SIZE;
+    volume->fat_cache.data =  (uint8_t*)&device->cache[0] + DOSFS_BLK_SIZE;
 #else /* (DOSFS_CONFIG_FAT_CACHE_ENTRIES == 1) */
-    volume->fat_cache[0].data = cache;
-    cache += DOSFS_BLK_SIZE;
+    volume->fat_cache[0].data = (uint8_t*)&device->cache[0] + DOSFS_BLK_SIZE;
     volume->fat_cache[1].data = cache;
     cache += DOSFS_BLK_SIZE;
 #endif /* (DOSFS_CONFIG_FAT_CACHE_ENTRIES == 1) */

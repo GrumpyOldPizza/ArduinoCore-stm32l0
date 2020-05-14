@@ -643,7 +643,7 @@ void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, ui
     stm32l0_system_sysclk_configure(hclk, pclk1, pclk2);
 
     stm32l0_rtc_timer_create(&stm32l0_system_device.timeout, (stm32l0_rtc_timer_callback_t)stm32l0_system_wakeup, NULL);
-    
+
     __set_PRIMASK(primask);
 }
 
@@ -1398,7 +1398,7 @@ void stm32l0_system_unreference(uint32_t reference)
 void stm32l0_system_sleep(uint32_t policy, uint32_t timeout)
 {
     uint32_t primask;
-    stm32l0_gpio_state_t gpio_state;
+    stm32l0_gpio_stop_state_t gpio_stop_state;
 
     if (timeout != STM32L0_SYSTEM_TIMEOUT_NONE)
     {
@@ -1452,7 +1452,8 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t timeout)
 
                                     if (!(SCB->ICSR & SCB_ICSR_ISRPENDING_Msk))
                                     {
-                                        stm32l0_gpio_save(&gpio_state);
+                                        __stm32l0_exti_stop_enter();
+                                        __stm32l0_gpio_stop_enter(&gpio_stop_state);
 
                                         if (!(SCB->ICSR & SCB_ICSR_ISRPENDING_Msk))
                                         {
@@ -1487,7 +1488,7 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t timeout)
                     
                                             /* Select STOP */
                                             PWR->CR &= ~PWR_CR_PDDS;
-                    
+
                                             if (!(SCB->ICSR & SCB_ICSR_ISRPENDING_Msk))
                                             {
                                                 SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
@@ -1514,7 +1515,7 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t timeout)
                                                 }
 
                                                 SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
-                                            
+                                                
                                                 /* Clear ULP to enable VREFINT, disable lowpower voltage regulator */
                                                 PWR->CR &= ~(PWR_CR_FWU | PWR_CR_ULP | PWR_CR_LPSDSR);
 
@@ -1599,14 +1600,15 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t timeout)
                                             RCC->APB1ENR &= ~RCC_APB1ENR_PWREN;
                                         }
                                         
-                                        stm32l0_gpio_restore(&gpio_state);
+                                        __stm32l0_gpio_stop_leave(&gpio_stop_state);
+                                        __stm32l0_exti_stop_leave();
                                     }
                                     
                                     stm32l0_system_notify(STM32L0_SYSTEM_EVENT_STOP_LEAVE);
                                 }
                             }
                         }
-                    
+                        
                         __set_PRIMASK(primask);
                     }
                 }

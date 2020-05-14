@@ -118,18 +118,22 @@ typedef struct
   uint32_t phy_itface;           /*!< Select the used PHY interface.
                                       This parameter can be any value of @ref PCD_USB_Core_PHY                  */ 
                                 
+#if (USBD_SOF_ENABLE == 1)
   uint32_t Sof_enable;           /*!< Enable or disable the output of the SOF signal.
                                       This parameter can be set to ENABLE or DISABLE                        */  
-  
+#endif  
   uint32_t low_power_enable;       /*!< Enable or disable Low Power mode
                                         This parameter can be set to ENABLE or DISABLE                      */ 
   
+#if (USBD_LPM_ENABLE == 1)
   uint32_t lpm_enable;             /*!< Enable or disable Link Power Management.
                                         This parameter can be set to ENABLE or DISABLE */ 
-
+#endif
+  
+#if (USBD_BCD_ENABLE == 1)
   uint32_t battery_charging_enable; /*!< Enable or disable Battery charging.
                                          This parameter can be set to ENABLE or DISABLE */ 
-                                
+#endif                                
 }PCD_InitTypeDef;
 
 typedef struct
@@ -188,6 +192,7 @@ typedef struct
   HAL_LockTypeDef         Lock;       /*!< PCD peripheral status              */
   __IO PCD_StateTypeDef   State;      /*!< PCD communication state            */
   uint32_t                Setup[12];  /*!< Setup packet buffer                */
+#if (USBD_LPM_ENABLE == 1)
     PCD_LPM_StateTypeDef    LPM_State;    /*!< LPM State                          */
   uint32_t                BESL;
   
@@ -195,8 +200,11 @@ typedef struct
   uint32_t lpm_active;                  /*!< Enable or disable the Link Power Management .                                  
                                         This parameter can be set to ENABLE or DISABLE                      */
 
+#endif
+#if (USBD_BCD_ENABLE == 1)
   uint32_t battery_charging_active;     /*!< Enable or disable Battery charging.                                  
                                         This parameter can be set to ENABLE or DISABLE                      */
+#endif
   void                    *pData;      /*!< Pointer to upper stack Handler     */    
   
 } PCD_HandleTypeDef;

@@ -876,6 +876,7 @@
 
 #define STM32L0_GPIO_PORT_COUNT                 6 /* A, B, C, D, H */
 #define STM32L0_GPIO_GROUP_COUNT                8 /* A, B, C, D, E, F, G, H */
+#define STM32L0_GPIO_PORT_RCC_IOPEN             (RCC_IOPENR_IOPAEN | RCC_IOPENR_IOPBEN | RCC_IOPENR_IOPCEN | RCC_IOPENR_IOPDEN | RCC_IOPENR_IOPHEN)
 
 #endif /* STM32L052xx */
 
@@ -883,6 +884,7 @@
 
 #define STM32L0_GPIO_PORT_COUNT                 6 /* A, B, C, D, E, H */
 #define STM32L0_GPIO_GROUP_COUNT                8 /* A, B, C, D, E, F, G, H */
+#define STM32L0_GPIO_PORT_RCC_IOPEN             (RCC_IOPENR_IOPAEN | RCC_IOPENR_IOPBEN | RCC_IOPENR_IOPCEN | RCC_IOPENR_IOPDEN | RCC_IOPENR_IOPEEN | RCC_IOPENR_IOPHEN)
 
 #endif /* STM32L072xx */
 
@@ -890,17 +892,20 @@
 
 #define STM32L0_GPIO_PORT_COUNT                 4 /* A, B, C, H */
 #define STM32L0_GPIO_GROUP_COUNT                8 /* A, B, C, D, E, F, G, H */
+#define STM32L0_GPIO_PORT_RCC_IOPEN             (RCC_IOPENR_IOPAEN | RCC_IOPENR_IOPBEN | RCC_IOPENR_IOPCEN | RCC_IOPENR_IOPHEN)
 
 #endif /* STM32L082xx */
 
-typedef struct _stm32l0_gpio_state_t {
+typedef struct _stm32l0_gpio_stop_state_t {
     uint32_t                mode[STM32L0_GPIO_PORT_COUNT];
     uint32_t                pupd[STM32L0_GPIO_PORT_COUNT];
-} stm32l0_gpio_state_t;
+} stm32l0_gpio_stop_state_t;
 
 #define STM32L0_GPIO_PIN_MASK(_pin)             (1ul << ((_pin) & 15))
 
 extern void __stm32l0_gpio_initialize(void);
+extern void __stm32l0_gpio_stop_enter(stm32l0_gpio_stop_state_t *state);
+extern void __stm32l0_gpio_stop_leave(stm32l0_gpio_stop_state_t *state);
 
 extern void stm32l0_gpio_swd_enable(void);
 extern void stm32l0_gpio_swd_disable(void);
@@ -909,8 +914,6 @@ extern void stm32l0_gpio_pin_input(unsigned int pin);
 extern void stm32l0_gpio_pin_output(unsigned int pin);
 extern void stm32l0_gpio_pin_alternate(unsigned int pin);
 extern void stm32l0_gpio_pin_analog(unsigned int pin);
-extern void stm32l0_gpio_save(stm32l0_gpio_state_t *state);
-extern void stm32l0_gpio_restore(stm32l0_gpio_state_t *state);
 
 extern unsigned int __stm32l0_gpio_pin_read(unsigned int pin);
 extern void __stm32l0_gpio_pin_write(unsigned int pin, unsigned int data);

@@ -203,14 +203,14 @@ void USBDeviceClass::onResume(Callback callback)
 void USBDeviceClass::enableWakeup()
 {
     if (_enabled) {
-        USBD_SetupVBUS(false);
+        USBD_SetupVBUS(true);
     }
 }
 
 void USBDeviceClass::disableWakeup()
 {
     if (_enabled) {
-        USBD_SetupVBUS(true);
+        USBD_SetupVBUS(false);
     }
 }
 

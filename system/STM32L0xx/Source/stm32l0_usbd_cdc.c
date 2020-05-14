@@ -189,8 +189,6 @@ static void stm32l0_usbd_cdc_tx_start(void)
         USBD_CDC_TransmitPacket(stm32l0_usbd_cdc_device.USBD);
         
         stm32l0_lptim_timeout_start(&stm32l0_usbd_cdc_device.tx_timeout, stm32l0_lptim_millis_to_ticks(STM32L0_USBD_CDC_TX_TIMEOUT), (stm32l0_lptim_callback_t)stm32l0_usbd_cdc_tx_timeout);
-                                    
-        NVIC_EnableIRQ(USB_IRQn);
     }
     else
     {
@@ -205,6 +203,10 @@ static void stm32l0_usbd_cdc_tx_start(void)
         }
     }
     
+    if (stm32l0_usbd_cdc_device.USBD)
+    {
+        NVIC_EnableIRQ(USB_IRQn);
+    }
 }
 
 static void stm32l0_usbd_cdc_init(USBD_HandleTypeDef *USBD)

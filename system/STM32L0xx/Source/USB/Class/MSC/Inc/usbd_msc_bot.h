@@ -49,13 +49,26 @@
 /** @defgroup USBD_CORE_Exported_Defines
   * @{
   */ 
-#define USBD_BOT_IDLE                      0       /* Idle state */
-#define USBD_BOT_DATA_OUT                  1       /* Data Out state */
-#define USBD_BOT_DATA_IN                   2       /* Data In state */
-#define USBD_BOT_LAST_DATA_IN              3       /* Last Data In Last */
-#define USBD_BOT_SEND_DATA                 4       /* Send Immediate data */
-#define USBD_BOT_NO_DATA                   5       /* No data Stage */
+#define USBD_BOT_STATE_NONE                0       /* None */
+#define USBD_BOT_STATE_IDLE                1       /* Idle */
+#define USBD_BOT_STATE_RECOVERY_RESET      2       /* Waiting for reset */
+#define USBD_BOT_STATE_RECOVERY_DATA_IN    3       /* Waiting for clear feature halt on data in */
+#define USBD_BOT_STATE_RECOVERY_DATA_OUT   4       /* Waiting for clear feature halt on data out */
+#define USBD_BOT_STATE_HALT_DATA_IN        5       /* Waiting for clear feature halt on data in */
+#define USBD_BOT_STATE_HALT_DATA_OUT       6       /* Waiting for clear feature halt on data out */
+#define USBD_BOT_STATE_DATA_IN             7       /* Data In state */
+#define USBD_BOT_STATE_DATA_IN_LAST        8       /* Last Data In Last (passed) */
+#define USBD_BOT_STATE_DATA_IN_LAST_STALL  9       /* Last Data In Last (failed or phase error) */
+#define USBD_BOT_STATE_DATA_OUT            10      /* Data Out state */
 
+#define USBD_BOT_ABORT_CBW                      3
+#define USBD_BOT_ABORT_DATA_IN_CSW_CMD_PASSED   4
+#define USBD_BOT_ABORT_DATA_IN_CSW_CMD_FAILED   5
+#define USBD_BOT_ABORT_DATA_IN_CSW_PHASE_ERROR  6
+#define USBD_BOT_ABORT_DATA_OUT_CSW_CMD_PASSED  7
+#define USBD_BOT_ABORT_DATA_OUT_CSW_CMD_FAILED  8
+#define USBD_BOT_ABORT_DATA_OUT_CSW_PHASE_ERROR 9
+   
 #define USBD_BOT_CBW_SIGNATURE             0x43425355
 #define USBD_BOT_CSW_SIGNATURE             0x53425355
 #define USBD_BOT_CBW_LENGTH                31
@@ -67,16 +80,13 @@
 #define USBD_CSW_CMD_FAILED                0x01
 #define USBD_CSW_PHASE_ERROR               0x02
 
-/* BOT Status */
-#define USBD_BOT_STATUS_NORMAL             0
-#define USBD_BOT_STATUS_RECOVERY           1
-#define USBD_BOT_STATUS_ERROR              2
-
-
 #define USBD_DIR_IN                        0
 #define USBD_DIR_OUT                       1
 #define USBD_BOTH_DIR                      2
 
+
+#define MSC_QUEUE_ENTRIES 8
+   
 /**
   * @}
   */ 
@@ -84,7 +94,9 @@
 /** @defgroup MSC_CORE_Private_TypesDefinitions
   * @{
   */ 
-
+   
+typedef void (*USBD_MSC_BOT_CallbackTypeDef)(USBD_HandleTypeDef*);
+   
 typedef struct
 {
   uint32_t dSignature;
@@ -124,20 +136,22 @@ USBD_MSC_BOT_CSWTypeDef;
 /** @defgroup USBD_CORE_Exported_FunctionsPrototypes
   * @{
   */ 
-void MSC_BOT_Init (USBD_HandleTypeDef  *pdev);
-void MSC_BOT_Reset (USBD_HandleTypeDef  *pdev);
-void MSC_BOT_DeInit (USBD_HandleTypeDef  *pdev);
-void MSC_BOT_DataIn (USBD_HandleTypeDef  *pdev, 
-                     uint8_t epnum);
+extern void MSC_BOT_Init(USBD_HandleTypeDef *pdev);
+extern void MSC_BOT_DeInit(USBD_HandleTypeDef *pdev);
+extern void MSC_BOT_DataIn(USBD_HandleTypeDef *pdev);
+extern void MSC_BOT_DataOut(USBD_HandleTypeDef *pdev);
+extern void MSC_BOT_Reset(USBD_HandleTypeDef *pdev);
+extern void MSC_BOT_ClearFeature(USBD_HandleTypeDef *pdev);
 
-void MSC_BOT_DataOut (USBD_HandleTypeDef  *pdev, 
-                      uint8_t epnum);
-
-void MSC_BOT_SendCSW (USBD_HandleTypeDef  *pdev,
-                             uint8_t CSW_Status);
-
-void  MSC_BOT_CplClrFeature (USBD_HandleTypeDef  *pdev, 
-                             uint8_t epnum);
+extern void MSC_BOT_Open(USBD_HandleTypeDef *pdev);
+extern void MSC_BOT_Close(USBD_HandleTypeDef *pdev);
+extern void MSC_BOT_Abort(USBD_HandleTypeDef *pdev, uint8_t abort);
+extern void MSC_BOT_Reactivate(USBD_HandleTypeDef *pdev, uint8_t epnum);
+extern void MSC_BOT_Stall(USBD_HandleTypeDef *pdev, uint8_t epnum);
+extern void MSC_BOT_SendCSW(USBD_HandleTypeDef *pdev, uint8_t status);
+extern void MSC_BOT_Transmit(USBD_HandleTypeDef *pdev, const uint8_t *data, uint32_t length, bool last);
+extern void MSC_BOT_Receive(USBD_HandleTypeDef *pdev, uint8_t *data, uint32_t length);
+   
 /**
   * @}
   */ 
