@@ -158,7 +158,7 @@ static void USBD_VBUSChangedIrq(void)
                 
                 USBD_DeInit(&USBD_Device);
 
-                if (usbd_state == USBD_STATE_SUSPENDED)
+                if (usbd_state != USBD_STATE_SUSPENDED)
                 {
                     stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_RUN);
                 }
@@ -289,7 +289,7 @@ void USBD_Detach(void)
             
             USBD_DeInit(&USBD_Device);
 
-            if (usbd_state == USBD_STATE_SUSPENDED)
+            if (usbd_state != USBD_STATE_SUSPENDED)
             {
                 stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_RUN);
             }
