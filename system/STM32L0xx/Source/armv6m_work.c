@@ -45,23 +45,22 @@ static armv6m_work_control_t armv6m_work_control;
 static __attribute__((naked, used)) void armv6m_work_notify(void)
 {
     __asm__(
-        "  ldr     r3, =armv6m_work_control             \n"
-        "  mov     r0, sp                               \n"
-        "  str     r0, [r3, %[offset_CONTROL_STACK]]    \n"
-        "  sub     sp, #0x20                            \n"
-        "  ldr     r0, [r3, %[offset_CONTROL_CONTEXT]]  \n"
-        "  ldr     r1, =armv6m_work_return              \n"
-        "  ldr     r2, [r3, %[offset_CONTROL_CALLBACK]] \n"
-        "  sub     r2, r2, #1                           \n"
-        "  ldr     r3, =0xf1000000                      \n"
-        "  str     r0, [sp, #0x00]                      \n"
-        "  str     r1, [sp, #0x14]                      \n"
-        "  str     r2, [sp, #0x18]                      \n"
-        "  str     r3, [sp, #0x1c]                      \n"
-        "  ldr     r0, =0xfffffff9                      \n"
-        "  mov     lr, r0                               \n"
-        "  bx      lr                                   \n"
-        "  bkpt                                         \n"
+        "   ldr     r3, =armv6m_work_control             \n"
+        "   mov     r0, sp                               \n"
+        "   str     r0, [r3, %[offset_CONTROL_STACK]]    \n"
+        "   sub     sp, #0x20                            \n"
+        "   ldr     r0, [r3, %[offset_CONTROL_CONTEXT]]  \n"
+        "   ldr     r1, =armv6m_work_return              \n"
+        "   ldr     r2, [r3, %[offset_CONTROL_CALLBACK]] \n"
+        "   sub     r2, r2, #1                           \n"
+        "   ldr     r3, =0xf1000000                      \n"
+        "   str     r0, [sp, #0x00]                      \n"
+        "   str     r1, [sp, #0x14]                      \n"
+        "   str     r2, [sp, #0x18]                      \n"
+        "   str     r3, [sp, #0x1c]                      \n"
+        "   ldr     r0, =0xfffffff9                      \n"
+        "   mov     lr, r0                               \n"
+        "   bx      lr                                   \n"
         :
         : [offset_CONTROL_STACK]    "I" (offsetof(armv6m_work_control_t, stack)),
           [offset_CONTROL_CALLBACK] "I" (offsetof(armv6m_work_control_t, callback)),
@@ -72,17 +71,16 @@ static __attribute__((naked, used)) void armv6m_work_notify(void)
 static __attribute__((naked, used)) void armv6m_work_svcall(void)
 {
     __asm__(
-        "  mov     r7, r0                               \n" // restore saved r7
-        "  ldr     r3, =armv6m_work_control             \n"
-        "  ldr     r0, [r3, %[offset_CONTROL_STACK]]    \n"
-	"  mov     sp, r0                               \n"
-	"  mov     r0, #0                               \n"
-        "  str     r0, [r3, %[offset_CONTROL_SELF]]     \n"
-        "  bl      armv6m_work_dispatch                 \n"
-        "  ldr     r0, =0xfffffff9                      \n"
-        "  mov     lr, r0                               \n"
-        "  bx      lr                                   \n"
-        "  bkpt                                         \n"
+        "   mov     r7, r0                               \n" // restore saved r7
+        "   ldr     r3, =armv6m_work_control             \n"
+        "   ldr     r0, [r3, %[offset_CONTROL_STACK]]    \n"
+        "   mov     sp, r0                               \n"
+        "   mov     r0, #0                               \n"
+        "   str     r0, [r3, %[offset_CONTROL_SELF]]     \n"
+        "   bl      armv6m_work_dispatch                 \n"
+        "   ldr     r0, =0xfffffff9                      \n"
+        "   mov     lr, r0                               \n"
+        "   bx      lr                                   \n"
         :
         : [offset_CONTROL_STACK]    "I" (offsetof(armv6m_work_control_t, stack)),
           [offset_CONTROL_SELF]     "I" (offsetof(armv6m_work_control_t, self))
@@ -92,10 +90,9 @@ static __attribute__((naked, used)) void armv6m_work_svcall(void)
 __attribute__((naked)) void armv6m_work_return(void)
 {
     __asm__(
-        "  mov     r0, r7                              \n" // save r7
-        "  ldr     r7, =armv6m_work_svcall             \n"
-        "  svc     0                                   \n"
-        "  bkpt                                        \n"
+        "   mov     r0, r7                               \n" // save r7
+        "   ldr     r7, =armv6m_work_svcall              \n"
+        "   svc     0                                    \n"
         :
         :
         );
@@ -109,23 +106,23 @@ static  __attribute__((used)) void armv6m_work_dispatch(void)
 
     if (work != NULL)
     {
-	if (armv6m_work_control.head == armv6m_work_control.tail)
-	{
-	    armv6m_work_control.head = NULL;
-	    armv6m_work_control.tail = NULL;
-	}
-	else
-	{
-	    armv6m_work_control.head = work->next;
-	}
+        if (armv6m_work_control.head == armv6m_work_control.tail)
+        {
+            armv6m_work_control.head = NULL;
+            armv6m_work_control.tail = NULL;
+        }
+        else
+        {
+            armv6m_work_control.head = work->next;
+        }
 
-	armv6m_work_control.callback = work->callback;
-	armv6m_work_control.context = work->context;
-	armv6m_work_control.self = work;
+        armv6m_work_control.callback = work->callback;
+        armv6m_work_control.context = work->context;
+        armv6m_work_control.self = work;
 
-	work->next = NULL;
+        work->next = NULL;
 
-	armv6m_pendsv_notify(armv6m_work_notify);
+        armv6m_pendsv_notify(armv6m_work_notify);
     }
 }
 
@@ -137,30 +134,30 @@ static void armv6m_work_schedule(void)
 
     if (work != ARMV6M_WORK_TAIL)
     {
-	for (work_head = ARMV6M_WORK_TAIL, work_tail = work; work != ARMV6M_WORK_TAIL; work = work_next)
-	{
-	    work_next = work->next;
-	    
-	    work->next = work_head;
-	    
-	    work_head = work;
-	}
+        for (work_head = ARMV6M_WORK_TAIL, work_tail = work; work != ARMV6M_WORK_TAIL; work = work_next)
+        {
+            work_next = work->next;
+            
+            work->next = work_head;
+            
+            work_head = work;
+        }
 
-	if (armv6m_work_control.head == NULL)
-	{
-	    armv6m_work_control.head = work_head;
-	}
-	else
-	{
-	    armv6m_work_control.tail->next = work_head;
-	}
+        if (armv6m_work_control.head == NULL)
+        {
+            armv6m_work_control.head = work_head;
+        }
+        else
+        {
+            armv6m_work_control.tail->next = work_head;
+        }
 
-	armv6m_work_control.tail = work_tail;
+        armv6m_work_control.tail = work_tail;
 
-	if (armv6m_work_control.self == NULL)
-	{
-	    armv6m_work_dispatch();
-	}
+        if (armv6m_work_control.self == NULL)
+        {
+            armv6m_work_dispatch();
+        }
     }
 }
 
@@ -190,13 +187,13 @@ bool armv6m_work_submit(armv6m_work_t *work)
 
     if (armv6m_atomic_cas((volatile uint32_t*)&work->next, (uint32_t)NULL, (uint32_t)ARMV6M_WORK_TAIL) == (uint32_t)NULL)
     {
-	work_next = (armv6m_work_t*)armv6m_atomic_swap((volatile uint32_t*)&armv6m_work_control.submit, (uint32_t)work);
+        work_next = (armv6m_work_t*)armv6m_atomic_swap((volatile uint32_t*)&armv6m_work_control.submit, (uint32_t)work);
 
-	work->next = work_next;
+        work->next = work_next;
 
-	armv6m_pendsv_raise(ARMV6M_PENDSV_SWI_WORK_SCHEDULE);
+        armv6m_pendsv_raise(ARMV6M_PENDSV_SWI_WORK_SCHEDULE);
 
-	return true;
+        return true;
     }
 
     return false;

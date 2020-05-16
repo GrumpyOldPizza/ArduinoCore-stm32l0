@@ -41,6 +41,8 @@ onJoin		KEYWORD2
 onLinkCheck	KEYWORD2
 onReceive	KEYWORD2
 onTransmit	KEYWORD2
+enableWakeup	KEYWORD2
+disableWakeup	KEYWORD2
 setDevEui	KEYWORD2
 setAppEui	KEYWORD2
 setAppKey	KEYWORD2

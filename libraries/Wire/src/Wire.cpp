@@ -67,7 +67,10 @@ void TwoWire::begin(uint8_t address, bool generalCall)
     _ev_address = address;
 
     _option &= ~(STM32L0_I2C_OPTION_GENERAL_CALL | STM32L0_I2C_OPTION_ADDRESS_MASK | STM32L0_I2C_OPTION_MODE_MASK);
-    _option |= (address << STM32L0_I2C_OPTION_ADDRESS_SHIFT);
+
+    if (address) {
+	_option |= (STM32L0_I2C_OPTION_WAKEUP | (address << STM32L0_I2C_OPTION_ADDRESS_SHIFT));
+    }
     
     if (generalCall) {
         _option |= STM32L0_I2C_OPTION_GENERAL_CALL;
@@ -479,20 +482,6 @@ void TwoWire::resume()
     stm32l0_i2c_resume(_i2c);
 }
 
-void TwoWire::enableWakeup()
-{
-    _option |= STM32L0_I2C_OPTION_WAKEUP;
-
-    stm32l0_i2c_configure(_i2c, _option, _timeout);
-}
-
-void TwoWire::disableWakeup()
-{
-    _option &= ~STM32L0_I2C_OPTION_WAKEUP;
-
-    stm32l0_i2c_configure(_i2c, _option, _timeout);
-}
-
 void TwoWire::onReceive(void(*callback)(int))
 {
     _receiveCallback = callback;
@@ -630,7 +619,7 @@ uint8_t TwoWireTransaction::status()
 
 void TwoWireTransaction::_doneCallback(class TwoWireTransaction *self)
 {
-    self->_callback.queue();
+    self->_callback.queue(false);
 }
 
 #if WIRE_INTERFACES_COUNT > 0

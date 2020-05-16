@@ -81,7 +81,7 @@ public:
 
  public:
     void  stop(uint32_t timeout = 0xffffffff) __attribute__((deprecated("use STM32L0.deepsleep() instead"))) { deepsleep(timeout); }
-    bool  getVBUS()  __attribute__((deprecated("use USBDevice.attached() instead"))) { USBDevice.attached(); }
+    bool  getVBUS()  __attribute__((deprecated("use USBDevice.attached() instead"))) { return USBDevice.attached(); }
     
 };
 

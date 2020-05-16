@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -60,7 +60,8 @@ LoRaRadioClass::LoRaRadioClass()
     _tx_data = (uint8_t*)&LoRaRadioBuffer[0];
     _rx_data = (uint8_t*)&LoRaRadioBuffer[(LORARADIO_TX_BUFFER_SIZE + 3) / 4];
 
-    _initialized = false;
+    _enabled = false;
+    _wakeup = false;
 }
 
 int LoRaRadioClass::begin(unsigned long frequency)
@@ -79,11 +80,11 @@ int LoRaRadioClass::begin(unsigned long frequency)
         return 0;
     }
 
-    if (_initialized) {
+    if (_enabled) {
         return 0;
     }
 
-    _initialized = true;
+    _enabled = true;
     _busy = 0;
     _cadDetected = false;
 
@@ -131,11 +132,11 @@ int LoRaRadioClass::begin(unsigned long frequency)
 
 void LoRaRadioClass::end()
 {
-    if (_initialized) {
+    if (_enabled) {
         Radio.Sleep();
     }
 
-    _initialized = false;
+    _enabled = false;
 
     LoRaRadioInstance = NULL;
 }
@@ -152,7 +153,7 @@ bool LoRaRadioClass::cadDetected()
 
 int LoRaRadioClass::beginPacket()
 {
-    if (!_initialized) {
+    if (!_enabled) {
         return 0;
     }
 
@@ -179,7 +180,7 @@ int LoRaRadioClass::endPacket(bool fixedPayloadLength)
 
 int LoRaRadioClass::sendPacket(const uint8_t *buffer, size_t size, bool fixedPayloadLength)
 {
-    if (!_initialized) {
+    if (!_enabled) {
         return 0;
     }
 
@@ -202,7 +203,7 @@ int LoRaRadioClass::sendPacket(const uint8_t *buffer, size_t size, bool fixedPay
 
 int LoRaRadioClass::receive(unsigned int timeout)
 {
-    if (!_initialized) {
+    if (!_enabled) {
         return 0;
     }
 
@@ -213,7 +214,7 @@ int LoRaRadioClass::receive(unsigned int timeout)
 
 int LoRaRadioClass::cad()
 {
-    if (!_initialized) {
+    if (!_enabled) {
         return 0;
     }
 
@@ -227,7 +228,7 @@ int LoRaRadioClass::sense(int rssiThreshold, unsigned int senseTime)
     IRQn_Type irq;
     bool isChannelFree;
 
-    if (!_initialized) {
+    if (!_enabled) {
         return 0;
     }
 
@@ -250,7 +251,7 @@ int LoRaRadioClass::sense(int rssiThreshold, unsigned int senseTime)
 
 int LoRaRadioClass::standby()
 {
-    if (!_initialized) {
+    if (!_enabled) {
         return 0;
     }
 
@@ -259,7 +260,7 @@ int LoRaRadioClass::standby()
 
 int LoRaRadioClass::sleep()
 {
-    if (!_initialized) {
+    if (!_enabled) {
         return 0;
     }
 
@@ -604,7 +605,7 @@ int LoRaRadioClass::setIQInverted(bool enable)
 
 int LoRaRadioClass::setPublicNetwork(bool enable)
 {
-    if (!_initialized) {
+    if (!_enabled) {
         return 0;
     }
 
@@ -619,7 +620,7 @@ int LoRaRadioClass::setPublicNetwork(bool enable)
 
 int LoRaRadioClass::setLnaBoost(bool enable)
 {
-    if (!_initialized) {
+    if (!_enabled) {
         return 0;
     }
 
@@ -658,7 +659,7 @@ int LoRaRadioClass::disableCrc()
 
 int LoRaRadioClass::setIdleMode(IdleMode mode)
 {
-    if (!_initialized) {
+    if (!_enabled) {
         return 0;
     }
 
@@ -699,6 +700,16 @@ void LoRaRadioClass::onCad(void(*callback)(void))
 void LoRaRadioClass::onCad(Callback callback)
 {
     _cadCallback = callback;
+}
+
+void LoRaRadioClass::enableWakeup()
+{
+    _wakeup = true;
+}
+
+void LoRaRadioClass::disableWakeup()
+{
+    _wakeup = false;
 }
 
 bool LoRaRadioClass::__TxStart(void)
@@ -910,7 +921,7 @@ void LoRaRadioClass::__TxDone(void)
 
     self->_busy = 0;
 
-    self->_transmitCallback.queue();
+    self->_transmitCallback.queue(self->_wakeup);
 }
 
 void LoRaRadioClass::__RxDone(uint8_t *data, uint16_t size, int16_t rssi, int8_t snr)
@@ -981,7 +992,7 @@ void LoRaRadioClass::__RxDone(uint8_t *data, uint16_t size, int16_t rssi, int8_t
         self->_busy = 0;
     }
 
-    self->_receiveCallback.queue();
+    self->_receiveCallback.queue(self->_wakeup);
 }
 
 void LoRaRadioClass::__RxTimeout(void)
@@ -990,7 +1001,7 @@ void LoRaRadioClass::__RxTimeout(void)
 
     self->_busy = 0;
 
-    self->_receiveCallback.queue();
+    self->_receiveCallback.queue(self->_wakeup);
 }
 
 void LoRaRadioClass::__CadDone(bool cadDetected)
@@ -1001,7 +1012,7 @@ void LoRaRadioClass::__CadDone(bool cadDetected)
 
     self->_busy = 0;
 
-    self->_cadCallback.queue();
+    self->_cadCallback.queue(self->_wakeup);
 }
 
 LoRaRadioClass LoRaRadio;

@@ -26,8 +26,6 @@ reset	KEYWORD2
 scan	KEYWORD2
 suspend	KEYWORD2
 resume	KEYWORD2
-enableWakeup	KEYWORD2
-disableWakeup	KEYWORD2
 
 #######################################
 # Instances (KEYWORD2)

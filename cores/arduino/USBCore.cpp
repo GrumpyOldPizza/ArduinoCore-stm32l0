@@ -202,36 +202,37 @@ void USBDeviceClass::onResume(Callback callback)
 
 void USBDeviceClass::enableWakeup()
 {
-    if (_enabled) {
-        USBD_SetupVBUS(true);
-    }
+    _wakeup = true;
 }
 
 void USBDeviceClass::disableWakeup()
 {
-    if (_enabled) {
-        USBD_SetupVBUS(false);
-    }
+    _wakeup = false;
+}
+
+void USBDeviceClass::setVBUSDetect(enum USBDeviceDetect mode)
+{
+    USBD_SetupVBUS(mode == SLEEP_AND_STOP);
 }
 
 void USBDeviceClass::connectCallback(void)
 {
-    USBDevice._connectCallback.queue();
+    USBDevice._connectCallback.queue(USBDevice._wakeup);
 }
 
 void USBDeviceClass::disconnectCallback(void)
 {
-    USBDevice._disconnectCallback.queue();
+    USBDevice._disconnectCallback.queue(USBDevice._wakeup);
 }
 
 void USBDeviceClass::suspendCallback(void)
 {
-    USBDevice._suspendCallback.queue();
+    USBDevice._suspendCallback.queue(USBDevice._wakeup);
 }
 
 void USBDeviceClass::resumeCallback(void)
 {
-    USBDevice._resumeCallback.queue();
+    USBDevice._resumeCallback.queue(USBDevice._wakeup);
 }
 
 USBDeviceClass USBDevice;

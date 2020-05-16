@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -124,8 +124,12 @@ public:
     void onCad(void(*callback)(void));
     void onCad(Callback callback);
 
+    void enableWakeup();
+    void disableWakeup();
+    
 private:
-    bool              _initialized;
+    bool              _enabled;
+    bool              _wakeup;
     volatile uint8_t  _busy;      // 0 idle, 1 rx, 2 tx, 3 cad
     volatile bool     _cadDetected;
 
@@ -176,10 +180,6 @@ private:
     static void       __RxDone(uint8_t *data, uint16_t size, int16_t rssi, int8_t snr);
     static void       __RxTimeout(void);
     static void       __CadDone(bool cadDetected);
-
-public:
-    void __attribute__ ((deprecated)) enableWakeup() { };
-    void __attribute__ ((deprecated)) disableWakeup() { };
 };
 
 extern LoRaRadioClass LoRaRadio;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -166,7 +166,9 @@ public:
     void onReceive(Callback callback);
     void onTransmit(void(*callback)(void));
     void onTransmit(Callback callback);
-
+    void enableWakeup();
+    void disableWakeup();
+    
     int setAppEui(const char *appEui);
     int setAppKey(const char *appKey);
     int setDevEui(const char *devEui);
@@ -287,6 +289,8 @@ private:
     Callback          _receiveCallback;
     Callback          _transmitCallback;
 
+    bool              _wakeup;
+    
     void              _saveSession();
     bool              _restoreSession();
     void              _saveADR();

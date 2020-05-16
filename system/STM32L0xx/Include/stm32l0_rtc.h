@@ -164,7 +164,7 @@ extern void stm32l0_rtc_timer_start(stm32l0_rtc_timer_t *timer, uint64_t clock, 
 extern void stm32l0_rtc_timer_stop(stm32l0_rtc_timer_t *timer);
 extern bool stm32l0_rtc_timer_done(stm32l0_rtc_timer_t *timer);
 
-extern void stm32l0_rtc_wakeup_start(uint32_t seconds, stm32l0_rtc_wakeup_callback_t callback, void *context);
+extern bool stm32l0_rtc_wakeup_start(uint32_t seconds, stm32l0_rtc_wakeup_callback_t callback, void *context);
 extern void stm32l0_rtc_wakeup_stop();
 extern bool stm32l0_rtc_wakeup_done();
 

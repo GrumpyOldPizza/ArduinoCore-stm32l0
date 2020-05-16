@@ -30,6 +30,10 @@
 
 #include "HardwareSerial.h"
 
+#define SERIAL_SBUS	(STM32L0_UART_OPTION_DATA_SIZE_8 | STM32L0_UART_OPTION_PARITY_EVEN | STM32L0_UART_OPTION_STOP_2 | STM32L0_UART_OPTION_RX_INVERT | STM32L0_UART_OPTION_TX_INVERT)
+#define SERIAL_WAKEUP	(STM32L0_UART_OPTION_WAKEUP)
+
+
 #define UART_RX_BUFFER_SIZE 64
 #define UART_TX_BUFFER_SIZE 64
 
@@ -73,13 +77,14 @@ public:
     void onReceive(void(*callback)(void));
     void onReceive(Callback callback);
 
-    // STM32L0 EXTENSTION: enable/disable wakeup from STOP
+    // STM32L0 EXTENSTION: enable/disable wakeup from STM32L0.sleep() / STM32L0.deepsleep()
     void enableWakeup();
     void disableWakeup();
 
  private:
     struct _stm32l0_uart_t *_uart;
     bool _enabled;
+    bool _wakeup;
     bool _nonblocking;
     uint32_t _baudrate;
     uint32_t _option;
@@ -97,8 +102,4 @@ public:
     static void _doneCallback(class Uart *self);
 
     friend class GNSSClass;
-    
-public:
-    void __attribute__ ((deprecated)) setWakeup(bool enable) { if (enable) { enableWakeup(); } else { disableWakeup(); } } 
-
 };

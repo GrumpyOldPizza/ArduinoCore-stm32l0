@@ -6,15 +6,53 @@
 # Datatypes (KEYWORD1)
 #######################################
 
+GNSSLocation	KEYWORD1
+GNSSSatellites	KEYWORD1
+
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
+
+begin	KEYWORD2
+end	KEYWORD2
+setAntenna	KEYWORD2
+setPPS	KEYWORD2
+setConstellation	KEYWORD2
+setSBAS	KEYWORD2
+setQZSS	KEYWORD2
+setAutonomous	KEYWORD2
+setPlatform	KEYWORD2
+setPeriodic	KEYWORD2
+suspend	KEYWORD2
+resume	KEYWORD2
+busy	KEYWORD2
+location	KEYWORD2
+satellites	KEYWORD2
+onLocation	KEYWORD2
+onLocation	KEYWORD2
+onSatellites	KEYWORD2
+onSatellites	KEYWORD2
+enableWakeup	KEYWORD2
+disableWakeup	KEYWORD2
 
 #######################################
 # Instances (KEYWORD2)
 #######################################
 
+GNSS	KEYWORD2
+
 #######################################
 # Constants (LITERAL1)
 #######################################
+
+MODE_NMEA	LITERAL1
+MODE_UBLOX	LITERAL1
+RATE_1HZ	LITERAL1
+RATE_5HZ	LITERAL1
+RATE_10HZ	LITERAL1
+ANTENNA_INTERNAL	LITERAL1
+ANTENNA_EXTERNAL	LITERAL1
+CONSTELLATION_GPS	LITERAL1
+CONSTELLATION_GPS_AND_GLONASS	LITERAL1
+
 

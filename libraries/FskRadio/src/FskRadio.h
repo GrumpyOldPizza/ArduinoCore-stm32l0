@@ -122,8 +122,12 @@ public:
     void onReceive(void(*callback)(void));
     void onReceive(Callback callback);
 
+    void enableWakeup();
+    void disableWakeup();
+
 private:
-    bool              _initialized;
+    bool              _enabled;
+    bool              _wakeup;
     volatile uint8_t  _busy;      // 0 idle, 1 rx, 2 tx, 3 cad
 
     uint8_t           *_tx_data;
@@ -175,10 +179,6 @@ private:
     static void       __TxDone(void);
     static void       __RxDone(uint8_t *data, uint16_t size, int16_t rssi, int8_t snr);
     static void       __RxTimeout(void);
-
-public:
-    void __attribute__ ((deprecated)) enableWakeup() { };
-    void __attribute__ ((deprecated)) disableWakeup() { };
 };
 
 extern FskRadioClass FskRadio;

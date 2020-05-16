@@ -58,7 +58,7 @@ public:
     template<typename T>
     Callback(void (T::*method)() const volatile, const volatile T &object) { bind(&method, &object); }
 
-    bool queue();
+    bool queue(bool wakeup);
     void call();
 
     operator bool() { return (_callback != nullptr); }

@@ -47,13 +47,13 @@ void __stm32l0_gpio_initialize(void)
     stm32l0_gpio_pin_configure(STM32L0_GPIO_PIN_PA4, STM32L0_GPIO_MODE_ANALOG);
 }
 
-void stm32l0_gpio_swd_enable(void)
+void __stm32l0_gpio_swd_enable(void)
 {
     stm32l0_gpio_pin_configure(STM32L0_GPIO_PIN_PA13_SWDIO, (STM32L0_GPIO_PUPD_PULLUP   | STM32L0_GPIO_OSPEED_VERY_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_ALTERNATE));
     stm32l0_gpio_pin_configure(STM32L0_GPIO_PIN_PA14_SWCLK, (STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_VERY_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_ALTERNATE));
 }
 
-void stm32l0_gpio_swd_disable(void)
+void __stm32l0_gpio_swd_disable(void)
 {
     uint32_t primask, rcc_iopenr;
     bool swdio, swclk;

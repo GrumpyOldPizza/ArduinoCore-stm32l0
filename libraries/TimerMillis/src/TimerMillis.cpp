@@ -141,6 +141,6 @@ void TimerMillis::timeout(class TimerMillis *self)
 	    self->_clock = 0;
 	}
 
-	self->_callback.queue();
+	self->_callback.queue(false);
     }
 }

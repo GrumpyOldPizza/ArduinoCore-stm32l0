@@ -185,6 +185,9 @@ public:
     void onSatellites(void(*callback)(void));
     void onSatellites(Callback callback);
 
+    void enableWakeup();
+    void disableWakeup();
+
 private:
     struct _stm32l0_uart_t *_uart;
     struct {
@@ -194,6 +197,7 @@ private:
 	uint16_t backup;
     } _pins;
     bool _enabled;
+    bool _wakeup;
     bool _internal;
     uint32_t _baudrate;
     uint8_t _rx_data[GNSS_RX_BUFFER_SIZE];
@@ -221,8 +225,6 @@ private:
 
 public:
     void __attribute__ ((deprecated("use ::begin(mode, rate) as a replacement"))) begin(Uart &uart __attribute__((unused)), GNSSmode mode, GNSSrate rate = RATE_1HZ) { begin(mode, rate); }
-    void __attribute__ ((deprecated)) enableWakeup() { };
-    void __attribute__ ((deprecated)) disableWakeup() { };
 };
 
 extern GNSSClass GNSS;

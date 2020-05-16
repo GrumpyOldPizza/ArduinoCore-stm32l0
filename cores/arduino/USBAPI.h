@@ -30,6 +30,11 @@
 
 #include "HardwareSerial.h"
 
+enum USBDeviceDetect {
+    SLEEP = 0,
+    SLEEP_AND_STOP
+};
+
 class USBDeviceClass
 {
 public:
@@ -59,8 +64,11 @@ public:
     void enableWakeup();
     void disableWakeup();
     
+    void setVBUSDetect(enum USBDeviceDetect mode);
+    
 private:
     bool _enabled;
+    bool _wakeup;
 
     Callback _connectCallback;
     Callback _disconnectCallback;
@@ -127,9 +135,14 @@ public:
     void onReceive(void(*callback)(void));
     void onReceive(Callback callback);
 
+    // STM32L0 EXTENSTION: enable/disable wakeup from STM32L0.sleep() / STM32L0.deepsleep()
+    void enableWakeup();
+    void disableWakeup();
+    
 private:
-    struct _stm32l0_usbd_cdc_t *_usbd_cdc;
+    struct _stm32l0_usbd_cdc_t *_usbd_cdc; 
     bool _enabled;
+    bool _wakeup;
     bool _nonblocking;
     uint8_t _rx_data[CDC_RX_BUFFER_SIZE];
     uint8_t _tx_data[CDC_TX_BUFFER_SIZE];

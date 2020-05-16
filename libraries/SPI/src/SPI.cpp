@@ -274,7 +274,7 @@ bool SPIClass::done(void)
 
 void SPIClass::_doneCallback(class SPIClass *self)
 {
-    self->_callback.queue();;
+    self->_callback.queue(false);;
 }
 
 #if SPI_INTERFACES_COUNT > 0

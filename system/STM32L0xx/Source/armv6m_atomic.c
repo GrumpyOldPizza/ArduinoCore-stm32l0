@@ -27,7 +27,6 @@
  */
 
 #include "armv6m.h"
-#include "stm32l0_system.h"
 
 uint32_t armv6m_atomic_add(volatile uint32_t *p_data, uint32_t data)
 {

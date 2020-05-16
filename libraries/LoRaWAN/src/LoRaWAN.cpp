@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -551,6 +551,8 @@ LoRaWANClass::LoRaWANClass()
     _UpLinkCounter = 0;
     _DownLinkCounter = 0;
 
+    _wakeup = false;
+    
     EEPROMTransaction.status = STM32L0_EEPROM_STATUS_NONE;
     EEPROMTransaction.callback = (stm32l0_eeprom_done_callback_t)LoRaWANClass::_eepromSync;
     EEPROMTransaction.context = (void*)this;
@@ -1101,6 +1103,16 @@ void LoRaWANClass::onTransmit(void(*callback)(void))
 void LoRaWANClass::onTransmit(Callback callback)
 {
     _transmitCallback = callback;
+}
+
+void LoRaWANClass::enableWakeup()
+{
+    _wakeup = true;
+}
+
+void LoRaWANClass::disableWakeup()
+{
+    _wakeup = false;
 }
 
 int LoRaWANClass::setAppEui(const char *appEui)
@@ -3033,8 +3045,8 @@ void LoRaWANClass::__McpsJoin()
         
         LoRaWAN._tx_join = false;
         LoRaWAN._tx_busy = false;
-        
-        LoRaWAN._joinCallback.queue();
+
+        LoRaWAN._joinCallback.queue(LoRaWAN._wakeup);
     }
 }
 
@@ -3042,7 +3054,7 @@ void LoRaWANClass::__McpsSend()
 {
     if (!LoRaWAN._send())
     {
-        LoRaWAN._transmitCallback.queue();
+        LoRaWAN._transmitCallback.queue(LoRaWAN._wakeup);
     }
 }
 
@@ -3159,13 +3171,13 @@ void LoRaWANClass::__McpsConfirm( McpsConfirm_t *mcpsConfirm )
                     LoRaWAN._tx_join = false;
                     LoRaWAN._tx_busy = false;
                     
-                    LoRaWAN._joinCallback.queue();
+                    LoRaWAN._joinCallback.queue(LoRaWAN._wakeup);
                 }
                 else
                 {
                     LoRaWAN._tx_busy = false;
                     
-                    LoRaWAN._transmitCallback.queue();
+                    LoRaWAN._transmitCallback.queue(LoRaWAN._wakeup);
                 }
             }
         }
@@ -3378,7 +3390,7 @@ void LoRaWANClass::__McpsIndication( McpsIndication_t *mcpsIndication )
                                 if (LoRaWAN._tx_active) {
                                     LoRaWAN._tx_active = false;
 
-                                    LoRaWAN._transmitCallback.queue();
+                                    LoRaWAN._transmitCallback.queue(LoRaWAN._wakeup);
                                 }
                             }
                         }
@@ -3434,7 +3446,7 @@ void LoRaWANClass::__McpsIndication( McpsIndication_t *mcpsIndication )
                         LoRaWAN._rx_write = rx_write;
                     }
 
-                    LoRaWAN._receiveCallback.queue();
+                    LoRaWAN._receiveCallback.queue(LoRaWAN._wakeup);
                 }
             }
         }
@@ -3453,13 +3465,13 @@ void LoRaWANClass::__McpsIndication( McpsIndication_t *mcpsIndication )
                 LoRaWAN._tx_join = false;
                 LoRaWAN._tx_busy = false;
                 
-                LoRaWAN._joinCallback.queue();
+                LoRaWAN._joinCallback.queue(LoRaWAN._wakeup);
             }
             else
             {
                 LoRaWAN._tx_busy = false;
                     
-                LoRaWAN._transmitCallback.queue();
+                LoRaWAN._transmitCallback.queue(LoRaWAN._wakeup);
             }
         }
     }
@@ -3546,7 +3558,7 @@ void LoRaWANClass::__MlmeConfirm( MlmeConfirm_t *mlmeConfirm )
 
                 LoRaWAN._tx_busy = false;
         
-                LoRaWAN._joinCallback.queue();
+                LoRaWAN._joinCallback.queue(LoRaWAN._wakeup);
             }
         }
         else
@@ -3559,7 +3571,7 @@ void LoRaWANClass::__MlmeConfirm( MlmeConfirm_t *mlmeConfirm )
             {
                 LoRaWAN._tx_busy = false;
             
-                LoRaWAN._joinCallback.queue();
+                LoRaWAN._joinCallback.queue(LoRaWAN._wakeup);
             }
         }
         break;
@@ -3582,7 +3594,7 @@ void LoRaWANClass::__MlmeConfirm( MlmeConfirm_t *mlmeConfirm )
             else
 #endif /* LORAWAN_COMPLIANCE_TEST */
             {
-                LoRaWAN._linkCheckCallback.queue();
+                LoRaWAN._linkCheckCallback.queue(LoRaWAN._wakeup);
             }
         }
         break;

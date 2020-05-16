@@ -1300,7 +1300,7 @@ void stm32l0_system_swd_enable(void)
     DBGMCU->APB1FZ = (DBGMCU_APB1_FZ_DBG_RTC_STOP | DBGMCU_APB1_FZ_DBG_IWDG_STOP | DBGMCU_APB1_FZ_DBG_LPTIMER_STOP);
     DBGMCU->APB2FZ = 0;
 
-    stm32l0_gpio_swd_enable();
+    __stm32l0_gpio_swd_enable();
 
     __set_PRIMASK(primask);
 }
@@ -1313,7 +1313,7 @@ void stm32l0_system_swd_disable(void)
 
     __disable_irq();
 
-    stm32l0_gpio_swd_disable();
+    __stm32l0_gpio_swd_disable();
 
     RCC->APB2ENR |= RCC_APB2ENR_DBGEN;
     RCC->APB2ENR;

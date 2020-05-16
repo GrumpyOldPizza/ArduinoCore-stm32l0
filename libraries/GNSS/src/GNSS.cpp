@@ -336,74 +336,74 @@ void GNSSClass::begin(GNSSmode mode, GNSSrate rate)
 {
     uartBegin(mode, rate,
 #if defined(USBCON)
-	      &g_Serial1,
-	      &g_Serial1Params,
+              &g_Serial1,
+              &g_Serial1Params,
 #else
-	      &g_Serial,
-	      &g_SerialParams,
+              &g_Serial,
+              &g_SerialParams,
 #endif
 #if defined(STM32L0_CONFIG_PIN_GNSS_WAKEUP)
-	      STM32L0_CONFIG_PIN_GNSS_WAKEUP,
+              STM32L0_CONFIG_PIN_GNSS_WAKEUP,
 #else
-	      STM32L0_GPIO_PIN_NONE,
+              STM32L0_GPIO_PIN_NONE,
 #endif
 #if defined(STM32L0_CONFIG_PIN_GNSS_PPS)
-	      STM32L0_CONFIG_PIN_GNSS_PPS,
+              STM32L0_CONFIG_PIN_GNSS_PPS,
 #else
-	      STM32L0_GPIO_PIN_NONE,
+              STM32L0_GPIO_PIN_NONE,
 #endif
 #if defined(STM32L0_CONFIG_PIN_GNSS_ENABLE)
-	      STM32L0_CONFIG_PIN_GNSS_ENABLE,
+              STM32L0_CONFIG_PIN_GNSS_ENABLE,
 #else
-	      STM32L0_GPIO_PIN_NONE,
+              STM32L0_GPIO_PIN_NONE,
 #endif
 #if defined(STM32L0_CONFIG_PIN_GNSS_BACKUP)
-	      STM32L0_CONFIG_PIN_GNSS_BACKUP,
+              STM32L0_CONFIG_PIN_GNSS_BACKUP,
 #else
-	      STM32L0_GPIO_PIN_NONE,
+              STM32L0_GPIO_PIN_NONE,
 #endif
 #if defined(STM32L0_CONFIG_GNSS_ANT_SWITCH)
-	      true
+              true
 #else
-	      false
+              false
 #endif
-	      );
+              );
 }
 
 void GNSSClass::begin(GNSSmode mode, GNSSrate rate, Uart &uart, int pinWAKEUP, int pinPPS, int pinENABLE, int pinBACKUP)
 {
     if ((pinWAKEUP < 0) || (pinWAKEUP >= (int)PINS_COUNT) || (g_APinDescription[pinWAKEUP].GPIO == NULL)) {
-	pinWAKEUP = -1;
+        pinWAKEUP = -1;
     }
 
     if ((pinPPS < 0) || (pinPPS >= (int)PINS_COUNT) || (g_APinDescription[pinPPS].GPIO == NULL)) {
-	pinPPS = -1;
+        pinPPS = -1;
     }
 
     if ((pinENABLE < 0) || (pinENABLE >= (int)PINS_COUNT) || (g_APinDescription[pinENABLE].GPIO == NULL)) {
-	pinENABLE = -1;
+        pinENABLE = -1;
     }
 
     if ((pinBACKUP < 0) || (pinBACKUP >= (int)PINS_COUNT) || (g_APinDescription[pinBACKUP].GPIO == NULL)) {
-	pinBACKUP = -1;
+        pinBACKUP = -1;
     }
 
     uartBegin(mode,
-	      rate,
-	      uart._uart,
-	      NULL,
-	      ((pinWAKEUP >= 0) ? g_APinDescription[pinWAKEUP].pin : STM32L0_GPIO_PIN_NONE),
-	      ((pinPPS >= 0)    ? g_APinDescription[pinPPS].pin    : STM32L0_GPIO_PIN_NONE),
-	      ((pinENABLE >= 0) ? g_APinDescription[pinENABLE].pin : STM32L0_GPIO_PIN_NONE),
-	      ((pinBACKUP >= 0) ? g_APinDescription[pinBACKUP].pin : STM32L0_GPIO_PIN_NONE),
-	      false);
+              rate,
+              uart._uart,
+              NULL,
+              ((pinWAKEUP >= 0) ? g_APinDescription[pinWAKEUP].pin : STM32L0_GPIO_PIN_NONE),
+              ((pinPPS >= 0)    ? g_APinDescription[pinPPS].pin    : STM32L0_GPIO_PIN_NONE),
+              ((pinENABLE >= 0) ? g_APinDescription[pinENABLE].pin : STM32L0_GPIO_PIN_NONE),
+              ((pinBACKUP >= 0) ? g_APinDescription[pinBACKUP].pin : STM32L0_GPIO_PIN_NONE),
+              false);
 }
 
 void GNSSClass::end()
 {
     if (_uart)
     {
-	uartEnd();
+        uartEnd();
     }
 }
 
@@ -411,7 +411,7 @@ bool GNSSClass::setAntenna(GNSSantenna antenna)
 {
     if (!_internal)
     {
-	return false;
+        return false;
     }
 
     return (_enabled && gnss_set_antenna(antenna));
@@ -461,8 +461,8 @@ bool GNSSClass::suspend()
 
     if (_pins.pps != STM32L0_GPIO_PIN_NONE)
     {
-	stm32l0_exti_detach(_pins.pps);
-	stm32l0_gpio_pin_configure(_pins.pps, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
+        stm32l0_exti_detach(_pins.pps);
+        stm32l0_gpio_pin_configure(_pins.pps, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
     }
 
     return true;
@@ -477,8 +477,8 @@ bool GNSSClass::resume()
 
     if (_pins.pps != STM32L0_GPIO_PIN_NONE)
     {
-	stm32l0_gpio_pin_configure(_pins.pps, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
-	stm32l0_exti_attach(_pins.pps, STM32L0_EXTI_CONTROL_EDGE_FALLING | STM32L0_EXTI_CONTROL_PRIORITY_CRITICAL, (stm32l0_exti_callback_t)&gnss_pps_callback, (void*)NULL);
+        stm32l0_gpio_pin_configure(_pins.pps, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
+        stm32l0_exti_attach(_pins.pps, STM32L0_EXTI_CONTROL_EDGE_FALLING | STM32L0_EXTI_CONTROL_PRIORITY_CRITICAL, (stm32l0_exti_callback_t)&gnss_pps_callback, (void*)NULL);
     }
     
     return true;
@@ -544,6 +544,16 @@ void GNSSClass::onSatellites(Callback callback)
     _satellitesCallback = callback;
 }
 
+void GNSSClass::enableWakeup()
+{
+    _wakeup = true;
+}
+
+void GNSSClass::disableWakeup()
+{
+    _wakeup = false;
+}
+
 void GNSSClass::uartBegin(GNSSmode mode, GNSSrate rate, struct _stm32l0_uart_t *uart, const struct _stm32l0_uart_params_t *params, uint16_t wakeup, uint16_t pps, uint16_t enable, uint16_t backup, bool internal)
 {
     static const gnss_callbacks_t GNSSCallbacks = {
@@ -562,10 +572,10 @@ void GNSSClass::uartBegin(GNSSmode mode, GNSSrate rate, struct _stm32l0_uart_t *
 
     if (params)
     {
-	if (uart->state == STM32L0_UART_STATE_NONE)
-	{
-	    stm32l0_uart_create(uart, params);
-	}
+        if (uart->state == STM32L0_UART_STATE_NONE)
+        {
+            stm32l0_uart_create(uart, params);
+        }
     }
 
     _uart = uart;
@@ -579,50 +589,50 @@ void GNSSClass::uartBegin(GNSSmode mode, GNSSrate rate, struct _stm32l0_uart_t *
     
     if (_pins.backup != STM32L0_GPIO_PIN_NONE)
     {
-	stm32l0_gpio_pin_configure(_pins.backup, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLUP | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
-	stm32l0_gpio_pin_write(_pins.backup, 1);
+        stm32l0_gpio_pin_configure(_pins.backup, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLUP | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
+        stm32l0_gpio_pin_write(_pins.backup, 1);
     }
 
     if (_pins.enable != STM32L0_GPIO_PIN_NONE)
     {
-	stm32l0_gpio_pin_configure(_uart->pins.rx, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
-	stm32l0_gpio_pin_configure(_uart->pins.tx, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLUP | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
-	stm32l0_gpio_pin_write(_uart->pins.tx, 1);
-	
-	stm32l0_gpio_pin_configure(_pins.enable, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLUP | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
-	stm32l0_gpio_pin_write(_pins.enable, 1);
-	
-	while (!stm32l0_gpio_pin_read(_uart->pins.rx))
-	{
-	}
+        stm32l0_gpio_pin_configure(_uart->pins.rx, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
+        stm32l0_gpio_pin_configure(_uart->pins.tx, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLUP | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
+        stm32l0_gpio_pin_write(_uart->pins.tx, 1);
+        
+        stm32l0_gpio_pin_configure(_pins.enable, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLUP | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
+        stm32l0_gpio_pin_write(_pins.enable, 1);
+        
+        while (!stm32l0_gpio_pin_read(_uart->pins.rx))
+        {
+        }
     }
 
     if (_pins.pps != STM32L0_GPIO_PIN_NONE)
     {
-	stm32l0_gpio_pin_configure(_pins.pps, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
-	stm32l0_exti_attach(_pins.pps, STM32L0_EXTI_CONTROL_EDGE_FALLING | STM32L0_EXTI_CONTROL_PRIORITY_CRITICAL, (stm32l0_exti_callback_t)&gnss_pps_callback, (void*)NULL);
+        stm32l0_gpio_pin_configure(_pins.pps, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
+        stm32l0_exti_attach(_pins.pps, STM32L0_EXTI_CONTROL_EDGE_FALLING | STM32L0_EXTI_CONTROL_PRIORITY_CRITICAL, (stm32l0_exti_callback_t)&gnss_pps_callback, (void*)NULL);
     }
 
     _enabled = stm32l0_uart_enable(_uart,
-				   &_rx_data[0], sizeof(_rx_data),
-				   9600,
-				   (STM32L0_UART_OPTION_DATA_SIZE_8 | STM32L0_UART_OPTION_PARITY_NONE | STM32L0_UART_OPTION_STOP_1),
-				   (stm32l0_uart_event_callback_t)&GNSSClass::uartEventCallback, (void*)this);
+                                   &_rx_data[0], sizeof(_rx_data),
+                                   9600,
+                                   (STM32L0_UART_OPTION_DATA_SIZE_8 | STM32L0_UART_OPTION_PARITY_NONE | STM32L0_UART_OPTION_STOP_1),
+                                   (stm32l0_uart_event_callback_t)&GNSSClass::uartEventCallback, (void*)this);
 
     if (_enabled)
     {
-	if (mode == MODE_NMEA)
-	{
-	    _baudrate = 9600;
-	    
-	    gnss_initialize(mode, rate, _baudrate, (gnss_send_routine_t)&GNSSClass::uartSendRoutine, ((_pins.enable != STM32L0_GPIO_PIN_NONE) ? &GNSSCallbacksEnable : &GNSSCallbacks), (void*)this);
-	}
-	else
-	{
-	    _baudrate = (rate > RATE_1HZ) ? 115200 : 19200;
-	    
-	    gnss_initialize(mode, rate, _baudrate, (gnss_send_routine_t)&GNSSClass::uartSendRoutine, ((_pins.enable != STM32L0_GPIO_PIN_NONE) ? &GNSSCallbacksEnable : &GNSSCallbacks), (void*)this);
-	}
+        if (mode == MODE_NMEA)
+        {
+            _baudrate = 9600;
+            
+            gnss_initialize(mode, rate, _baudrate, (gnss_send_routine_t)&GNSSClass::uartSendRoutine, ((_pins.enable != STM32L0_GPIO_PIN_NONE) ? &GNSSCallbacksEnable : &GNSSCallbacks), (void*)this);
+        }
+        else
+        {
+            _baudrate = (rate > RATE_1HZ) ? 115200 : 19200;
+            
+            gnss_initialize(mode, rate, _baudrate, (gnss_send_routine_t)&GNSSClass::uartSendRoutine, ((_pins.enable != STM32L0_GPIO_PIN_NONE) ? &GNSSCallbacksEnable : &GNSSCallbacks), (void*)this);
+        }
     }
 }
 
@@ -630,25 +640,25 @@ void GNSSClass::uartEnd()
 {
     if (_enabled)
     {
-	stm32l0_uart_disable(_uart);
+        stm32l0_uart_disable(_uart);
 
-	_enabled = false;
+        _enabled = false;
     }
 
     if (_pins.pps != STM32L0_GPIO_PIN_NONE)
     {
-	stm32l0_exti_detach(_pins.pps);
-	stm32l0_gpio_pin_configure(_pins.pps, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
+        stm32l0_exti_detach(_pins.pps);
+        stm32l0_gpio_pin_configure(_pins.pps, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
     }
 
     if (_pins.enable != STM32L0_GPIO_PIN_NONE)
     {
-	stm32l0_gpio_pin_configure(_pins.enable, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
+        stm32l0_gpio_pin_configure(_pins.enable, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
     }
     
     if (_pins.backup != STM32L0_GPIO_PIN_NONE)
     {
-	stm32l0_gpio_pin_configure(_pins.backup, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
+        stm32l0_gpio_pin_configure(_pins.backup, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
     }
 }
 
@@ -672,18 +682,18 @@ void GNSSClass::uartReceiveCallback(class GNSSClass *self)
 void GNSSClass::uartEventCallback(class GNSSClass *self, uint32_t events)
 {
     if (events & STM32L0_UART_EVENT_RECEIVE) {
-	armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)&GNSSClass::uartReceiveCallback, self, 0);
+        armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)&GNSSClass::uartReceiveCallback, self, 0);
     }
 }
 
 void GNSSClass::uartDoneCallback(class GNSSClass *self)
 {
     if (self->_doneCallback) {
-	armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)self->_doneCallback, NULL, 0);
+        armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)self->_doneCallback, NULL, 0);
     } else {
-	stm32l0_uart_configure(self->_uart,
-			       self->_baudrate,
-			       (STM32L0_UART_OPTION_DATA_SIZE_8 | STM32L0_UART_OPTION_PARITY_NONE | STM32L0_UART_OPTION_STOP_1) | ((self->_baudrate <= 19200) ? STM32L0_UART_OPTION_WAKEUP : 0));
+        stm32l0_uart_configure(self->_uart,
+                               self->_baudrate,
+                               (STM32L0_UART_OPTION_DATA_SIZE_8 | STM32L0_UART_OPTION_PARITY_NONE | STM32L0_UART_OPTION_STOP_1) | ((self->_baudrate <= 19200) ? STM32L0_UART_OPTION_WAKEUP : 0));
     }
 }
 
@@ -696,10 +706,10 @@ void GNSSClass::uartSendRoutine(class GNSSClass *self, const uint8_t *data, uint
 void GNSSClass::enableCallback(class GNSSClass *self)
 {
     stm32l0_uart_enable(self->_uart,
-			&self->_rx_data[0], sizeof(self->_rx_data),
-			self->_baudrate,
-			(STM32L0_UART_OPTION_DATA_SIZE_8 | STM32L0_UART_OPTION_PARITY_NONE | STM32L0_UART_OPTION_STOP_1) | ((self->_baudrate <= 19200) ? STM32L0_UART_OPTION_WAKEUP : 0),
-			(stm32l0_uart_event_callback_t)&GNSSClass::uartEventCallback, (void*)self);
+                        &self->_rx_data[0], sizeof(self->_rx_data),
+                        self->_baudrate,
+                        (STM32L0_UART_OPTION_DATA_SIZE_8 | STM32L0_UART_OPTION_PARITY_NONE | STM32L0_UART_OPTION_STOP_1) | ((self->_baudrate <= 19200) ? STM32L0_UART_OPTION_WAKEUP : 0),
+                        (stm32l0_uart_event_callback_t)&GNSSClass::uartEventCallback, (void*)self);
 
     stm32l0_gpio_pin_configure(self->_pins.enable, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
     stm32l0_gpio_pin_write(self->_pins.enable, 1);
@@ -717,7 +727,7 @@ void GNSSClass::locationCallback(class GNSSClass *self, const gnss_location_t *l
     self->_location_data = *location;
     self->_location_pending = true;
 
-    self->_locationCallback.queue();
+    self->_locationCallback.queue(self->_wakeup);
 }
 
 void GNSSClass::satellitesCallback(class GNSSClass *self, const gnss_satellites_t *satellites)
@@ -725,7 +735,7 @@ void GNSSClass::satellitesCallback(class GNSSClass *self, const gnss_satellites_
     self->_satellites_data = *satellites;
     self->_satellites_pending = true;
 
-    self->_satellitesCallback.queue();
+    self->_satellitesCallback.queue(self->_wakeup);
 }
 
 GNSSClass GNSS;

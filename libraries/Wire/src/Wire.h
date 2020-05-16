@@ -84,10 +84,6 @@ public:
     bool suspend();
     void resume();
 
-    // STM32L0 EXTENSTION: enable/disable wakeup from STOP
-    void enableWakeup();
-    void disableWakeup();
-
   private:
     struct _stm32l0_i2c_t *_i2c;
     uint32_t _option;

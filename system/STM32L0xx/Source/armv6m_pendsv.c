@@ -99,9 +99,9 @@ bool armv6m_pendsv_raise(uint32_t index)
     
     if (!(armv6m_atomic_or(&armv6m_pendsv_control.swi_pending, mask) & mask))
     {
-	SCB->ICSR = SCB_ICSR_PENDSVSET_Msk;
+        SCB->ICSR = SCB_ICSR_PENDSVSET_Msk;
 
-	return true;
+        return true;
     }
 
     return false;
@@ -206,35 +206,33 @@ static __attribute__((used)) void armv6m_pendsv_queue_process(volatile armv6m_pe
 
 void __attribute__((naked)) PendSV_Handler(void)
 {
-    __asm__(
-        "    mov      r3, lr                                 \n"
-        "    lsr      r2, r3, #3                             \n" // bit 2 is SPSEL
-        "    mrs      r2, PSP                                \n"
-        "    bcs      1f                                     \n"
-        "    mov      r2, sp                                 \n"
-        "1:  push     { r2, r3 }                             \n"
-        "    ldr      r1, =armv6m_pendsv_control             \n"
-        "    ldr      r0, [r1, %[offset_SWI_PENDING]]        \n"
-        "    ldr      r2, [r1, %[offset_SWI_MASK]]           \n"
-        "    and      r0, r2                                 \n"
-        "    beq      2f                                     \n"
-        "    bl       armv6m_pendsv_swi_process              \n" // R0 is pending & mask
-        "    ldr      r1, =armv6m_pendsv_control             \n"
-        "2:  ldr      r0, [r1, %[offset_QUEUE_READ]]         \n"
-        "    ldr      r2, [r1, %[offset_QUEUE_WRITE]]        \n"
-        "    cmp      r0, r2                                 \n"
-        "    beq      3f                                     \n"
-        "    bl       armv6m_pendsv_queue_process            \n" // R0 is queue_read
-        "    ldr      r1, =armv6m_pendsv_control             \n"
-        "3:  ldr      r0, [r1, %[offset_NOTIFY_CALLBACK]]    \n"
-        "    pop      { r2, r3 }                             \n"
-        "    mov      lr, r3                                 \n"
-        "    cmp      r0, #0                                 \n"
-        "    bne      4f                                     \n"
-        "    bx       lr                                     \n"
-        "4:  mov      r2, #0                                 \n"
-        "    str      r2, [r1, %[offset_NOTIFY_CALLBACK]]    \n"
-        "    bx       r0                                     \n" // R0 is notify callback
+    __asm__( 
+        "   mov     r3, lr                               \n"
+        "   mov     r2, sp                               \n"
+        "   push    { r2, r3 }                           \n"
+        "   ldr     r1, =armv6m_pendsv_control           \n"
+        "   ldr     r0, [r1, %[offset_SWI_PENDING]]      \n"
+        "   ldr     r2, [r1, %[offset_SWI_MASK]]         \n"
+        "   and     r0, r2                               \n"
+        "   beq     1f                                   \n"
+        "   bl      armv6m_pendsv_swi_process            \n" // R0 is pending & mask
+        "   ldr     r1, =armv6m_pendsv_control           \n"
+        "1: ldr     r0, [r1, %[offset_QUEUE_READ]]       \n"
+        "   ldr     r2, [r1, %[offset_QUEUE_WRITE]]      \n"
+        "   cmp     r0, r2                               \n"
+        "   beq     2f                                   \n"
+        "   bl      armv6m_pendsv_queue_process          \n" // R0 is queue_read
+        "   ldr     r1, =armv6m_pendsv_control           \n"
+        "2: ldr     r0, [r1, %[offset_NOTIFY_CALLBACK]]  \n"
+        "   pop     { r2, r3 }                           \n"
+        "   cmp     r0, #0                               \n"
+        "   bne     3f                                   \n"
+        "   mov     lr, r3                               \n"
+        "   bx      lr                                   \n"
+        "3: mov     r2, #0                               \n"
+        "   str     r2, [r1, %[offset_NOTIFY_CALLBACK]]  \n"
+        "   mov     lr, r0                               \n" // R0 is notify callback
+        "   bx      lr                                   \n"
         :
         : [offset_SWI_PENDING]     "I" (offsetof(armv6m_pendsv_control_t, swi_pending)),
           [offset_SWI_MASK]        "I" (offsetof(armv6m_pendsv_control_t, swi_mask)),

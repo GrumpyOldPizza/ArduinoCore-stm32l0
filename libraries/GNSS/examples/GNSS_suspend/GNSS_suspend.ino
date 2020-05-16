@@ -41,6 +41,8 @@ void setup( void )
 
     GNSS.begin();
 
+    GNSS.enableWakeup();
+
     while (GNSS.busy()) { }
 
     GNSS.setConstellation(GNSS.CONSTELLATION_GPS_AND_GLONASS);

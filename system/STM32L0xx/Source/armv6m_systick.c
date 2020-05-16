@@ -41,7 +41,7 @@ static armv6m_systick_control_t armv6m_systick_control;
 
 void armv6m_systick_initialize(void)
 {
-    NVIC_SetPriority(SysTick_IRQn, 0);
+    NVIC_SetPriority(SysTick_IRQn, ARMV6M_IRQ_PRIORITY_HIGH);
 }
 
 void armv6m_systick_enable()

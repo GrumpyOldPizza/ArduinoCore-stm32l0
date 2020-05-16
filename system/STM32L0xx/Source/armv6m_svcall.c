@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2014-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -38,14 +38,14 @@ void armv6m_svcall_initialize(void)
 void __attribute__((naked)) SVC_Handler(void)
 {
     __asm__(
-        "  mov     r2, sp                              \n"
-        "  push    { r2, lr }                          \n"
-        "  ldmia   r2, { r0, r1, r2, r3 }              \n"
-        "  blx     r7                                  \n"
-        "  pop     { r2, r3 }                          \n"
-        "  mov     lr, r3                              \n"
-        "  str     r0, [r2, #0]                        \n"
-        "  bx      lr                                  \n"
+        "   mov     r2, sp                               \n"
+        "   push    { r2, lr }                           \n"
+        "   ldmia   r2, { r0, r1, r2, r3 }               \n"
+        "   blx     r7                                   \n"
+        "   pop     { r2, r3 }                           \n"
+        "   mov     lr, r3                               \n"
+        "   str     r0, [r2, #0]                         \n"
+        "   bx      lr                                   \n"
         :
         :
         );

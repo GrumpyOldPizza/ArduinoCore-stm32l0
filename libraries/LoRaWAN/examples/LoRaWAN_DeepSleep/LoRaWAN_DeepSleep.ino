@@ -61,6 +61,7 @@ void setup( void )
     while (!Serial) { }
 
     LoRaWAN.begin(US915);
+    LoRaWAN.enableWakeup();
     // LoRaWAN.setSubBand(2);
     // LoRaWAN.setDutyCycle(false);
     // LoRaWAN.setAntennaGain(2.0);

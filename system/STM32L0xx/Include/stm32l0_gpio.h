@@ -906,9 +906,8 @@ typedef struct _stm32l0_gpio_stop_state_t {
 extern void __stm32l0_gpio_initialize(void);
 extern void __stm32l0_gpio_stop_enter(stm32l0_gpio_stop_state_t *state);
 extern void __stm32l0_gpio_stop_leave(stm32l0_gpio_stop_state_t *state);
-
-extern void stm32l0_gpio_swd_enable(void);
-extern void stm32l0_gpio_swd_disable(void);
+extern void __stm32l0_gpio_swd_enable(void);
+extern void __stm32l0_gpio_swd_disable(void);
 extern void stm32l0_gpio_pin_configure(unsigned int pin, unsigned int mode);
 extern void stm32l0_gpio_pin_input(unsigned int pin);
 extern void stm32l0_gpio_pin_output(unsigned int pin);

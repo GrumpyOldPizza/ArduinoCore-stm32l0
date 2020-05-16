@@ -1422,7 +1422,7 @@ bool stm32l0_rtc_timer_done(stm32l0_rtc_timer_t *timer)
     return (timer->next == STM32L0_RTC_TIMER_NULL);
 }
 
-void stm32l0_rtc_wakeup_start(uint32_t seconds, stm32l0_rtc_wakeup_callback_t callback, void *context)
+bool stm32l0_rtc_wakeup_start(uint32_t seconds, stm32l0_rtc_wakeup_callback_t callback, void *context)
 {
     if (seconds > 65536)
     {
