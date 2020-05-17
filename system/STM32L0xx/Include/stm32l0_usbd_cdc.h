@@ -87,10 +87,9 @@ extern bool stm32l0_usbd_cdc_destroy(stm32l0_usbd_cdc_t *usbd_cdc);
 extern bool stm32l0_usbd_cdc_enable(stm32l0_usbd_cdc_t *usbd_cdc, uint8_t *rx_data, uint32_t rx_size, stm32l0_usbd_cdc_event_callback_t callback, void *context);
 extern bool stm32l0_usbd_cdc_disable(stm32l0_usbd_cdc_t *usbd_cdc);
 extern uint32_t stm32l0_usbd_cdc_count(stm32l0_usbd_cdc_t *usbd_cdc);
-extern uint32_t stm32l0_usbd_cdc_receive(stm32l0_usbd_cdc_t *usbd_cdc, uint8_t *rx_data, uint32_t rx_count, bool peek);
+extern uint32_t stm32l0_usbd_cdc_read(stm32l0_usbd_cdc_t *usbd_cdc, uint8_t *rx_data, uint32_t rx_count, bool consume);
 extern bool stm32l0_usbd_cdc_transmit(stm32l0_usbd_cdc_t *usbd_cdc, const uint8_t *tx_data, uint32_t tx_count, stm32l0_usbd_cdc_done_callback_t callback, void *context);
 extern bool stm32l0_usbd_cdc_done(stm32l0_usbd_cdc_t *usbd_cdc);
-extern void stm32l0_usbd_cdc_poll(stm32l0_usbd_cdc_t *usbd_cdc);
 
 #ifdef __cplusplus
 }

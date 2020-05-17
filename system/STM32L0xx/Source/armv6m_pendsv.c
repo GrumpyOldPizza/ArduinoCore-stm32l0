@@ -90,7 +90,7 @@ void armv6m_pendsv_initialize(void)
     armv6m_pendsv_control.queue_read = &armv6m_pendsv_control.queue_data[0];
     armv6m_pendsv_control.queue_write = &armv6m_pendsv_control.queue_data[0];
 
-    NVIC_SetPriority(PendSV_IRQn, ARMV6M_IRQ_PRIORITY_LOW);
+    NVIC_SetPriority(PendSV_IRQn, ARMV6M_IRQ_PRIORITY_PENDSV);
 }
 
 bool armv6m_pendsv_raise(uint32_t index)

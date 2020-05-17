@@ -48,28 +48,22 @@ void delay(uint32_t timeout)
     uint32_t now, start, end;
 
     if (timeout == 0)
-	return;
+        return;
 
-    now = millis();
-    start = now;
-    end = start + timeout;
-    
     if (__get_IPSR() == 0) {
-	do
-	{
-	    timeout = end - now;
 
-	    stm32l0_system_sleep(g_defaultPolicy, timeout);
-	    
-	    now = millis();
-	}
-	while ((now - start) < (end - start));
-	
+        stm32l0_system_sleep(g_defaultPolicy, 0, timeout);
+
     } else {
-	do
-	{
-	    now = millis();
-	}
-	while ((now - start) < (end - start));
+
+        now = millis();
+        start = now;
+        end = start + timeout;
+        
+        do
+        {
+            now = millis();
+        }
+        while ((now - start) < (end - start));
     }
 }

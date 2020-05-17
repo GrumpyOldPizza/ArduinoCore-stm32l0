@@ -96,13 +96,13 @@ enum {
 #define STM32L0_SYSTEM_REFERENCE_I2C2          0x00000004  /* force pclk1  >=  4MHz */
 #define STM32L0_SYSTEM_REFERENCE_I2C3          0x00000008  /* force sysclk >= 32MHz */
 
-#define STM32L0_SYSTEM_EVENT_CLOCKS            0x00000001
-#define STM32L0_SYSTEM_EVENT_SLEEP             0x00000002
-#define STM32L0_SYSTEM_EVENT_STOP_ENTER        0x00000004
-#define STM32L0_SYSTEM_EVENT_STOP_LEAVE        0x00000008
-#define STM32L0_SYSTEM_EVENT_STANDBY           0x00000010
-#define STM32L0_SYSTEM_EVENT_RESET             0x00000020
-#define STM32L0_SYSTEM_EVENT_DFU               0x00000040
+#define STM32L0_SYSTEM_NOTIFY_CLOCKS           0x00000001
+#define STM32L0_SYSTEM_NOTIFY_SLEEP            0x00000002
+#define STM32L0_SYSTEM_NOTIFY_STOP_ENTER       0x00000004
+#define STM32L0_SYSTEM_NOTIFY_STOP_LEAVE       0x00000008
+#define STM32L0_SYSTEM_NOTIFY_STANDBY          0x00000010
+#define STM32L0_SYSTEM_NOTIFY_RESET            0x00000020
+#define STM32L0_SYSTEM_NOTIFY_DFU              0x00000040
 
 typedef void (*stm32l0_system_callback_t)(void *context, uint32_t events);
 
@@ -110,7 +110,7 @@ typedef struct _stm32l0_system_notify_t {
     struct _stm32l0_system_notify_t *next;
     stm32l0_system_callback_t       callback;
     void                            *context;
-    uint32_t                        events;
+    uint32_t                        mask;
 } stm32l0_system_notify_t;
 
 #define STM32L0_SYSTEM_RESET_POWERON           0
@@ -128,6 +128,9 @@ typedef struct _stm32l0_system_notify_t {
 #define STM32L0_SYSTEM_WAKEUP_TIMEOUT          0x00000004
 #define STM32L0_SYSTEM_WAKEUP_WATCHDOG         0x00000008
 #define STM32L0_SYSTEM_WAKEUP_RESET            0x00000010
+
+#define STM32L0_SYSTEM_EVENT_APPLICATION       0x00000001
+#define STM32L0_SYSTEM_EVENT_TIMEOUT           0x80000000
 
 #define STM32L0_SYSTEM_TIMEOUT_NONE            0x00000000
 #define STM32L0_SYSTEM_TIMEOUT_FOREVER         0xffffffff
@@ -179,15 +182,15 @@ extern void     stm32l0_system_periph_enable(unsigned int periph);
 extern void     stm32l0_system_periph_disable(unsigned int periph);
 extern void     stm32l0_system_swd_enable(void);
 extern void     stm32l0_system_swd_disable(void);
-extern void     stm32l0_system_register(stm32l0_system_notify_t *notify, stm32l0_system_callback_t callback, void *context, uint32_t events); 
+extern void     stm32l0_system_register(stm32l0_system_notify_t *notify, stm32l0_system_callback_t callback, void *context, uint32_t mask); 
 extern void     stm32l0_system_unregister(stm32l0_system_notify_t *notify);
-extern void     stm32l0_system_notify(uint32_t events); 
+extern void     stm32l0_system_notify(uint32_t notify); 
 extern void     stm32l0_system_lock(uint32_t lock); 
 extern void     stm32l0_system_unlock(uint32_t lock);
 extern void     stm32l0_system_reference(uint32_t reference); 
 extern void     stm32l0_system_unreference(uint32_t reference); 
-extern void     stm32l0_system_sleep(uint32_t policy, uint32_t timeout);
-extern void     stm32l0_system_wakeup(void);
+extern void     stm32l0_system_sleep(uint32_t policy, uint32_t mask, uint32_t timeout);
+extern void     stm32l0_system_wakeup(uint32_t events);
 extern void     stm32l0_system_standby(uint32_t control, uint32_t timeout);
 extern void     stm32l0_system_reset(void);
 extern void     stm32l0_system_dfu(void);

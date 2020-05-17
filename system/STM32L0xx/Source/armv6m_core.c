@@ -70,10 +70,11 @@ void armv6m_core_udelay(uint32_t delay)
         armv6m_core_control.scale = SystemCoreClock / 1000000;
     }
 
-    n = (delay * armv6m_core_control.scale + 2) / 3;
+    n = (delay * armv6m_core_control.scale + 3) / 4;
 
     __asm__ __volatile__(
                          "1: sub  %0, #1 \n"
+                         "   nop         \n"
                          "   bne  1b     \n"
                          : "+r" (n));
 }

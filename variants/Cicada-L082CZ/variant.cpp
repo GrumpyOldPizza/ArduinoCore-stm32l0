@@ -206,7 +206,7 @@ void initVariant()
 
     if (stm32l0_i2c_submit(&g_Wire, &transaction)) {
         while (transaction.status == STM32L0_I2C_STATUS_BUSY) {
-            armv6m_core_wait();
+            __WFE();
         }
     }
 
@@ -225,7 +225,7 @@ void initVariant()
 
     if (stm32l0_i2c_submit(&g_Wire, &transaction)) {
         while (transaction.status == STM32L0_I2C_STATUS_BUSY) {
-            armv6m_core_wait();
+            __WFE();
         }
     }
 

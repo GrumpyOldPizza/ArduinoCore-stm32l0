@@ -102,13 +102,13 @@ static const uint32_t stm32l0_i2c_xlate_IMR[STM32L0_I2C_INSTANCE_COUNT] = {
 #endif /* STM32L072xx || STM32L082xx */
 };
 
-static void stm32l0_i2c_notify_callback(void *context, uint32_t events)
+static void stm32l0_i2c_notify_callback(void *context, uint32_t notify)
 {
     /* WAR for ERRATA 2.6.1 */
 
     if (stm32l0_i2c_device.wakeup)
     {
-        if (events & STM32L0_SYSTEM_EVENT_STOP_ENTER)
+        if (notify & STM32L0_SYSTEM_NOTIFY_STOP_ENTER)
         {
             if (stm32l0_i2c_device.wakeup & (1u << STM32L0_I2C_INSTANCE_I2C1))
             {
@@ -123,7 +123,7 @@ static void stm32l0_i2c_notify_callback(void *context, uint32_t events)
 #endif /* STM32L072xx || STM32L082xx */
         }
 
-        if (events & STM32L0_SYSTEM_EVENT_STOP_LEAVE)
+        if (notify & STM32L0_SYSTEM_NOTIFY_STOP_LEAVE)
         {
             if (stm32l0_i2c_device.wakeup & (1u << STM32L0_I2C_INSTANCE_I2C1))
             {
@@ -1081,7 +1081,7 @@ bool stm32l0_i2c_create(stm32l0_i2c_t *i2c, const stm32l0_i2c_params_t *params)
 
     if (!stm32l0_i2c_device.notify.callback)
     {
-        stm32l0_system_register(&stm32l0_i2c_device.notify, stm32l0_i2c_notify_callback, NULL, (STM32L0_SYSTEM_EVENT_STOP_ENTER | STM32L0_SYSTEM_EVENT_STOP_LEAVE));
+        stm32l0_system_register(&stm32l0_i2c_device.notify, stm32l0_i2c_notify_callback, NULL, (STM32L0_SYSTEM_NOTIFY_STOP_ENTER | STM32L0_SYSTEM_NOTIFY_STOP_LEAVE));
     }
 
     return true;

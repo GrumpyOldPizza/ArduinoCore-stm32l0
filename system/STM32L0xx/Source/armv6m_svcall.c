@@ -32,7 +32,7 @@ extern void SVC_Handler(void);
 
 void armv6m_svcall_initialize(void)
 {
-    NVIC_SetPriority(SVC_IRQn, ((1 << __NVIC_PRIO_BITS) -1));
+    NVIC_SetPriority(SVC_IRQn, ARMV6M_IRQ_PRIORITY_SVCALL);
 }
 
 void __attribute__((naked)) SVC_Handler(void)

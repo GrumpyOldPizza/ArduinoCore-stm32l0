@@ -669,7 +669,7 @@ void GNSSClass::uartReceiveCallback(class GNSSClass *self)
 
     do
     {
-        rx_count = stm32l0_uart_receive(self->_uart, &rx_data[0], sizeof(rx_data), false);
+        rx_count = stm32l0_uart_read(self->_uart, &rx_data[0], sizeof(rx_data), true);
         
         if (rx_count > 0)
         {

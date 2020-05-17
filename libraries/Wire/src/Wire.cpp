@@ -161,7 +161,7 @@ uint8_t TwoWire::endTransmission(bool stopBit)
     _xf_address = 0;
 
     while (transaction.status == STM32L0_I2C_STATUS_BUSY) {
-        armv6m_core_wait();
+        __WFE();
     }
 
     if (transaction.status == STM32L0_I2C_STATUS_SUCCESS) {
@@ -217,7 +217,7 @@ size_t TwoWire::requestFrom(uint8_t address, size_t size, bool stopBit)
     _rx_write = 0;
 
     while (transaction.status == STM32L0_I2C_STATUS_BUSY) {
-        armv6m_core_wait();
+        __WFE();
     }
 
 
@@ -379,7 +379,7 @@ uint8_t TwoWire::transfer(uint8_t address, const uint8_t *txBuffer, size_t txSiz
     }
 
     while (transaction.status == STM32L0_I2C_STATUS_BUSY) {
-        armv6m_core_wait();
+        __WFE();
     }
 
     if (transaction.status == STM32L0_I2C_STATUS_SUCCESS) {
@@ -399,7 +399,7 @@ void TwoWire::reset()
 
     if (stm32l0_i2c_suspend(_i2c, NULL, NULL)) {
         while (_i2c->state != STM32L0_I2C_STATE_SUSPENDED) {
-            armv6m_core_wait();
+            __WFE();
         }
     }
 
@@ -447,7 +447,7 @@ uint8_t TwoWire::scan(uint8_t address)
         }
         
         while (transaction.status == STM32L0_I2C_STATUS_BUSY) {
-            armv6m_core_wait();
+            __WFE();
         }
         
         if (transaction.status == STM32L0_I2C_STATUS_SUCCESS) {
@@ -466,7 +466,7 @@ bool TwoWire::suspend()
 
     if (stm32l0_i2c_suspend(_i2c, NULL, NULL)) {
         while (_i2c->state != STM32L0_I2C_STATE_SUSPENDED) {
-            armv6m_core_wait();
+            __WFE();
         }
     }
 

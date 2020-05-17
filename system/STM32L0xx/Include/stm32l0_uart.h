@@ -155,8 +155,9 @@ extern bool stm32l0_uart_rts_enable(stm32l0_uart_t *uart, bool onoff);
 extern bool stm32l0_uart_cts_holding(stm32l0_uart_t *uart);
 extern bool stm32l0_uart_break_state(stm32l0_uart_t *uart, bool onoff);
 extern uint32_t stm32l0_uart_count(stm32l0_uart_t *uart);
-extern uint32_t stm32l0_uart_receive(stm32l0_uart_t *uart, uint8_t *rx_data, uint32_t rx_count, bool peek);
+extern uint32_t stm32l0_uart_read(stm32l0_uart_t *uart, uint8_t *rx_data, uint32_t rx_count, bool consume);
 extern bool stm32l0_uart_transmit(stm32l0_uart_t *uart, const uint8_t *tx_data, uint32_t tx_count, stm32l0_uart_done_callback_t callback, void *context);
+extern bool stm32l0_uart_done(stm32l0_uart_t *uart);
 
 #ifdef __cplusplus
 }

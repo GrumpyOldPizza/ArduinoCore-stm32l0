@@ -165,8 +165,8 @@ bool stm32l0_spi_enable(stm32l0_spi_t *spi)
     spi->clock = 0;
     spi->option = ~0;
     spi->mask = 0;
-    spi->lck_callback = NULL;
-    spi->lck_context = NULL;
+    spi->lock_callback = NULL;
+    spi->lock_cookie = NULL;
     
     stm32l0_gpio_pin_configure(spi->pins.mosi, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_VERY_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_ALTERNATE));
     stm32l0_gpio_pin_configure(spi->pins.miso, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_VERY_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_ALTERNATE));
@@ -204,15 +204,15 @@ bool stm32l0_spi_disable(stm32l0_spi_t *spi)
     return true;
 }
 
-bool stm32l0_spi_hook(stm32l0_spi_t *spi, stm32l0_spi_lock_callback_t callback, void *context)
+bool stm32l0_spi_hook(stm32l0_spi_t *spi, stm32l0_spi_lock_callback_t callback, void *cookie)
 {
     if (spi->state != STM32L0_SPI_STATE_READY)
     {
         return false;
     }
 
-    spi->lck_callback = callback;
-    spi->lck_context = context;
+    spi->lock_callback = callback;
+    spi->lock_cookie = cookie;
 
     return true;
 }
@@ -251,9 +251,9 @@ bool stm32l0_spi_acquire(stm32l0_spi_t *spi, uint32_t clock, uint32_t option)
         return false;
     }
 
-    if (spi->lck_callback)
+    if (spi->lock_callback)
     {
-        (*spi->lck_callback)(spi->lck_context, true);
+        (*spi->lock_callback)(spi->lock_cookie, true);
     }
 
     if (spi->mask)
@@ -354,9 +354,9 @@ bool stm32l0_spi_release(stm32l0_spi_t *spi)
         stm32l0_exti_unblock(spi->mask);
     }
 
-    if (spi->lck_callback)
+    if (spi->lock_callback)
     {
-        (*spi->lck_callback)(spi->lck_context, false);
+        (*spi->lock_callback)(spi->lock_cookie, false);
     }
 
     spi->state = STM32L0_SPI_STATE_READY;

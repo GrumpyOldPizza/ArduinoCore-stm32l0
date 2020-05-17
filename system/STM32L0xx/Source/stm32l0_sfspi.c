@@ -115,7 +115,7 @@ static uint32_t stm32l0_sfspi_capacity(void *context)
     return (1u << sfspi->ID[2]);
 }
 
-static void stm32l0_sfspi_notify(void *context, dosfs_sflash_notify_callback_t callback, void *cookie)
+static void stm32l0_sfspi_hook(void *context, dosfs_device_lock_callback_t callback, void *cookie)
 {
     stm32l0_sfspi_t *sfspi = (stm32l0_sfspi_t*)context;
 
@@ -332,11 +332,11 @@ static void stm32l0_sfspi_read(void *context, uint32_t address, uint8_t *data, u
     stm32l0_sfspi_unselect(sfspi);
 }
 
-static void stm32l0_sfspi_callback(void *context, uint32_t events)
+static void stm32l0_sfspi_callback(void *context, uint32_t notify)
 {
     stm32l0_sfspi_t *sfspi = (stm32l0_sfspi_t*)context;
     
-    if (events & STM32L0_SYSTEM_EVENT_SLEEP)
+    if (notify & STM32L0_SYSTEM_NOTIFY_SLEEP)
     {
         if (sfspi->ID[0] == SFLASH_MID_MACRONIX)
         {
@@ -361,7 +361,7 @@ static void stm32l0_sfspi_callback(void *context, uint32_t events)
 
 static const  dosfs_sflash_interface_t stm32l0_sfspi_interface = {
     stm32l0_sfspi_capacity,
-    stm32l0_sfspi_notify,
+    stm32l0_sfspi_hook,
     stm32l0_sfspi_lock,
     stm32l0_sfspi_unlock,
     stm32l0_sfspi_erase,
@@ -417,13 +417,13 @@ bool stm32l0_sfspi_initialize(stm32l0_spi_t *spi, const stm32l0_sfspi_params_t *
         else
         {
             sfspi->state = STM32L0_SFSPI_STATE_READY;
+	    
+            stm32l0_system_register(&stm32l0_sfspi.notify, stm32l0_sfspi_callback, (void*)&stm32l0_sfspi, STM32L0_SYSTEM_NOTIFY_SLEEP);
 
-            stm32l0_system_register(&stm32l0_sfspi.notify, stm32l0_sfspi_callback, (void*)&stm32l0_sfspi, STM32L0_SYSTEM_EVENT_SLEEP);
+	    dosfs_sflash_device.interface = &stm32l0_sfspi_interface;
+	    dosfs_sflash_device.context = sfspi;
         }
     }
-
-    dosfs_sflash_device.interface = &stm32l0_sfspi_interface;
-    dosfs_sflash_device.context = sfspi;
 
     return (sfspi->state == STM32L0_SFSPI_STATE_READY);
 }

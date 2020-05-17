@@ -50,12 +50,14 @@ typedef struct _dosfs_device_t dosfs_device_t;
 #define DOSFS_MEDIA_SDSC     2
 #define DOSFS_MEDIA_SDHC     3
 
-typedef void (*dosfs_device_notify_callback_t)(void *cookie, int acquire);
+#define DOSFS_DEVICE_CACHE_SIZE 1024
+   
+typedef void (*dosfs_device_lock_callback_t)(void *cookie, int acquire);
 
 typedef struct _dosfs_device_interface_t {
     int                     (*release)(void *context);
     int                     (*info)(void *context, uint8_t *p_type, uint8_t *p_write_protected, uint32_t *p_block_count, uint32_t *p_au_size, uint32_t *p_serial);
-    int                     (*notify)(void *context, dosfs_device_notify_callback_t callback, void *cookie);
+    int                     (*hook)(void *context, dosfs_device_lock_callback_t callback, void *cookie);
     int                     (*format)(void *context);
     int                     (*erase)(void *context, uint32_t address, uint32_t length);
     int                     (*discard)(void *context, uint32_t address, uint32_t length);
@@ -77,7 +79,7 @@ struct _dosfs_device_t {
     volatile uint32_t              lock;
     const dosfs_device_interface_t *interface;
     void                           *context;
-    uint32_t                       cache[(512 / 4) * 2];
+     uint8_t                        *cache;
 };
 
 extern dosfs_device_t dosfs_device;

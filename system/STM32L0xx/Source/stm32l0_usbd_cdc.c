@@ -395,7 +395,7 @@ uint32_t stm32l0_usbd_cdc_count(stm32l0_usbd_cdc_t *usbd_cdc)
     return usbd_cdc->rx_count;
 }
 
-uint32_t stm32l0_usbd_cdc_receive(stm32l0_usbd_cdc_t *usbd_cdc, uint8_t *rx_data, uint32_t rx_count, bool peek)
+uint32_t stm32l0_usbd_cdc_read(stm32l0_usbd_cdc_t *usbd_cdc, uint8_t *rx_data, uint32_t rx_count, bool consume)
 {
     uint32_t rx_size, rx_read, rx_wrap;
 
@@ -439,7 +439,7 @@ uint32_t stm32l0_usbd_cdc_receive(stm32l0_usbd_cdc_t *usbd_cdc, uint8_t *rx_data
         rx_read += rx_size;
     }
 
-    if (!peek)
+    if (consume)
     {
         usbd_cdc->rx_wrap = rx_wrap;
         usbd_cdc->rx_read = rx_read;

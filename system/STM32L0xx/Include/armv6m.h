@@ -44,4 +44,8 @@
 #include "armv6m_systick.h"
 #include "armv6m_work.h"
 
+#define ARMV6M_IRQ_PRIORITY_SYSTICK 1
+#define ARMV6M_IRQ_PRIORITY_PENDSV  3
+#define ARMV6M_IRQ_PRIORITY_SVCALL  3
+
 #endif /* _ARMV6M_H */

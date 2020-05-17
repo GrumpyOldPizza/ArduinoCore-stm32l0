@@ -83,14 +83,14 @@ static bool dosfs_storage_init(uint8_t **p_cache_data, const uint8_t **p_inquiry
         return false;
     }
 
-    status = (*dosfs_device.interface->notify)(dosfs_device.context, (dosfs_device_notify_callback_t)USBD_MSC_Notify, NULL);
+    status = (*dosfs_device.interface->hook)(dosfs_device.context, (dosfs_device_lock_callback_t)USBD_MSC_Notify, NULL);
 
     if (status != F_NO_ERROR)
     {
         return false;
     }
 
-    *p_cache_data = (uint8_t*)&dosfs_device.cache[0];
+    *p_cache_data = dosfs_device.cache;
     *p_inquiry_data = &dosfs_storage_inquiry_data[0];
     
     return true;
@@ -107,7 +107,7 @@ static bool dosfs_storage_deinit(void)
 
     dosfs_device.lock &= ~(DOSFS_DEVICE_LOCK_ACCESSED | DOSFS_DEVICE_LOCK_SCSI | DOSFS_DEVICE_LOCK_MEDIUM);
 
-    status = (*dosfs_device.interface->notify)(dosfs_device.context, NULL, NULL);
+    status = (*dosfs_device.interface->hook)(dosfs_device.context, NULL, NULL);
 
     if (status != F_NO_ERROR)
     {

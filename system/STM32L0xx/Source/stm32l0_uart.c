@@ -292,11 +292,11 @@ static void stm32l0_uart_stop_leave(stm32l0_uart_t *uart)
     USART->CR3 |= (USART_CR3_DMAR | USART_CR3_DDRE);
 }
 
-static void stm32l0_uart_notify_callback(void *context, uint32_t events)
+static void stm32l0_uart_notify_callback(void *context, uint32_t notify)
 {
     if (stm32l0_uart_device.wakeup)
     {
-        if (events & STM32L0_SYSTEM_EVENT_STOP_ENTER)
+        if (notify & STM32L0_SYSTEM_NOTIFY_STOP_ENTER)
         {
             if (stm32l0_uart_device.wakeup & (1u << STM32L0_UART_INSTANCE_USART1))
             {
@@ -314,7 +314,7 @@ static void stm32l0_uart_notify_callback(void *context, uint32_t events)
             }
         }
 
-        if (events & STM32L0_SYSTEM_EVENT_STOP_LEAVE)
+        if (notify & STM32L0_SYSTEM_NOTIFY_STOP_LEAVE)
         {
             if (stm32l0_uart_device.wakeup & (1u << STM32L0_UART_INSTANCE_USART1))
             {
@@ -1051,7 +1051,7 @@ bool stm32l0_uart_create(stm32l0_uart_t *uart, const stm32l0_uart_params_t *para
 
     if (!stm32l0_uart_device.notify.callback)
     {
-        stm32l0_system_register(&stm32l0_uart_device.notify, stm32l0_uart_notify_callback, NULL, (STM32L0_SYSTEM_EVENT_STOP_ENTER | STM32L0_SYSTEM_EVENT_STOP_LEAVE));
+        stm32l0_system_register(&stm32l0_uart_device.notify, stm32l0_uart_notify_callback, NULL, (STM32L0_SYSTEM_NOTIFY_STOP_ENTER | STM32L0_SYSTEM_NOTIFY_STOP_LEAVE));
     }
 
     return true;
@@ -1463,7 +1463,7 @@ uint32_t stm32l0_uart_count(stm32l0_uart_t *uart)
     return uart->rx_count;
 }
 
-uint32_t stm32l0_uart_receive(stm32l0_uart_t *uart, uint8_t *rx_data, uint32_t rx_count, bool peek)
+uint32_t stm32l0_uart_read(stm32l0_uart_t *uart, uint8_t *rx_data, uint32_t rx_count, bool consume)
 {
     uint32_t rx_size, rx_entries, rx_read;
 
@@ -1505,7 +1505,7 @@ uint32_t stm32l0_uart_receive(stm32l0_uart_t *uart, uint8_t *rx_data, uint32_t r
         rx_read += rx_size;
     }
 
-    if (!peek)
+    if (consume)
     {
         uart->rx_read = rx_read;
         uart->rx_event = true;

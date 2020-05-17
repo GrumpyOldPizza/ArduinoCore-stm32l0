@@ -56,7 +56,7 @@ void MouseClass::move(signed char x, signed char y, signed char wheel)
 
 	if (stm32l0_usbd_hid_send_report(1,m,4)) {
 	    while (!stm32l0_usbd_hid_done()) {
-		armv6m_core_wait();
+		__WFE();
 	    }
 	}
 }
@@ -109,7 +109,7 @@ void KeyboardClass::sendReport(KeyReport* keys)
 {
     if (stm32l0_usbd_hid_send_report(2,(const uint8_t*)keys,sizeof(KeyReport))) {
 	while (!stm32l0_usbd_hid_done()) {
-	    armv6m_core_wait();
+	    __WFE();
 	}
     }
 }

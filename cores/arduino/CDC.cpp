@@ -126,7 +126,7 @@ int CDC::peek()
 {
     uint8_t data;
 
-    if (!stm32l0_usbd_cdc_receive(_usbd_cdc, &data, 1, true)) {
+    if (!stm32l0_usbd_cdc_read(_usbd_cdc, &data, 1, false)) {
         return -1;
     }
 
@@ -137,7 +137,7 @@ int CDC::read()
 {
     uint8_t data;
 
-    if (!stm32l0_usbd_cdc_receive(_usbd_cdc, &data, 1, false)) {
+    if (!stm32l0_usbd_cdc_read(_usbd_cdc, &data, 1, true)) {
         return -1;
     }
 
@@ -146,14 +146,14 @@ int CDC::read()
 
 int CDC::read(uint8_t *buffer, size_t size)
 {
-    return stm32l0_usbd_cdc_receive(_usbd_cdc, (uint8_t*)buffer, size, false);
+    return stm32l0_usbd_cdc_read(_usbd_cdc, (uint8_t*)buffer, size, true);
 }
 
 void CDC::flush()
 {
     if (__get_IPSR() == 0) {
         while (_tx_busy) {
-            armv6m_core_wait();
+            __WFE();
         }
     }
 }
@@ -213,7 +213,7 @@ size_t CDC::write(const uint8_t *buffer, size_t size)
             }
 
             while (CDC_TX_BUFFER_SIZE == _tx_count) {
-                armv6m_core_wait();
+                __WFE();
             }
 
             tx_count = CDC_TX_BUFFER_SIZE - _tx_count;

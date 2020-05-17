@@ -52,10 +52,10 @@ typedef struct _stm32l0_system_device_t {
     uint8_t                   hsi16;
     uint8_t                   hsi48;
     uint8_t                   mco;
-    volatile uint8_t          event;
+    stm32l0_system_notify_t   *notify;
     volatile uint8_t          lock[STM32L0_SYSTEM_LOCK_COUNT];
     volatile uint32_t         reference;
-    stm32l0_system_notify_t   *notify;
+    volatile uint32_t         events;
     stm32l0_rtc_timer_t       timeout;
 } stm32l0_system_device_t;
 
@@ -642,7 +642,7 @@ void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, ui
 
     stm32l0_system_sysclk_configure(hclk, pclk1, pclk2);
 
-    stm32l0_rtc_timer_create(&stm32l0_system_device.timeout, (stm32l0_rtc_timer_callback_t)stm32l0_system_wakeup, NULL);
+    stm32l0_rtc_timer_create(&stm32l0_system_device.timeout, (stm32l0_rtc_timer_callback_t)stm32l0_system_wakeup, (void*)STM32L0_SYSTEM_EVENT_TIMEOUT);
 
     __set_PRIMASK(primask);
 }
@@ -963,7 +963,7 @@ bool stm32l0_system_sysclk_configure(uint32_t hclk, uint32_t pclk1, uint32_t pcl
 
     armv6m_systick_enable();
 
-    stm32l0_system_notify(STM32L0_SYSTEM_EVENT_CLOCKS);
+    stm32l0_system_notify(STM32L0_SYSTEM_NOTIFY_CLOCKS);
 
     __set_PRIMASK(primask);
 
@@ -1326,7 +1326,7 @@ void stm32l0_system_swd_disable(void)
 
     __set_PRIMASK(primask);
 }
-void stm32l0_system_register(stm32l0_system_notify_t *notify, stm32l0_system_callback_t callback, void *context, uint32_t events)
+void stm32l0_system_register(stm32l0_system_notify_t *notify, stm32l0_system_callback_t callback, void *context, uint32_t mask)
 {
     stm32l0_system_notify_t **pp_entry, *entry;
 
@@ -1339,14 +1339,14 @@ void stm32l0_system_register(stm32l0_system_notify_t *notify, stm32l0_system_cal
     notify->next = NULL;
     notify->callback = callback;
     notify->context = context;
-    notify->events = events;
+    notify->mask = mask;
 }
 
 void stm32l0_system_unregister(stm32l0_system_notify_t *notify)
 {
     stm32l0_system_notify_t **pp_entry, *entry;
 
-    notify->events = 0;
+    notify->mask = 0;
     notify->callback = NULL;
 
     for (pp_entry = &stm32l0_system_device.notify, entry = *pp_entry; entry; pp_entry = &entry->next, entry = *pp_entry)
@@ -1362,15 +1362,15 @@ void stm32l0_system_unregister(stm32l0_system_notify_t *notify)
     }
 }
 
-void stm32l0_system_notify(uint32_t events)
+void stm32l0_system_notify(uint32_t notify)
 {
     stm32l0_system_notify_t *entry;
 
     for (entry = stm32l0_system_device.notify; entry; entry = entry->next)
     {
-        if (entry->events & events)
+        if (entry->mask & notify)
         {
-            (*entry->callback)(entry->context, entry->events & events);
+            (*entry->callback)(entry->context, entry->mask & notify);
         }
     }
 }
@@ -1395,28 +1395,30 @@ void stm32l0_system_unreference(uint32_t reference)
     __armv6m_atomic_and(&stm32l0_system_device.reference, ~reference);
 }
 
-void stm32l0_system_sleep(uint32_t policy, uint32_t timeout)
+void stm32l0_system_sleep(uint32_t policy, uint32_t mask, uint32_t timeout)
 {
     uint32_t primask;
     stm32l0_gpio_stop_state_t gpio_stop_state;
 
     if (timeout != STM32L0_SYSTEM_TIMEOUT_NONE)
     {
-        if (!stm32l0_system_device.event)
+        if (!(stm32l0_system_device.events & mask))
         {
             if (timeout != STM32L0_SYSTEM_TIMEOUT_FOREVER)
             {
+		mask |= STM32L0_SYSTEM_EVENT_TIMEOUT;
+
                 stm32l0_rtc_timer_start(&stm32l0_system_device.timeout, stm32l0_rtc_millis_to_clock(timeout), STM32L0_RTC_TIMER_MODE_RELATIVE);
             }
 
-            if (!stm32l0_system_device.event)
+	    if (!(stm32l0_system_device.events & mask))
             {
                 if (policy >= STM32L0_SYSTEM_POLICY_SLEEP)
                 {
-                    stm32l0_system_notify(STM32L0_SYSTEM_EVENT_SLEEP);
+                    stm32l0_system_notify(STM32L0_SYSTEM_NOTIFY_SLEEP);
                 }
 
-                while (!stm32l0_system_device.event)
+		while (!(stm32l0_system_device.events & mask))
                 {
                     if ((policy <= STM32L0_SYSTEM_POLICY_RUN) || stm32l0_system_device.lock[STM32L0_SYSTEM_LOCK_RUN])
                     {
@@ -1448,7 +1450,7 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t timeout)
                             {
                                 if (!(SCB->ICSR & SCB_ICSR_ISRPENDING_Msk))
                                 {
-                                    stm32l0_system_notify(STM32L0_SYSTEM_EVENT_STOP_ENTER);
+                                    stm32l0_system_notify(STM32L0_SYSTEM_NOTIFY_STOP_ENTER);
 
                                     if (!(SCB->ICSR & SCB_ICSR_ISRPENDING_Msk))
                                     {
@@ -1604,7 +1606,7 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t timeout)
                                         __stm32l0_exti_stop_leave();
                                     }
                                     
-                                    stm32l0_system_notify(STM32L0_SYSTEM_EVENT_STOP_LEAVE);
+                                    stm32l0_system_notify(STM32L0_SYSTEM_NOTIFY_STOP_LEAVE);
                                 }
                             }
                         }
@@ -1621,12 +1623,12 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t timeout)
         }
     }
     
-    stm32l0_system_device.event = 0;
+    __armv6m_atomic_and(&stm32l0_system_device.events, ~mask);
 }
 
-void stm32l0_system_wakeup(void)
+void stm32l0_system_wakeup(uint32_t events)
 {
-    stm32l0_system_device.event = 1;
+    __armv6m_atomic_or(&stm32l0_system_device.events, events);
 }
 
 void stm32l0_system_standby(uint32_t control, uint32_t timeout)
@@ -1651,7 +1653,7 @@ void stm32l0_system_standby(uint32_t control, uint32_t timeout)
         return;
     }
     
-    stm32l0_system_notify(STM32L0_SYSTEM_EVENT_STANDBY);
+    stm32l0_system_notify(STM32L0_SYSTEM_NOTIFY_STANDBY);
 
     stm32l0_rtc_standby(control, timeout);
     
@@ -1705,7 +1707,7 @@ void stm32l0_system_reset(void)
 {
     __disable_irq();
 
-    stm32l0_system_notify(STM32L0_SYSTEM_EVENT_RESET);
+    stm32l0_system_notify(STM32L0_SYSTEM_NOTIFY_RESET);
 
     stm32l0_rtc_reset();
 
@@ -1720,7 +1722,7 @@ void stm32l0_system_dfu(void)
 {
     __disable_irq();
 
-    stm32l0_system_notify(STM32L0_SYSTEM_EVENT_DFU);
+    stm32l0_system_notify(STM32L0_SYSTEM_NOTIFY_DFU);
 
     /* Set the BCK bit to flag a reboot into the booloader */
     RTC->CR |= RTC_CR_BCK;

@@ -126,7 +126,7 @@ int Uart::peek()
 {
     uint8_t data;
 
-    if (!stm32l0_uart_receive(_uart, &data, 1, true)) {
+    if (!stm32l0_uart_read(_uart, &data, 1, false)) {
         return -1;
     }
 
@@ -137,7 +137,7 @@ int Uart::read()
 {
     uint8_t data;
 
-    if (!stm32l0_uart_receive(_uart, &data, 1, false)) {
+    if (!stm32l0_uart_read(_uart, &data, 1, true)) {
         return -1;
     }
 
@@ -146,14 +146,14 @@ int Uart::read()
 
 int Uart::read(uint8_t *buffer, size_t size)
 {
-    return stm32l0_uart_receive(_uart, (uint8_t*)buffer, size, false);
+    return stm32l0_uart_read(_uart, (uint8_t*)buffer, size, true);
 }
 
 void Uart::flush()
 {
     if (__get_IPSR() == 0) {
         while (_tx_busy) {
-            armv6m_core_wait();
+            __WFE();
         }
     }
 }
@@ -213,7 +213,7 @@ size_t Uart::write(const uint8_t *buffer, size_t size)
             }
 
             while (UART_TX_BUFFER_SIZE == _tx_count) {
-                armv6m_core_wait();
+                __WFE();
             }
 
             tx_count = UART_TX_BUFFER_SIZE - _tx_count;

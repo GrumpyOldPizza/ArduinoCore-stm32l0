@@ -1606,7 +1606,7 @@ static int stm32l0_sdspi_info(void *context, uint8_t *p_media, uint8_t *p_write_
     return status;
 }
 
-static int stm32l0_sdspi_notify(void *context, dosfs_device_notify_callback_t callback, void *cookie)
+static int stm32l0_sdspi_hook(void *context, dosfs_device_lock_callback_t callback, void *cookie)
 {
     stm32l0_sdspi_t *sdspi = (stm32l0_sdspi_t*)context;
     int status = F_NO_ERROR;
@@ -2072,7 +2072,7 @@ static int stm32l0_sdspi_sync(void *context)
 static const dosfs_device_interface_t stm32l0_sdspi_interface = {
     stm32l0_sdspi_release,
     stm32l0_sdspi_info,
-    stm32l0_sdspi_notify,
+    stm32l0_sdspi_hook,
     stm32l0_sdspi_format,
     stm32l0_sdspi_erase,
     stm32l0_sdspi_discard,

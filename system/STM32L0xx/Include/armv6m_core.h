@@ -74,14 +74,6 @@ extern void armv6m_core_udelay(uint32_t udelay);
 extern void armv6m_core_c_function(armv6m_core_callback_t *callback, void *function);
 extern void armv6m_core_cxx_method(armv6m_core_callback_t *callback, const void *method, void *object);
   
-static inline void armv6m_core_wait(void)
-{
-    __WFE();
-    __NOP();
-    __NOP();
-    __NOP();
-}
-
 static inline void armv6m_core_load_2(volatile uint32_t *p, uint32_t *p_data_0, uint32_t *p_data_1)
 {
     register uint32_t _a0 __asm__("r0");

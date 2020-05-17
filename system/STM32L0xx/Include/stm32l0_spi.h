@@ -74,7 +74,7 @@ typedef struct _stm32l0_spi_params_t {
     stm32l0_spi_pins_t          pins;
 } stm32l0_spi_params_t;
 
-typedef void (*stm32l0_spi_lock_callback_t)(void *context, int acquire);
+typedef void (*stm32l0_spi_lock_callback_t)(void *cookie, int acquire);
 
 typedef void (*stm32l0_spi_done_callback_t)(void *context);
 
@@ -93,8 +93,8 @@ typedef void (*stm32l0_spi_done_callback_t)(void *context);
     uint32_t                    clock;
     uint32_t                    option;
     uint32_t                    mask;
-    stm32l0_spi_lock_callback_t lck_callback;
-    void                        *lck_context;
+    stm32l0_spi_lock_callback_t lock_callback;
+    void                        *lock_cookie;
     stm32l0_spi_done_callback_t xf_callback;
     void                        *xf_context;
     uint8_t                     *rx_data;
@@ -104,7 +104,7 @@ extern bool stm32l0_spi_create(stm32l0_spi_t *spi, const stm32l0_spi_params_t *p
 extern bool stm32l0_spi_destroy(stm32l0_spi_t *spi);
 extern bool stm32l0_spi_enable(stm32l0_spi_t *spi);
 extern bool stm32l0_spi_disable(stm32l0_spi_t *spi);
-extern bool stm32l0_spi_hook(stm32l0_spi_t *spi, stm32l0_spi_lock_callback_t callback, void *context);
+extern bool stm32l0_spi_hook(stm32l0_spi_t *spi, stm32l0_spi_lock_callback_t callback, void *cookie);
 extern bool stm32l0_spi_block(stm32l0_spi_t *spi, uint16_t pin);
 extern bool stm32l0_spi_unblock(stm32l0_spi_t *spi, uint16_t pin);
 extern bool stm32l0_spi_acquire(stm32l0_spi_t *spi, uint32_t clock, uint32_t option);

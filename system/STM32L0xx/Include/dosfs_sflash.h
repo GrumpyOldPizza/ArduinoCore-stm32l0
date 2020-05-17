@@ -125,12 +125,9 @@ extern "C" {
 typedef struct _dosfs_sflash_t dosfs_sflash_t;
 typedef struct _dosfs_sflash_interface_t dosfs_sflash_interface_t;
 
-typedef void (*dosfs_sflash_notify_callback_t)(void *cookie, int acquire);
-
-
 struct _dosfs_sflash_interface_t {
     uint32_t                (*capacity)(void *context);
-    void                    (*notify)(void *context, dosfs_sflash_notify_callback_t callback, void *cookie);
+    void                    (*hook)(void *context, dosfs_device_lock_callback_t callback, void *cookie);
     void                    (*lock)(void *context);
     void                    (*unlock)(void *context);
     bool                    (*erase)(void *context, uint32_t address);

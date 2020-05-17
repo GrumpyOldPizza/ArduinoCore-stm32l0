@@ -2897,7 +2897,7 @@ bool LoRaWANClass::_eepromProgram(uint32_t address, const uint8_t *data, uint32_
     }
 
     while (transaction.status == STM32L0_EEPROM_STATUS_BUSY) {
-        armv6m_core_wait();
+        __WFE();
     }
 
     return true;
@@ -2920,7 +2920,7 @@ bool LoRaWANClass::_eepromRead(uint32_t address, uint8_t *data, uint32_t size)
     }
 
     while (transaction.status == STM32L0_EEPROM_STATUS_BUSY) {
-        armv6m_core_wait();
+        __WFE();
     }
 
     return true;

@@ -39,7 +39,7 @@ bool Callback::queue(bool wakeup) {
         return armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)_callback, _context, 0);
     } else {
 	if (wakeup) {
-	    stm32l0_system_wakeup();
+	    stm32l0_system_wakeup(STM32L0_SYSTEM_EVENT_APPLICATION);
 	}
 	return false;
     }
