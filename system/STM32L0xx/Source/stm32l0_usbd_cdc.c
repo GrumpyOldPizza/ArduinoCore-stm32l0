@@ -395,7 +395,7 @@ uint32_t stm32l0_usbd_cdc_count(stm32l0_usbd_cdc_t *usbd_cdc)
     return usbd_cdc->rx_count;
 }
 
-uint32_t stm32l0_usbd_cdc_read(stm32l0_usbd_cdc_t *usbd_cdc, uint8_t *rx_data, uint32_t rx_count, bool consume)
+uint32_t stm32l0_usbd_cdc_input(stm32l0_usbd_cdc_t *usbd_cdc, uint8_t *rx_data, uint32_t rx_count, bool consume)
 {
     uint32_t rx_size, rx_read, rx_wrap;
 

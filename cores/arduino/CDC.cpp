@@ -126,7 +126,7 @@ int CDC::peek()
 {
     uint8_t data;
 
-    if (!stm32l0_usbd_cdc_read(_usbd_cdc, &data, 1, false)) {
+    if (!stm32l0_usbd_cdc_input(_usbd_cdc, &data, 1, false)) {
         return -1;
     }
 
@@ -137,7 +137,7 @@ int CDC::read()
 {
     uint8_t data;
 
-    if (!stm32l0_usbd_cdc_read(_usbd_cdc, &data, 1, true)) {
+    if (!stm32l0_usbd_cdc_input(_usbd_cdc, &data, 1, true)) {
         return -1;
     }
 
@@ -146,7 +146,7 @@ int CDC::read()
 
 int CDC::read(uint8_t *buffer, size_t size)
 {
-    return stm32l0_usbd_cdc_read(_usbd_cdc, (uint8_t*)buffer, size, true);
+    return stm32l0_usbd_cdc_input(_usbd_cdc, (uint8_t*)buffer, size, true);
 }
 
 void CDC::flush()

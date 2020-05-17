@@ -1463,7 +1463,7 @@ uint32_t stm32l0_uart_count(stm32l0_uart_t *uart)
     return uart->rx_count;
 }
 
-uint32_t stm32l0_uart_read(stm32l0_uart_t *uart, uint8_t *rx_data, uint32_t rx_count, bool consume)
+uint32_t stm32l0_uart_input(stm32l0_uart_t *uart, uint8_t *rx_data, uint32_t rx_count, bool consume)
 {
     uint32_t rx_size, rx_entries, rx_read;
 

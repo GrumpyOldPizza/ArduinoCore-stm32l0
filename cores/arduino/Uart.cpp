@@ -126,7 +126,7 @@ int Uart::peek()
 {
     uint8_t data;
 
-    if (!stm32l0_uart_read(_uart, &data, 1, false)) {
+    if (!stm32l0_uart_input(_uart, &data, 1, false)) {
         return -1;
     }
 
@@ -137,7 +137,7 @@ int Uart::read()
 {
     uint8_t data;
 
-    if (!stm32l0_uart_read(_uart, &data, 1, true)) {
+    if (!stm32l0_uart_input(_uart, &data, 1, true)) {
         return -1;
     }
 
@@ -146,7 +146,7 @@ int Uart::read()
 
 int Uart::read(uint8_t *buffer, size_t size)
 {
-    return stm32l0_uart_read(_uart, (uint8_t*)buffer, size, true);
+    return stm32l0_uart_input(_uart, (uint8_t*)buffer, size, true);
 }
 
 void Uart::flush()
