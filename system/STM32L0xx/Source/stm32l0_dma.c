@@ -50,7 +50,7 @@ typedef struct _stm32l0_dma_t {
     volatile uint16_t      channel;
     uint16_t               size;
     stm32l0_dma_callback_t callback;
-    void*                  context;
+    void                   *context;
 } stm32l0_dma_t;
 
 typedef struct _stm32l0_dma_device_t {
@@ -63,21 +63,28 @@ typedef struct _stm32l0_dma_device_t {
 
 static stm32l0_dma_device_t stm32l0_dma_device;
 
-static void stm32l0_dma_interrupt(stm32l0_dma_t *dma, unsigned int shift)
+static inline void stm32l0_dma_interrupt(stm32l0_dma_t *dma, DMA_Channel_TypeDef *DMA, uint32_t dma_isr, uint32_t shift)
 {
     uint32_t events;
+    
+    events = (dma_isr >> shift) & 0x0000000e;
 
-    events = (DMA1->ISR >> shift) & 0x0000000e;
-
-    DMA1->IFCR = (15 << shift);
-
-    if (events)
+    if (events & DMA->CCR)
     {
-        (*dma->callback)(dma->context, events);
+	DMA1->IFCR = (15 << shift);
+
+	(*dma->callback)(dma->context, events);
     }
 }
 
-void stm32l0_dma_configure(unsigned int priority_1, unsigned int priority_2_3, unsigned int priority_4_5_6_7)
+void __stm32l0_dma_initialize(void)
+{
+    NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+    NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
+    NVIC_EnableIRQ(DMA1_Channel4_5_6_7_IRQn);
+}
+
+void stm32l0_dma_configure(uint8_t priority_1, uint8_t priority_2_3, uint8_t priority_4_5_6_7)
 {
     stm32l0_dma_device.priority_1 = priority_1;
     stm32l0_dma_device.priority_2_3 = priority_2_3;
@@ -86,13 +93,9 @@ void stm32l0_dma_configure(unsigned int priority_1, unsigned int priority_2_3, u
     NVIC_SetPriority(DMA1_Channel1_IRQn, priority_1);
     NVIC_SetPriority(DMA1_Channel2_3_IRQn, priority_2_3);
     NVIC_SetPriority(DMA1_Channel4_5_6_7_IRQn, priority_4_5_6_7);
-
-    NVIC_EnableIRQ(DMA1_Channel1_IRQn);
-    NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
-    NVIC_EnableIRQ(DMA1_Channel4_5_6_7_IRQn);
 }
 
-unsigned int stm32l0_dma_priority(unsigned int channel)
+uint8_t stm32l0_dma_priority(uint16_t channel)
 {
     if ((channel & 7) == 0)
     {
@@ -108,7 +111,7 @@ unsigned int stm32l0_dma_priority(unsigned int channel)
     }
 }
 
-unsigned int stm32l0_dma_channel(unsigned int channel)
+uint16_t stm32l0_dma_channel(uint16_t channel)
 {
     uint32_t index, mask;
 
@@ -118,49 +121,38 @@ unsigned int stm32l0_dma_channel(unsigned int channel)
     return ((stm32l0_dma_device.dma & mask) ? (stm32l0_dma_device.channels[index].channel & STM32L0_DMA_CHANNEL_MASK): STM32L0_DMA_CHANNEL_UNDEFINED);
 }
 
-bool stm32l0_dma_lock(unsigned int channel)
+bool stm32l0_dma_lock(uint16_t channel)
 {
     stm32l0_dma_t *dma = &stm32l0_dma_device.channels[channel & 7];
 
     return (armv6m_atomic_cash(&dma->channel, STM32L0_DMA_CHANNEL_NONE, channel) == STM32L0_DMA_CHANNEL_NONE);
 }
 
-void stm32l0_dma_unlock(unsigned int channel)
+void stm32l0_dma_unlock(uint16_t channel)
 {
     stm32l0_dma_t *dma = &stm32l0_dma_device.channels[channel & 7];
 
     dma->channel = STM32L0_DMA_CHANNEL_NONE;
 }
 
-bool stm32l0_dma_enable(unsigned int channel, stm32l0_dma_callback_t callback, void *context)
+bool stm32l0_dma_enable(uint16_t channel, stm32l0_dma_callback_t callback, void *context)
 {
     stm32l0_dma_t *dma = &stm32l0_dma_device.channels[channel & 7];
-    unsigned int shift;
-    uint32_t primask, mask, o_channel;
+    uint32_t shift, mask, o_channel;
 
     o_channel = armv6m_atomic_cash(&dma->channel, STM32L0_DMA_CHANNEL_NONE, channel);
 
     if ((o_channel != STM32L0_DMA_CHANNEL_NONE) && (o_channel != (STM32L0_DMA_CHANNEL_LOCKED | channel)))
     {
-	return false;
+        return false;
     }
     
     shift = (channel & 7) << 2;
     mask = 1ul << (channel & 7);
 
-    primask = __get_PRIMASK();
-
-    __disable_irq();
-
-    if (!stm32l0_dma_device.dma)
-    {
-        RCC->AHBENR |= RCC_AHBENR_DMAEN;
-        RCC->AHBSMENR |= (RCC_AHBSMENR_SRAMSMEN | RCC_AHBSMENR_MIFSMEN);
-    }
-
-    stm32l0_dma_device.dma |= mask;
-
-    __set_PRIMASK(primask);
+    armv6m_atomic_orb(&stm32l0_dma_device.dma, mask);
+    armv6m_atomic_or(&RCC->AHBENR, RCC_AHBENR_DMAEN);
+    armv6m_atomic_or(&RCC->AHBSMENR, (RCC_AHBSMENR_SRAMSMEN | RCC_AHBSMENR_MIFSMEN));
 
     armv6m_atomic_modify(&DMA1_CSELR->CSELR, (15 << shift), ((channel >> 4) << shift));
     
@@ -171,38 +163,28 @@ bool stm32l0_dma_enable(unsigned int channel, stm32l0_dma_callback_t callback, v
     return true;
 }
 
-void stm32l0_dma_disable(unsigned int channel)
+void stm32l0_dma_disable(uint16_t channel)
 {
     stm32l0_dma_t *dma = &stm32l0_dma_device.channels[channel & 7];
-    uint32_t primask, mask;
+    uint32_t mask;
 
     mask = 1ul << (channel & 7);
 
-    primask = __get_PRIMASK();
-
-    __disable_irq();
-
-    stm32l0_dma_device.dma &= ~mask;
-        
-    if (!stm32l0_dma_device.dma)
-    {
-        RCC->AHBSMENR &= ~(RCC_AHBSMENR_SRAMSMEN | RCC_AHBSMENR_MIFSMEN);
-        RCC->AHBENR &= ~RCC_AHBENR_DMAEN;
-    }
-
-    __set_PRIMASK(primask);
+    armv6m_atomic_andb(&stm32l0_dma_device.dma, ~mask);
+    armv6m_atomic_andzb(&RCC->AHBENR, ~RCC_AHBENR_DMAEN, &stm32l0_dma_device.dma);
+    armv6m_atomic_andzb(&RCC->AHBSMENR, ~(RCC_AHBSMENR_SRAMSMEN | RCC_AHBSMENR_MIFSMEN), &stm32l0_dma_device.dma);
 
     if (!(dma->channel & STM32L0_DMA_CHANNEL_LOCKED))
     {
-	dma->channel = STM32L0_DMA_CHANNEL_NONE;
+        dma->channel = STM32L0_DMA_CHANNEL_NONE;
     }
 }
 
-void stm32l0_dma_start(unsigned int channel, uint32_t tx_data, uint32_t rx_data, uint16_t xf_count, uint32_t option)
+__attribute__((optimize("O3"))) void stm32l0_dma_start(uint16_t channel, uint32_t tx_data, uint32_t rx_data, uint16_t xf_count, uint32_t option)
 {
     DMA_Channel_TypeDef *DMA = stm32l0_dma_xlate_DMA[channel & 7];
     stm32l0_dma_t *dma = &stm32l0_dma_device.channels[channel & 7];
-    unsigned int shift;
+    uint32_t shift;
 
     shift = (channel & 7) << 2;
 
@@ -225,7 +207,7 @@ void stm32l0_dma_start(unsigned int channel, uint32_t tx_data, uint32_t rx_data,
     DMA->CCR = option | DMA_CCR_EN;
 }
 
-uint16_t stm32l0_dma_stop(unsigned int channel)
+__attribute__((optimize("O3"))) uint16_t stm32l0_dma_stop(uint16_t channel)
 {
     DMA_Channel_TypeDef *DMA = stm32l0_dma_xlate_DMA[channel & 7];
     stm32l0_dma_t *dma = &stm32l0_dma_device.channels[channel & 7];
@@ -235,7 +217,7 @@ uint16_t stm32l0_dma_stop(unsigned int channel)
     return dma->size - (DMA->CNDTR & 0xffff);
 }
 
-uint16_t stm32l0_dma_count(unsigned int channel)
+__attribute__((optimize("O3"))) uint16_t stm32l0_dma_count(uint16_t channel)
 {
     DMA_Channel_TypeDef *DMA = stm32l0_dma_xlate_DMA[channel & 7];
     stm32l0_dma_t *dma = &stm32l0_dma_device.channels[channel & 7];
@@ -243,67 +225,42 @@ uint16_t stm32l0_dma_count(unsigned int channel)
     return dma->size - (DMA->CNDTR & 0xffff);
 }
 
-bool stm32l0_dma_done(unsigned int channel)
+__attribute__((optimize("O3"))) bool stm32l0_dma_done(uint16_t channel)
 {
-    unsigned int shift;
+    uint32_t shift;
 
     shift = (channel & 7) << 2;
 
     return !!(DMA1->ISR & (DMA_ISR_TCIF1 << shift));
 }
 
-void DMA1_Channel1_IRQHandler(void)
+__attribute__((optimize("O3"))) void DMA1_Channel1_IRQHandler(void)
 {
     uint32_t dma_isr;
 
     dma_isr = DMA1->ISR;
 
-    if (((dma_isr >> 0) & 0x0000000e) & DMA1_Channel1->CCR)
-    {
-        stm32l0_dma_interrupt(&stm32l0_dma_device.channels[0], 0);
-    }
+    stm32l0_dma_interrupt(&stm32l0_dma_device.channels[0], DMA1_Channel1, dma_isr, 0);
 }
 
-void DMA1_Channel2_3_IRQHandler(void)
+__attribute__((optimize("O3"))) void DMA1_Channel2_3_IRQHandler(void)
 {
     uint32_t dma_isr;
 
     dma_isr = DMA1->ISR;
 
-    if (((dma_isr >> 4) & 0x0000000e) & DMA1_Channel2->CCR)
-    {
-        stm32l0_dma_interrupt(&stm32l0_dma_device.channels[1], 4);
-    }
-
-    if (((dma_isr >> 8) & 0x0000000e) & DMA1_Channel3->CCR)
-    {
-        stm32l0_dma_interrupt(&stm32l0_dma_device.channels[2], 8);
-    }
+    stm32l0_dma_interrupt(&stm32l0_dma_device.channels[1], DMA1_Channel2, dma_isr, 4);
+    stm32l0_dma_interrupt(&stm32l0_dma_device.channels[2], DMA1_Channel3, dma_isr, 8);
 }
 
-void DMA1_Channel4_5_6_7_IRQHandler(void)
+__attribute__((optimize("O3"))) void DMA1_Channel4_5_6_7_IRQHandler(void)
 {
     uint32_t dma_isr;
 
     dma_isr = DMA1->ISR;
 
-    if (((dma_isr >> 12) & 0x0000000e) & DMA1_Channel4->CCR)
-    {
-        stm32l0_dma_interrupt(&stm32l0_dma_device.channels[3], 12);
-    }
-
-    if (((dma_isr >> 16) & 0x0000000e) & DMA1_Channel5->CCR)
-    {
-        stm32l0_dma_interrupt(&stm32l0_dma_device.channels[4], 16);
-    }
-
-    if (((dma_isr >> 20) & 0x0000000e) & DMA1_Channel6->CCR)
-    {
-        stm32l0_dma_interrupt(&stm32l0_dma_device.channels[5], 20);
-    }
-
-    if (((dma_isr >> 24) & 0x0000000e) & DMA1_Channel7->CCR)
-    {
-        stm32l0_dma_interrupt(&stm32l0_dma_device.channels[6], 24);
-    }
+    stm32l0_dma_interrupt(&stm32l0_dma_device.channels[3], DMA1_Channel4, dma_isr, 12);
+    stm32l0_dma_interrupt(&stm32l0_dma_device.channels[4], DMA1_Channel5, dma_isr, 16);
+    stm32l0_dma_interrupt(&stm32l0_dma_device.channels[5], DMA1_Channel6, dma_isr, 20);
+    stm32l0_dma_interrupt(&stm32l0_dma_device.channels[6], DMA1_Channel7, dma_isr, 24);
 }

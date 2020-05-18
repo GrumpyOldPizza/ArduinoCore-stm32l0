@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -904,20 +904,19 @@ typedef struct _stm32l0_gpio_stop_state_t {
 #define STM32L0_GPIO_PIN_MASK(_pin)             (1ul << ((_pin) & 15))
 
 extern void __stm32l0_gpio_initialize(void);
-extern void __stm32l0_gpio_stop_enter(stm32l0_gpio_stop_state_t *state);
-extern void __stm32l0_gpio_stop_leave(stm32l0_gpio_stop_state_t *state);
 extern void __stm32l0_gpio_swd_enable(void);
 extern void __stm32l0_gpio_swd_disable(void);
-extern void stm32l0_gpio_pin_configure(unsigned int pin, unsigned int mode);
-extern void stm32l0_gpio_pin_input(unsigned int pin);
-extern void stm32l0_gpio_pin_output(unsigned int pin);
-extern void stm32l0_gpio_pin_alternate(unsigned int pin);
-extern void stm32l0_gpio_pin_analog(unsigned int pin);
+extern void __stm32l0_gpio_stop_enter(stm32l0_gpio_stop_state_t *state);
+extern void __stm32l0_gpio_stop_leave(stm32l0_gpio_stop_state_t *state);
+extern uint32_t __stm32l0_gpio_pin_read(uint32_t pin);
+extern void __stm32l0_gpio_pin_write(uint32_t pin, uint32_t data);
+extern void stm32l0_gpio_pin_configure(uint32_t pin, uint32_t mode);
+extern void stm32l0_gpio_pin_input(uint32_t pin);
+extern void stm32l0_gpio_pin_output(uint32_t pin);
+extern void stm32l0_gpio_pin_alternate(uint32_t pin);
+extern void stm32l0_gpio_pin_analog(uint32_t pin);
 
-extern unsigned int __stm32l0_gpio_pin_read(unsigned int pin);
-extern void __stm32l0_gpio_pin_write(unsigned int pin, unsigned int data);
-
-static inline unsigned int stm32l0_gpio_pin_read(unsigned int pin)
+static inline uint32_t stm32l0_gpio_pin_read(uint32_t pin)
 {
     if (__builtin_constant_p(pin))
     {
@@ -937,7 +936,7 @@ static inline unsigned int stm32l0_gpio_pin_read(unsigned int pin)
     }
 }
 
-static inline void stm32l0_gpio_pin_write(unsigned int pin, unsigned int data)
+static inline void stm32l0_gpio_pin_write(uint32_t pin, uint32_t data)
 {
     if (__builtin_constant_p(pin))
     {
@@ -949,9 +948,12 @@ static inline void stm32l0_gpio_pin_write(unsigned int pin, unsigned int data)
         
         GPIO = (GPIO_TypeDef *)(GPIOA_BASE + (GPIOB_BASE - GPIOA_BASE) * group);
 
-        if (data) {
+        if (data)
+        {
             GPIO->BSRR = (1ul << index);
-        } else {
+        }
+        else
+        {
             GPIO->BRR = (1ul << index);
         }
     }

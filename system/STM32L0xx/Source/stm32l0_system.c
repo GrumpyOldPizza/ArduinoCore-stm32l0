@@ -29,6 +29,7 @@
 #include "armv6m.h"
 #include "stm32l0_gpio.h"
 #include "stm32l0_exti.h"
+#include "stm32l0_dma.h"
 #include "stm32l0_rtc.h"
 #include "stm32l0_eeprom.h"
 #include "stm32l0_system.h"
@@ -611,6 +612,24 @@ void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, ui
                       (((RCC->ICSCR & RCC_ICSCR_HSITRIM) >> RCC_ICSCR_HSITRIM_Pos) << STM32L0_RTC_BKP4R_HSITRIM_SHIFT));
     }
 
+    /* Setup DBGMCU so that debugging (other than SLEEP/STOP/STANDBY) works like expected.
+     */
+    RCC->APB2ENR |= RCC_APB2ENR_DBGEN;
+
+    DBGMCU->CR = (DBGMCU_CR_DBG_SLEEP | DBGMCU_CR_DBG_STOP | DBGMCU_CR_DBG_STANDBY);
+    DBGMCU->APB1FZ = (DBGMCU_APB1_FZ_DBG_RTC_STOP | DBGMCU_APB1_FZ_DBG_IWDG_STOP | DBGMCU_APB1_FZ_DBG_LPTIMER_STOP);
+    DBGMCU->APB2FZ = 0;
+
+    RCC->APB2ENR &= ~RCC_APB2ENR_DBGEN;
+    
+    /* Setup CRS for HSI48 either via LSE
+     */
+    RCC->APB1ENR |= RCC_APB1ENR_CRSEN;
+
+    CRS->CFGR = (((1465 -1) << CRS_CFGR_RELOAD_Pos) | (2 << CRS_CFGR_FELIM_Pos) | CRS_CFGR_SYNCSRC_0);
+    
+    RCC->APB1ENR &= ~RCC_APB1ENR_CRSEN;
+    
     /* Setup some default sleep mode clock gating.
      */
     RCC->IOPSMENR = 0;
@@ -637,6 +656,7 @@ void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, ui
 
     __stm32l0_gpio_initialize();
     __stm32l0_exti_initialize();
+    __stm32l0_dma_initialize();
     __stm32l0_rtc_initialize();
     __stm32l0_eeprom_initialize();
 
@@ -972,163 +992,68 @@ bool stm32l0_system_sysclk_configure(uint32_t hclk, uint32_t pclk1, uint32_t pcl
 
 void stm32l0_system_lsi_enable(void)
 {
-    uint32_t primask;
-
-    primask = __get_PRIMASK();
-
-    __disable_irq();
-
-    stm32l0_system_device.lsi++;
+    armv6m_atomic_incb(&stm32l0_system_device.lsi);
+    armv6m_atomic_or(&RCC->CSR, RCC_CSR_LSION);
     
-    if (stm32l0_system_device.lsi == 1)
+    while (!(RCC->CSR & RCC_CSR_LSIRDY))
     {
-        RCC->CSR |= RCC_CSR_LSION;
-
-        __set_PRIMASK(primask);
-        
-        while (!(RCC->CSR & RCC_CSR_LSIRDY))
-        {
-        }
-    }
-    else
-    {
-        __set_PRIMASK(primask);
     }
 }
 
 void stm32l0_system_lsi_disable(void)
 {
-    uint32_t primask;
-
-    primask = __get_PRIMASK();
-
-    __disable_irq();
-
-    stm32l0_system_device.lsi--;
-    
-    if (stm32l0_system_device.lsi == 0)
-    {
-        RCC->CSR &= ~RCC_CSR_LSION;
-        
-        __set_PRIMASK(primask);
-        
-        while (RCC->CSR & RCC_CSR_LSIRDY)
-        {
-        }
-    }
-    else
-    {
-        __set_PRIMASK(primask);
-    }
+    armv6m_atomic_decb(&stm32l0_system_device.lsi);
+    armv6m_atomic_andzb(&RCC->CSR, ~RCC_CSR_LSION, &stm32l0_system_device.lsi);
 }
 
 void stm32l0_system_hsi16_enable(void)
 {
-    uint32_t primask;
-
-    primask = __get_PRIMASK();
-
-    __disable_irq();
-
-    stm32l0_system_device.hsi16++;    
-
-    if (stm32l0_system_device.hsi16 == 1)
+    armv6m_atomic_incb(&stm32l0_system_device.hsi16);
+    armv6m_atomic_or(&RCC->CR, RCC_CR_HSION);
+    
+    while (!(RCC->CR & RCC_CR_HSIRDY))
     {
-        RCC->CR |= RCC_CR_HSION;
-
-        __set_PRIMASK(primask);
-        
-        while (!(RCC->CR & RCC_CR_HSIRDY))
-        {
-        }
-    }
-    else
-    {
-        __set_PRIMASK(primask);
     }
 }
 
 void stm32l0_system_hsi16_disable(void)
 {
-    uint32_t primask;
-
-    primask = __get_PRIMASK();
-
-    __disable_irq();
-
-    stm32l0_system_device.hsi16--;
-    
-    if (stm32l0_system_device.hsi16 == 0)
-    {
-        RCC->CR &= ~RCC_CR_HSION;
-    }
-
-    __set_PRIMASK(primask);
+    armv6m_atomic_decb(&stm32l0_system_device.hsi16);
+    armv6m_atomic_andzb(&RCC->CR, ~RCC_CR_HSION, &stm32l0_system_device.hsi16);
 }
 
 void stm32l0_system_hsi48_enable()
 {
-    uint32_t primask;
+    armv6m_atomic_incb(&stm32l0_system_device.hsi48);
 
-    primask = __get_PRIMASK();
+    armv6m_atomic_or(&RCC->APB1ENR, RCC_APB1ENR_CRSEN);
+    armv6m_atomic_or(&SYSCFG->CFGR3, (SYSCFG_CFGR3_ENREF_HSI48 | SYSCFG_CFGR3_EN_VREFINT));
 
-    __disable_irq();
-
-    stm32l0_system_device.hsi48++;
-    
-    if (stm32l0_system_device.hsi48 == 1)
+    while (!(SYSCFG->CFGR3 & SYSCFG_CFGR3_VREFINT_RDYF))
     {
-        SYSCFG->CFGR3 |= (SYSCFG_CFGR3_ENREF_HSI48 | SYSCFG_CFGR3_EN_VREFINT);
-
-        while (!(SYSCFG->CFGR3 & SYSCFG_CFGR3_VREFINT_RDYF))
-        {
-        }
-
-        RCC->CRRCR |= RCC_CRRCR_HSI48ON;
-
-        while(!(RCC->CRRCR & RCC_CRRCR_HSI48RDY))
-        {
-        }
-
-        /* Enable CRS on HSI48 */
-        RCC->APB1ENR |= RCC_APB1ENR_CRSEN;
-        RCC->APB1ENR;
-
-        /* 32768Hz * 1465 = 48005120Hz, Sync Source is LSE */
-        CRS->CFGR = ((1465 -1) << CRS_CFGR_RELOAD_Pos) | (1 << CRS_CFGR_FELIM_Pos) | CRS_CFGR_SYNCSRC_0;
-        CRS->CR |= (CRS_CR_AUTOTRIMEN | CRS_CR_CEN);
-        
-        stm32l0_system_lock(STM32L0_SYSTEM_LOCK_VREFINT);
     }
 
-    __set_PRIMASK(primask);
+    armv6m_atomic_or(&RCC->CRRCR, RCC_CRRCR_HSI48ON);
+
+    while(!(RCC->CRRCR & RCC_CRRCR_HSI48RDY))
+    {
+    }
+
+    armv6m_atomic_or(&CRS->CR, (CRS_CR_AUTOTRIMEN | CRS_CR_CEN));
+
+    stm32l0_system_lock(STM32L0_SYSTEM_LOCK_VREFINT);
 }
 
 void stm32l0_system_hsi48_disable(void)
 {
-    uint32_t primask;
+    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_VREFINT);
 
-    primask = __get_PRIMASK();
+    armv6m_atomic_decb(&stm32l0_system_device.hsi48);
 
-    __disable_irq();
-
-    stm32l0_system_device.hsi48--;
-    
-    if (stm32l0_system_device.hsi48 == 0)
-    {
-        stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_VREFINT);
-
-        /* Disable CRS on HSI48 */
-        CRS->CR &= ~(CRS_CR_AUTOTRIMEN | CRS_CR_CEN);
-            
-        RCC->APB1ENR &= ~RCC_APB1ENR_CRSEN;
-
-        RCC->CRRCR &= ~RCC_CRRCR_HSI48ON;
-
-        SYSCFG->CFGR3 &= ~SYSCFG_CFGR3_ENREF_HSI48;
-    }
-
-    __set_PRIMASK(primask);
+    armv6m_atomic_andzb(&CRS->CR, ~(CRS_CR_AUTOTRIMEN | CRS_CR_CEN), &stm32l0_system_device.hsi48);
+    armv6m_atomic_andzb(&RCC->CRRCR, ~RCC_CRRCR_HSI48ON, &stm32l0_system_device.hsi48);
+    armv6m_atomic_andzb(&SYSCFG->CFGR3, ~SYSCFG_CFGR3_ENREF_HSI48, &stm32l0_system_device.hsi48);
+    armv6m_atomic_andzb(&RCC->APB1ENR, ~RCC_APB1ENR_CRSEN, &stm32l0_system_device.hsi48);
 }
 
 void stm32l0_system_mco_configure(unsigned int mode, unsigned int divider)
@@ -1246,54 +1171,24 @@ void stm32l0_system_uid(uint32_t *uid)
 
 void stm32l0_system_periph_reset(unsigned int periph)
 {
-    uint32_t primask;
-
-    primask = __get_PRIMASK();
-
-    __disable_irq();
-
-    *stm32l0_system_xlate_RSTR[periph] |= stm32l0_system_xlate_RSTMSK[periph];
-    *stm32l0_system_xlate_RSTR[periph] &= ~stm32l0_system_xlate_RSTMSK[periph];
-
-    __set_PRIMASK(primask);
+    __armv6m_atomic_or(stm32l0_system_xlate_RSTR[periph], stm32l0_system_xlate_RSTMSK[periph]);
+    __armv6m_atomic_and(stm32l0_system_xlate_RSTR[periph], ~stm32l0_system_xlate_RSTMSK[periph]);
 }
 
 void stm32l0_system_periph_enable(unsigned int periph)
 {
-    uint32_t primask;
-
-    primask = __get_PRIMASK();
-
-    __disable_irq();
-
-    *stm32l0_system_xlate_ENR[periph] |= stm32l0_system_xlate_ENMSK[periph];
+    __armv6m_atomic_or(stm32l0_system_xlate_ENR[periph], stm32l0_system_xlate_ENMSK[periph]);
     *stm32l0_system_xlate_ENR[periph];
-
-    __set_PRIMASK(primask);
 }
 
 void stm32l0_system_periph_disable(unsigned int periph)
 {
-    uint32_t primask;
-
-    primask = __get_PRIMASK();
-
-    __disable_irq();
-
-    *stm32l0_system_xlate_ENR[periph] &= ~stm32l0_system_xlate_ENMSK[periph];
-
-    __set_PRIMASK(primask);
+    __armv6m_atomic_and(stm32l0_system_xlate_ENR[periph], ~stm32l0_system_xlate_ENMSK[periph]);
 }
 
 void stm32l0_system_swd_enable(void)
 {
-    uint32_t primask;
-
-    primask = __get_PRIMASK();
-
-    __disable_irq();
-
-    RCC->APB2ENR |= RCC_APB2ENR_DBGEN;
+    armv6m_atomic_or(&RCC->APB2ENR, RCC_APB2ENR_DBGEN);
     RCC->APB2ENR;
 
     DBGMCU->CR = (DBGMCU_CR_DBG_SLEEP | DBGMCU_CR_DBG_STOP | DBGMCU_CR_DBG_STANDBY);
@@ -1301,30 +1196,20 @@ void stm32l0_system_swd_enable(void)
     DBGMCU->APB2FZ = 0;
 
     __stm32l0_gpio_swd_enable();
-
-    __set_PRIMASK(primask);
 }
 
 void stm32l0_system_swd_disable(void)
 {
-    uint32_t primask;
-
-    primask = __get_PRIMASK();
-
-    __disable_irq();
-
     __stm32l0_gpio_swd_disable();
 
-    RCC->APB2ENR |= RCC_APB2ENR_DBGEN;
+    armv6m_atomic_or(&RCC->APB2ENR, RCC_APB2ENR_DBGEN);
     RCC->APB2ENR;
 
     DBGMCU->CR = 0;
     DBGMCU->APB1FZ = 0;
     DBGMCU->APB2FZ = 0;
 
-    RCC->APB2ENR &= ~RCC_APB2ENR_DBGEN;
-
-    __set_PRIMASK(primask);
+    armv6m_atomic_and(&RCC->APB2ENR, ~RCC_APB2ENR_DBGEN);
 }
 void stm32l0_system_register(stm32l0_system_notify_t *notify, stm32l0_system_callback_t callback, void *context, uint32_t mask)
 {
@@ -1406,19 +1291,19 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t mask, uint32_t timeout)
         {
             if (timeout != STM32L0_SYSTEM_TIMEOUT_FOREVER)
             {
-		mask |= STM32L0_SYSTEM_EVENT_TIMEOUT;
+                mask |= STM32L0_SYSTEM_EVENT_TIMEOUT;
 
                 stm32l0_rtc_timer_start(&stm32l0_system_device.timeout, stm32l0_rtc_millis_to_clock(timeout), STM32L0_RTC_TIMER_MODE_RELATIVE);
             }
 
-	    if (!(stm32l0_system_device.events & mask))
+            if (!(stm32l0_system_device.events & mask))
             {
                 if (policy >= STM32L0_SYSTEM_POLICY_SLEEP)
                 {
                     stm32l0_system_notify(STM32L0_SYSTEM_NOTIFY_SLEEP);
                 }
 
-		while (!(stm32l0_system_device.events & mask))
+                while (!(stm32l0_system_device.events & mask))
                 {
                     if ((policy <= STM32L0_SYSTEM_POLICY_RUN) || stm32l0_system_device.lock[STM32L0_SYSTEM_LOCK_RUN])
                     {

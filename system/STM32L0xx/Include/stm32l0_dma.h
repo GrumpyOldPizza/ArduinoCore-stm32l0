@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -33,20 +33,20 @@
 #include "stm32l0xx.h"
 
 #ifdef __cplusplus
- extern "C" {
+extern "C" {
 #endif
 
 #define STM32L0_DMA_CHANNEL_NONE                 0x0000
 #define STM32L0_DMA_CHANNEL_UNDEFINED            0x0fff
 #define STM32L0_DMA_CHANNEL_MASK                 0x0fff
 
-#define STM32L0_DMA_CHANNEL_DMA1_CH1_INDEX       0x0800
-#define STM32L0_DMA_CHANNEL_DMA1_CH2_INDEX       0x0801
-#define STM32L0_DMA_CHANNEL_DMA1_CH3_INDEX       0x0802
-#define STM32L0_DMA_CHANNEL_DMA1_CH4_INDEX       0x0803
-#define STM32L0_DMA_CHANNEL_DMA1_CH5_INDEX       0x0804
-#define STM32L0_DMA_CHANNEL_DMA1_CH6_INDEX       0x0805
-#define STM32L0_DMA_CHANNEL_DMA1_CH7_INDEX       0x0806
+#define STM32L0_DMA_CHANNEL_DMA1_CH1_INDEX       0
+#define STM32L0_DMA_CHANNEL_DMA1_CH2_INDEX       1
+#define STM32L0_DMA_CHANNEL_DMA1_CH3_INDEX       2
+#define STM32L0_DMA_CHANNEL_DMA1_CH4_INDEX       3
+#define STM32L0_DMA_CHANNEL_DMA1_CH5_INDEX       4
+#define STM32L0_DMA_CHANNEL_DMA1_CH6_INDEX       5
+#define STM32L0_DMA_CHANNEL_DMA1_CH7_INDEX       6
 
 
 #if defined(STM32L052xx)
@@ -263,17 +263,18 @@
 
 typedef void (*stm32l0_dma_callback_t)(void *context, uint32_t events);
 
-extern void stm32l0_dma_configure(unsigned int priority_1, unsigned int priority_2_3, unsigned int priority_4_5_6_7);
-extern unsigned int stm32l0_dma_priority(unsigned int channel);
-extern unsigned int stm32l0_dma_channel(unsigned int channel);
-extern bool stm32l0_dma_lock(unsigned int channel);
-extern void stm32l0_dma_unlock(unsigned int channel);
-extern bool stm32l0_dma_enable(unsigned int channel, stm32l0_dma_callback_t callback, void *context);
-extern void stm32l0_dma_disable(unsigned int channel);
-extern void stm32l0_dma_start(unsigned int channel, uint32_t tx_data, uint32_t rx_data, uint16_t xf_count, uint32_t option);
-extern uint16_t stm32l0_dma_stop(unsigned int channel);
-extern uint16_t stm32l0_dma_count(unsigned int channel);
-extern bool stm32l0_dma_done(unsigned int channel);
+extern void __stm32l0_dma_initialize(void);
+extern void stm32l0_dma_configure(uint8_t priority_1, uint8_t priority_2_3, uint8_t priority_4_5_6_7);
+extern uint8_t stm32l0_dma_priority(uint16_t channel);
+extern uint16_t stm32l0_dma_channel(uint16_t channel);
+extern bool stm32l0_dma_lock(uint16_t channel);
+extern void stm32l0_dma_unlock(uint16_t channel);
+extern bool stm32l0_dma_enable(uint16_t channel, stm32l0_dma_callback_t callback, void *context);
+extern void stm32l0_dma_disable(uint16_t channel);
+extern void stm32l0_dma_start(uint16_t channel, uint32_t tx_data, uint32_t rx_data, uint16_t xf_count, uint32_t option);
+extern uint16_t stm32l0_dma_stop(uint16_t channel);
+extern uint16_t stm32l0_dma_count(uint16_t channel);
+extern bool stm32l0_dma_done(uint16_t channel);
 
 #ifdef __cplusplus
 }
