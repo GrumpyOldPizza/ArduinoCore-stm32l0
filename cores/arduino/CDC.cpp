@@ -239,25 +239,28 @@ size_t CDC::write(const uint8_t *buffer, size_t size)
 
     if (!_tx_busy) {
         tx_size = _tx_count;
-        tx_read = _tx_read;
         
-        if (tx_size > (CDC_TX_BUFFER_SIZE - tx_read)) {
-            tx_size = (CDC_TX_BUFFER_SIZE - tx_read);
-        }
+        if (tx_size) {
+            tx_read = _tx_read;
         
-        if (tx_size > CDC_TX_PACKET_SIZE) {
-            tx_size = CDC_TX_PACKET_SIZE;
-        }
-        
-        _tx_size = tx_size;
-        _tx_busy = true;
-        
-        if (!stm32l0_usbd_cdc_transmit(_usbd_cdc, &_tx_data[tx_read], tx_size, (stm32l0_usbd_cdc_done_callback_t)CDC::_doneCallback, (void*)this)) {
-            _tx_busy = false;
-
-            _tx_size = 0;
-            _tx_count = 0;
-            _tx_read = _tx_write;
+            if (tx_size > (CDC_TX_BUFFER_SIZE - tx_read)) {
+                tx_size = (CDC_TX_BUFFER_SIZE - tx_read);
+            }
+            
+            if (tx_size > CDC_TX_PACKET_SIZE) {
+                tx_size = CDC_TX_PACKET_SIZE;
+            }
+            
+            _tx_size = tx_size;
+            _tx_busy = true;
+            
+            if (!stm32l0_usbd_cdc_transmit(_usbd_cdc, &_tx_data[tx_read], tx_size, (stm32l0_usbd_cdc_done_callback_t)CDC::_doneCallback, (void*)this)) {
+                _tx_busy = false;
+                
+                _tx_size = 0;
+                _tx_count = 0;
+                _tx_read = _tx_write;
+            }
         }
     }
 

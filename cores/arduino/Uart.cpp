@@ -239,9 +239,10 @@ size_t Uart::write(const uint8_t *buffer, size_t size)
 
     if (!_tx_busy) {
         tx_size = _tx_count;
-        tx_read = _tx_read;
         
         if (tx_size) {
+            tx_read = _tx_read;
+
             if (tx_size > (UART_TX_BUFFER_SIZE - tx_read)) {
                 tx_size = (UART_TX_BUFFER_SIZE - tx_read);
             }
