@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -34,6 +34,7 @@
 typedef struct _stm32l0_usbd_hid_device_t {
     struct _USBD_HandleTypeDef     *USBD;
     uint8_t                        tx_data[64];
+    uint32_t                       tx_count;
     volatile uint32_t              tx_busy;
 } stm32l0_usbd_hid_device_t;
 
@@ -82,45 +83,54 @@ const USBD_HID_ItfTypeDef stm32l0_usbd_hid_interface = {
 /* Transmission is done at the PENDSV/SVC level while the USB interrupt is disabled.
  * to avoid concurrency issues between CDC/HID/MSC and incoming interrupts.
  */
-static void stm32l0_usbd_hid_do_send_report(uint8_t *tx_data, uint32_t tx_count)
+static void stm32l0_usbd_hid_do_send_report(void)
 {
     NVIC_DisableIRQ(USB_IRQn);
 
     if (stm32l0_usbd_hid_device.USBD)
     {
-        USBD_HID_SendReport(stm32l0_usbd_hid_device.USBD, tx_data, tx_count);
+        USBD_HID_SendReport(stm32l0_usbd_hid_device.USBD, stm32l0_usbd_hid_device.tx_data, stm32l0_usbd_hid_device.tx_count);
         
         NVIC_EnableIRQ(USB_IRQn);
+    }
+    else
+    {
+        stm32l0_usbd_hid_device.tx_busy = 0;
     }
 }
 
 bool stm32l0_usbd_hid_send_report(uint8_t id, const uint8_t *data, uint32_t count)
 {
-    bool success = true;
-
     if (armv6m_atomic_swap(&stm32l0_usbd_hid_device.tx_busy, 1))
     {
         return false;
     }
     else
     {
-        stm32l0_usbd_hid_device.tx_data[0] = id;
         memcpy(&stm32l0_usbd_hid_device.tx_data[1], data, count);
 
+        stm32l0_usbd_hid_device.tx_data[0] = id;
+        stm32l0_usbd_hid_device.tx_count = count +1;
+        
         if (__get_IPSR() == 0)
         {
-            armv6m_svcall_2((uint32_t)&stm32l0_usbd_hid_do_send_report, (uint32_t)&stm32l0_usbd_hid_device.tx_data[0], (count+1));
+            armv6m_svcall_0((uint32_t)&stm32l0_usbd_hid_do_send_report);
         }
         else
         {
-            success = armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)stm32l0_usbd_hid_do_send_report, &stm32l0_usbd_hid_device.tx_data[0], (count+1));
+            armv6m_pendsv_raise(ARMV6M_PENDSV_SWI_USBD_HID_TRANSMIT);
         }
 
-        return success;
+        return true;
     }
 }
 
 bool stm32l0_usbd_hid_done()
 {
     return !stm32l0_usbd_hid_device.tx_busy;
+}
+
+void SWI_USBD_HID_TRANSMIT_IRQHandler(void)
+{
+    stm32l0_usbd_hid_do_send_report();
 }

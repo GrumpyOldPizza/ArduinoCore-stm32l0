@@ -367,7 +367,7 @@ bool stm32l0_usbd_cdc_enable(stm32l0_usbd_cdc_t *usbd_cdc, uint8_t *rx_data, uin
     }
     else
     {
-        armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)&stm32l0_usbd_cdc_rx_start, NULL, 0);
+        armv6m_pendsv_raise(ARMV6M_PENDSV_SWI_USBD_CDC_RECEIVE);
     }
 
     return true;
@@ -455,7 +455,7 @@ uint32_t stm32l0_usbd_cdc_input(stm32l0_usbd_cdc_t *usbd_cdc, uint8_t *rx_data, 
             }
             else
             {
-                armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)&stm32l0_usbd_cdc_rx_start, NULL, 0);
+                armv6m_pendsv_raise(ARMV6M_PENDSV_SWI_USBD_CDC_RECEIVE);
             }
         }
     }
@@ -465,8 +465,6 @@ uint32_t stm32l0_usbd_cdc_input(stm32l0_usbd_cdc_t *usbd_cdc, uint8_t *rx_data, 
 
 bool stm32l0_usbd_cdc_transmit(stm32l0_usbd_cdc_t *usbd_cdc, const uint8_t *tx_data, uint32_t tx_count, stm32l0_usbd_cdc_done_callback_t callback, void *context)
 {
-    bool success = true;
-
     if (usbd_cdc->state != STM32L0_USBD_CDC_STATE_READY)
     {
         return false;
@@ -488,10 +486,10 @@ bool stm32l0_usbd_cdc_transmit(stm32l0_usbd_cdc_t *usbd_cdc, const uint8_t *tx_d
     }
     else
     {
-        success = armv6m_pendsv_enqueue((armv6m_pendsv_routine_t)&stm32l0_usbd_cdc_tx_start, NULL, 0);
+        armv6m_pendsv_raise(ARMV6M_PENDSV_SWI_USBD_CDC_TRANSMIT);
     }
     
-    return success;
+    return true;
 }
 
 bool stm32l0_usbd_cdc_done(stm32l0_usbd_cdc_t *usbd_cdc)
@@ -499,10 +497,12 @@ bool stm32l0_usbd_cdc_done(stm32l0_usbd_cdc_t *usbd_cdc)
     return !usbd_cdc->tx_busy;
 }
 
-void stm32l0_usbd_cdc_poll(stm32l0_usbd_cdc_t *usbd_cdc)
+void SWI_USBD_CDC_RECEIVE_IRQHandler(void)
 {
-    if (stm32l0_usbd_cdc_device.USBD)
-    {
-        USB_IRQHandler();
-    }
+    stm32l0_usbd_cdc_rx_start();
+}
+
+void SWI_USBD_CDC_TRANSMIT_IRQHandler(void)
+{
+    stm32l0_usbd_cdc_tx_start();
 }
