@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -335,12 +335,12 @@ bool stm32l0_spi_release(stm32l0_spi_t *spi)
 
     SPI->CR1 &= ~SPI_CR1_SPE;
 
-    if (spi->rx_dma == stm32l0_dma_channel(spi->rx_dma))
+    if (stm32l0_dma_channel(spi->rx_dma))
     {
         stm32l0_dma_disable(spi->rx_dma);
     }
     
-    if (spi->tx_dma == stm32l0_dma_channel(spi->tx_dma))
+    if (stm32l0_dma_channel(spi->tx_dma))
     {
         stm32l0_dma_disable(spi->tx_dma);
     }
@@ -348,6 +348,8 @@ bool stm32l0_spi_release(stm32l0_spi_t *spi)
     stm32l0_system_periph_disable(STM32L0_SYSTEM_PERIPH_SPI1 + spi->instance);
 
     stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_RUN);
+
+    spi->state = STM32L0_SPI_STATE_READY;
 
     if (spi->mask)
     {
@@ -358,8 +360,6 @@ bool stm32l0_spi_release(stm32l0_spi_t *spi)
     {
         (*spi->lock_callback)(spi->lock_cookie, false);
     }
-
-    spi->state = STM32L0_SPI_STATE_READY;
 
     return true;
 }
@@ -375,7 +375,7 @@ __attribute__((optimize("O3"))) void stm32l0_spi_data(stm32l0_spi_t *spi, const 
     {
         if (rx_data)
         {
-            if ((xf_count <= 16) || (spi->rx_dma != stm32l0_dma_channel(spi->rx_dma)))
+            if ((xf_count <= 16) || !stm32l0_dma_channel(spi->rx_dma))
             {
                 if (xf_count == 1)
                 {
@@ -421,7 +421,7 @@ __attribute__((optimize("O3"))) void stm32l0_spi_data(stm32l0_spi_t *spi, const 
             }
             else
             {
-                if (spi->tx_dma != stm32l0_dma_channel(spi->tx_dma))
+	      if (!stm32l0_dma_channel(spi->tx_dma))
                 {
                     SPI->CR1 &= ~SPI_CR1_SPE;
                     SPI->CR2 = SPI_CR2_RXDMAEN;
@@ -488,7 +488,7 @@ __attribute__((optimize("O3"))) void stm32l0_spi_data(stm32l0_spi_t *spi, const 
         }
         else
         {
-            if ((xf_count <= 16) || (spi->tx_dma != stm32l0_dma_channel(spi->tx_dma)))
+            if ((xf_count <= 16) || !stm32l0_dma_channel(spi->tx_dma))
             {
                 if (xf_count == 1)
                 {
@@ -564,7 +564,7 @@ __attribute__((optimize("O3"))) void stm32l0_spi_data(stm32l0_spi_t *spi, const 
     {
         tx_default = 0xff;
 
-        if ((xf_count <= 16) || (spi->rx_dma != stm32l0_dma_channel(spi->rx_dma)))
+        if ((xf_count <= 16) || !stm32l0_dma_channel(spi->rx_dma))
         {
             if (xf_count == 1)
             {
@@ -608,7 +608,7 @@ __attribute__((optimize("O3"))) void stm32l0_spi_data(stm32l0_spi_t *spi, const 
         }
         else
         {
-            if (spi->tx_dma != stm32l0_dma_channel(spi->tx_dma))
+            if (!stm32l0_dma_channel(spi->tx_dma))
             {
                 SPI->CR1 &= ~SPI_CR1_SPE;
                 SPI->CR2 = SPI_CR2_RXDMAEN;
@@ -748,7 +748,7 @@ bool stm32l0_spi_receive(stm32l0_spi_t *spi, uint8_t *rx_data, uint32_t xf_count
         return false;
     }
 
-    if ((spi->rx_dma != stm32l0_dma_channel(spi->rx_dma)) || (spi->tx_dma != stm32l0_dma_channel(spi->tx_dma)))
+    if (!stm32l0_dma_channel(spi->rx_dma) || !stm32l0_dma_channel(spi->tx_dma))
     {
         return false;
     }
@@ -777,7 +777,7 @@ bool stm32l0_spi_transmit(stm32l0_spi_t *spi, const uint8_t *tx_data, uint32_t x
         return false;
     }
 
-    if ((spi->rx_dma != stm32l0_dma_channel(spi->rx_dma)) || (spi->tx_dma != stm32l0_dma_channel(spi->tx_dma)))
+    if (!stm32l0_dma_channel(spi->rx_dma) || !stm32l0_dma_channel(spi->tx_dma))
     {
         return false;
     }
@@ -801,7 +801,7 @@ bool stm32l0_spi_transfer(stm32l0_spi_t *spi, const uint8_t *tx_data, uint8_t *r
 {
     SPI_TypeDef *SPI = spi->SPI;
 
-    if ((spi->rx_dma != stm32l0_dma_channel(spi->rx_dma)) || (spi->tx_dma != stm32l0_dma_channel(spi->tx_dma)))
+    if (!stm32l0_dma_channel(spi->rx_dma) || !stm32l0_dma_channel(spi->tx_dma))
     {
         return false;
     }

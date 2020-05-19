@@ -156,7 +156,7 @@ static void USBD_VBUSChangedIrq(void)
             {
                 NVIC_DisableIRQ(USB_IRQn);
                 
-                USBD_DeInit(&USBD_Device);
+		USBD_DeInit(&USBD_Device);
 
                 if (usbd_state != USBD_STATE_SUSPENDED)
                 {
@@ -504,7 +504,7 @@ void HAL_PCD_ResetCallback(PCD_HandleTypeDef *hpcd)
  */
 void HAL_PCD_SuspendCallback(PCD_HandleTypeDef *hpcd)
 { 
-    if (usbd_state >= USBD_STATE_CONNECTED)
+    if (usbd_state == USBD_STATE_CONNECTED)
     {
         usbd_state = USBD_STATE_SUSPENDED;
 

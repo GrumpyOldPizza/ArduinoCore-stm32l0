@@ -30,7 +30,7 @@
 #include "stm32l0_dma.h"
 #include "stm32l0_system.h"
 
-#define STM32L0_DMA_CHANNEL_LOCKED               0x8000
+#define STM32L0_DMA_CHANNEL_LOCKED               0xf000
 
 extern void DMA1_Channel1_IRQHandler(void);
 extern void DMA1_Channel2_3_IRQHandler(void);
@@ -111,21 +111,31 @@ uint8_t stm32l0_dma_priority(uint16_t channel)
     }
 }
 
-uint16_t stm32l0_dma_channel(uint16_t channel)
+bool stm32l0_dma_channel(uint16_t channel)
 {
     uint32_t index, mask;
 
     index = channel & 7;
     mask = 1ul << index;
 
-    return ((stm32l0_dma_device.dma & mask) ? (stm32l0_dma_device.channels[index].channel & STM32L0_DMA_CHANNEL_MASK): STM32L0_DMA_CHANNEL_UNDEFINED);
+    if (channel == STM32L0_DMA_CHANNEL_NONE)
+    {
+	return false;
+    }
+    
+    if (!(stm32l0_dma_device.dma & mask))
+    {
+	return false;
+    }
+
+    return ((stm32l0_dma_device.channels[index].channel & STM32L0_DMA_CHANNEL_MASK) == channel);
 }
 
 bool stm32l0_dma_lock(uint16_t channel)
 {
     stm32l0_dma_t *dma = &stm32l0_dma_device.channels[channel & 7];
 
-    return (armv6m_atomic_cash(&dma->channel, STM32L0_DMA_CHANNEL_NONE, channel) == STM32L0_DMA_CHANNEL_NONE);
+    return (armv6m_atomic_cash(&dma->channel, STM32L0_DMA_CHANNEL_NONE, (STM32L0_DMA_CHANNEL_LOCKED | channel)) == STM32L0_DMA_CHANNEL_NONE);
 }
 
 void stm32l0_dma_unlock(uint16_t channel)

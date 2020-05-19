@@ -58,6 +58,7 @@ static const armv6m_pendsv_callback_t armv6m_pendsv_swi_callback[] = {
     SWI5_IRQHandler,
     SWI6_IRQHandler,
     SWI7_IRQHandler,
+    SWI8_IRQHandler,
     SWI9_IRQHandler,
     SWI10_IRQHandler,
     SWI11_IRQHandler,
@@ -163,18 +164,17 @@ bool armv6m_pendsv_enqueue(armv6m_pendsv_routine_t routine, void *context, uint3
 
 static __attribute__((used)) void armv6m_pendsv_swi_process(uint32_t mask)
 {
-    uint32_t index, bit;
+    uint32_t index;
 
     armv6m_atomic_and(&armv6m_pendsv_control.swi_pending, ~mask);
 
-    for (bit = 0x00000001, index = 0; mask; bit <<= 1, index++)
+    while (mask) 
     {
-        if (mask & bit)
-        {
-            (*armv6m_pendsv_swi_callback[index])();
-            
-            mask &= ~bit;
-        }
+        index = __builtin_ctz(mask);
+
+        mask &= ~(1ul << index); 
+
+        (*armv6m_pendsv_swi_callback[index])();
     }
 }
 
@@ -255,6 +255,7 @@ void SWI4_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
 void SWI5_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
 void SWI6_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
 void SWI7_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
+void SWI8_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
 void SWI9_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
 void SWI10_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));
 void SWI11_IRQHandler(void) __attribute__ ((weak, alias("Default_Handler")));

@@ -358,16 +358,16 @@ static void stm32l0_uart_start(stm32l0_uart_t *uart)
 #if defined(STM32L072xx) || defined(STM32L082xx)
     if ((uart->instance == STM32L0_UART_INSTANCE_USART4) || (uart->instance == STM32L0_UART_INSTANCE_USART5))
     {
-	stm32l0_system_lock(STM32L0_SYSTEM_LOCK_RUN);
+        stm32l0_system_lock(STM32L0_SYSTEM_LOCK_RUN);
     }
 #endif /* STM32L072xx || STM32L082xx */
     
     if (uart->instance == STM32L0_UART_INSTANCE_LPUART1)
     {
-	if ((RCC->CCIPR & (RCC_CCIPR_LPUART1SEL_1 | RCC_CCIPR_LPUART1SEL_0)) == RCC_CCIPR_LPUART1SEL_1)
-	{
-	    stm32l0_system_hsi16_enable();
-	}
+        if ((RCC->CCIPR & (RCC_CCIPR_LPUART1SEL_1 | RCC_CCIPR_LPUART1SEL_0)) == RCC_CCIPR_LPUART1SEL_1)
+        {
+            stm32l0_system_hsi16_enable();
+        }
     }
     
     if (uart->rx_dma != STM32L0_DMA_CHANNEL_NONE)
@@ -433,7 +433,7 @@ static void stm32l0_uart_start(stm32l0_uart_t *uart)
 
     /* Start DMA after the receiver is alive and flushed.
      */
-    if (uart->rx_dma == stm32l0_dma_channel(uart->rx_dma))
+    if (stm32l0_dma_channel(uart->rx_dma))
     {
         uart->rx_index = 0;
 
@@ -543,12 +543,12 @@ static void stm32l0_uart_stop(stm32l0_uart_t *uart)
         armv6m_atomic_and(&stm32l0_uart_device.wakeup, ~(1u << uart->instance));
     }
         
-    if (uart->rx_dma == stm32l0_dma_channel(uart->rx_dma))
+    if (stm32l0_dma_channel(uart->rx_dma))
     {
         stm32l0_dma_disable(uart->rx_dma);
     }
     
-    if (uart->tx_dma == stm32l0_dma_channel(uart->tx_dma))
+    if (stm32l0_dma_channel(uart->tx_dma))
     {
         stm32l0_dma_disable(uart->tx_dma);
     }
@@ -561,16 +561,16 @@ static void stm32l0_uart_stop(stm32l0_uart_t *uart)
 #if defined(STM32L072xx) || defined(STM32L082xx)
     if ((uart->instance == STM32L0_UART_INSTANCE_USART4) || (uart->instance == STM32L0_UART_INSTANCE_USART5))
     {
-	stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_RUN);
+        stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_RUN);
     }
 #endif /* STM32L072xx || STM32L082xx */
     
     if (uart->instance == STM32L0_UART_INSTANCE_LPUART1)
     {
-	if ((RCC->CCIPR & (RCC_CCIPR_LPUART1SEL_1 | RCC_CCIPR_LPUART1SEL_0)) == RCC_CCIPR_LPUART1SEL_1)
-	{
-	    stm32l0_system_hsi16_disable();
-	}
+        if ((RCC->CCIPR & (RCC_CCIPR_LPUART1SEL_1 | RCC_CCIPR_LPUART1SEL_0)) == RCC_CCIPR_LPUART1SEL_1)
+        {
+            stm32l0_system_hsi16_disable();
+        }
     }
     
     if (uart->rx_sequence)
@@ -997,7 +997,7 @@ static void stm32l0_uart_interrupt(stm32l0_uart_t *uart)
             {
                 stm32l0_system_lock(STM32L0_SYSTEM_LOCK_SLEEP);
 
-                if (uart->tx_dma == stm32l0_dma_channel(uart->tx_dma))
+                if (stm32l0_dma_channel(uart->tx_dma))
                 {
                     USART->CR3 |= USART_CR3_DMAT;
                     

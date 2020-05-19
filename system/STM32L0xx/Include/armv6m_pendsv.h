@@ -52,6 +52,7 @@ extern void SWI4_IRQHandler(void);
 extern void SWI5_IRQHandler(void);
 extern void SWI6_IRQHandler(void);
 extern void SWI7_IRQHandler(void);
+extern void SWI8_IRQHandler(void);
 extern void SWI9_IRQHandler(void);
 extern void SWI10_IRQHandler(void);
 extern void SWI11_IRQHandler(void);

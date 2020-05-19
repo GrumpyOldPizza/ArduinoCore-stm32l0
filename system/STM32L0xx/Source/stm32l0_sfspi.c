@@ -345,15 +345,15 @@ static void stm32l0_sfspi_callback(void *context, uint32_t notify)
 
             if (sfspi->state == STM32L0_SFSPI_STATE_READY)
             {
-		stm32l0_spi_acquire(sfspi->spi, 32000000, 0);
+                stm32l0_spi_acquire(sfspi->spi, 32000000, 0);
 
-		stm32l0_sfspi_select(sfspi);
+                stm32l0_sfspi_select(sfspi);
                 stm32l0_spi_data8(sfspi->spi, SFLASH_CMD_DPD);
                 stm32l0_sfspi_unselect(sfspi);
                 
-		stm32l0_spi_release(sfspi->spi);
+                stm32l0_spi_release(sfspi->spi);
 
-		sfspi->state = STM32L0_SFSPI_STATE_SLEEP;
+                sfspi->state = STM32L0_SFSPI_STATE_SLEEP;
             }
         }
     }
@@ -417,11 +417,11 @@ bool stm32l0_sfspi_initialize(stm32l0_spi_t *spi, const stm32l0_sfspi_params_t *
         else
         {
             sfspi->state = STM32L0_SFSPI_STATE_READY;
-	    
+            
             stm32l0_system_register(&stm32l0_sfspi.notify, stm32l0_sfspi_callback, (void*)&stm32l0_sfspi, STM32L0_SYSTEM_NOTIFY_SLEEP);
 
-	    dosfs_sflash_device.interface = &stm32l0_sfspi_interface;
-	    dosfs_sflash_device.context = sfspi;
+            dosfs_sflash_device.interface = &stm32l0_sfspi_interface;
+            dosfs_sflash_device.context = sfspi;
         }
     }
 

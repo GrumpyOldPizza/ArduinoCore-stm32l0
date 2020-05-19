@@ -92,9 +92,7 @@ enum {
 #define STM32L0_SYSTEM_LOCK_COUNT              7
 
 #define STM32L0_SYSTEM_REFERENCE_USB           0x00000001  /* force pclk1  >= 16MHz */
-#define STM32L0_SYSTEM_REFERENCE_I2C1          0x00000002  /* force sysclk >= 32MHz */
-#define STM32L0_SYSTEM_REFERENCE_I2C2          0x00000004  /* force pclk1  >=  4MHz */
-#define STM32L0_SYSTEM_REFERENCE_I2C3          0x00000008  /* force sysclk >= 32MHz */
+#define STM32L0_SYSTEM_REFERENCE_I2C2          0x00000002  /* force pclk1  >=  4MHz */
 
 #define STM32L0_SYSTEM_NOTIFY_CLOCKS           0x00000001
 #define STM32L0_SYSTEM_NOTIFY_SLEEP            0x00000002
