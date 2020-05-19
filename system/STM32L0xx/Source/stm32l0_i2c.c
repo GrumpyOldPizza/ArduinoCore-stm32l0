@@ -653,7 +653,7 @@ static void stm32l0_i2c_slave_address(stm32l0_i2c_t *i2c)
     I2C->ICR = I2C_ICR_ADDRCF;
 }
 
-static void stm32l0_i2c_interrupt(stm32l0_i2c_t *i2c)
+static __attribute__((optimize("O3"))) void stm32l0_i2c_interrupt(stm32l0_i2c_t *i2c)
 {
     I2C_TypeDef *I2C = i2c->I2C;
     stm32l0_i2c_transaction_t *transaction = i2c->xf_transaction;

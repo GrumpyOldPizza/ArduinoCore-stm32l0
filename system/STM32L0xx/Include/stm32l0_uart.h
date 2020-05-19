@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -64,10 +64,9 @@ enum {
 #define STM32L0_UART_OPTION_DATA_SIZE_8      0x00000008
 #define STM32L0_UART_OPTION_RTS              0x00000010
 #define STM32L0_UART_OPTION_CTS              0x00000020
-#define STM32L0_UART_OPTION_XONOFF           0x00000040
-#define STM32L0_UART_OPTION_WAKEUP           0x00000080
-#define STM32L0_UART_OPTION_RX_INVERT        0x00000100
-#define STM32L0_UART_OPTION_TX_INVERT        0x00000200
+#define STM32L0_UART_OPTION_WAKEUP           0x00000040
+#define STM32L0_UART_OPTION_RX_INVERT        0x00000080
+#define STM32L0_UART_OPTION_TX_INVERT        0x00000100
 
 #define STM32L0_UART_EVENT_NOISE             0x00000001
 #define STM32L0_UART_EVENT_PARITY            0x00000002
@@ -85,11 +84,7 @@ typedef void (*stm32l0_uart_done_callback_t)(void *context);
 #define STM32L0_UART_STATE_BUSY              2
 #define STM32L0_UART_STATE_READY             3
 #define STM32L0_UART_STATE_BREAK             4
-#define STM32L0_UART_STATE_SUSPENDED         5
-#define STM32L0_UART_STATE_SUSPENDED_BREAK   6
-#define STM32L0_UART_STATE_TRANSMIT          7
-#define STM32L0_UART_STATE_INJECT            8
-#define STM32L0_UART_STATE_WAIT              9
+#define STM32L0_UART_STATE_TRANSMIT          5
 
 typedef struct _stm32l0_uart_pins_t {
     uint16_t                      rx;
@@ -132,16 +127,12 @@ typedef struct _stm32l0_uart_t {
     volatile uint32_t             rx_count;
     volatile uint8_t              rx_sequence;
     volatile uint8_t              rx_enable;
-    volatile uint8_t              rx_xonoff;
     volatile uint8_t              rx_event;
+    volatile uint8_t              rq_break;
     stm32l0_uart_done_callback_t  tx_callback;
     void                          *tx_context;
     const uint8_t * volatile      tx_data;
     uint32_t                      tx_count;
-    volatile uint8_t              tx_xonoff;
-    volatile uint8_t              rq_suspend;
-    volatile uint8_t              rq_break;
-    volatile uint8_t              rq_inject;
 } stm32l0_uart_t;
 
 extern bool stm32l0_uart_create(stm32l0_uart_t *uart, const stm32l0_uart_params_t *params);
@@ -149,8 +140,6 @@ extern bool stm32l0_uart_destroy(stm32l0_uart_t *uart);
 extern bool stm32l0_uart_enable(stm32l0_uart_t *uart, uint8_t *rx_data, uint32_t rx_size, uint32_t baudrate, uint32_t option, stm32l0_uart_event_callback_t callback, void *context);
 extern bool stm32l0_uart_disable(stm32l0_uart_t *uart);
 extern bool stm32l0_uart_configure(stm32l0_uart_t *uart, uint32_t baudrate, uint32_t option);
-extern bool stm32l0_uart_suspend(stm32l0_uart_t *uart);
-extern bool stm32l0_uart_resume(stm32l0_uart_t *uart);
 extern bool stm32l0_uart_rts_enable(stm32l0_uart_t *uart, bool onoff);
 extern bool stm32l0_uart_cts_holding(stm32l0_uart_t *uart);
 extern bool stm32l0_uart_break_state(stm32l0_uart_t *uart, bool onoff);

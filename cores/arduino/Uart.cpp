@@ -86,7 +86,7 @@ void Uart::begin(unsigned long baudrate, uint32_t config, uint8_t *buffer, size_
         stm32l0_uart_disable(_uart);
     }
 
-    option = (_option & (STM32L0_UART_OPTION_RTS | STM32L0_UART_OPTION_CTS | STM32L0_UART_OPTION_XONOFF | STM32L0_UART_OPTION_WAKEUP)) | config;
+    option = (_option & (STM32L0_UART_OPTION_RTS | STM32L0_UART_OPTION_CTS | STM32L0_UART_OPTION_WAKEUP)) | config;
 
     _enabled = stm32l0_uart_enable(_uart, buffer, size, baudrate, option, (stm32l0_uart_event_callback_t)Uart::_eventCallback, (void*)this);
 
@@ -284,9 +284,10 @@ void Uart::setNonBlocking(bool enable)
 
 void Uart::setFlowControl(enum FlowControl mode)
 {
-    _option = ((_option & ~(STM32L0_UART_OPTION_RTS | STM32L0_UART_OPTION_CTS | STM32L0_UART_OPTION_XONOFF)) |
-               ((mode == 3) ? (STM32L0_UART_OPTION_RTS | STM32L0_UART_OPTION_CTS)
-                : ((mode == 4) ? (STM32L0_UART_OPTION_XONOFF) : 0)));
+    _option = ((_option & ~(STM32L0_UART_OPTION_RTS | STM32L0_UART_OPTION_CTS)) |
+               ((mode == 1) ? (STM32L0_UART_OPTION_RTS)
+                : ((mode == 2) ? (STM32L0_UART_OPTION_CTS)
+                   : ((mode == 3) ? (STM32L0_UART_OPTION_RTS | STM32L0_UART_OPTION_CTS) : 0))));
 
     stm32l0_uart_configure(_uart, _baudrate, _option);
 }
