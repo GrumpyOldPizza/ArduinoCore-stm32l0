@@ -28,6 +28,10 @@
 
 #pragma once
 
+#ifndef NULL
+#define NULL  0
+#endif
+
 class Callback {
 public:
     Callback() : _callback(NULL), _context(nullptr) {  }
