@@ -40,11 +40,7 @@ extern void USART2_IRQHandler(void);
 #if defined(STM32L072xx) || defined(STM32L082xx)
 extern void USART4_5_IRQHandler(void);
 #endif /* STM32L072xx || STM32L082xx */
-#if defined(STM32L082xx)
-extern void AES_RNG_LPUART1_IRQHandler(void);
-#else /* STM32L082xx */
-extern void RNG_LPUART1_IRQHandler(void);
-#endif /* STM32L082xx */
+extern void LPUART1_IRQHandler(void);
 
 typedef struct _stm32l0_uart_device_t {
     stm32l0_system_notify_t notify;
@@ -1301,18 +1297,7 @@ void USART4_5_IRQHandler(void)
 
 #endif /* STM32L072xx || STM32L082xx */
 
-#if defined(STM32L082xx)
-
-void AES_RNG_LPUART1_IRQHandler(void)
+void LPUART1_IRQHandler(void)
 {
     stm32l0_uart_interrupt(stm32l0_uart_device.instances[STM32L0_UART_INSTANCE_LPUART1]);
 }
-
-#else /* defined(STM32L082xx) */
-
-void RNG_LPUART1_IRQHandler(void)
-{
-    stm32l0_uart_interrupt(stm32l0_uart_device.instances[STM32L0_UART_INSTANCE_LPUART1]);
-}
-
-#endif /* defined(STM32L082xx) */

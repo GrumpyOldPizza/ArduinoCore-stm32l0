@@ -102,6 +102,8 @@ static uint8_t  USBD_CDC_MSC_DataIn (USBD_HandleTypeDef *pdev,
 static uint8_t  USBD_CDC_MSC_DataOut (USBD_HandleTypeDef *pdev, 
                                       uint8_t epnum);
 
+static uint8_t  USBD_CDC_MSC_SOF (USBD_HandleTypeDef *pdev); 
+
 static uint8_t  USBD_CDC_MSC_EP0_RxReady (USBD_HandleTypeDef *pdev);
 
 static const uint8_t  *USBD_CDC_MSC_GetFSCfgDesc (uint16_t *length);
@@ -147,7 +149,7 @@ static const USBD_ClassTypeDef  USBD_CDC_MSC_CLASS =
   USBD_CDC_MSC_DataIn,
   USBD_CDC_MSC_DataOut,
 #if (USBD_SOF_ENABLE == 1)
-  NULL,
+  USBD_CDC_MSC_SOF,
 #endif  
   NULL,
   NULL,     
@@ -975,6 +977,11 @@ static uint8_t  USBD_CDC_MSC_DataOut (USBD_HandleTypeDef *pdev, uint8_t epnum)
     {
       return (USBD_CDC_DataOut(pdev, epnum));
     }
+}
+
+static uint8_t  USBD_CDC_MSC_SOF (USBD_HandleTypeDef *pdev)
+{      
+  return USBD_CDC_SOF(pdev);
 }
 
 

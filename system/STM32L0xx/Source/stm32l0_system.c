@@ -37,6 +37,11 @@
 #undef abs
 #define abs(_i)  (((_i) >= 0) ? (_i) : -(_i))
 
+extern uint32_t __StackTop;
+
+#define STM32L0_CRASH_SIGNATURE_DATA    0xfeeb6667
+#define STM32L0_CRASH_SIGNATURE_ADDRESS 0x20000000
+
 uint32_t SystemCoreClock = 16000000;
 
 typedef struct _stm32l0_system_device_t {
@@ -58,6 +63,7 @@ typedef struct _stm32l0_system_device_t {
     volatile uint32_t         reference;
     volatile uint32_t         events;
     stm32l0_rtc_timer_t       timeout;
+    stm32l0_system_fatal_callback_t callback;
 } stm32l0_system_device_t;
 
 static stm32l0_system_device_t stm32l0_system_device;
@@ -310,7 +316,7 @@ void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, ui
         
         if (PWR->CSR & PWR_CSR_WUF)
         {
-            if (RTC->ISR & (RTC_ISR_ALRAF | RTC_ISR_ALRBF))
+            if (RTC->ISR & (RTC_ISR_ALRAF | RTC_ISR_ALRBF | RTC_ISR_TAMP1F | RTC_ISR_TAMP2F))
             {
                 if (RTC->ISR & RTC_ISR_ALRAF)
                 {
@@ -321,7 +327,17 @@ void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, ui
                 {
                     stm32l0_system_device.wakeup |= STM32L0_SYSTEM_WAKEUP_TIMEOUT;
                 }
-            }
+
+		if (RTC->ISR & RTC_ISR_TAMP1F)
+                {
+                    stm32l0_system_device.wakeup |= STM32L0_SYSTEM_WAKEUP_TAMP1;
+                }
+
+		if (RTC->ISR & RTC_ISR_TAMP2F)
+                {
+                    stm32l0_system_device.wakeup |= STM32L0_SYSTEM_WAKEUP_TAMP2;
+                }
+	    }
             else
             {
                 stm32l0_system_device.wakeup |= STM32L0_SYSTEM_WAKEUP_PIN;
@@ -338,41 +354,52 @@ void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, ui
             stm32l0_system_device.wakeup |= STM32L0_SYSTEM_WAKEUP_WATCHDOG;
         }
         
-        if (RCC->CSR & (RCC_CSR_FWRSTF | RCC_CSR_SFTRSTF | RCC_CSR_LPWRRSTF | RCC_CSR_OBLRSTF | RCC_CSR_PINRSTF))
+        if (RCC->CSR & (RCC_CSR_FWRSTF | RCC_CSR_SFTRSTF | RCC_CSR_LPWRRSTF | RCC_CSR_OBLRSTF | RCC_CSR_PORRSTF))
         {
             stm32l0_system_device.wakeup |= STM32L0_SYSTEM_WAKEUP_RESET;
         }
     }
     else
     {
-        stm32l0_system_device.reset = STM32L0_SYSTEM_RESET_POWERON;
+        stm32l0_system_device.reset = STM32L0_SYSTEM_RESET_EXTERNAL;
         stm32l0_system_device.wakeup = STM32L0_SYSTEM_WAKEUP_NONE;
-        
-        if (RCC->CSR & (RCC_CSR_IWDGRSTF | RCC_CSR_WWDGRSTF))
+
+        if (RCC->CSR & RCC_CSR_SFTRSTF)
         {
-            stm32l0_system_device.reset = STM32L0_SYSTEM_RESET_WATCHDOG;
+            if (*((volatile uint32_t*)STM32L0_CRASH_SIGNATURE_ADDRESS) == STM32L0_CRASH_SIGNATURE_DATA)
+            {
+                stm32l0_system_device.reset = STM32L0_SYSTEM_RESET_CRASH;
+            }
+            else
+            {
+                stm32l0_system_device.reset = STM32L0_SYSTEM_RESET_SOFTWARE;
+            }
         }
-        
-        else if (RCC->CSR & RCC_CSR_FWRSTF)
+        else
         {
-            stm32l0_system_device.reset = STM32L0_SYSTEM_RESET_FIREWALL;
-        }
-        
-        else if (RCC->CSR & RCC_CSR_SFTRSTF)
-        {
-            stm32l0_system_device.reset = STM32L0_SYSTEM_RESET_SOFTWARE;
-        }
-        
-        else if (RCC->CSR & (RCC_CSR_LPWRRSTF | RCC_CSR_OBLRSTF))
-        {
-            stm32l0_system_device.reset = STM32L0_SYSTEM_RESET_INTERNAL;
-        }
-        
-        else if (RCC->CSR & RCC_CSR_PINRSTF)
-        {
-            stm32l0_system_device.reset = STM32L0_SYSTEM_RESET_EXTERNAL;
+            if (RCC->CSR & (RCC_CSR_IWDGRSTF | RCC_CSR_WWDGRSTF))
+            {
+                stm32l0_system_device.reset = STM32L0_SYSTEM_RESET_WATCHDOG;
+            }
+            
+            else if (RCC->CSR & RCC_CSR_FWRSTF)
+            {
+                stm32l0_system_device.reset = STM32L0_SYSTEM_RESET_FIREWALL;
+            }
+            
+            else if (RCC->CSR & (RCC_CSR_LPWRRSTF | RCC_CSR_OBLRSTF))
+            {
+                stm32l0_system_device.reset = STM32L0_SYSTEM_RESET_INTERNAL;
+            }
+            
+            else if (RCC->CSR & RCC_CSR_PORRSTF)
+            {
+                stm32l0_system_device.reset = STM32L0_SYSTEM_RESET_POWERON;
+            }
         }
     }
+
+    *((volatile uint32_t*)STM32L0_CRASH_SIGNATURE_ADDRESS) = ~STM32L0_CRASH_SIGNATURE_DATA;
     
     RCC->CSR |= RCC_CSR_RMVF;
     RCC->CSR &= ~RCC_CSR_RMVF;
@@ -1194,10 +1221,14 @@ void stm32l0_system_swd_enable(void)
     DBGMCU->APB2FZ = 0;
 
     __stm32l0_gpio_swd_enable();
+
+    stm32l0_system_reference(STM32L0_SYSTEM_REFERENCE_SWD);
 }
 
 void stm32l0_system_swd_disable(void)
 {
+    stm32l0_system_unreference(STM32L0_SYSTEM_REFERENCE_SWD);
+
     __stm32l0_gpio_swd_disable();
 
     armv6m_atomic_or(&RCC->APB2ENR, RCC_APB2ENR_DBGEN);
@@ -1551,13 +1582,6 @@ void stm32l0_system_standby(uint32_t control, uint32_t timeout)
     {
         PWR->CSR |= PWR_CSR_EWUP2;
     }
-
-#if defined(STM32L072xx)
-    if (control & STM32L0_SYSTEM_CONTROL_WKUP3_RISING)
-    {
-        PWR->CSR |= PWR_CSR_EWUP3;
-    }
-#endif /* STM32L072xx */
     
     /* Enable the low power voltage regulator */
     PWR->CR |= PWR_CR_LPSDSR;
@@ -1583,6 +1607,39 @@ void stm32l0_system_standby(uint32_t control, uint32_t timeout)
     while (1)
     {
         __WFE();
+    }
+}
+
+void stm32l0_system_hook(stm32l0_system_fatal_callback_t callback)
+{
+    stm32l0_system_device.callback = callback;
+}
+
+void stm32l0_system_fatal(void)
+{
+    __disable_irq();
+
+    __set_MSP( (uint32_t)&__StackTop );
+    __set_PSP( (uint32_t)&__StackTop );
+        
+    while (stm32l0_system_device.callback)
+    {
+        (*stm32l0_system_device.callback)();
+    }
+
+    if (stm32l0_system_device.reference & STM32L0_SYSTEM_REFERENCE_SWD)
+    {
+        __BKPT();
+    }
+
+    *((volatile uint32_t*)STM32L0_CRASH_SIGNATURE_ADDRESS) = STM32L0_CRASH_SIGNATURE_DATA;
+    
+    stm32l0_rtc_reset();
+
+    NVIC_SystemReset();
+    
+    while (1)
+    {
     }
 }
 
@@ -1622,3 +1679,44 @@ void stm32l0_system_dfu(void)
 static void __empty() { }
 
 void __stm32l0_eeprom_initialize(void) __attribute__ ((weak, alias("__empty")));
+
+static void __attribute__((naked)) Default_Handler(void)
+{
+    stm32l0_system_fatal();
+}
+
+void NMI_Handler(void) __attribute__ ((weak, alias("Default_Handler")));
+void HardFault_Handler(void) __attribute__ ((weak, alias("Default_Handler")));
+void SVC_Handler(void) __attribute__ ((weak, alias("Default_Handler")));
+void PendSV_Handler(void) __attribute__ ((weak, alias("Default_Handler")));
+void SysTick_Handler(void) __attribute__ ((weak, alias("Default_Handler")));
+void WWDG_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void PVD_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void RTC_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void FLASH_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void RCC_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void EXTI0_1_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void EXTI2_3_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void EXTI4_15_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void TSC_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void DMA1_Channel1_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void DMA1_Channel2_3_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void DMA1_Channel4_5_6_7_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void ADC1_COMP_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void LPTIM1_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void USART4_5_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void TIM2_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void TIM3_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void TIM6_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void TIM7_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void TIM21_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void I2C3_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void TIM22_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void I2C1_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void I2C2_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void SPI1_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void SPI2_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void USART1_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void USART2_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void LPUART1_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void USB_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));

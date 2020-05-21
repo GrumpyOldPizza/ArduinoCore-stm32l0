@@ -68,7 +68,6 @@ extern void USBD_Teardown(void);
 extern void USBD_Attach(void);
 extern void USBD_Detach(void);
 extern void USBD_Wakeup(void);
-extern void USBD_Poll(void);
 extern bool USBD_Attached(void);
 extern bool USBD_Connected(void);
 extern bool USBD_Configured(void);

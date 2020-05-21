@@ -36,7 +36,7 @@ extern void TIM2_IRQHandler(void);
 #if defined(STM32L072xx) || defined(STM32L082xx)
 extern void TIM3_IRQHandler(void);
 #endif /* STM32L072xx || STM32L082xx */
-extern void TIM6_DAC_IRQHandler(void);
+extern void TIM6_IRQHandler(void);
 #if defined(STM32L072xx) || defined(STM32L082xx)
 extern void TIM7_IRQHandler(void);
 #endif /* STM32L072xx || STM32L082xx */
@@ -67,7 +67,7 @@ static const IRQn_Type stm32l0_timer_xlate_IRQn[STM32L0_TIMER_INSTANCE_COUNT] = 
 #if defined(STM32L072xx) || defined(STM32L082xx)
     TIM3_IRQn,
 #endif /* STM32L072xx || STM32L082xx */
-    TIM6_DAC_IRQn,
+    TIM6_IRQn,
 #if defined(STM32L072xx) || defined(STM32L082xx)
     TIM7_IRQn,
 #endif /* STM32L072xx || STM32L082xx */
@@ -572,7 +572,7 @@ void TIM3_IRQHandler(void)
 
 #endif /* STM32L072xx || STM32L082xx */
 
-void TIM6_DAC_IRQHandler(void)
+void TIM6_IRQHandler(void)
 {
     stm32l0_timer_interrupt(stm32l0_timer_device.instances[STM32L0_TIMER_INSTANCE_TIM6]);
 }

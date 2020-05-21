@@ -10,7 +10,7 @@ CFLAGS   = -mcpu=cortex-m0plus -mthumb -c -g -Os $(WARNINGS) -std=c99 -ffunction
 ASFLAGS  = -c -g -x assembler-with-cpp $(EXTRAS) $(DEFINES) $(INCLUDES)
 WARNINGS = -Wall -Wextra -Wno-unused-parameter
 EXTRAS   = -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft
-DEFINES  = -DUSBD_SOF_ENABLE=0 -DUSBD_LPM_ENABLE=0 -DUSBD_BCD_ENABLE=0
+DEFINES  = -DUSBD_SOF_ENABLE=1 -DUSBD_LPM_ENABLE=0 -DUSBD_BCD_ENABLE=0
 INCLUDES = \
 	-I../../../system/CMSIS/Include \
 	-I../../../system/CMSIS/Device/ST/STM32L0xx/Include \

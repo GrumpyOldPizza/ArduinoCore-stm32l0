@@ -56,12 +56,12 @@
 #define STM32L0_GPIO_PUPD_NONE                  0x0000
 #define STM32L0_GPIO_PUPD_PULLUP                0x0020
 #define STM32L0_GPIO_PUPD_PULLDOWN              0x0040
-#define STM32L0_GPIO_PARK_SHIFT                 7
-#define STM32L0_GPIO_PARK_MASK                  0x0180
+#define STM32L0_GPIO_PARK_SHIFT                 8
+#define STM32L0_GPIO_PARK_MASK                  0x0300
 #define STM32L0_GPIO_PARK_NONE                  0x0000
-#define STM32L0_GPIO_PARK_PULLUP                0x0080
-#define STM32L0_GPIO_PARK_PULLDOWN              0x0100
-#define STM32L0_GPIO_PARK_HIZ                   0x0180
+#define STM32L0_GPIO_PARK_PULLUP                0x0100
+#define STM32L0_GPIO_PARK_PULLDOWN              0x0200
+#define STM32L0_GPIO_PARK_HIZ                   0x0300
 
 #if defined(STM32L052xx)
 

@@ -28,14 +28,6 @@
 
 #include "stm32l0_exti.h"
 #include "stm32l0_gpio.h"
-#include "stm32l0_system.h"
-
-extern void EXTI0_1_IRQHandler(void);
-extern void EXTI2_3_IRQHandler(void);
-extern void EXTI4_15_IRQHandler(void);
-
-extern void SPI1_IRQHandler(void);
-extern void SPI2_IRQHandler(void);
 
 typedef struct _stm32l0_exti_device_t {
     uint16_t                events;
@@ -51,23 +43,6 @@ static stm32l0_exti_device_t stm32l0_exti_device;
 
 void __stm32l0_exti_initialize(void)
 {
-    /* set default IMR/RTSR/FTSR
-     *
-     * 16 * PVD
-     * 17 * RTC alarm
-     * 19 * RTC tamper/timestamp, CCS_LSE
-     * 20 * RTC wakeup timer
-     * 29 * LPTIM1
-     *
-     * I2C needs to be done in driver (enable)
-     * USART/LPUART needs to be done in driver (enable)
-     * COMP1/COMP2 needs to be done in driver (enable, polarity)
-     * USB needs to be done in driver (enable)
-     * GPIO needs to be done in driver (enable, polarity)
-     *
-     * Use direct ones as default ? (I2C/USART/LPUART remove ?)
-     */
-    
     stm32l0_exti_device.events = 0;
     stm32l0_exti_device.mask = ~0;
     stm32l0_exti_device.nowakeup = 0;

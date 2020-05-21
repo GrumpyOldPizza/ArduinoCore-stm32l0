@@ -118,12 +118,14 @@ static void USBD_VBUSTimeoutIrq(void)
                 usbd_state = USBD_STATE_STARTED;
                 
                 stm32l0_system_lock(STM32L0_SYSTEM_LOCK_RUN);
-                
+
                 USBD_Init(&USBD_Device, &CDC_MSC_Desc, 0);
                 
                 (*USBD_ClassInitialize)(&USBD_Device);
                 
                 USBD_Start(&USBD_Device);
+
+                stm32l0_system_hook(USB_IRQHandler);
             }
         }
     }
@@ -154,9 +156,11 @@ static void USBD_VBUSChangedIrq(void)
 
             if (usbd_state >= USBD_STATE_STARTED)
             {
+                stm32l0_system_hook(NULL);
+
                 NVIC_DisableIRQ(USB_IRQn);
                 
-		USBD_DeInit(&USBD_Device);
+                USBD_DeInit(&USBD_Device);
 
                 if (usbd_state != USBD_STATE_SUSPENDED)
                 {
@@ -336,14 +340,6 @@ void USBD_Wakeup(void)
         NVIC_EnableIRQ(USB_IRQn);
 
         stm32l0_exti_unblock(usbd_mask_vbus);
-    }
-}
-
-void USBD_Poll(void)
-{
-    if (USBD_IRQHandler)
-    {
-        (*USBD_IRQHandler)(&hpcd_USB);
     }
 }
 
@@ -614,7 +610,7 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
     hpcd_USB.Init.phy_itface = PCD_PHY_EMBEDDED;
     hpcd_USB.Init.low_power_enable = 1;
 #if (USBD_SOF_ENABLE == 1)
-    hpcd_USB.Init.Sof_enable = 0;
+    hpcd_USB.Init.Sof_enable = 1;
 #endif
 #if (USBD_LPM_ENABLE == 1)
     hpcd_USB.Init.lpm_enable = 0;

@@ -36,10 +36,10 @@ extern "C" {
 typedef void (*armv6m_pendsv_callback_t)(void);
 typedef void (*armv6m_pendsv_routine_t)(void *context, uint32_t data);
 
-extern void armv6m_pendsv_initialize(void);
-extern void armv6m_pendsv_notify(armv6m_pendsv_callback_t callback);
-extern bool armv6m_pendsv_enqueue(armv6m_pendsv_routine_t routine, void *context, uint32_t data);
+extern void __armv6m_pendsv_initialize(void);
 
+extern void armv6m_pendsv_hook(armv6m_pendsv_callback_t callback);
+extern bool armv6m_pendsv_enqueue(armv6m_pendsv_routine_t routine, void *context, uint32_t data);
 extern bool armv6m_pendsv_raise(uint32_t index);
 extern void armv6m_pendsv_block(uint32_t mask);
 extern void armv6m_pendsv_unblock(uint32_t mask);

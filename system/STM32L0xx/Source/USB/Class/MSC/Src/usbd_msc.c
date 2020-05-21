@@ -130,9 +130,9 @@ uint8_t USBD_MSC_Init(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
 {
     USBD_MSC_BOT_HandleTypeDef *hmsc = &USBD_MSC_Data;
 
-    if (!USBD_MSC_Work.callback)
+    if (!USBD_MSC_Work.callback.routine)
     {
-        armv6m_work_create(&USBD_MSC_Work, (armv6m_work_callback_t)USBD_MSC_Process, pdev);
+        armv6m_work_create(&USBD_MSC_Work, (armv6m_core_routine_t)USBD_MSC_Process, pdev);
     }
 
     hmsc->max_lun = 0;

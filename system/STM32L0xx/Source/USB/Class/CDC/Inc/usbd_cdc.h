@@ -107,7 +107,7 @@ typedef struct _USBD_CDC_Itf
   void (* Control)       (uint8_t, uint8_t * , uint16_t);   
   void (* RxReady)       (uint8_t *, uint32_t);  
   void (* TxDone)        (void);  
-
+  void (* SOF)           (void);  
 }USBD_CDC_ItfTypeDef;
 
 
@@ -180,6 +180,8 @@ uint8_t  USBD_CDC_DataIn (USBD_HandleTypeDef *pdev,
 uint8_t  USBD_CDC_DataOut (USBD_HandleTypeDef *pdev, 
 			   uint8_t epnum);
 
+uint8_t  USBD_CDC_SOF (USBD_HandleTypeDef *pdev);
+   
 uint8_t  USBD_CDC_EP0_RxReady (USBD_HandleTypeDef *pdev);
 
 

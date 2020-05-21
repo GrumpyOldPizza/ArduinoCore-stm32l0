@@ -33,8 +33,6 @@
 #include "stm32l0_exti.h"
 #include "stm32l0_system.h"
 
-extern void RTC_IRQHandler(void);
-
 /*******************************************************************************************************************/
 
 typedef void (*stm32l0_rtc_alarm_routine_t)(void);
@@ -1618,18 +1616,18 @@ void stm32l0_rtc_standby(uint32_t control, uint32_t timeout)
         RTC->ISR = ~(RTC_ISR_TSF | RTC_ISR_WUTF | RTC_ISR_ALRBF | RTC_ISR_ALRAF | RTC_ISR_INIT);
     }
     
-    if (control & STM32L0_SYSTEM_CONTROL_WKUP1_RISING)
-    {
-        RTC->TAMPCR &= ~(RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2E);
-
-        RTC->ISR = ~(RTC_ISR_TAMP2F | RTC_ISR_INIT);
-    }
-    
-    if (control & STM32L0_SYSTEM_CONTROL_WKUP2_RISING)
+    if (!(control & STM32L0_SYSTEM_CONTROL_RTC_TAMP1) || (control & STM32L0_SYSTEM_CONTROL_WKUP2_RISING))
     {
         RTC->TAMPCR &= ~(RTC_TAMPCR_TAMP1IE | RTC_TAMPCR_TAMP1E);
 
         RTC->ISR = ~(RTC_ISR_TAMP1F | RTC_ISR_INIT);
+    }
+
+    if (!(control & STM32L0_SYSTEM_CONTROL_RTC_TAMP2) || (control & STM32L0_SYSTEM_CONTROL_WKUP1_RISING))
+    {
+        RTC->TAMPCR &= ~(RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2E);
+
+        RTC->ISR = ~(RTC_ISR_TAMP2F | RTC_ISR_INIT);
     }
 
     if (timeout)

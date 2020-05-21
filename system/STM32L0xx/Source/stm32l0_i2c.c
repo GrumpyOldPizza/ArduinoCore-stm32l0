@@ -463,6 +463,7 @@ static void stm32l0_i2c_master_check(stm32l0_i2c_t *i2c)
             do
             {
                 transaction = NULL;
+                pp_transaction = NULL;
                 
                 for (pp_entry = &i2c->xf_queue, entry = *pp_entry; entry; pp_entry = &entry->next, entry = *pp_entry) 
                 {

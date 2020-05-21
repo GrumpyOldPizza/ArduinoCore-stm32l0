@@ -35,11 +35,6 @@ extern "C" {
 #endif
 
 #if defined(USBCON)
-void USBD_Poll(void) __attribute__((weak));
-void USBD_Poll(void) { };
-#endif
-
-#if defined(USBCON)
 stm32l0_uart_t g_Serial1;
 extern const stm32l0_uart_params_t g_Serial1Params;
 #else
@@ -56,16 +51,6 @@ extern const stm32l0_i2c_params_t g_WireParams;
 extern const stm32l0_sfspi_params_t g_SFSPIParams;
 
 extern const stm32l0_sdspi_params_t g_SDSPIParams;
-
-void HardFault_Handler(void)
-{
-    while (1)
-    {
-#if defined(USBCON)
-	USBD_Poll();
-#endif
-    }
-}
 
 int g_swdStatus = 0;
 

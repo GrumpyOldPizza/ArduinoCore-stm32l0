@@ -119,6 +119,8 @@ uint8_t  USBD_CDC_DataIn (USBD_HandleTypeDef *pdev,
 uint8_t  USBD_CDC_DataOut (USBD_HandleTypeDef *pdev, 
 			   uint8_t epnum);
 
+uint8_t  USBD_CDC_SOF (USBD_HandleTypeDef *pdev);
+
 uint8_t  USBD_CDC_EP0_RxReady (USBD_HandleTypeDef *pdev);
 
 /**
@@ -325,6 +327,13 @@ uint8_t  USBD_CDC_DataOut (USBD_HandleTypeDef *pdev, uint8_t epnum)
   NAKed till the end of the application Xfer */
 
   ((const USBD_CDC_ItfTypeDef *)pdev->pUserData[0])->RxReady(hcdc->RxBuffer, USBD_LL_GetRxDataSize (pdev, epnum));
+
+  return USBD_OK;
+}
+
+uint8_t  USBD_CDC_SOF (USBD_HandleTypeDef *pdev)
+{      
+  ((const USBD_CDC_ItfTypeDef *)pdev->pUserData[0])->SOF();
 
   return USBD_OK;
 }

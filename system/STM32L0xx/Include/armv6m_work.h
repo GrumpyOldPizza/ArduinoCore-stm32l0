@@ -33,24 +33,24 @@
 extern "C" {
 #endif
 
-typedef void (*armv6m_work_callback_t)(void *context);
-
 typedef struct _armv6m_work_t {
     struct _armv6m_work_t * volatile next;
-    armv6m_work_callback_t           callback;
-    void                             *context;
+    armv6m_core_callback_t           callback;
 } armv6m_work_t;
 
-#define ARMV6M_WORK_INIT(_callback, _context) {	        \
-    .callback    = (armv6m_work_callback_t)(_callback),	\
-    .context     = (void*)(_context),			\
+#define ARMV6M_WORK_INIT(_routine, _context) {	           \
+    .callback.routine = (armv6m_core_routine_t)(_routine), \
+    .callback.context = (void*)(_context),	  	   \
 }
 
-extern void armv6m_work_initialize(void);
-extern void armv6m_work_create(armv6m_work_t *work, armv6m_work_callback_t callback, void *context);
+extern void __armv6m_work_initialize(void);
+
+extern void armv6m_work_create(armv6m_work_t *work, armv6m_core_routine_t routine, void *context);
 extern bool armv6m_work_destory(armv6m_work_t *work);
 extern bool armv6m_work_submit(armv6m_work_t *work);
-    
+extern void armv6m_work_block(void);
+extern void armv6m_work_unblock(void);
+  
 #ifdef __cplusplus
 }
 #endif

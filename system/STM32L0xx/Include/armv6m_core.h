@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -33,6 +33,15 @@
 extern "C" {
 #endif
 
+#define ARMV6M_IRQ_PRIORITY_CRITICAL  0
+#define ARMV6M_IRQ_PRIORITY_HIGH      1
+#define ARMV6M_IRQ_PRIORITY_MEDIUM    2
+#define ARMV6M_IRQ_PRIORITY_LOW       3
+
+#define ARMV6M_IRQ_PRIORITY_SYSTICK   1
+#define ARMV6M_IRQ_PRIORITY_PENDSV    3
+#define ARMV6M_IRQ_PRIORITY_SVCALL    3
+  
 #define Reset_IRQn        ((IRQn_Type)-16)
 #define NMI_IRQn          ((IRQn_Type)-14)
 #define HardFault_IRQn    ((IRQn_Type)-13)
@@ -63,11 +72,12 @@ static inline IRQn_Type __current_irq(void)
     return (IRQn_Type)(__get_IPSR() - 16);
 }
 
-#define ARMV6M_IRQ_PRIORITY_CRITICAL  0
-#define ARMV6M_IRQ_PRIORITY_HIGH      1
-#define ARMV6M_IRQ_PRIORITY_MEDIUM    2
-#define ARMV6M_IRQ_PRIORITY_LOW       3
-
+extern void NMI_Handler(void);
+extern void HardFault_Handler(void);
+extern void SVC_Handler(void);
+extern void PendSV_Handler(void);
+extern void SysTick_Handler(void);
+  
 extern void armv6m_core_initialize(void);
 extern void armv6m_core_udelay(uint32_t udelay);
 

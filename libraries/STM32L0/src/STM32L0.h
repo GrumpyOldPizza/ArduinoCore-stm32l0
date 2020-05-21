@@ -42,9 +42,11 @@
 
 #define WAKEUP_PIN           0x00000001
 #define WAKEUP_ALARM         0x00000002
-#define WAKEUP_TIMEOUT       0x00000004
-#define WAKEUP_WATCHDOG      0x00000008
-#define WAKEUP_RESET         0x00000010
+#define WAKEUP_TAMP1         0x00000004
+#define WAKEUP_TAMP2         0x00000008
+#define WAKEUP_TIMEOUT       0x00000010
+#define WAKEUP_WATCHDOG      0x00000020
+#define WAKEUP_RESET         0x00000040
 
 #define FLASHSTART           ((uint32_t)(&__FlashBase))
 #define FLASHEND             ((uint32_t)(&__FlashLimit))
@@ -81,8 +83,9 @@ public:
 
  public:
     void  stop(uint32_t timeout = 0xffffffff) __attribute__((deprecated("use STM32L0.deepsleep() instead"))) { deepsleep(timeout); }
+#if defined(USBCON)
     bool  getVBUS()  __attribute__((deprecated("use USBDevice.attached() instead"))) { return USBDevice.attached(); }
-    
+#endif    
 };
 
 extern STM32L0Class STM32L0;

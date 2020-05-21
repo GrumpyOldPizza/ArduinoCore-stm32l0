@@ -1147,7 +1147,7 @@ HAL_StatusTypeDef HAL_PCD_ActivateRemoteWakeup(PCD_HandleTypeDef *hpcd)
   */
 HAL_StatusTypeDef HAL_PCD_DeActivateRemoteWakeup(PCD_HandleTypeDef *hpcd)
 {
-#if (USBD_SOF_ENABLE == 1)
+#if (USBD_LPM_ENABLE == 1)
   if (hpcd->Init.lpm_enable ==1)
   {
     /* Release L1 Resume */
