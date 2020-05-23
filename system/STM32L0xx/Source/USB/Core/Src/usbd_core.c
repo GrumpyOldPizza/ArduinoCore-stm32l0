@@ -481,7 +481,6 @@ USBD_StatusTypeDef USBD_LL_Resume(USBD_HandleTypeDef  *pdev)
   return USBD_OK;
 }
 
-#if (USBD_SOF_ENABLE == 1)
 /**
 * @brief  USBD_SOF 
 *         Handle SOF event
@@ -500,7 +499,6 @@ USBD_StatusTypeDef USBD_LL_SOF(USBD_HandleTypeDef  *pdev)
   }
   return USBD_OK;
 }
-#endif
 
 /**
 * @brief  USBD_IsoINIncomplete 

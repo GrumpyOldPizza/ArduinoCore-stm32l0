@@ -467,7 +467,6 @@ void HAL_PCD_DataInStageCallback(PCD_HandleTypeDef *hpcd, uint8_t epnum)
     USBD_LL_DataInStage(hpcd->pData, epnum, hpcd->IN_ep[epnum].xfer_buff);
 }
 
-#if (USBD_SOF_ENABLE == 1)
 /**
   * @brief  SOF callback.
   * @param  hpcd: PCD handle
@@ -477,7 +476,6 @@ void HAL_PCD_SOFCallback(PCD_HandleTypeDef *hpcd)
 {
     USBD_LL_SOF(hpcd->pData);
 }
-#endif
 
 /**
   * @brief  Reset callback.
@@ -609,9 +607,7 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
     hpcd_USB.Init.ep0_mps = DEP0CTL_MPS_64;
     hpcd_USB.Init.phy_itface = PCD_PHY_EMBEDDED;
     hpcd_USB.Init.low_power_enable = 1;
-#if (USBD_SOF_ENABLE == 1)
-    hpcd_USB.Init.Sof_enable = 1;
-#endif
+    hpcd_USB.Init.Sof_enable = 0;
 #if (USBD_LPM_ENABLE == 1)
     hpcd_USB.Init.lpm_enable = 0;
 #endif

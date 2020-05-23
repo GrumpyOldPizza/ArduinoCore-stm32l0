@@ -148,9 +148,7 @@ static const USBD_ClassTypeDef  USBD_CDC_MSC_CLASS =
   USBD_CDC_MSC_EP0_RxReady,
   USBD_CDC_MSC_DataIn,
   USBD_CDC_MSC_DataOut,
-#if (USBD_SOF_ENABLE == 1)
   USBD_CDC_MSC_SOF,
-#endif  
   NULL,
   NULL,     
   USBD_CDC_MSC_GetHSCfgDesc,  
@@ -171,9 +169,7 @@ static const USBD_ClassTypeDef  USBD_MSC_CLASS_Interface =
   NULL,                 /* EP0_RxReady */
   USBD_MSC_DataIn,
   USBD_MSC_DataOut,
-#if (USBD_SOF_ENABLE == 1)
   NULL,
-#endif
   NULL,
   NULL,     
   NULL,
@@ -194,9 +190,7 @@ static const USBD_ClassTypeDef  USBD_HID_CLASS_Interface =
   USBD_HID_EP0_RxReady, /* EP0_RxReady */
   USBD_HID_DataIn,
   USBD_HID_DataOut,
-#if (USBD_SOF_ENABLE == 1)
   NULL,
-#endif
   NULL,
   NULL,     
   NULL,
