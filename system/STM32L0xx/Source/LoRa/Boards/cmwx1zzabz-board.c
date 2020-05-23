@@ -28,48 +28,6 @@
 
 #if defined(STM32L072xx) || defined(STM32L082xx)
 
-/*!
- * Radio driver structure initialization
- */
-static const struct Radio_s SX1276Radio =
-{
-    SX1276Init,
-    SX1276DeInit,
-    SX1276GetStatus,
-    SX1276SetModem,
-    SX1276SetChannel,
-    SX1276IsChannelFree,
-    SX1276SetRxConfig,
-    SX1276SetTxConfig,
-    SX1276CheckRfFrequency,
-    SX1276GetTimeOnAir,
-    SX1276Send,
-    SX1276SetSleep,
-    SX1276SetStby,
-    SX1276SetRx,
-    SX1276StartCad,
-    SX1276SetTxContinuousWave,
-    SX1276ReadRssi,
-    SX1276Write,
-    SX1276Read,
-    SX1276WriteBuffer,
-    SX1276ReadBuffer,
-    SX1276SetMaxPayloadLength,
-    SX1276SetPublicNetwork,
-    SX1276SetModulation,
-    SX1276SetPreambleInverted,
-    SX1276SetSyncWord,
-    SX1276SetAfc,
-    SX1276SetDcFree,
-    SX1276SetCrcType,
-    SX1276SetAddressFiltering,
-    SX1276SetNodeAddress,
-    SX1276SetBroadcastAddress,
-    SX1276SetLnaBoost,
-    SX1276SetIdleMode,
-    SX1276GetWakeupTime
-};
-
 #define RADIO_RESET                          STM32L0_GPIO_PIN_PC0
 
 #define RADIO_MOSI                           STM32L0_GPIO_PIN_PA7_SPI1_MOSI
@@ -90,9 +48,6 @@ static const struct Radio_s SX1276Radio =
 
 #define BOARD_TCXO_WAKEUP_TIME               5
 
-static uint8_t RADIO_TCXO_VCC;
-static uint8_t RADIO_STSAFE_RESET;
-
 static const stm32l0_spi_params_t RADIO_SPI_PARAMS = {
     STM32L0_SPI_INSTANCE_SPI1,
     0,
@@ -106,17 +61,37 @@ static const stm32l0_spi_params_t RADIO_SPI_PARAMS = {
     },
 };
 
+static uint8_t RADIO_TCXO_VCC;
+static uint8_t RADIO_STSAFE_RESET;
+
 static stm32l0_spi_t RADIO_SPI;
+
+static void (*RADIO_DONE_IRQ)(void);
 
 void SWI_RADIO_IRQHandler(void)
 {
-    SX1276OnDio0Irq();
+    (*RADIO_DONE_IRQ)();
 }
 
 static void SX1276OnRadioDone( void )
 {
     // ### CAPUTRE RTC here
     armv6m_pendsv_raise(ARMV6M_PENDSV_SWI_RADIO);
+}
+
+void SX1276Delay( uint32_t timeout )
+{
+    uint32_t now, start, end;
+
+    now = stm32l0_rtc_clock_read();
+    start = now;
+    end = start + stm32l0_rtc_millis_to_ticks(timeout);
+
+    do
+    {
+        now = stm32l0_rtc_clock_read();
+    }
+    while ((now - start) < (end - start));
 }
 
 void SX1276Reset( void )
@@ -190,14 +165,14 @@ void SX1276AntSwDeInit( void )
     stm32l0_gpio_pin_configure(RADIO_ANT_SWITCH_TX_BOOST, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
 }
 
-void SX1276SetAntSw( uint8_t opMode )
+void SX1276SetAntSw( uint8_t opMode, int8_t power )
 {
     switch( opMode )
     {
     case RFLR_OPMODE_TRANSMITTER:
         stm32l0_gpio_pin_write(RADIO_ANT_SWITCH_RX, 0);
 
-        if( SX1276.Settings.Power > 15 )
+        if( power > 15 )
         {
             stm32l0_gpio_pin_write(RADIO_ANT_SWITCH_TX_RFO,   0);
             stm32l0_gpio_pin_write(RADIO_ANT_SWITCH_TX_BOOST, 1);
@@ -220,30 +195,32 @@ void SX1276SetAntSw( uint8_t opMode )
     }
 }
 
-void SX1276DioInit( void )
+void SX1276DioInit(  RadioModems_t modem, RadioState_t state, void (*dio0Irq)(void), void (*dio1Irq)(void), void (*dio2Irq)(void) )
 {
+    RADIO_DONE_IRQ = dio0Irq;
+    
     stm32l0_gpio_pin_configure(RADIO_DIO_0, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
     stm32l0_gpio_pin_configure(RADIO_DIO_1, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
     stm32l0_gpio_pin_configure(RADIO_DIO_2, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
 
     stm32l0_exti_attach(RADIO_DIO_0, (STM32L0_EXTI_CONTROL_PRIORITY_CRITICAL | STM32L0_EXTI_CONTROL_EDGE_RISING), (stm32l0_exti_callback_t)SX1276OnRadioDone, NULL);
 
-    if( ( SX1276.Modem == MODEM_FSK ) && ( SX1276.State == RF_TX_RUNNING ) )
+    if( ( modem == MODEM_FSK ) && ( state == RF_TX_RUNNING ) )
     {
-        stm32l0_exti_attach(RADIO_DIO_1, (STM32L0_EXTI_CONTROL_PRIORITY_LOW | STM32L0_EXTI_CONTROL_EDGE_FALLING), (stm32l0_exti_callback_t)SX1276OnDio1Irq, NULL);
+        stm32l0_exti_attach(RADIO_DIO_1, (STM32L0_EXTI_CONTROL_PRIORITY_LOW | STM32L0_EXTI_CONTROL_EDGE_FALLING), (stm32l0_exti_callback_t)dio1Irq, NULL);
     }
     else
     {
-        stm32l0_exti_attach(RADIO_DIO_1, (STM32L0_EXTI_CONTROL_PRIORITY_LOW | STM32L0_EXTI_CONTROL_EDGE_RISING), (stm32l0_exti_callback_t)SX1276OnDio1Irq, NULL);
+        stm32l0_exti_attach(RADIO_DIO_1, (STM32L0_EXTI_CONTROL_PRIORITY_LOW | STM32L0_EXTI_CONTROL_EDGE_RISING), (stm32l0_exti_callback_t)dio1Irq, NULL);
     }
 
-    if( SX1276.Modem == MODEM_FSK )
+    if( modem == MODEM_FSK )
     {
-        stm32l0_exti_attach(RADIO_DIO_2, (STM32L0_EXTI_CONTROL_PRIORITY_LOW | STM32L0_EXTI_CONTROL_EDGE_RISING), (stm32l0_exti_callback_t)SX1276OnDio2Irq, NULL);
+        stm32l0_exti_attach(RADIO_DIO_2, (STM32L0_EXTI_CONTROL_PRIORITY_LOW | STM32L0_EXTI_CONTROL_EDGE_RISING), (stm32l0_exti_callback_t)dio2Irq, NULL);
     }
     else
     {
-        stm32l0_exti_attach(RADIO_DIO_2, (STM32L0_EXTI_CONTROL_PRIORITY_CRITICAL | STM32L0_EXTI_CONTROL_EDGE_RISING), (stm32l0_exti_callback_t)SX1276OnDio2Irq, NULL);
+        stm32l0_exti_attach(RADIO_DIO_2, (STM32L0_EXTI_CONTROL_PRIORITY_CRITICAL | STM32L0_EXTI_CONTROL_EDGE_RISING), (stm32l0_exti_callback_t)dio2Irq, NULL);
     }
 }
 
@@ -395,8 +372,6 @@ void CMWX1ZZABZ_Initialize( uint8_t pin_tcxo, uint16_t pin_stsafe )
     uint32_t tim3_start, tim3_end, tim3_count, tim3_capture, tim3_ccr4;
     uint32_t tim21_start, tim21_end, tim21_count, tim21_capture, tim21_ccr1;
     uint32_t datarate, primask;
-
-    SX127xRadio = &SX1276Radio;
 
     RADIO_TCXO_VCC = pin_tcxo;
     RADIO_STSAFE_RESET = pin_stsafe;

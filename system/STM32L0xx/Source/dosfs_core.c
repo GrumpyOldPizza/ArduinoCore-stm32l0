@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2014-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -31,10 +31,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "dosfs_core.h"
-
 #include "armv6m.h"
-
+#include "stm32l0_rtc.h"
+#include "dosfs_core.h"
 
 static int dosfs_volume_init(dosfs_volume_t *volume, dosfs_device_t *device);
 static int dosfs_volume_mount(dosfs_volume_t *volume);
@@ -178,6 +177,27 @@ static const uint8_t dosfs_path_ldir_name_table[13] = {
 
 #endif /* (DOSFS_CONFIG_VFAT_SUPPORTED == 1) */
 
+#define Y2K_TO_GPS_OFFSET    630720000
+
+static void stm32l0_rtc_timedate(uint16_t *p_time, uint16_t *p_date)
+{
+    stm32l0_rtc_tod_t tod;
+    uint32_t seconds, ticks;
+    int32_t utc_offset;
+
+    stm32l0_rtc_time_read(&seconds, &ticks);
+
+    utc_offset = stm32l0_rtc_time_to_utc_offset(seconds);
+
+    seconds -= Y2K_TO_GPS_OFFSET;
+
+    stm32l0_rtc_time_to_tod(seconds - utc_offset, ticks, &tod);
+    
+    *p_time = ((tod.seconds >> 1) | (tod.minutes << 5) | (tod.hours << 11));
+    *p_date = ((tod.day << 0) | (tod.month << 5) | ((tod.year + 20) << 9));
+}
+
+#define DOSFS_PORT_CORE_TIMEDATE(_ctime, _cdate) stm32l0_rtc_timedate((_ctime),(_cdate))
 
 static int dosfs_volume_init(dosfs_volume_t *volume, dosfs_device_t *device)
 {

@@ -31,7 +31,7 @@
 #include "stm32l0_gpio.h"
 
 typedef struct _stm32l0_gpio_device_t {
-    volatile uint16_t       enables[STM32L0_GPIO_PORT_COUNT];
+    volatile uint32_t       enables[STM32L0_GPIO_PORT_COUNT];
     volatile uint32_t       mask[STM32L0_GPIO_PORT_COUNT];
     volatile uint32_t       mode[STM32L0_GPIO_PORT_COUNT];
     volatile uint32_t       pupd[STM32L0_GPIO_PORT_COUNT];
@@ -161,7 +161,7 @@ __attribute__((optimize("O3"))) void stm32l0_gpio_pin_configure(uint32_t pin, ui
 
     if (!(stm32l0_gpio_device.enables[port] & mask))
     {
-        armv6m_atomic_orh(&stm32l0_gpio_device.enables[port], mask);
+        armv6m_atomic_or(&stm32l0_gpio_device.enables[port], mask);
         armv6m_atomic_or(&RCC->IOPENR, (RCC_IOPENR_IOPAEN << group));
         RCC->IOPENR;
     }
@@ -171,8 +171,8 @@ __attribute__((optimize("O3"))) void stm32l0_gpio_pin_configure(uint32_t pin, ui
     {
         armv6m_atomic_modify(&GPIO->MODER, mask_2, ((STM32L0_GPIO_MODE_ANALOG >> STM32L0_GPIO_MODE_SHIFT) << index_2));
 
-        armv6m_atomic_andh(&stm32l0_gpio_device.enables[port], ~mask);
-        armv6m_atomic_andzh(&RCC->IOPENR, ~(RCC_IOPENR_IOPAEN << group), &stm32l0_gpio_device.enables[port], ~0);
+        armv6m_atomic_and(&stm32l0_gpio_device.enables[port], ~mask);
+        armv6m_atomic_andz(&RCC->IOPENR, ~(RCC_IOPENR_IOPAEN << group), &stm32l0_gpio_device.enables[port], ~0);
     }
     else
     {
@@ -247,7 +247,7 @@ __attribute__((optimize("O3"))) void stm32l0_gpio_pin_input(uint32_t pin)
 
     if (!(stm32l0_gpio_device.enables[port] & mask))
     {
-        armv6m_atomic_orh(&stm32l0_gpio_device.enables[port], mask);
+        armv6m_atomic_or(&stm32l0_gpio_device.enables[port], mask);
         armv6m_atomic_or(&RCC->IOPENR, (RCC_IOPENR_IOPAEN << group));
         RCC->IOPENR;
     }
@@ -272,7 +272,7 @@ __attribute__((optimize("O3"))) void stm32l0_gpio_pin_output(uint32_t pin)
 
     if (!(stm32l0_gpio_device.enables[port] & mask))
     {
-        armv6m_atomic_orh(&stm32l0_gpio_device.enables[port], mask);
+        armv6m_atomic_or(&stm32l0_gpio_device.enables[port], mask);
         armv6m_atomic_or(&RCC->IOPENR, (RCC_IOPENR_IOPAEN << group));
         RCC->IOPENR;
     }
@@ -297,7 +297,7 @@ __attribute__((optimize("O3"))) void stm32l0_gpio_pin_alternate(uint32_t pin)
 
     if (!(stm32l0_gpio_device.enables[port] & mask))
     {
-        armv6m_atomic_orh(&stm32l0_gpio_device.enables[port], mask);
+        armv6m_atomic_or(&stm32l0_gpio_device.enables[port], mask);
         armv6m_atomic_or(&RCC->IOPENR, (RCC_IOPENR_IOPAEN << group));
         RCC->IOPENR;
     }
@@ -322,13 +322,13 @@ __attribute__((optimize("O3"))) void stm32l0_gpio_pin_analog(uint32_t pin)
 
     if (!(stm32l0_gpio_device.enables[port] & mask))
     {
-        armv6m_atomic_orh(&stm32l0_gpio_device.enables[port], mask);
+        armv6m_atomic_or(&stm32l0_gpio_device.enables[port], mask);
         armv6m_atomic_or(&RCC->IOPENR, (RCC_IOPENR_IOPAEN << group));
         RCC->IOPENR;
     }
 
     armv6m_atomic_modify(&GPIO->MODER, mask_2, ((STM32L0_GPIO_MODE_ANALOG >> STM32L0_GPIO_MODE_SHIFT) << index_2));
 
-    armv6m_atomic_andh(&stm32l0_gpio_device.enables[port], ~mask);
-    armv6m_atomic_andzh(&RCC->IOPENR, ~(RCC_IOPENR_IOPAEN << group), &stm32l0_gpio_device.enables[port], ~0);
+    armv6m_atomic_and(&stm32l0_gpio_device.enables[port], ~mask);
+    armv6m_atomic_andz(&RCC->IOPENR, ~(RCC_IOPENR_IOPAEN << group), &stm32l0_gpio_device.enables[port], ~0);
 }

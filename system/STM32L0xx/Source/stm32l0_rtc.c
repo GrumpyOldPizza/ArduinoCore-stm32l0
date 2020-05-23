@@ -35,6 +35,7 @@
 
 /*******************************************************************************************************************/
 
+typedef void (*stm32l0_rtc_modify_routine_t)(void);
 typedef void (*stm32l0_rtc_alarm_routine_t)(void);
 typedef void (*stm32l0_rtc_timer_routine_t)(void);
 
@@ -53,6 +54,7 @@ typedef struct _stm32l0_rtc_device_t {
     volatile uint32_t                      ticks_offset;
     volatile int8_t                        utc_offset;
     volatile uint8_t                       status;
+    volatile stm32l0_rtc_modify_routine_t  modify_routine;
     volatile stm32l0_rtc_alarm_routine_t   alarm_routine;
     uint64_t                               alarm_clock;
     stm32l0_rtc_alarm_t                    alarm_current;
@@ -180,9 +182,6 @@ void __stm32l0_rtc_initialize(void)
     stm32l0_rtc_capture_t capture;
     bool reset = false;
 
-    RTC->WPR = 0xca;
-    RTC->WPR = 0x53;
-
     if (!(RCC->CSR & RCC_CSR_RTCEN))
     {
         /* Use LSE as source for RTC */
@@ -203,12 +202,13 @@ void __stm32l0_rtc_initialize(void)
 
         reset = true;
     }
+    
+    EXTI->IMR &= ~(EXTI_IMR_IM17 | EXTI_IMR_IM19 | EXTI_IMR_IM20);
 
-    RTC->CR &= ~(RTC_CR_TSIE | RTC_CR_WUTIE | RTC_CR_ALRBIE | RTC_CR_ALRAIE | RTC_CR_TSE | RTC_CR_WUTE | RTC_CR_ALRBE | RTC_CR_ALRAE);
-    RTC->TAMPCR &= ~(RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2E | RTC_TAMPCR_TAMP1IE | RTC_TAMPCR_TAMP1E);
-    RTC->ISR = 0;
+    EXTI->PR = (EXTI_PR_PIF17 | EXTI_PR_PIF19 | EXTI_PR_PIF20);
 
-    EXTI->PR = EXTI_PR_PIF17 | EXTI_PR_PIF19 | EXTI_PR_PIF20;
+    NVIC_SetPriority(RTC_IRQn, STM32L0_RTC_IRQ_PRIORITY);
+    NVIC_EnableIRQ(RTC_IRQn);
 
     if (reset)
     {
@@ -238,19 +238,9 @@ void __stm32l0_rtc_initialize(void)
     stm32l0_rtc_device.timer_modify = STM32L0_RTC_TIMER_TAIL;
 
     RTC->CR = (RTC->CR & ~RTC_CR_WUCKSEL) | RTC_CR_WUCKSEL_2;
-}
 
-void stm32l0_rtc_configure(unsigned int priority)
-{
-    NVIC_SetPriority(RTC_IRQn, priority);
-    NVIC_EnableIRQ(RTC_IRQn);
-
-    armv6m_atomic_and(&EXTI->IMR, ~(EXTI_IMR_IM17 | EXTI_IMR_IM19 | EXTI_IMR_IM20));
-
-    EXTI->PR = (EXTI_PR_PIF17 | EXTI_PR_PIF19 | EXTI_PR_PIF20);
-
-    armv6m_atomic_or(&EXTI->RTSR, (EXTI_RTSR_RT17 | EXTI_RTSR_RT19 | EXTI_RTSR_RT20));
-    armv6m_atomic_or(&EXTI->IMR, (EXTI_IMR_IM17 | EXTI_IMR_IM19 | EXTI_IMR_IM20));
+    EXTI->RTSR |= (EXTI_RTSR_RT17 | EXTI_RTSR_RT19 | EXTI_RTSR_RT20);
+    EXTI->IMR |= (EXTI_IMR_IM17 | EXTI_IMR_IM19 | EXTI_IMR_IM20);
 }
 
 uint32_t stm32l0_rtc_status(void)
@@ -315,7 +305,9 @@ void stm32l0_rtc_set_utc_offset(int32_t utc_offset, bool external)
     {
         return;
     }
-    
+
+    stm32l0_rtc_device.modify_routine = stm32l0_rtc_modify_routine;
+      
     primask = __get_PRIMASK();
     
     __disable_irq();
@@ -590,6 +582,8 @@ void stm32l0_rtc_time_write(uint64_t clock, uint32_t seconds, uint32_t ticks, bo
     {
         return;
     }
+
+    stm32l0_rtc_device.modify_routine = stm32l0_rtc_modify_routine;
     
     if (clock == 0)
     {
@@ -1083,8 +1077,6 @@ static void stm32l0_rtc_timer_insert(stm32l0_rtc_timer_t *timer, uint64_t clock)
     }
 }
 
-uint64_t clock_convert;
-
 static void  __attribute__((optimize("O3"))) stm32l0_rtc_timer_routine(void)
 {
     stm32l0_rtc_capture_t capture;
@@ -1147,7 +1139,7 @@ static void  __attribute__((optimize("O3"))) stm32l0_rtc_timer_routine(void)
     {
         __stm32l0_rtc_clock_capture(&capture);
         
-        clock_convert = clock = __stm32l0_rtc_clock_convert(&capture, &tod);
+        clock = __stm32l0_rtc_clock_convert(&capture, &tod);
         
         if (stm32l0_rtc_device.timer_active != STM32L0_RTC_TIMER_TAIL)
         {
@@ -1191,7 +1183,7 @@ static void  __attribute__((optimize("O3"))) stm32l0_rtc_timer_routine(void)
                         
                         __stm32l0_rtc_clock_capture(&capture);
                         
-                        clock_convert = clock = __stm32l0_rtc_clock_convert(&capture, &tod);
+                        clock = __stm32l0_rtc_clock_convert(&capture, &tod);
                     }
                 }
             }
@@ -1278,7 +1270,7 @@ static void  __attribute__((optimize("O3"))) stm32l0_rtc_timer_routine(void)
                         
                             if (stm32l0_rtc_device.timer_busy)
                             {
-                                clock_convert = clock = __stm32l0_rtc_clock_convert(&capture, &tod);
+                                clock = __stm32l0_rtc_clock_convert(&capture, &tod);
                             
                                 if (clock_this <= (clock + 1))
                                 {
@@ -1424,7 +1416,7 @@ bool stm32l0_rtc_wakeup_start(uint32_t seconds, stm32l0_rtc_wakeup_callback_t ca
 {
     if (seconds > 65536)
     {
-	return false;
+        return false;
     }
     
     if (stm32l0_rtc_device.wakeup_busy)
@@ -1605,7 +1597,7 @@ void stm32l0_rtc_standby(uint32_t control, uint32_t timeout)
     /* Called with interrupts disabled.
      */
 
-    if (control & STM32L0_SYSTEM_CONTROL_RTC_ALARM)
+    if (control & STM32L0_SYSTEM_STANDBY_ALARM)
     {
         RTC->CR &= ~(RTC_CR_TSIE | RTC_CR_WUTIE | RTC_CR_ALRBIE | RTC_CR_TSE | RTC_CR_WUTE | RTC_CR_ALRBE);
         RTC->ISR = ~(RTC_ISR_TSF | RTC_ISR_WUTF | RTC_ISR_ALRBF | RTC_ISR_INIT);
@@ -1616,14 +1608,14 @@ void stm32l0_rtc_standby(uint32_t control, uint32_t timeout)
         RTC->ISR = ~(RTC_ISR_TSF | RTC_ISR_WUTF | RTC_ISR_ALRBF | RTC_ISR_ALRAF | RTC_ISR_INIT);
     }
     
-    if (!(control & STM32L0_SYSTEM_CONTROL_RTC_TAMP1) || (control & STM32L0_SYSTEM_CONTROL_WKUP2_RISING))
+    if (!(control & STM32L0_SYSTEM_STANDBY_TAMP_1) || (control & STM32L0_SYSTEM_STANDBY_PIN_2_RISING))
     {
         RTC->TAMPCR &= ~(RTC_TAMPCR_TAMP1IE | RTC_TAMPCR_TAMP1E);
 
         RTC->ISR = ~(RTC_ISR_TAMP1F | RTC_ISR_INIT);
     }
 
-    if (!(control & STM32L0_SYSTEM_CONTROL_RTC_TAMP2) || (control & STM32L0_SYSTEM_CONTROL_WKUP1_RISING))
+    if (!(control & STM32L0_SYSTEM_STANDBY_TAMP_2) || (control & STM32L0_SYSTEM_STANDBY_PIN_1_RISING))
     {
         RTC->TAMPCR &= ~(RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2E);
 
@@ -1853,7 +1845,7 @@ void RTC_IRQHandler(void)
 
         if (RTC->ISR & RTC_ISR_WUTF)
         {
-	    RTC->ISR = ~(RTC_ISR_WUTF | RTC_ISR_INIT);
+            RTC->ISR = ~(RTC_ISR_WUTF | RTC_ISR_INIT);
 
             if (stm32l0_rtc_device.wakeup_busy)
             {
@@ -1883,7 +1875,14 @@ void RTC_IRQHandler(void)
 
 void SWI_RTC_MODIFY_IRQHandler(void)
 {
-    stm32l0_rtc_modify_routine();
+    stm32l0_rtc_modify_routine_t routine;
+
+    routine = stm32l0_rtc_device.modify_routine;
+    
+    if (routine)
+    {
+        (*routine)();
+    }
 }
 
 void SWI_RTC_ALARM_IRQHandler(void)

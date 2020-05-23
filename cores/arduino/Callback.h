@@ -30,7 +30,7 @@
 
 class Callback {
 public:
-    Callback() : _callback(NULL), _context(nullptr) {  }
+    Callback() : _callback(nullptr), _context(nullptr) {  }
 
     Callback(void (*function)(void)) : _callback((void (*)(void*))function), _context(nullptr) { }
 

@@ -49,16 +49,15 @@ typedef struct _stm32l0_lptim_device_t {
 
 static stm32l0_lptim_device_t stm32l0_lptim_device;
 
-void stm32l0_lptim_configure(unsigned int priority)
+void __stm32l0_lptim_initialize(void)
 {
-    NVIC_SetPriority(LPTIM1_IRQn, priority);
+    NVIC_SetPriority(LPTIM1_IRQn, STM32L0_LPTIM_IRQ_PRIORITY);
 }
 
 static void stm32l0_lptim_clock_start(uint32_t compare)
 {
     stm32l0_system_periph_enable(STM32L0_SYSTEM_PERIPH_LPTIM1);
 
-    LPTIM1->ICR = ~0ul;
     LPTIM1->IER = LPTIM_IER_CMPOKIE | LPTIM_IER_ARRMIE | LPTIM_IER_CMPMIE;
     LPTIM1->CFGR = 0;
 
@@ -93,8 +92,10 @@ static void stm32l0_lptim_clock_stop()
     
     LPTIM1->CR = 0;
     LPTIM1->ICR = ~0ul;
-    
-    stm32l0_system_periph_enable(STM32L0_SYSTEM_PERIPH_LPTIM1);
+
+    /* ERRATA: MCU may remain stuck in LPTIM interrupt when entering Stop mode
+     */
+    stm32l0_system_periph_reset(STM32L0_SYSTEM_PERIPH_LPTIM1);
 }
 
 static inline __attribute__((optimize("O3"),always_inline)) uint32_t stm32l0_lptim_clock_read()

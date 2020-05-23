@@ -36,6 +36,8 @@
 extern "C" {
 #endif
 
+#define STM32L0_LPTIM_IRQ_PRIORITY   1
+
 typedef struct _stm32l0_lptim_timeout_t stm32l0_lptim_timeout_t;
 
 typedef void (*stm32l0_lptim_callback_t)(stm32l0_lptim_timeout_t *timeout);
@@ -50,7 +52,7 @@ struct _stm32l0_lptim_timeout_t {
 #define STM32L0_LPTIM_TIMEOUT_INIT { NULL, NULL, 0, NULL }
 #define STM32L0_LPTIM_TIMEOUT_TICKS_PER_SECOND 32768
 
-extern void stm32l0_lptim_configure(unsigned int priority);
+extern void __stm32l0_lptim_initialize(void);
 extern void stm32l0_lptim_timeout_create(stm32l0_lptim_timeout_t *timeout);
 extern void stm32l0_lptim_timeout_destroy(stm32l0_lptim_timeout_t *timeout);
 extern bool stm32l0_lptim_timeout_start(stm32l0_lptim_timeout_t *timeout, uint32_t ticks, stm32l0_lptim_callback_t callback);

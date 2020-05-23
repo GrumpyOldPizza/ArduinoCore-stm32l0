@@ -545,7 +545,7 @@ void RTCClass::attachInterrupt(void(*callback)(void))
 
 void RTCClass::attachInterruptWakeup(void(*callback)(void))
 {
-    armv6m_atomic_or(&g_wakeupControl, STM32L0_SYSTEM_CONTROL_RTC_ALARM);
+    armv6m_atomic_or(&g_standbyControl, STM32L0_SYSTEM_STANDBY_ALARM);
 
     _alarm_callback = callback;
 
@@ -554,7 +554,7 @@ void RTCClass::attachInterruptWakeup(void(*callback)(void))
 
 void RTCClass::detachInterrupt()
 {
-    armv6m_atomic_and(&g_wakeupControl, ~STM32L0_SYSTEM_CONTROL_RTC_ALARM);
+    armv6m_atomic_and(&g_standbyControl, ~STM32L0_SYSTEM_STANDBY_ALARM);
   
     _alarm_callback = NULL; 
 

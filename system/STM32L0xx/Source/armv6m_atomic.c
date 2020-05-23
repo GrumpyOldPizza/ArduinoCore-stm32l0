@@ -128,12 +128,32 @@ uint32_t armv6m_atomic_modify(volatile uint32_t *p_data, uint32_t mask, uint32_t
     return __armv6m_atomic_modify(p_data, mask, data);
 }
 
+uint32_t armv6m_atomic_modifyz(volatile uint32_t *p_data, uint32_t mask, uint32_t data, volatile uint32_t *p_zero, uint32_t bits)
+{
+    return __armv6m_atomic_modifyz(p_data, mask, data, p_zero, bits);
+}
+
+uint32_t armv6m_atomic_modifyzb(volatile uint32_t *p_data, uint32_t mask, uint32_t data, volatile uint8_t *p_zero)
+{
+    return __armv6m_atomic_modifyzb(p_data, mask, data, p_zero);
+}
+
+uint32_t armv6m_atomic_andz(volatile uint32_t *p_data, uint32_t data, volatile uint32_t *p_zero, uint32_t bits)
+{
+    return __armv6m_atomic_andz(p_data, data, p_zero, bits);
+}
+
 uint32_t armv6m_atomic_andzb(volatile uint32_t *p_data, uint32_t data, volatile uint8_t *p_zero)
 {
     return __armv6m_atomic_andzb(p_data, data, p_zero);
 }
 
-uint32_t armv6m_atomic_andzh(volatile uint32_t *p_data, uint32_t data, volatile uint16_t *p_zero, uint32_t mask)
+uint32_t armv6m_atomic_orz(volatile uint32_t *p_data, uint32_t data, volatile uint32_t *p_zero, uint32_t bits)
 {
-    return __armv6m_atomic_andzh(p_data, data, p_zero, mask);
+    return __armv6m_atomic_orz(p_data, data, p_zero, bits);
+}
+
+uint32_t armv6m_atomic_orzb(volatile uint32_t *p_data, uint32_t data, volatile uint8_t *p_zero)
+{
+    return __armv6m_atomic_orzb(p_data, data, p_zero);
 }

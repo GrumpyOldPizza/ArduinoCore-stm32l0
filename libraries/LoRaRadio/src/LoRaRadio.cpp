@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2018-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -119,7 +119,7 @@ int LoRaRadioClass::begin(unsigned long frequency)
 
     LoRaRadioInstance = this;
 
-    Radio.Init(&LoRaRadioEvents, frequency);
+    RadioInit(&LoRaRadioEvents, frequency);
 
     Radio.SetModem(MODEM_LORA);
 

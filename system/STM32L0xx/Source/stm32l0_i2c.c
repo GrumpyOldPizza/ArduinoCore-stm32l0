@@ -35,12 +35,6 @@
 #include "stm32l0_dma.h"
 #include "stm32l0_system.h"
 
-extern void I2C1_IRQHandler(void);
-extern void I2C2_IRQHandler(void);
-#if defined(STM32L072xx) || defined(STM32L082xx)
-extern void I2C3_IRQHandler(void);
-#endif /* STM32L072xx || STM32L082xx */
-
 typedef struct _stm32l0_i2c_device_t {
     stm32l0_system_notify_t notify;
     volatile uint32_t       wakeup;
@@ -176,7 +170,7 @@ static void stm32l0_i2c_start(stm32l0_i2c_t *i2c)
     {
         stm32l0_system_hsi16_enable();
 
-        if ((i2c->option & STM32L0_I2C_OPTION_ADDRESS_MASK) && !(i2c->option & STM32L0_I2C_OPTION_WAKEUP))
+        if (i2c->option & STM32L0_I2C_OPTION_WAKEUP)
         {
             armv6m_atomic_or(&stm32l0_i2c_device.wakeup, (1u << i2c->instance));
         }
@@ -198,7 +192,7 @@ static void stm32l0_i2c_stop(stm32l0_i2c_t *i2c)
     }
     else
     {
-        if ((i2c->option & STM32L0_I2C_OPTION_ADDRESS_MASK) && !(i2c->option & STM32L0_I2C_OPTION_WAKEUP))
+        if (i2c->option & STM32L0_I2C_OPTION_WAKEUP)
         {
             armv6m_atomic_and(&stm32l0_i2c_device.wakeup, ~(1u << i2c->instance));
         }
@@ -223,7 +217,7 @@ static void stm32l0_i2c_sync(stm32l0_i2c_t *i2c)
         armv6m_atomic_and(&EXTI->IMR, ~stm32l0_i2c_xlate_IMR[i2c->instance]);
     }
     
-    armv6m_atomic_and(&SYSCFG->CFGR1, ~stm32l0_i2c_xlate_FMP[i2c->instance]);
+    armv6m_atomic_and(&SYSCFG->CFGR2, ~stm32l0_i2c_xlate_FMP[i2c->instance]);
 
     stm32l0_system_periph_enable(STM32L0_SYSTEM_PERIPH_I2C1 + i2c->instance);
 
@@ -263,7 +257,7 @@ static void stm32l0_i2c_sync(stm32l0_i2c_t *i2c)
         {
             if  (i2c->option & STM32L0_I2C_OPTION_MODE_1000K)
             {
-                armv6m_atomic_or(&SYSCFG->CFGR1, stm32l0_i2c_xlate_FMP[i2c->instance]);
+                armv6m_atomic_or(&SYSCFG->CFGR2, stm32l0_i2c_xlate_FMP[i2c->instance]);
             }
                 
             /* tRise =  62ns, tFall = 10ns, no AF, DNF = 1 (FMP)    */
@@ -1116,7 +1110,12 @@ bool stm32l0_i2c_disable(stm32l0_i2c_t *i2c)
         armv6m_atomic_and(&EXTI->IMR, ~stm32l0_i2c_xlate_IMR[i2c->instance]);
     }
 
-    armv6m_atomic_and(&SYSCFG->CFGR1, ~stm32l0_i2c_xlate_FMP[i2c->instance]);
+    armv6m_atomic_and(&SYSCFG->CFGR2, ~stm32l0_i2c_xlate_FMP[i2c->instance]);
+
+    if (i2c->instance == STM32L0_I2C_INSTANCE_I2C2)
+    {
+        stm32l0_system_unreference(STM32L0_SYSTEM_REFERENCE_I2C2);
+    }
 
     i2c->state = STM32L0_I2C_STATE_INIT;
 

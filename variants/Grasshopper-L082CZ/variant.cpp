@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -28,6 +28,7 @@
 
 #include "Arduino.h"
 #include "wiring_private.h"
+#include "../Source/LoRa/Radio/radio.h"
 
 #define PWM_INSTANCE_TIM2      0
 #define PWM_INSTANCE_TIM22     1
@@ -170,6 +171,11 @@ extern const stm32l0_sdspi_params_t g_SDSPIParams = {
 extern const stm32l0_sfspi_params_t g_SFSPIParams = {
     STM32L0_GPIO_PIN_PB12,
 };
+
+void RadioInit( const RadioEvents_t *events, uint32_t freq )
+{
+    SX1276Init(events, freq);
+}
 
 void initVariant()
 {

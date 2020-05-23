@@ -313,6 +313,7 @@ private:
     static bool       _eepromProgram(uint32_t address, const uint8_t *data, uint32_t size);
     static bool       _eepromRead(uint32_t address, uint8_t *data, uint32_t size);
     static void       _eepromSync(class LoRaWANClass *self);
+    static void       _eepromDone(class LoRaWANClass *self);
 
     static uint8_t    __GetBatteryLevel();
     static void       __McpsJoin(void);

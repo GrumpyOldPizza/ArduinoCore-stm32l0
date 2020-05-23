@@ -76,12 +76,12 @@ void SX1276AntSwDeInit( void );
  *
  * \param [IN] opMode Current radio operating mode
  */
-void SX1276SetAntSw( uint8_t opMode );
+void SX1276SetAntSw( uint8_t opMode, int8_t power );
 
 /*!
  * \brief Initializes the DIO I/Os pins interface
  */
-void SX1276DioInit( void );
+void SX1276DioInit(  RadioModems_t modem, RadioState_t state, void (*dio0Irq)(void), void (*dio1Irq)(void), void (*dio2Irq)(void) );
 
 /*!
  * \brief De-initializes the DIO I/Os pins interface

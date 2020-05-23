@@ -71,29 +71,39 @@ enum {
 
 #define STM32L0_SYSTEM_OPTION_LSE_BYPASS       0x00000001
 #define STM32L0_SYSTEM_OPTION_HSE_BYPASS       0x00000002
+#define STM32L0_SYSTEM_OPTION_HSE_PLL          0x00000004
 
-#define STM32L0_SYSTEM_MCO_MODE_NONE           0
-#define STM32L0_SYSTEM_MCO_MODE_SYSCLK         1
-#define STM32L0_SYSTEM_MCO_MODE_HSI16          2
-#define STM32L0_SYSTEM_MCO_MODE_MSI            3
-#define STM32L0_SYSTEM_MCO_MODE_HSE            4
-#define STM32L0_SYSTEM_MCO_MODE_PLL            5
-#define STM32L0_SYSTEM_MCO_MODE_LSI            6
-#define STM32L0_SYSTEM_MCO_MODE_LSE            7
-#define STM32L0_SYSTEM_MCO_MODE_HSI48          8
+#define STM32L0_SYSTEM_MCO_SOURCE_MASK        0x0000000f
+#define STM32L0_SYSTEM_MCO_SOURCE_SHIFT       0
+#define STM32L0_SYSTEM_MCO_SOURCE_NONE        0x00000000
+#define STM32L0_SYSTEM_MCO_SOURCE_SYSCLK      0x00000001
+#define STM32L0_SYSTEM_MCO_SOURCE_MSI         0x00000002
+#define STM32L0_SYSTEM_MCO_SOURCE_HSI16       0x00000003
+#define STM32L0_SYSTEM_MCO_SOURCE_HSE         0x00000004
+#define STM32L0_SYSTEM_MCO_SOURCE_PLL         0x00000005
+#define STM32L0_SYSTEM_MCO_SOURCE_LSI         0x00000006
+#define STM32L0_SYSTEM_MCO_SOURCE_LSE         0x00000007
+#define STM32L0_SYSTEM_MCO_SOURCE_HSI48       0x00000008
+#define STM32L0_SYSTEM_MCO_DIVIDE_MASK        0x00000070
+#define STM32L0_SYSTEM_MCO_DIVIDE_SHIFT       4
+#define STM32L0_SYSTEM_MCO_DIVIDE_BY_1        0x00000000
+#define STM32L0_SYSTEM_MCO_DIVIDE_BY_2        0x00000010
+#define STM32L0_SYSTEM_MCO_DIVIDE_BY_4        0x00000020
+#define STM32L0_SYSTEM_MCO_DIVIDE_BY_8        0x00000030
+#define STM32L0_SYSTEM_MCO_DIVIDE_BY_16       0x00000040
 
 #define STM32L0_SYSTEM_LOCK_RUN                0
 #define STM32L0_SYSTEM_LOCK_SLEEP              1
 #define STM32L0_SYSTEM_LOCK_DEEPSLEEP          2
-#define STM32L0_SYSTEM_LOCK_RANGE_2_3          3
-#define STM32L0_SYSTEM_LOCK_RANGE_3            4
-#define STM32L0_SYSTEM_LOCK_REGULATOR          5
-#define STM32L0_SYSTEM_LOCK_VREFINT            6
-#define STM32L0_SYSTEM_LOCK_COUNT              7
+#define STM32L0_SYSTEM_LOCK_REGULATOR          3
+#define STM32L0_SYSTEM_LOCK_VREFINT            4
+#define STM32L0_SYSTEM_LOCK_EEPROM             5
+#define STM32L0_SYSTEM_LOCK_COUNT              6
 
 #define STM32L0_SYSTEM_REFERENCE_SWD           0x00000001
-#define STM32L0_SYSTEM_REFERENCE_USB           0x00000002  /* force pclk1  >= 16MHz */
-#define STM32L0_SYSTEM_REFERENCE_I2C2          0x00000004  /* force pclk1  >=  4MHz */
+#define STM32L0_SYSTEM_REFERENCE_RNG           0x00000002
+#define STM32L0_SYSTEM_REFERENCE_USB           0x00000004  /* force pclk1  >= 16MHz */
+#define STM32L0_SYSTEM_REFERENCE_I2C2          0x00000008  /* force pclk1  >=  4MHz */
 
 #define STM32L0_SYSTEM_NOTIFY_CLOCKS           0x00000001
 #define STM32L0_SYSTEM_NOTIFY_SLEEP            0x00000002
@@ -125,12 +135,13 @@ typedef struct _stm32l0_system_notify_t {
 
 #define STM32L0_SYSTEM_WAKEUP_NONE             0x00000000
 #define STM32L0_SYSTEM_WAKEUP_PIN              0x00000001
-#define STM32L0_SYSTEM_WAKEUP_ALARM            0x00000002
-#define STM32L0_SYSTEM_WAKEUP_TAMP1            0x00000004
-#define STM32L0_SYSTEM_WAKEUP_TAMP2            0x00000008
-#define STM32L0_SYSTEM_WAKEUP_TIMEOUT          0x00000010
-#define STM32L0_SYSTEM_WAKEUP_WATCHDOG         0x00000020
-#define STM32L0_SYSTEM_WAKEUP_RESET            0x00000040
+#define STM32L0_SYSTEM_WAKEUP_TIMEOUT          0x00000100
+#define STM32L0_SYSTEM_WAKEUP_ALARM            0x00000200
+#define STM32L0_SYSTEM_WAKEUP_TAMP_1           0x00000400
+#define STM32L0_SYSTEM_WAKEUP_TAMP_2           0x00000800
+#define STM32L0_SYSTEM_WAKEUP_TAMP_3           0x00001000
+#define STM32L0_SYSTEM_WAKEUP_WATCHDOG         0x00002000
+#define STM32L0_SYSTEM_WAKEUP_RESET            0x00004000
 
 #define STM32L0_SYSTEM_EVENT_APPLICATION       0x00000001
 #define STM32L0_SYSTEM_EVENT_TIMEOUT           0x80000000
@@ -142,11 +153,11 @@ typedef struct _stm32l0_system_notify_t {
 #define STM32L0_SYSTEM_POLICY_SLEEP            1
 #define STM32L0_SYSTEM_POLICY_DEEPSLEEP        2
 
-#define STM32L0_SYSTEM_CONTROL_WKUP1_RISING    0x00000001
-#define STM32L0_SYSTEM_CONTROL_WKUP2_RISING    0x00000002
-#define STM32L0_SYSTEM_CONTROL_RTC_ALARM       0x00010000
-#define STM32L0_SYSTEM_CONTROL_RTC_TAMP1       0x00020000
-#define STM32L0_SYSTEM_CONTROL_RTC_TAMP2       0x00040000
+#define STM32L0_SYSTEM_STANDBY_PIN_1_RISING    0x00000001
+#define STM32L0_SYSTEM_STANDBY_PIN_2_RISING    0x00000002
+#define STM32L0_SYSTEM_STANDBY_ALARM           0x00010000
+#define STM32L0_SYSTEM_STANDBY_TAMP_1          0x00020000
+#define STM32L0_SYSTEM_STANDBY_TAMP_2          0x00040000
 
 /* This bit is documented in the reference manuals,
  * but is not part of the CMSIS/Device headers. Turns out
@@ -160,15 +171,19 @@ typedef struct _stm32l0_system_notify_t {
 
 extern void     SystemInit(void);
 
-extern void     stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, uint32_t lseclk, uint32_t hseclk, uint32_t option);
+extern void     stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, uint32_t lseclk, uint32_t hseclk, uint32_t options);
 extern bool     stm32l0_system_sysclk_configure(uint32_t hclk, uint32_t pclk1, uint32_t pclk2);
+extern void     stm32l0_system_mco_configure(uint32_t mco);
+extern void     stm32l0_system_hse_enable(void);
+extern void     stm32l0_system_hse_disable(void);
 extern void     stm32l0_system_lsi_enable(void);
 extern void     stm32l0_system_lsi_disable(void);
 extern void     stm32l0_system_hsi16_enable(void);
 extern void     stm32l0_system_hsi16_disable(void);
 extern void     stm32l0_system_hsi48_enable(void);
 extern void     stm32l0_system_hsi48_disable(void);
-extern void     stm32l0_system_mco_configure(unsigned int mode, unsigned int scale);
+extern void     stm32l0_system_clk48_enable(void);
+extern void     stm32l0_system_clk48_disable(void);
 extern uint32_t stm32l0_system_reset_cause(void);
 extern uint32_t stm32l0_system_wakeup_reason(void);
 extern uint32_t stm32l0_system_lseclk(void);

@@ -23,5 +23,6 @@
 
 #include "radio.h"
 
-const struct Radio_s * SX127xRadio;
+const struct Radio_s * __Radio;
+
 

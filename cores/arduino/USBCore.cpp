@@ -62,13 +62,9 @@
 bool USBDeviceClass::begin()
 {
 #if defined(USB_CLASS)
-    if (!_enabled) {
-        _enabled = USBD_Initialize(USB_VID, USB_PID, (const uint8_t*)USB_MANUFACTURER, (const uint8_t*)USB_PRODUCT, USB_CLASS,
-                                   STM32L0_CONFIG_PIN_VBUS, STM32L0_USB_IRQ_PRIORITY,
-                                   &USBDeviceClass::connectCallback, &USBDeviceClass::disconnectCallback, &USBDeviceClass::suspendCallback, &USBDeviceClass::resumeCallback);
-    }
-
-    return _enabled;
+    return USBD_Initialize(USB_VID, USB_PID, (const uint8_t*)USB_MANUFACTURER, (const uint8_t*)USB_PRODUCT, USB_CLASS,
+                           STM32L0_CONFIG_PIN_VBUS, STM32L0_USB_IRQ_PRIORITY,
+                           &USBDeviceClass::connectCallback, &USBDeviceClass::disconnectCallback, &USBDeviceClass::suspendCallback, &USBDeviceClass::resumeCallback);
 #endif
     return false;
 }
@@ -76,51 +72,28 @@ bool USBDeviceClass::begin()
 void USBDeviceClass::end()
 {
 #if defined(USB_CLASS)
-    if (_enabled)
-    {
-        USBD_Teardown();
-        
-        _enabled = false;
-    }
+    USBD_Teardown();
 #endif    
 }
 
-bool USBDeviceClass::attach()
+void USBDeviceClass::attach()
 {
 #if defined(USB_CLASS)
-    if (!_enabled) {
-        return false;
-    }
-
     USBD_Attach();
-
-    return true;
-#else
-    return false;
 #endif
 }
 
-bool USBDeviceClass::detach()
+void USBDeviceClass::detach()
 {
 #if defined(USB_CLASS)
-    if (!_enabled) {
-        return false;
-    }
-
     USBD_Detach();
-
-    return true;
-#else
-    return false;
 #endif
 }
 
 void USBDeviceClass::wakeup()
 {
 #if defined(USB_CLASS)
-    if (_enabled) {
-        USBD_Wakeup();
-    }
+    USBD_Wakeup();
 #endif
 }
     
@@ -212,7 +185,11 @@ void USBDeviceClass::disableWakeup()
 
 void USBDeviceClass::setVBUSDetect(enum USBDeviceDetect mode)
 {
+#if defined(USB_CLASS)
     USBD_SetupVBUS(mode == SLEEP_AND_STOP);
+#else
+    (void)mode;
+#endif
 }
 
 void USBDeviceClass::connectCallback(void)

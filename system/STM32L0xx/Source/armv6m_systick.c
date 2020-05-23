@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -44,25 +44,24 @@ void __armv6m_systick_initialize(void)
 
 void armv6m_systick_enable()
 {
-    uint32_t cycle;
+    if (armv6m_systick_control.clock != SystemCoreClock)
+    {
+        armv6m_systick_control.clock = SystemCoreClock;
 
-    cycle = SystemCoreClock / 8 -1;
-
-    armv6m_systick_control.clock = SystemCoreClock;
-    armv6m_systick_control.cycle = cycle;
-
-    /* To get from the current counter to the microsecond offset,
-     * the ((cycle - 1) - Systick->VAL) value is scaled so that the resulting
-     * microseconds fit into the upper 17 bits of a 32bit value. Then
-     * this is post divided by 2^15. That ensures proper scaling.
-     */
-    
-    armv6m_systick_control.scale = (uint64_t)32768000000ull / (uint64_t)SystemCoreClock;
+        /* To get from the current counter to the microsecond offset,
+         * the ((cycle - 1) - Systick->VAL) value is scaled so that the resulting
+         * microseconds fit into the upper 17 bits of a 32bit value. Then
+         * this is post divided by 2^15. That ensures proper scaling.
+         */
+        
+        armv6m_systick_control.cycle = SystemCoreClock / 8 -1;
+        armv6m_systick_control.scale = (uint64_t)32768000000ull / (uint64_t)SystemCoreClock;
+    }
 
     armv6m_systick_control.micros = 0;
-
-    SysTick->VAL = cycle;
-    SysTick->LOAD = cycle;
+        
+    SysTick->VAL = armv6m_systick_control.cycle;
+    SysTick->LOAD = armv6m_systick_control.cycle;
     SysTick->CTRL = (SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_ENABLE_Msk);
 }
 

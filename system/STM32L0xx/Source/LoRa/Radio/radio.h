@@ -26,6 +26,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*!
  * Radio driver supported modems
  */
@@ -107,13 +111,6 @@ typedef struct
  */
 struct Radio_s
 {
-    /*!
-     * \brief Initializes the radio
-     *
-     * \param [IN] events Structure containing the driver callback functions
-     * \param [IN] freq Channel RF frequency for rx calibration
-     */
-    void    ( *Init )( const RadioEvents_t *events, uint32_t freq );
     /*!
      * \brief De-Initializes the radio
      */
@@ -419,8 +416,19 @@ struct Radio_s
  *         board implementation
  */
 
-extern const struct Radio_s * SX127xRadio;
+extern const struct Radio_s * __Radio;
+#define Radio (*__Radio)
 
-#define Radio (*SX127xRadio)
+extern void RadioInit( const RadioEvents_t *events, uint32_t freq );
+extern void SX1272Init( const RadioEvents_t *events, uint32_t freq );
+extern void SX1276Init( const RadioEvents_t *events, uint32_t freq );
+
+extern void CMWX1ZZABZ_Initialize( uint8_t pin_tcxo, uint16_t pin_stsafe );
+extern void SX1272MB2DAS_Initialize( void );
+extern void WMSGSM42_Initialize( void );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // __RADIO_H__

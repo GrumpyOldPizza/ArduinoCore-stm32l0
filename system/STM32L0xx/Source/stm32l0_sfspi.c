@@ -103,16 +103,22 @@ static uint8_t stm32l0_sfspi_wait(stm32l0_sfspi_t *sfspi)
     return status;
 }
 
-static uint32_t stm32l0_sfspi_capacity(void *context)
+static bool stm32l0_sfspi_info(void *context, uint32_t *p_capacity, uint32_t *p_serial)
 {
     stm32l0_sfspi_t *sfspi = (stm32l0_sfspi_t*)context;
-
+    uint32_t uid[3];
+    
     if ((sfspi->state != STM32L0_SFSPI_STATE_READY) && (sfspi->state != STM32L0_SFSPI_STATE_LOCKED))
     {
-        return 0;
+        return false;
     }
 
-    return (1u << sfspi->ID[2]);
+    stm32l0_system_uid(&uid[0]);
+    
+    *p_capacity = (1u << sfspi->ID[2]);
+    *p_serial = (uid[0] + uid[2]) ^ uid[1];
+    
+    return true;
 }
 
 static void stm32l0_sfspi_hook(void *context, dosfs_device_lock_callback_t callback, void *cookie)
@@ -360,7 +366,7 @@ static void stm32l0_sfspi_callback(void *context, uint32_t notify)
 }
 
 static const  dosfs_sflash_interface_t stm32l0_sfspi_interface = {
-    stm32l0_sfspi_capacity,
+    stm32l0_sfspi_info,
     stm32l0_sfspi_hook,
     stm32l0_sfspi_lock,
     stm32l0_sfspi_unlock,

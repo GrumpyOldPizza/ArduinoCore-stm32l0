@@ -118,36 +118,36 @@ static __attribute__((optimize("O3"))) uint32_t stm32l0_uart_dma_receive(stm32l0
         
         rx_write = uart->rx_write;
 
-	do
-	{
-	    rx_data = uart->rx_fifo[rx_index];
+        do
+        {
+            rx_data = uart->rx_fifo[rx_index];
 
-	    if (rx_count == rx_size)
-	    {
-		events |= STM32L0_UART_EVENT_OVERRUN;
-	    }
-	    else
-	    {
-		uart->rx_data[rx_write] = rx_data;
+            if (rx_count == rx_size)
+            {
+                events |= STM32L0_UART_EVENT_OVERRUN;
+            }
+            else
+            {
+                uart->rx_data[rx_write] = rx_data;
                 
-		rx_write++;
+                rx_write++;
                 
-		if (rx_write == uart->rx_size)
-		{
-		    rx_write = 0;
-		}
+                if (rx_write == uart->rx_size)
+                {
+                    rx_write = 0;
+                }
                 
-		rx_count++;
-	    }
+                rx_count++;
+            }
             
-	    rx_index++;
+            rx_index++;
 
-	    if (rx_index == uart->rx_entries)
-	    {
-		rx_index = 0;
-	    }
-	}
-	while (rx_index != uart->rx_index);
+            if (rx_index == uart->rx_entries)
+            {
+                rx_index = 0;
+            }
+        }
+        while (rx_index != uart->rx_index);
 
         uart->rx_write = rx_write;
 
@@ -162,20 +162,20 @@ static __attribute__((optimize("O3"))) uint32_t stm32l0_uart_dma_receive(stm32l0
 
         if (uart->option & STM32L0_UART_OPTION_RTS)
         {
-	    if (uart->rx_enable)
-	    {
-		if ((uart->rx_count >= uart->rx_threshold) && (rx_entries < uart->rx_threshold))
-		{
-		    stm32l0_gpio_pin_write(uart->pins.rts, 1);
+            if (uart->rx_enable)
+            {
+                if ((uart->rx_count >= uart->rx_threshold) && (rx_entries < uart->rx_threshold))
+                {
+                    stm32l0_gpio_pin_write(uart->pins.rts, 1);
                     
-		    /* Check for a async uart read race condition.
-		     */
-		    if ((uart->rx_count < uart->rx_threshold) && uart->rx_enable)
-		    {
-			stm32l0_gpio_pin_write(uart->pins.rts, 0);
-		    }
-		}
-	    }
+                    /* Check for a async uart read race condition.
+                     */
+                    if ((uart->rx_count < uart->rx_threshold) && uart->rx_enable)
+                    {
+                        stm32l0_gpio_pin_write(uart->pins.rts, 0);
+                    }
+                }
+            }
         }
     }
 
@@ -574,52 +574,52 @@ static __attribute__((optimize("O3"))) void stm32l0_uart_interrupt(stm32l0_uart_
         {
             rx_data = USART->RDR;
     
-	    if (uart->rx_count == uart->rx_size)
-	    {
-		events |= STM32L0_UART_EVENT_OVERRUN;
-	    }
-	    else
-	    {
-		rx_write = uart->rx_write;
+            if (uart->rx_count == uart->rx_size)
+            {
+                events |= STM32L0_UART_EVENT_OVERRUN;
+            }
+            else
+            {
+                rx_write = uart->rx_write;
             
-		uart->rx_data[rx_write] = rx_data;
+                uart->rx_data[rx_write] = rx_data;
             
-		rx_write++;
+                rx_write++;
             
-		if (rx_write == uart->rx_size)
-		{
-		    rx_write = 0;
-		}
+                if (rx_write == uart->rx_size)
+                {
+                    rx_write = 0;
+                }
             
-		uart->rx_write = rx_write;
+                uart->rx_write = rx_write;
             
-		armv6m_atomic_add(&uart->rx_count, 1);
+                armv6m_atomic_add(&uart->rx_count, 1);
             
-		if (uart->rx_event)
-		{
-		    uart->rx_event = false;
+                if (uart->rx_event)
+                {
+                    uart->rx_event = false;
 
-		    events |= STM32L0_UART_EVENT_RECEIVE;
-		}
+                    events |= STM32L0_UART_EVENT_RECEIVE;
+                }
             
-		if (uart->option & STM32L0_UART_OPTION_RTS)
-		{
-		    if (uart->rx_enable)
-		    {
-			if (uart->rx_count == uart->rx_threshold)
-			{
-			    stm32l0_gpio_pin_write(uart->pins.rts, 1);
-			    
-			    /* Check for a async uart read race condition.
-			     */
-			    if ((uart->rx_count < uart->rx_threshold) && uart->rx_enable)
-			    {
-				stm32l0_gpio_pin_write(uart->pins.rts, 0);
-			    }
-			}
-		    }
-		}
-	    }
+                if (uart->option & STM32L0_UART_OPTION_RTS)
+                {
+                    if (uart->rx_enable)
+                    {
+                        if (uart->rx_count == uart->rx_threshold)
+                        {
+                            stm32l0_gpio_pin_write(uart->pins.rts, 1);
+                            
+                            /* Check for a async uart read race condition.
+                             */
+                            if ((uart->rx_count < uart->rx_threshold) && uart->rx_enable)
+                            {
+                                stm32l0_gpio_pin_write(uart->pins.rts, 0);
+                            }
+                        }
+                    }
+                }
+            }
     
             if (!uart->rx_sequence)
             {
@@ -741,54 +741,54 @@ static __attribute__((optimize("O3"))) void stm32l0_uart_interrupt(stm32l0_uart_
             }
         }
 
-	if (USART->CR1 & USART_CR1_TXEIE)
-	{
-	    if (USART->ISR & USART_ISR_TXE)
-	    {
-		uart->tx_count--;
+        if (USART->CR1 & USART_CR1_TXEIE)
+        {
+            if (USART->ISR & USART_ISR_TXE)
+            {
+                uart->tx_count--;
                 
-		if (uart->tx_count == 0)
-		{
-		    USART->CR1 = (USART->CR1 & ~USART_CR1_TXEIE) | USART_CR1_TCIE;
-		}
+                if (uart->tx_count == 0)
+                {
+                    USART->CR1 = (USART->CR1 & ~USART_CR1_TXEIE) | USART_CR1_TCIE;
+                }
                 
-		USART->TDR = *uart->tx_data++;
-	    }
-	}
+                USART->TDR = *uart->tx_data++;
+            }
+        }
     }
 
     if (uart->state == STM32L0_UART_STATE_READY)
     {
-	if (uart->tx_data)
-	{
-	    stm32l0_system_lock(STM32L0_SYSTEM_LOCK_SLEEP);
+        if (uart->tx_data)
+        {
+            stm32l0_system_lock(STM32L0_SYSTEM_LOCK_SLEEP);
 
-	    if (stm32l0_dma_channel(uart->tx_dma))
-	    {
-		USART->CR3 |= USART_CR3_DMAT;
+            if (stm32l0_dma_channel(uart->tx_dma))
+            {
+                USART->CR3 |= USART_CR3_DMAT;
                     
-		USART->CR1 |= USART_CR1_TCIE;
+                USART->CR1 |= USART_CR1_TCIE;
                     
-		stm32l0_dma_start(uart->tx_dma, (uint32_t)&USART->TDR, (uint32_t)uart->tx_data, uart->tx_count, STM32L0_UART_TX_DMA_OPTION);
-	    }
-	    else
-	    {
-		uart->tx_count--;
+                stm32l0_dma_start(uart->tx_dma, (uint32_t)&USART->TDR, (uint32_t)uart->tx_data, uart->tx_count, STM32L0_UART_TX_DMA_OPTION);
+            }
+            else
+            {
+                uart->tx_count--;
                     
-		if (uart->tx_count == 0)
-		{
-		    USART->CR1 |= USART_CR1_TCIE;
-		}
-		else
-		{
-		    USART->CR1 |= USART_CR1_TXEIE;
-		}
+                if (uart->tx_count == 0)
+                {
+                    USART->CR1 |= USART_CR1_TCIE;
+                }
+                else
+                {
+                    USART->CR1 |= USART_CR1_TXEIE;
+                }
                     
-		USART->TDR = *uart->tx_data++;
-	    }
+                USART->TDR = *uart->tx_data++;
+            }
 
-	    uart->state = STM32L0_UART_STATE_TRANSMIT;
-	}
+            uart->state = STM32L0_UART_STATE_TRANSMIT;
+        }
     }
 }
 
@@ -1222,10 +1222,10 @@ uint32_t stm32l0_uart_input(stm32l0_uart_t *uart, uint8_t *rx_data, uint32_t rx_
 
         if (uart->option & STM32L0_UART_OPTION_RTS)
         {
-	    if (uart->rx_enable)
-	    {
-		if ((rx_entries >= uart->rx_threshold) && (uart->rx_count < uart->rx_threshold))
-		{
+            if (uart->rx_enable)
+            {
+                if ((rx_entries >= uart->rx_threshold) && (uart->rx_count < uart->rx_threshold))
+                {
                     stm32l0_gpio_pin_write(uart->pins.rts, 0);
                 
                     /* Check for a async uart interrupt race condition.

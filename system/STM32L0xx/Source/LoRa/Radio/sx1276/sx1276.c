@@ -170,6 +170,48 @@ static const FskBandwidth_t FskBandwidths[] =
     { 250000, 0x01 },
 };
 
+
+/*!
+ * Radio driver structure initialization
+ */
+static const struct Radio_s SX1276Radio =
+{
+    SX1276DeInit,
+    SX1276GetStatus,
+    SX1276SetModem,
+    SX1276SetChannel,
+    SX1276IsChannelFree,
+    SX1276SetRxConfig,
+    SX1276SetTxConfig,
+    SX1276CheckRfFrequency,
+    SX1276GetTimeOnAir,
+    SX1276Send,
+    SX1276SetSleep,
+    SX1276SetStby,
+    SX1276SetRx,
+    SX1276StartCad,
+    SX1276SetTxContinuousWave,
+    SX1276ReadRssi,
+    SX1276Write,
+    SX1276Read,
+    SX1276WriteBuffer,
+    SX1276ReadBuffer,
+    SX1276SetMaxPayloadLength,
+    SX1276SetPublicNetwork,
+    SX1276SetModulation,
+    SX1276SetPreambleInverted,
+    SX1276SetSyncWord,
+    SX1276SetAfc,
+    SX1276SetDcFree,
+    SX1276SetCrcType,
+    SX1276SetAddressFiltering,
+    SX1276SetNodeAddress,
+    SX1276SetBroadcastAddress,
+    SX1276SetLnaBoost,
+    SX1276SetIdleMode,
+    SX1276GetWakeupTime
+};
+
 /*
  * Private global variables
  */
@@ -251,6 +293,8 @@ void SX1276Init( const RadioEvents_t *events, uint32_t freq )
     SX1276ImageCalibration( freq );
 
     SX1276SetSleep( );
+
+    __Radio = &SX1276Radio;
 }
 
 void SX1276DeInit( void )
@@ -1215,7 +1259,7 @@ static void SX1276SetOpMode( uint8_t opMode )
 {
     if( SX1276.OpMode != opMode )
     {
-        SX1276SetAntSw( opMode );
+        SX1276SetAntSw( opMode, SX1276.Settings.Power );
 
         SX1276Write( REG_OPMODE, ( SX1276Read( REG_OPMODE ) & RF_OPMODE_MASK ) | opMode );
 
@@ -1254,19 +1298,6 @@ void SX1276SetModem( RadioModems_t modem )
     }
 
     SX1276Release( );
-}
-
-void SX1276Delay( uint32_t timeout )
-{
-    uint32_t start, delay;
-
-    delay = timeout * 1000;
-
-    start = armv6m_systick_micros( );
-
-    while( (uint32_t)( armv6m_systick_micros( ) - start ) < delay )
-    {
-    }
 }
 
 static void SX1276WriteFifo( uint8_t *buffer, uint8_t size )
@@ -1456,7 +1487,7 @@ static void SX1276OnOscTimeoutIrq( void )
 
     if ( !SX1276.DioOn )
     {
-        SX1276DioInit( );
+        SX1276DioInit( SX1276.Modem, SX1276.State, SX1276OnDio0Irq, SX1276OnDio1Irq, SX1276OnDio2Irq );
 
         SX1276.DioOn = true;
     }
@@ -1897,3 +1928,4 @@ void SX1276OnDio2Irq( void )
         }
     }
 }
+

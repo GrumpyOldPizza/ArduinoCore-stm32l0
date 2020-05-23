@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2016-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -126,7 +126,7 @@ typedef struct _dosfs_sflash_t dosfs_sflash_t;
 typedef struct _dosfs_sflash_interface_t dosfs_sflash_interface_t;
 
 struct _dosfs_sflash_interface_t {
-    uint32_t                (*capacity)(void *context);
+    bool                    (*info)(void *context, uint32_t *p_capacity, uint32_t *p_serial);
     void                    (*hook)(void *context, dosfs_device_lock_callback_t callback, void *cookie);
     void                    (*lock)(void *context);
     void                    (*unlock)(void *context);
@@ -139,6 +139,7 @@ struct _dosfs_sflash_t {
     uint8_t                 state;
     uint8_t                 address;
     uint16_t                xlate_count;
+    uint32_t                serial;
     uint32_t                data_start;
     uint32_t                data_limit;
 

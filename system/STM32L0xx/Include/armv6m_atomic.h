@@ -571,9 +571,87 @@ static inline __attribute__((optimize("O3"),always_inline)) uint32_t __armv6m_at
         "   and     %1, %0       \n"
         "   eor     %1, %3       \n"
         "   str     %1, [%2]     \n"
-        "1: msr     PRIMASK, r12 \n"
+        "   msr     PRIMASK, r12 \n"
         : "=&l" (data_return), "+&l" (mask)
         : "l" (p_data), "l" (data)
+        : "r12", "memory"
+        );
+
+    return data_return;
+}
+
+static inline __attribute__((optimize("O3"),always_inline)) uint32_t __armv6m_atomic_modifyz(volatile uint32_t *p_data, uint32_t mask, uint32_t data, volatile uint32_t *p_zero, uint32_t bits)
+{
+    uint32_t data_return;
+
+    mask = ~mask;
+
+    __asm__ volatile (
+        "   mrs     r12, PRIMASK \n"
+        "   cpsid   i            \n"
+        "   ldr     %0, [%3]     \n"
+        "   ldr     %2, [%2]     \n"
+        "   and     %2, %5       \n"
+        "   beq     1f           \n"
+        "   mov     %1, %0       \n"
+        "   b       2f           \n"
+        "1: and     %1, %0       \n"
+        "   eor     %1, %4       \n"
+        "2: str     %1, [%3]     \n"
+        "   msr     PRIMASK, r12 \n"
+        : "=&l" (data_return), "+&l" (mask), "+&l" (p_zero)
+        : "l" (p_data), "l" (data), "l" (bits)
+        : "r12", "memory"
+        );
+
+    return data_return;
+}
+
+static inline __attribute__((optimize("O3"),always_inline)) uint32_t __armv6m_atomic_modifyzb(volatile uint32_t *p_data, uint32_t mask, uint32_t data, volatile uint8_t *p_zero)
+{
+    uint32_t data_return;
+
+    mask = ~mask;
+
+    __asm__ volatile (
+        "   mrs     r12, PRIMASK \n"
+        "   cpsid   i            \n"
+        "   ldr     %0, [%3]     \n"
+        "   ldrb    %2, [%2]     \n"
+        "   cmp     %2, #0       \n"
+        "   beq     1f           \n"
+        "   mov     %1, %0       \n"
+        "   b       2f           \n"
+        "1: and     %1, %0       \n"
+        "   eor     %1, %4       \n"
+        "2: str     %1, [%3]     \n"
+        "   msr     PRIMASK, r12 \n"
+        : "=&l" (data_return), "+&l" (mask), "+&l" (p_zero)
+        : "l" (p_data), "l" (data)
+        : "r12", "memory"
+        );
+
+    return data_return;
+}
+
+static inline __attribute__((optimize("O3"),always_inline)) uint32_t __armv6m_atomic_andz(volatile uint32_t *p_data, uint32_t data, volatile uint32_t *p_zero, uint32_t bits)
+{
+    uint32_t data_return;
+
+    __asm__ volatile (
+        "   mrs     r12, PRIMASK \n"
+        "   cpsid   i            \n"
+        "   ldr     %0, [%3]     \n"
+        "   ldr     %2, [%2]     \n"
+        "   and     %2, %4       \n"
+        "   beq     1f           \n"
+        "   mov     %1, %0       \n"
+        "   b       2f           \n"
+        "1: and     %1, %0       \n"
+        "2: str     %1, [%3]     \n"
+        "   msr     PRIMASK, r12 \n"
+        : "=&l" (data_return), "+&l" (data), "+&l" (p_zero)
+        : "l" (p_data), "l" (bits)
         : "r12", "memory"
         );
 
@@ -604,7 +682,7 @@ static inline __attribute__((optimize("O3"),always_inline)) uint32_t __armv6m_at
     return data_return;
 }
 
-static inline __attribute__((optimize("O3"),always_inline)) uint32_t __armv6m_atomic_andzh(volatile uint32_t *p_data, uint32_t data, volatile uint16_t *p_zero, uint32_t mask)
+static inline __attribute__((optimize("O3"),always_inline)) uint32_t __armv6m_atomic_orz(volatile uint32_t *p_data, uint32_t data, volatile uint32_t *p_zero, uint32_t bits)
 {
     uint32_t data_return;
 
@@ -612,16 +690,40 @@ static inline __attribute__((optimize("O3"),always_inline)) uint32_t __armv6m_at
         "   mrs     r12, PRIMASK \n"
         "   cpsid   i            \n"
         "   ldr     %0, [%3]     \n"
-        "   ldrh    %2, [%2]     \n"
+        "   ldr     %2, [%2]     \n"
         "   and     %2, %4       \n"
         "   beq     1f           \n"
         "   mov     %1, %0       \n"
         "   b       2f           \n"
-        "1: and     %1, %0       \n"
+        "1: orr     %1, %0       \n"
         "2: str     %1, [%3]     \n"
         "   msr     PRIMASK, r12 \n"
         : "=&l" (data_return), "+&l" (data), "+&l" (p_zero)
-        : "l" (p_data), "l" (mask)
+        : "l" (p_data), "l" (bits)
+        : "r12", "memory"
+        );
+
+    return data_return;
+}
+
+static inline __attribute__((optimize("O3"),always_inline)) uint32_t __armv6m_atomic_orzb(volatile uint32_t *p_data, uint32_t data, volatile uint8_t *p_zero)
+{
+    uint32_t data_return;
+
+    __asm__ volatile (
+        "   mrs     r12, PRIMASK \n"
+        "   cpsid   i            \n"
+        "   ldr     %0, [%3]     \n"
+        "   ldrb    %2, [%2]     \n"
+        "   cmp     %2, #0       \n"
+        "   beq     1f           \n"
+        "   mov     %1, %0       \n"
+        "   b       2f           \n"
+        "1: orr     %1, %0       \n"
+        "2: str     %1, [%3]     \n"
+        "   msr     PRIMASK, r12 \n"
+        : "=&l" (data_return), "+&l" (data), "+&l" (p_zero)
+        : "l" (p_data)
         : "r12", "memory"
         );
 
@@ -652,9 +754,18 @@ extern uint32_t armv6m_atomic_casb(volatile uint8_t *p_data, uint32_t data_expec
 /* *p_data = (*p_data & ~mask) ^ data */
 extern uint32_t armv6m_atomic_modify(volatile uint32_t *p_data, uint32_t mask, uint32_t data);
 
+/* *p_data = (*p_zero == 0) ? ((*p_data & ~mask) ^ data) : *p_data */
+extern uint32_t armv6m_atomic_modifyz(volatile uint32_t *p_data, uint32_t mask, uint32_t data, volatile uint32_t *p_zero, uint32_t bits);
+extern uint32_t armv6m_atomic_modifyzb(volatile uint32_t *p_data, uint32_t mask, uint32_t data, volatile uint8_t *p_zero);
+
 /* *p_data = (*p_zero == 0) ? (*p_data & mask) : *p_data */
+extern uint32_t armv6m_atomic_andz(volatile uint32_t *p_data, uint32_t data, volatile uint32_t *p_zero, uint32_t bits);
 extern uint32_t armv6m_atomic_andzb(volatile uint32_t *p_data, uint32_t data, volatile uint8_t *p_zero);
-extern uint32_t armv6m_atomic_andzh(volatile uint32_t *p_data, uint32_t data, volatile uint16_t *p_zero, uint32_t mask);
+
+/* *p_data = (*p_zero == 0) ? (*p_data | mask) : *p_data */
+extern uint32_t armv6m_atomic_orz(volatile uint32_t *p_data, uint32_t data, volatile uint32_t *p_zero, uint32_t bits);
+extern uint32_t armv6m_atomic_orzb(volatile uint32_t *p_data, uint32_t data, volatile uint8_t *p_zero);
+
 
 #ifdef __cplusplus
 }

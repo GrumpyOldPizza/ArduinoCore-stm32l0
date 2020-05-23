@@ -70,6 +70,8 @@ typedef struct _stm32l0_rtc_timer_t {
     volatile uint32_t                     clock[2];
 } stm32l0_rtc_timer_t;
 
+#define STM32L0_RTC_IRQ_PRIORITY                2
+
 #define STM32L0_RTC_STATUS_TIME_INTERNAL        0x00000001
 #define STM32L0_RTC_STATUS_TIME_EXTERNAL        0x00000002
 #define STM32L0_RTC_STATUS_UTC_OFFSET_INTERNAL  0x00000004

@@ -74,15 +74,11 @@ extern bool USBD_Configured(void);
 extern bool USBD_Suspended(void);
 extern void USBD_SetupVBUS(bool wakeup);
 
-extern void CMWX1ZZABZ_Initialize(uint16_t pin_tcxo, uint16_t pin_stsafe);
-extern void SX1272MB2DAS_Initialize(void);
-extern void WMSGSM42_Initialize(void);
-
 extern int g_swdStatus;  /* 0, default, 1 = enable, 2 = disable, 3 = forced disable */
 
 extern int g_defaultPolicy;
 
-extern uint32_t g_wakeupControl;
+extern uint32_t g_standbyControl;
 
 extern void (*g_serialEventRun)(void);
 
@@ -98,10 +94,6 @@ extern void __analogWriteDisable(uint32_t pin);
  * TIM22  ADC
  */
 
-#define STM32L0_PENDSV_IRQ_PRIORITY  3
-#define STM32L0_SVCALL_IRQ_PRIORITY  3
-#define STM32L0_SYSTICK_IRQ_PRIORITY 3
-
 #define STM32L0_I2C_IRQ_PRIORITY     2
 #define STM32L0_SPI_IRQ_PRIORITY     2
 #define STM32L0_USB_IRQ_PRIORITY     2
@@ -111,8 +103,6 @@ extern void __analogWriteDisable(uint32_t pin);
 #define STM32L0_UART_IRQ_PRIORITY    1
 
 #define STM32L0_ADC_IRQ_PRIORITY     0
-#define STM32L0_LPTIM_IRQ_PRIORITY   1
-#define STM32L0_RTC_IRQ_PRIORITY     0
 #define STM32L0_SERVO_IRQ_PRIORITY   0
 #define STM32L0_TONE_IRQ_PRIORITY    0
 

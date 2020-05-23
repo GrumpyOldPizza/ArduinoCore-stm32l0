@@ -192,8 +192,6 @@ bool USBD_Initialize(uint16_t vid, uint16_t pid, const uint8_t *manufacturer, co
         return false;
     }
 
-    stm32l0_system_reference(STM32L0_SYSTEM_REFERENCE_USB);
-    
     USBD_IRQHandler = HAL_PCD_IRQHandler;
 
     USBD_VendorID = vid;
@@ -248,8 +246,6 @@ void USBD_Teardown()
     usbd_disconnect_callback = NULL;
     usbd_suspend_callback = NULL;
     usbd_resume_callback = NULL;
-
-    stm32l0_system_unreference(STM32L0_SYSTEM_REFERENCE_USB);
 
     USBD_IRQHandler = NULL;
 }
@@ -405,7 +401,9 @@ void USB_IRQHandler(void)
   */
 void HAL_PCD_MspInit(PCD_HandleTypeDef *hpcd)
 {
-    stm32l0_system_hsi48_enable();
+    stm32l0_system_reference(STM32L0_SYSTEM_REFERENCE_USB);
+
+    stm32l0_system_clk48_enable();
     
     stm32l0_system_periph_enable(STM32L0_SYSTEM_PERIPH_USB);
 
@@ -427,7 +425,9 @@ void HAL_PCD_MspDeInit(PCD_HandleTypeDef *hpcd)
 
     stm32l0_system_periph_disable(STM32L0_SYSTEM_PERIPH_USB);
     
-    stm32l0_system_hsi48_disable();
+    stm32l0_system_unreference(STM32L0_SYSTEM_REFERENCE_USB);
+
+    stm32l0_system_clk48_disable();
 }
 
 

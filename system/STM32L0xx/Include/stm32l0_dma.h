@@ -263,6 +263,8 @@ extern "C" {
 typedef void (*stm32l0_dma_callback_t)(void *context, uint32_t events);
 
 extern void __stm32l0_dma_initialize(void);
+extern void __stm32l0_dma_sleep_enter(void);
+extern void __stm32l0_dma_sleep_leave(void);
 extern void stm32l0_dma_configure(uint8_t priority_1, uint8_t priority_2_3, uint8_t priority_4_5_6_7);
 extern uint8_t stm32l0_dma_priority(uint16_t channel);
 extern bool stm32l0_dma_channel(uint16_t channel);

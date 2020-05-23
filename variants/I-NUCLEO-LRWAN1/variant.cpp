@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -28,6 +28,7 @@
 
 #include "Arduino.h"
 #include "wiring_private.h"
+#include "../Source/LoRa/Radio/radio.h"
 
 /*
  * Pins descriptions
@@ -91,6 +92,10 @@ extern const stm32l0_i2c_params_t g_WireParams = {
     },
 };
 
+void RadioInit( const RadioEvents_t *events, uint32_t freq )
+{
+    SX1272Init(events, freq);
+}
 
 void initVariant()
 {

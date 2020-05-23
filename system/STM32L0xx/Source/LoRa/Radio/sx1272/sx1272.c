@@ -167,6 +167,47 @@ static const FskBandwidth_t FskBandwidths[] =
     { 250000, 0x01 },
 };
 
+/*!
+ * Radio driver structure initialization
+ */
+static const struct Radio_s SX1272Radio =
+{
+    SX1272DeInit,
+    SX1272GetStatus,
+    SX1272SetModem,
+    SX1272SetChannel,
+    SX1272IsChannelFree,
+    SX1272SetRxConfig,
+    SX1272SetTxConfig,
+    SX1272CheckRfFrequency,
+    SX1272GetTimeOnAir,
+    SX1272Send,
+    SX1272SetSleep,
+    SX1272SetStby,
+    SX1272SetRx,
+    SX1272StartCad,
+    SX1272SetTxContinuousWave,
+    SX1272ReadRssi,
+    SX1272Write,
+    SX1272Read,
+    SX1272WriteBuffer,
+    SX1272ReadBuffer,
+    SX1272SetMaxPayloadLength,
+    SX1272SetPublicNetwork,
+    SX1272SetModulation,
+    SX1272SetPreambleInverted,
+    SX1272SetSyncWord,
+    SX1272SetAfc,
+    SX1272SetDcFree,
+    SX1272SetCrcType,
+    SX1272SetAddressFiltering,
+    SX1272SetNodeAddress,
+    SX1272SetBroadcastAddress,
+    SX1272SetLnaBoost,
+    SX1272SetIdleMode,
+    SX1272GetWakeupTime
+};
+
 /*
  * Private global variables
  */
@@ -248,6 +289,8 @@ void SX1272Init( const RadioEvents_t *events, uint32_t freq )
     SX1272ImageCalibration( freq );
 
     SX1272SetSleep( );
+
+    __Radio = &SX1272Radio;
 }
 
 void SX1272DeInit( void )
@@ -1169,7 +1212,7 @@ static void SX1272SetOpMode( uint8_t opMode )
 {
     if( SX1272.OpMode != opMode )
     {
-        SX1272SetAntSw( opMode );
+        SX1272SetAntSw( opMode, SX1272.Settings.Power );
 
         SX1272Write( REG_OPMODE, ( SX1272Read( REG_OPMODE ) & RF_OPMODE_MASK ) | opMode );
         
@@ -1208,19 +1251,6 @@ void SX1272SetModem( RadioModems_t modem )
     }
 
     SX1272Release( );
-}
-
-void SX1272Delay( uint32_t timeout )
-{
-    uint32_t start, delay;
-
-    delay = timeout * 1000;
-
-    start = armv6m_systick_micros( );
-
-    while( (uint32_t)( armv6m_systick_micros( ) - start ) < delay )
-    {
-    }
 }
 
 static void SX1272WriteFifo( uint8_t *buffer, uint8_t size )
@@ -1410,7 +1440,7 @@ static void SX1272OnOscTimeoutIrq( void )
 
     if ( !SX1272.DioOn )
     {
-        SX1272DioInit( );
+        SX1272DioInit( SX1272.Modem, SX1272.State, SX1272OnDio0Irq, SX1272OnDio1Irq, SX1272OnDio2Irq );
 
         SX1272.DioOn = true;
     }

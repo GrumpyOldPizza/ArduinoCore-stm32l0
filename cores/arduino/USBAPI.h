@@ -43,8 +43,8 @@ public:
     // USB Device API
     bool begin();
     void end();
-    bool attach();
-    bool detach();
+    void attach();
+    void detach();
     void wakeup();
     
     bool attached();
@@ -67,7 +67,6 @@ public:
     void setVBUSDetect(enum USBDeviceDetect mode);
     
 private:
-    bool _enabled;
     bool _wakeup;
 
     Callback _connectCallback;

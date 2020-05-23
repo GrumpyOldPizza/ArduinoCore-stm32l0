@@ -1221,10 +1221,10 @@ __attribute__((optimize("O3"))) void PCD_WritePMA(USB_TypeDef  *USBx, uint8_t *p
   {
       while (pPMABuf != pPMABufEnd)
       {
-	  data = *pbUsrBuf++;
-	  data |= (*pbUsrBuf++ << 8);
-	  
-	  *pPMABuf++ = data;
+          data = *pbUsrBuf++;
+          data |= (*pbUsrBuf++ << 8);
+          
+          *pPMABuf++ = data;
       }
   }
   else
@@ -1233,7 +1233,7 @@ __attribute__((optimize("O3"))) void PCD_WritePMA(USB_TypeDef  *USBx, uint8_t *p
 
       while (pPMABuf != pPMABufEnd)
       {
-	  *pPMABuf++ = *pwUsrBuf++;
+          *pPMABuf++ = *pwUsrBuf++;
       }
 
       pbUsrBuf = (void*)pwUsrBuf;
@@ -1261,16 +1261,14 @@ __attribute__((optimize("O3"))) void PCD_ReadPMA(USB_TypeDef  *USBx, uint8_t *pb
   volatile uint16_t *pPMABufEnd = pPMABuf + (wNBytes >> 1);
   uint16_t data;
 
-  GPIOB->BRR = 0x8000;
-
   if ((uint32_t)pbUsrBuf & 1)
   {
       while (pPMABuf != pPMABufEnd)
       {
-	  data = *pPMABuf++;
-	  
-	  *pbUsrBuf++ = data;
-	  *pbUsrBuf++ = data >> 8;
+          data = *pPMABuf++;
+          
+          *pbUsrBuf++ = data;
+          *pbUsrBuf++ = data >> 8;
       }
   }
   else
@@ -1279,7 +1277,7 @@ __attribute__((optimize("O3"))) void PCD_ReadPMA(USB_TypeDef  *USBx, uint8_t *pb
 
       while (pPMABuf != pPMABufEnd)
       {
-	  *pwUsrBuf++ = *pPMABuf++;
+          *pwUsrBuf++ = *pPMABuf++;
       }
 
       pbUsrBuf = (void*)pwUsrBuf;
@@ -1291,8 +1289,6 @@ __attribute__((optimize("O3"))) void PCD_ReadPMA(USB_TypeDef  *USBx, uint8_t *pb
 
       *pbUsrBuf++ = data;
   }
-
-  GPIOB->BSRR = 0x8000;
 }
 
 /**

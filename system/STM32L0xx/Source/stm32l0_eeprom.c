@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -53,7 +53,7 @@ static stm32l0_eeprom_device_t stm32l0_eeprom_device;
 
 void __stm32l0_eeprom_initialize(void)
 {
-    NVIC_SetPriority(FLASH_IRQn, ((1 << __NVIC_PRIO_BITS) -1) -1);
+    NVIC_SetPriority(FLASH_IRQn, STM32L0_EEPROM_IRQ_PRIORITY);
     
     NVIC_EnableIRQ(FLASH_IRQn);
     

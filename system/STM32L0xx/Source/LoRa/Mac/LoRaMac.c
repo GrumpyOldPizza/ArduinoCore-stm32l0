@@ -2550,7 +2550,7 @@ LoRaMacStatus_t LoRaMacInitialization( const LoRaMacPrimitives_t *primitives, co
     RadioEvents.RxError = OnRadioRxError;
     RadioEvents.TxTimeout = OnRadioTxTimeout;
     RadioEvents.RxTimeout = OnRadioRxTimeout;
-    Radio.Init( &RadioEvents, phyParam.Value );
+    RadioInit( &RadioEvents, phyParam.Value );
 
     // Random seed initialization
     stm32l0_random( (uint8_t*)&seed, sizeof(seed) );

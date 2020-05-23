@@ -103,6 +103,18 @@ uint32_t STM32L0Class::wakeupReason()
     return stm32l0_system_wakeup_reason();
 }
 
+bool STM32L0Class::setClocks(uint32_t hclk, uint32_t pclk1, uint32_t pclk2)
+{
+    return stm32l0_system_sysclk_configure(hclk, pclk1, pclk2);
+}
+
+void STM32L0Class::setClocks(uint32_t &hclk, uint32_t &pclk1, uint32_t &pclk2)
+{
+    hclk = stm32l0_system_hclk();
+    pclk1 = stm32l0_system_pclk1();
+    pclk2 = stm32l0_system_pclk2();
+}
+
 void STM32L0Class::enablePowerSave()
 {
     g_defaultPolicy = STM32L0_SYSTEM_POLICY_SLEEP;
@@ -120,7 +132,13 @@ void STM32L0Class::wakeup()
 
 void STM32L0Class::sleep(uint32_t timeout)
 {
-  stm32l0_system_sleep(g_defaultPolicy, STM32L0_SYSTEM_EVENT_APPLICATION, timeout);
+    if (g_swdStatus == 0) {
+        stm32l0_system_swd_disable();
+
+        g_swdStatus = 2;
+    }
+
+    stm32l0_system_sleep(STM32L0_SYSTEM_POLICY_SLEEP, STM32L0_SYSTEM_EVENT_APPLICATION, timeout);
 }
 
 void STM32L0Class::deepsleep(uint32_t timeout)
@@ -136,7 +154,7 @@ void STM32L0Class::deepsleep(uint32_t timeout)
 
 void STM32L0Class::standby(uint32_t timeout)
 {
-    stm32l0_system_standby(g_wakeupControl, timeout);
+    stm32l0_system_standby(g_standbyControl, timeout);
 }
 
 void STM32L0Class::reset()

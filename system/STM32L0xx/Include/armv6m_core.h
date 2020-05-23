@@ -78,7 +78,7 @@ extern void SVC_Handler(void);
 extern void PendSV_Handler(void);
 extern void SysTick_Handler(void);
   
-extern void armv6m_core_initialize(void);
+extern void __armv6m_core_initialize(void);
 extern void armv6m_core_udelay(uint32_t udelay);
 
 extern void armv6m_core_c_function(armv6m_core_callback_t *callback, void *function);

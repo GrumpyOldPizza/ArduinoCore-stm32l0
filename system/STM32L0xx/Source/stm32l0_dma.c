@@ -59,6 +59,7 @@ typedef struct _stm32l0_dma_device_t {
     uint8_t                priority_2_3;
     uint8_t                priority_4_5_6_7;
     volatile uint8_t       dma;
+    volatile uint8_t       flash;
 } stm32l0_dma_device_t;
 
 static stm32l0_dma_device_t stm32l0_dma_device;
@@ -71,9 +72,24 @@ static inline void stm32l0_dma_interrupt(stm32l0_dma_t *dma, DMA_Channel_TypeDef
 
     if (events & DMA->CCR)
     {
-	DMA1->IFCR = (15 << shift);
+        DMA1->IFCR = (15 << shift);
 
-	(*dma->callback)(dma->context, events);
+        (*dma->callback)(dma->context, events);
+    }
+}
+static inline void stm32l0_dma_track(uint16_t channel, uint32_t address)
+{
+    if (address < 0x10000000)
+    {
+        __armv6m_atomic_orb(&stm32l0_dma_device.flash, (channel & 7));
+    }
+}
+
+static inline void stm32l0_dma_untrack(uint16_t channel, uint32_t address)
+{
+    if (address < 0x10000000)
+    {
+        __armv6m_atomic_andb(&stm32l0_dma_device.flash, ~(channel & 7));
     }
 }
 
@@ -82,6 +98,22 @@ void __stm32l0_dma_initialize(void)
     NVIC_EnableIRQ(DMA1_Channel1_IRQn);
     NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
     NVIC_EnableIRQ(DMA1_Channel4_5_6_7_IRQn);
+}
+
+__attribute__((optimize("O3"))) void __stm32l0_dma_sleep_enter(void)
+{
+    if (!stm32l0_dma_device.flash)
+    {
+        FLASH->ACR |= FLASH_ACR_SLEEP_PD;
+    }
+}
+
+__attribute__((optimize("O3"))) void __stm32l0_dma_sleep_leave(void)
+{
+    if (!stm32l0_dma_device.flash)
+    {
+        FLASH->ACR &= ~FLASH_ACR_SLEEP_PD;
+    }
 }
 
 void stm32l0_dma_configure(uint8_t priority_1, uint8_t priority_2_3, uint8_t priority_4_5_6_7)
@@ -120,12 +152,12 @@ bool stm32l0_dma_channel(uint16_t channel)
 
     if (channel == STM32L0_DMA_CHANNEL_NONE)
     {
-	return false;
+        return false;
     }
     
     if (!(stm32l0_dma_device.dma & mask))
     {
-	return false;
+        return false;
     }
 
     return ((stm32l0_dma_device.channels[index].channel & STM32L0_DMA_CHANNEL_MASK) == channel);
@@ -211,6 +243,8 @@ __attribute__((optimize("O3"))) void stm32l0_dma_start(uint16_t channel, uint32_
         DMA->CPAR = rx_data;
     }
 
+    stm32l0_dma_track(channel, DMA->CMAR);
+
     dma->size = xf_count;
 
     DMA->CNDTR = xf_count;
@@ -221,6 +255,8 @@ __attribute__((optimize("O3"))) uint16_t stm32l0_dma_stop(uint16_t channel)
 {
     DMA_Channel_TypeDef *DMA = stm32l0_dma_xlate_DMA[channel & 7];
     stm32l0_dma_t *dma = &stm32l0_dma_device.channels[channel & 7];
+
+    stm32l0_dma_untrack(channel, DMA->CMAR);
 
     DMA->CCR &= ~(DMA_CCR_EN | DMA_CCR_TCIE | DMA_CCR_HTIE | DMA_CCR_TEIE);
 

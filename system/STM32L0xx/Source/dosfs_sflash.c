@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2016-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -27,8 +27,6 @@
  */
 
 #include "dosfs_sflash.h"
-
-#include <stdio.h>
 
 #if (DOSFS_CONFIG_SFLASH_DEBUG == 1)
 #include <assert.h>
@@ -1581,14 +1579,14 @@ static int dosfs_sflash_info(void *context, uint8_t *p_media, uint8_t *p_write_p
         /* One sector needs to be put away as reclaim sector. There is the starting block of each erase block.
          * There are XLATE/XLATE2 entries for each set of 128 blocks.
          */
-        
+
         blkcnt = (((sflash->data_limit - sflash->data_start) / DOSFS_SFLASH_ERASE_SIZE) -1) * ((DOSFS_SFLASH_ERASE_SIZE / DOSFS_SFLASH_BLOCK_SIZE) -1) -2 - (2 * sflash->xlate_count);
         
         *p_media = DOSFS_MEDIA_SFLASH;
         *p_write_protected = false;
         *p_block_count = blkcnt;
         *p_au_size = 8;
-        *p_serial = 0;
+        *p_serial = sflash->serial;
     }
     
     return status;
@@ -1771,6 +1769,7 @@ static const dosfs_device_interface_t dosfs_sflash_interface = {
 int dosfs_sflash_init(uint32_t data_start)
 {
     dosfs_sflash_t *sflash = (dosfs_sflash_t*)&dosfs_sflash;
+    uint32_t capacity, serial;
     int status = F_NO_ERROR;
 
     if (!dosfs_sflash_device.interface)
@@ -1788,8 +1787,11 @@ int dosfs_sflash_init(uint32_t data_start)
     
         if (sflash->state == DOSFS_SFLASH_STATE_NONE)
         {
+            (*sflash->interface->info)(sflash->context, &capacity, &serial);
+
+            sflash->serial = serial;
             sflash->data_start = data_start;
-            sflash->data_limit = (*sflash->interface->capacity)(sflash->context);
+            sflash->data_limit = capacity;
 
             if (sflash->data_limit <= sflash->data_start)
             {

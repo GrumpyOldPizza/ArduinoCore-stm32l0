@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -37,7 +37,10 @@ bool stm32l0_random(uint8_t *data, uint32_t count)
     uint32_t rng_data;
     bool success = false;
 
-    stm32l0_system_hsi48_enable();
+    stm32l0_system_reference(STM32L0_SYSTEM_REFERENCE_RNG);
+
+    stm32l0_system_clk48_enable();
+
     stm32l0_system_periph_enable(STM32L0_SYSTEM_PERIPH_RNG);
 
     RNG->CR |= RNG_CR_RNGEN;
@@ -91,7 +94,10 @@ bailout:
     RNG->CR &= ~RNG_CR_RNGEN;
     
     stm32l0_system_periph_disable(STM32L0_SYSTEM_PERIPH_RNG);
-    stm32l0_system_hsi48_disable();
 
+    stm32l0_system_unreference(STM32L0_SYSTEM_REFERENCE_RNG);
+
+    stm32l0_system_clk48_disable();
+    
     return success;
 }

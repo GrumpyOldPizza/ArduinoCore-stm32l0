@@ -35,7 +35,7 @@ typedef struct _armv6m_core_control_t {
 
 static armv6m_core_control_t armv6m_core_control;
 
-void armv6m_core_initialize(void)
+void __armv6m_core_initialize(void)
 {
     __armv6m_svcall_initialize();
     __armv6m_pendsv_initialize();
@@ -92,4 +92,3 @@ void armv6m_core_cxx_method(armv6m_core_callback_t *callback, const void *method
 
     callback->context = (void*)((uintptr_t)object + adj);
 }
-

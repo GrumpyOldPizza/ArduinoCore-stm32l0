@@ -554,7 +554,7 @@ LoRaWANClass::LoRaWANClass()
     _wakeup = false;
     
     EEPROMTransaction.status = STM32L0_EEPROM_STATUS_NONE;
-    EEPROMTransaction.callback = (stm32l0_eeprom_done_callback_t)LoRaWANClass::_eepromSync;
+    EEPROMTransaction.callback = (stm32l0_eeprom_done_callback_t)LoRaWANClass::_eepromDone;
     EEPROMTransaction.context = (void*)this;
 
 #if defined(LORAWAN_COMPLIANCE_TEST)
@@ -2240,9 +2240,7 @@ void LoRaWANClass::_saveSession()
 
     EEPROMSessionCRC32 = ~_session.Crc32;
 
-    if (EEPROMTransaction.status != STM32L0_EEPROM_STATUS_BUSY) {
-        _eepromSync(this);
-    }
+    _eepromSync(this);
 }
 
 bool LoRaWANClass::_restoreSession()
@@ -2365,9 +2363,7 @@ void LoRaWANClass::_saveParams( )
 
     EEPROMParamsCRC32 = ~_params.Crc32;
 
-    if (EEPROMTransaction.status != STM32L0_EEPROM_STATUS_BUSY) {
-        _eepromSync(this);
-    }
+    _eepromSync(this);
 }
 
 bool LoRaWANClass::_restoreParams()
@@ -2522,9 +2518,7 @@ bool LoRaWANClass::_setParams()
 void LoRaWANClass::_saveDevNonce()
 {
     if (EEPROMDevNonce != _DevNonce) {
-        if (EEPROMTransaction.status != STM32L0_EEPROM_STATUS_BUSY) {
-            _eepromSync(this);
-        }
+        _eepromSync(this);
     }
 }
 
@@ -2535,9 +2529,7 @@ void LoRaWANClass::_saveUpLinkCounter()
                   BKP2R_UPLINK_COUNTER_PRESENT);
 
     if ((EEPROMUpLinkCounter ^ _UpLinkCounter) & ~(EEPROM_COUNTER_UPDATE_PERIOD-1)) {
-        if (EEPROMTransaction.status != STM32L0_EEPROM_STATUS_BUSY) {
-            _eepromSync(this);
-        }
+        _eepromSync(this);
     }
 }
 
@@ -2548,9 +2540,7 @@ void LoRaWANClass::_saveDownLinkCounter()
                   BKP2R_DOWNLINK_COUNTER_PRESENT);
 
     if ((EEPROMDownLinkCounter ^ _DownLinkCounter) & ~(EEPROM_COUNTER_UPDATE_PERIOD-1)) {
-        if (EEPROMTransaction.status != STM32L0_EEPROM_STATUS_BUSY) {
-            _eepromSync(this);
-        }
+        _eepromSync(this);
     }
 }
 
@@ -2928,6 +2918,16 @@ bool LoRaWANClass::_eepromRead(uint32_t address, uint8_t *data, uint32_t size)
 
 void LoRaWANClass::_eepromSync(class LoRaWANClass *self)
 {
+    if (EEPROMTransaction.status != STM32L0_EEPROM_STATUS_BUSY) {
+        
+        stm32l0_system_lock(STM32L0_SYSTEM_LOCK_EEPROM);
+
+        _eepromDone(self);
+    }
+}
+
+void LoRaWANClass::_eepromDone(class LoRaWANClass *self)
+{
     if (EEPROMSessionCRC32 ^ self->_session.Crc32)
     {
         EEPROMTransaction.control = STM32L0_EEPROM_CONTROL_PROGRAM;
@@ -3027,6 +3027,8 @@ void LoRaWANClass::_eepromSync(class LoRaWANClass *self)
         
         return;
     }
+
+    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_EEPROM);
 }
 
 void LoRaWANClass::__McpsJoin()
