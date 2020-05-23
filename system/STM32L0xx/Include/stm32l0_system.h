@@ -159,16 +159,6 @@ typedef struct _stm32l0_system_notify_t {
 #define STM32L0_SYSTEM_STANDBY_TAMP_1          0x00020000
 #define STM32L0_SYSTEM_STANDBY_TAMP_2          0x00040000
 
-/* This bit is documented in the reference manuals,
- * but is not part of the CMSIS/Device headers. Turns out
- * that if FWU and ULP are set, VREFINT sometimes does not
- * come back, unless this bit is set ...
- *
- * So set this bit always as the opposite of ULP.
- */
-#define SYSCFG_CFGR3_EN_VREFINT          0x00000001
-#define SYSCFG_CFGR3_ENBUF_VREFINT_COMP2 SYSCFG_CFGR3_ENBUFLP_VREFINT_COMP
-
 extern void     SystemInit(void);
 
 extern void     stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, uint32_t lseclk, uint32_t hseclk, uint32_t options);

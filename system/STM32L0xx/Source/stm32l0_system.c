@@ -243,9 +243,9 @@ void SystemInit(void)
     /* If RTC_CR_BCK is set it means the reset was triggered to
      * branch throu to the STM32 BOOTLOADER.
      */
-    if (RTC->CR & RTC_CR_BCK)
+    if (RTC->CR & RTC_CR_BKP)
     {
-        RTC->CR &= ~RTC_CR_BCK;
+        RTC->CR &= ~RTC_CR_BKP;
 
         RTC->WPR = 0x00;
 
@@ -1925,7 +1925,7 @@ void stm32l0_system_dfu(void)
     stm32l0_system_notify(STM32L0_SYSTEM_NOTIFY_DFU);
 
     /* Set the BCK bit to flag a reboot into the booloader */
-    RTC->CR |= RTC_CR_BCK;
+    RTC->CR |= RTC_CR_BKP;
 
     stm32l0_rtc_reset();
 
