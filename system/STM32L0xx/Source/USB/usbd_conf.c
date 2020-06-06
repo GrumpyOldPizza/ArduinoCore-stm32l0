@@ -50,8 +50,6 @@
 #include "stm32l0xx_hal.h"
 #include "usbd_def.h"
 #include "usbd_core.h"
-#include "usbd_cdc.h"
-#include "usbd_cdc_msc.h"
 #include "usbd_desc.h"
 
 #include "armv6m.h"
@@ -70,7 +68,7 @@ void USBD_Detach();
 #define USBD_STATE_NONE            0
 #define USBD_STATE_STARTED         1
 #define USBD_STATE_CONNECTED       2
-#define USBD_STATE_SUSPENDED       4
+//#define USBD_STATE_SUSPENDED       4
 
 static PCD_HandleTypeDef hpcd_USB;
 
@@ -119,7 +117,7 @@ static void USBD_VBUSTimeoutIrq(void)
                 
                 stm32l0_system_lock(STM32L0_SYSTEM_LOCK_RUN);
 
-                USBD_Init(&USBD_Device, &CDC_MSC_Desc, 0);
+                USBD_Init(&USBD_Device, &CDC_MSC_Desc);
                 
                 (*USBD_ClassInitialize)(&USBD_Device);
                 
@@ -264,7 +262,7 @@ void USBD_Attach(void)
                 
             stm32l0_system_lock(STM32L0_SYSTEM_LOCK_RUN);
             
-            USBD_Init(&USBD_Device, &CDC_MSC_Desc, 0);
+            USBD_Init(&USBD_Device, &CDC_MSC_Desc);
             
             (*USBD_ClassInitialize)(&USBD_Device);
             
@@ -629,9 +627,10 @@ USBD_StatusTypeDef USBD_LL_Init(USBD_HandleTypeDef *pdev)
     HAL_PCDEx_PMAConfig(&hpcd_USB, 0x02, PCD_SNG_BUF, 0x00000110); /*  64 bytes EP2/CDC/DATA out */
     HAL_PCDEx_PMAConfig(&hpcd_USB, 0x83, PCD_SNG_BUF, 0x00000150); /*  64 bytes EP3/MSC in       */ 
     HAL_PCDEx_PMAConfig(&hpcd_USB, 0x03, PCD_SNG_BUF, 0x00000190); /*  64 bytes EP3/MSC out      */ 
-    HAL_PCDEx_PMAConfig(&hpcd_USB, 0x84, PCD_SNG_BUF, 0x000001d0); /*  64 bytes EP4/HID in       */ 
-    HAL_PCDEx_PMAConfig(&hpcd_USB, 0x04, PCD_SNG_BUF, 0x00000210); /*  64 bytes EP4/HID out      */ 
-    
+
+    HAL_PCDEx_PMAConfig(&hpcd_USB, 0x84, PCD_DBL_BUF, 0x02400200); /*  64 bytes EP3/MSC in       */ 
+    HAL_PCDEx_PMAConfig(&hpcd_USB, 0x05, PCD_DBL_BUF, 0x02800240); /*  64 bytes EP3/MSC out      */ 
+
     return USBD_OK;
 }
 
@@ -787,10 +786,10 @@ USBD_StatusTypeDef USBD_LL_SetUSBAddress(USBD_HandleTypeDef *pdev, uint8_t dev_a
   */
 USBD_StatusTypeDef USBD_LL_Transmit(USBD_HandleTypeDef *pdev, 
                                     uint8_t ep_addr,
-                                    uint8_t *pbuf,
+                                    const uint8_t *pbuf,
                                     uint16_t size)
 {
-    HAL_PCD_EP_Transmit(pdev->pData, ep_addr, pbuf, size);
+    HAL_PCD_EP_Transmit(pdev->pData, ep_addr, (uint8_t*)pbuf, size);
 
     return USBD_OK;
 }

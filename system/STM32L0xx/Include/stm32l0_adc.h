@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2017-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -119,9 +119,6 @@ typedef void (*stm32l0_adc_done_callback_t)(void *context, uint32_t count);
 extern bool stm32l0_adc_enable(void);
 extern bool stm32l0_adc_disable(void);
 extern uint32_t stm32l0_adc_read(unsigned int channel, uint16_t period);
-extern bool stm32l0_adc_convert(void *data, uint32_t count, uint16_t mask, uint16_t period, uint32_t control, stm32l0_adc_done_callback_t callback, void *context);
-extern void stm32l0_adc_cancel(void);
-extern bool stm32l0_adc_done(void);
 
 #ifdef __cplusplus
 }

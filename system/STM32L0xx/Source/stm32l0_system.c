@@ -70,6 +70,7 @@ typedef struct _stm32l0_system_device_t {
     uint8_t                   hsi16;
     uint8_t                   hsi48;
     uint8_t                   clk48;
+    uint8_t                   vrefint;
     uint8_t                   pllsys;
     uint32_t                  busspre;
     stm32l0_system_notify_t   *notify;
@@ -235,55 +236,56 @@ void SystemInit(void)
     {
     }
 
-    /* Unlock RTC early.
-     */
-    RTC->WPR = 0xca;
-    RTC->WPR = 0x53;
-
-    /* If RTC_CR_BCK is set it means the reset was triggered to
-     * branch throu to the STM32 BOOTLOADER.
-     */
-    if (RTC->CR & RTC_CR_BKP)
+    if (RCC->CSR & RCC_CSR_RTCEN)
     {
-        RTC->CR &= ~RTC_CR_BKP;
+        RTC->WPR = 0xca;
+        RTC->WPR = 0x53;
 
-        RTC->WPR = 0x00;
-
-        SYSCFG->CFGR1 |= SYSCFG_CFGR1_MEM_MODE_0;
-
-        FLASH->ACR = 0;
-
-        RCC->IOPENR |= (RCC_IOPENR_IOPAEN | RCC_IOPENR_IOPBEN | RCC_IOPENR_IOPCEN);
-
-        GPIOA->LCKR = 0x0001e7ff;
-        GPIOA->LCKR = 0x0000e7ff;
-        GPIOA->LCKR = 0x0001e7ff;
-        GPIOA->LCKR;
-        GPIOB->LCKR = 0x0001ffff;
-        GPIOB->LCKR = 0x0000ffff;
-        GPIOB->LCKR = 0x0001ffff;
-        GPIOB->LCKR;
-        GPIOC->LCKR = 0x00011fff;
-        GPIOC->LCKR = 0x00001fff;
-        GPIOC->LCKR = 0x00011fff;
-        GPIOC->LCKR;
-
-        RCC->IOPENR &= ~(RCC_IOPENR_IOPAEN | RCC_IOPENR_IOPBEN | RCC_IOPENR_IOPCEN);
-
-        RCC->APB2ENR &= ~RCC_APB2ENR_SYSCFGEN;
-
-        RCC->APB1ENR &= ~RCC_APB1ENR_PWREN;
-        
-        /* This needs to be assembly code as GCC catches NULL 
-         * dereferences ...
+        /* If RTC_CR_BCK is set it means the reset was triggered to
+         * branch throu to the STM32 BOOTLOADER.
          */
-        __asm__ volatile ("   mov     r2, #0                         \n"
-                          "   ldr     r0, [r2, #0]                   \n"
-                          "   ldr     r1, [r2, #4]                   \n"
-                          "   msr     MSP, r0                        \n"
-                          "   dsb                                    \n"
-                          "   isb                                    \n"
-                          "   bx      r1                             \n");
+        if (RTC->CR & RTC_CR_BKP)
+        {
+            RTC->CR &= ~RTC_CR_BKP;
+
+            RTC->WPR = 0x00;
+
+            SYSCFG->CFGR1 |= SYSCFG_CFGR1_MEM_MODE_0;
+
+            FLASH->ACR = 0;
+
+            RCC->IOPENR |= (RCC_IOPENR_IOPAEN | RCC_IOPENR_IOPBEN | RCC_IOPENR_IOPCEN);
+
+            GPIOA->LCKR = 0x0001e7ff;
+            GPIOA->LCKR = 0x0000e7ff;
+            GPIOA->LCKR = 0x0001e7ff;
+            GPIOA->LCKR;
+            GPIOB->LCKR = 0x0001ffff;
+            GPIOB->LCKR = 0x0000ffff;
+            GPIOB->LCKR = 0x0001ffff;
+            GPIOB->LCKR;
+            GPIOC->LCKR = 0x00011fff;
+            GPIOC->LCKR = 0x00001fff;
+            GPIOC->LCKR = 0x00011fff;
+            GPIOC->LCKR;
+
+            RCC->IOPENR &= ~(RCC_IOPENR_IOPAEN | RCC_IOPENR_IOPBEN | RCC_IOPENR_IOPCEN);
+
+            RCC->APB2ENR &= ~RCC_APB2ENR_SYSCFGEN;
+
+            RCC->APB1ENR &= ~RCC_APB1ENR_PWREN;
+        
+            /* This needs to be assembly code as GCC catches NULL 
+             * dereferences ...
+             */
+            __asm__ volatile ("   mov     r2, #0                         \n"
+                              "   ldr     r0, [r2, #0]                   \n"
+                              "   ldr     r1, [r2, #4]                   \n"
+                              "   msr     MSP, r0                        \n"
+                              "   dsb                                    \n"
+                              "   isb                                    \n"
+                              "   bx      r1                             \n");
+        }
     }
     
     /* We should be at a 2MHz MSI clock, so switch to HSI16 for the
@@ -424,7 +426,17 @@ void stm32l0_system_initialize(uint32_t hclk, uint32_t pclk1, uint32_t pclk2, ui
         RTC->CR &= ~(RTC_CR_TSIE | RTC_CR_WUTIE | RTC_CR_ALRBIE | RTC_CR_ALRAIE | RTC_CR_TSE | RTC_CR_WUTE | RTC_CR_ALRBE | RTC_CR_ALRAE);
         RTC->TAMPCR &= ~(RTC_TAMPCR_TAMP2IE | RTC_TAMPCR_TAMP2E | RTC_TAMPCR_TAMP1IE | RTC_TAMPCR_TAMP1E);
         RTC->ISR = 0;
+
+        /* If RTC was setup wrong here, there is a Firmware mismatch ...
+         */
+        if ((RTC->PRER & (RTC_PRER_PREDIV_S_Msk | RTC_PRER_PREDIV_A_Msk)) != (((STM32L0_RTC_PREDIV_S -1) << RTC_PRER_PREDIV_S_Pos) | ((STM32L0_RTC_PREDIV_A -1) << RTC_PRER_PREDIV_A_Pos)))
+        {
+            RCC->CSR &= ~RCC_CSR_RTCEN;
+            RCC->CSR |= RCC_CSR_RTCRST;
+        }
     }
+
+    RCC->CSR &= ~RCC_CSR_RTCRST;
     
     *((volatile uint32_t*)STM32L0_CRASH_SIGNATURE_ADDRESS) = ~STM32L0_CRASH_SIGNATURE_DATA;
     
@@ -1347,15 +1359,12 @@ void stm32l0_system_hsi16_disable(void)
 
 void stm32l0_system_hsi48_enable(void)
 {
+    stm32l0_system_vrefint_enable();
+
     armv6m_atomic_incb(&stm32l0_system_device.hsi48);
-
+    
     armv6m_atomic_or(&RCC->APB1ENR, RCC_APB1ENR_CRSEN);
-    armv6m_atomic_or(&SYSCFG->CFGR3, (SYSCFG_CFGR3_ENREF_HSI48 | SYSCFG_CFGR3_EN_VREFINT));
-
-    while (!(SYSCFG->CFGR3 & SYSCFG_CFGR3_VREFINT_RDYF))
-    {
-    }
-
+    armv6m_atomic_or(&SYSCFG->CFGR3, SYSCFG_CFGR3_ENREF_HSI48);
     armv6m_atomic_or(&RCC->CRRCR, RCC_CRRCR_HSI48ON);
 
     while(!(RCC->CRRCR & RCC_CRRCR_HSI48RDY))
@@ -1363,20 +1372,18 @@ void stm32l0_system_hsi48_enable(void)
     }
 
     armv6m_atomic_or(&CRS->CR, (CRS_CR_AUTOTRIMEN | CRS_CR_CEN));
-
-    stm32l0_system_lock(STM32L0_SYSTEM_LOCK_VREFINT);
 }
 
 void stm32l0_system_hsi48_disable(void)
 {
-    stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_VREFINT);
-
     armv6m_atomic_decb(&stm32l0_system_device.hsi48);
 
     armv6m_atomic_andzb(&CRS->CR, ~(CRS_CR_AUTOTRIMEN | CRS_CR_CEN), &stm32l0_system_device.hsi48);
     armv6m_atomic_andzb(&RCC->CRRCR, ~RCC_CRRCR_HSI48ON, &stm32l0_system_device.hsi48);
     armv6m_atomic_andzb(&SYSCFG->CFGR3, ~SYSCFG_CFGR3_ENREF_HSI48, &stm32l0_system_device.hsi48);
     armv6m_atomic_andzb(&RCC->APB1ENR, ~RCC_APB1ENR_CRSEN, &stm32l0_system_device.hsi48);
+
+    stm32l0_system_vrefint_disable();
 }
 
 void stm32l0_system_clk48_enable(void)
@@ -1393,6 +1400,24 @@ void stm32l0_system_clk48_disable(void)
 
     stm32l0_system_hsi48_disable();
     stm32l0_system_voltage_decrease();
+}
+
+void stm32l0_system_vrefint_enable(void)
+{
+    armv6m_atomic_incb(&stm32l0_system_device.vrefint);
+
+    armv6m_atomic_or(&SYSCFG->CFGR3, SYSCFG_CFGR3_EN_VREFINT);
+
+    while (!(SYSCFG->CFGR3 & SYSCFG_CFGR3_VREFINT_RDYF))
+    {
+    }
+}
+
+void stm32l0_system_vrefint_disable(void)
+{
+    armv6m_atomic_decb(&stm32l0_system_device.vrefint);
+
+    armv6m_atomic_andzb(&SYSCFG->CFGR3, ~SYSCFG_CFGR3_EN_VREFINT, &stm32l0_system_device.vrefint);
 }
 
 uint32_t stm32l0_system_reset_cause(void)
@@ -1438,6 +1463,22 @@ uint32_t stm32l0_system_pclk1(void)
 uint32_t stm32l0_system_pclk2(void)
 {
     return stm32l0_system_device.pclk2;
+}
+
+uint64_t stm32l0_system_serial(void)
+{
+    uint32_t uid[3];
+
+    /* STM32 BOOTLOADER uses a different UID system
+     * than documented in the reference ...
+     */
+    uid[0] = *((const uint32_t*)(UID_BASE + 0x00));
+    uid[1] = *((const uint32_t*)(UID_BASE + 0x04));
+    uid[2] = *((const uint32_t*)(UID_BASE + 0x08));
+
+    /* This crummy value is what the USB/DFU bootloader uses.
+     */
+    return (((uint64_t)(uid[0] + uid[2]) << 16) | (uint64_t)(uid[1] >> 16));
 }
 
 void stm32l0_system_uid(uint32_t *uid)
@@ -1564,7 +1605,7 @@ void stm32l0_system_unreference(uint32_t reference)
 
 void stm32l0_system_sleep(uint32_t policy, uint32_t mask, uint32_t timeout)
 {
-    uint32_t primask, rcc_cfgr;
+    uint32_t primask, rcc_cfgr, rcc_apb1enr, pwr_cr;
     stm32l0_gpio_stop_state_t gpio_stop_state;
 
     if (timeout != STM32L0_SYSTEM_TIMEOUT_NONE)
@@ -1652,7 +1693,9 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t mask, uint32_t timeout)
 
                                         if (!(SCB->ICSR & SCB_ICSR_ISRPENDING_Msk))
                                         {
-                                            RCC->APB1ENR |= RCC_APB1ENR_PWREN;
+                                            rcc_apb1enr = RCC->APB1ENR;
+
+                                            RCC->APB1ENR = rcc_apb1enr | RCC_APB1ENR_PWREN;
 
                                             if (stm32l0_system_device.hsi48)
                                             {
@@ -1661,29 +1704,30 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t mask, uint32_t timeout)
                                                 RCC->CRRCR &= ~RCC_CRRCR_HSI48ON;
                                             }
 
+                                            pwr_cr = PWR->CR;
+                                            
                                             /* The lowpower voltage regulator adds 3.3uS wakeup time, plus it prevents HSIKERON, 
                                              * which may be needed by USART1/USART2/LPUART to wakeup. In those cases do not
                                              * enable the low power voltage regulator in stop mode.
                                              */
                                             if (!stm32l0_system_device.lock[STM32L0_SYSTEM_LOCK_REGULATOR])
                                             {
-                                                PWR->CR |= PWR_CR_LPSDSR;
+                                                pwr_cr |= PWR_CR_LPSDSR;
                                             }
                     
-                                            if (!stm32l0_system_device.lock[STM32L0_SYSTEM_LOCK_VREFINT])
+                                            if (!stm32l0_system_device.vrefint)
                                             {
-                                                /* Set ULP to disable VREFINT */
-                                                SYSCFG->CFGR3 &= ~SYSCFG_CFGR3_EN_VREFINT;
-                        
-                                                PWR->CR |= (PWR_CR_FWU | PWR_CR_ULP);
+                                                pwr_cr |= (PWR_CR_FWU | PWR_CR_ULP);
                                             }
 
                                             /* Clear WUF flag */
-                                            PWR->CR |= PWR_CR_CWUF;
+                                            pwr_cr |= PWR_CR_CWUF;
                     
                                             /* Select STOP */
-                                            PWR->CR &= ~PWR_CR_PDDS;
+                                            pwr_cr &= ~PWR_CR_PDDS;
 
+                                            PWR->CR = pwr_cr;
+                                            
                                             if (!(SCB->ICSR & SCB_ICSR_ISRPENDING_Msk))
                                             {
                                                 SCB->SCR |= SCB_SCR_SLEEPDEEP_Msk;
@@ -1708,7 +1752,7 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t mask, uint32_t timeout)
                                                 SCB->SCR &= ~SCB_SCR_SLEEPDEEP_Msk;
                                                 
                                                 /* Clear ULP to enable VREFINT, disable lowpower voltage regulator */
-                                                PWR->CR &= ~(PWR_CR_FWU | PWR_CR_ULP | PWR_CR_LPSDSR);
+                                                PWR->CR = pwr_cr;
 
                                                 if (stm32l0_system_device.hse)
                                                 {
@@ -1744,7 +1788,7 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t mask, uint32_t timeout)
                                             else
                                             {
                                                 /* Clear ULP to enable VREFINT, disable lowpower voltage regulator */
-                                                PWR->CR &= ~(PWR_CR_FWU | PWR_CR_ULP | PWR_CR_LPSDSR);
+                                                PWR->CR = pwr_cr;
                                             }
                                             
                                             if (!stm32l0_system_device.hsi16)
@@ -1763,7 +1807,7 @@ void stm32l0_system_sleep(uint32_t policy, uint32_t mask, uint32_t timeout)
                                                 CRS->CR |= (CRS_CR_AUTOTRIMEN | CRS_CR_CEN);
                                             }
                                             
-                                            RCC->APB1ENR &= ~RCC_APB1ENR_PWREN;
+                                            RCC->APB1ENR = rcc_apb1enr;
                                         }
                                         
                                         __stm32l0_gpio_stop_leave(&gpio_stop_state);
@@ -1941,40 +1985,41 @@ static void __empty() { }
 void __stm32l0_lptim_initialize(void) __attribute__ ((weak, alias("__empty")));
 void __stm32l0_eeprom_initialize(void) __attribute__ ((weak, alias("__empty")));
 
-static void __attribute__((naked)) Default_Handler(void)
-{
-    stm32l0_system_fatal();
-}
+void armv6m_systick_enable(void) __attribute__ ((weak, alias("__empty")));
+void armv6m_systick_disable(void) __attribute__ ((weak, alias("__empty")));
 
-void NMI_Handler(void) __attribute__ ((weak, alias("Default_Handler")));
-void HardFault_Handler(void) __attribute__ ((weak, alias("Default_Handler")));
-void WWDG_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void PVD_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void RTC_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void FLASH_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void RCC_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void EXTI0_1_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void EXTI2_3_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void EXTI4_15_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void TSC_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void DMA1_Channel1_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void DMA1_Channel2_3_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void DMA1_Channel4_5_6_7_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void ADC1_COMP_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void LPTIM1_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void USART4_5_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void TIM2_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void TIM3_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void TIM6_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void TIM7_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void TIM21_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void I2C3_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void TIM22_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void I2C1_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void I2C2_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void SPI1_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void SPI2_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void USART1_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void USART2_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void LPUART1_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
-void USB_IRQHandler(void)  __attribute__ ((weak, alias("Default_Handler")));
+void NMI_Handler(void) __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void HardFault_Handler(void) __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void PendSV_Handler(void) __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void SVC_Handler(void) __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void SysTick_Handler(void) __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void WWDG_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void PVD_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void RTC_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void FLASH_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void RCC_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void EXTI0_1_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void EXTI2_3_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void EXTI4_15_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void TSC_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void DMA1_Channel1_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void DMA1_Channel2_3_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void DMA1_Channel4_5_6_7_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void ADC1_COMP_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void LPTIM1_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void USART4_5_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void TIM2_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void TIM3_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void TIM6_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void TIM7_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void TIM21_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void I2C3_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void TIM22_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void I2C1_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void I2C2_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void SPI1_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void SPI2_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void USART1_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void USART2_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void LPUART1_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));
+void USB_IRQHandler(void)  __attribute__ ((weak, alias("stm32l0_system_fatal")));

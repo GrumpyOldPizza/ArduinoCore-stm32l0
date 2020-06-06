@@ -40,10 +40,6 @@ Grasshopper-L082CZ.menu.usb.cdc=Serial
 Grasshopper-L082CZ.menu.usb.cdc.build.usb_type=USB_TYPE_CDC
 Grasshopper-L082CZ.menu.usb.cdc_msc=Serial + Mass Storage
 Grasshopper-L082CZ.menu.usb.cdc_msc.build.usb_type=USB_TYPE_CDC_MSC
-Grasshopper-L082CZ.menu.usb.cdc_hid=Serial + Keyboard + Mouse
-Grasshopper-L082CZ.menu.usb.cdc_hid.build.usb_type=USB_TYPE_CDC_HID
-Grasshopper-L082CZ.menu.usb.cdc_msc_hid=Serial + Mass Storage + Keyboard + Mouse
-Grasshopper-L082CZ.menu.usb.cdc_msc_hid.build.usb_type=USB_TYPE_CDC_MSC_HID
 Grasshopper-L082CZ.menu.usb.none=No USB
 Grasshopper-L082CZ.menu.usb.none.build.usb_type=USB_TYPE_NONE
 
@@ -113,10 +109,6 @@ Cricket-L082CZ.menu.usb.cdc=Serial
 Cricket-L082CZ.menu.usb.cdc.build.usb_type=USB_TYPE_CDC
 Cricket-L082CZ.menu.usb.cdc_msc=Serial + Mass Storage
 Cricket-L082CZ.menu.usb.cdc_msc.build.usb_type=USB_TYPE_CDC_MSC
-Cricket-L082CZ.menu.usb.cdc_hid=Serial + Keyboard + Mouse
-Cricket-L082CZ.menu.usb.cdc_hid.build.usb_type=USB_TYPE_CDC_HID
-Cricket-L082CZ.menu.usb.cdc_msc_hid=Serial + Mass Storage + Keyboard + Mouse
-Cricket-L082CZ.menu.usb.cdc_msc_hid.build.usb_type=USB_TYPE_CDC_MSC_HID
 Cricket-L082CZ.menu.usb.none=No USB
 Cricket-L082CZ.menu.usb.none.build.usb_type=USB_TYPE_NONE
 
@@ -182,10 +174,6 @@ Cicada-L082CZ.menu.usb.cdc=Serial
 Cicada-L082CZ.menu.usb.cdc.build.usb_type=USB_TYPE_CDC
 Cicada-L082CZ.menu.usb.cdc_msc=Serial + Mass Storage
 Cicada-L082CZ.menu.usb.cdc_msc.build.usb_type=USB_TYPE_CDC_MSC
-Cicada-L082CZ.menu.usb.cdc_hid=Serial + Keyboard + Mouse
-Cicada-L082CZ.menu.usb.cdc_hid.build.usb_type=USB_TYPE_CDC_HID
-Cicada-L082CZ.menu.usb.cdc_msc_hid=Serial + Mass Storage + Keyboard + Mouse
-Cicada-L082CZ.menu.usb.cdc_msc_hid.build.usb_type=USB_TYPE_CDC_MSC_HID
 Cicada-L082CZ.menu.usb.none=No USB
 Cicada-L082CZ.menu.usb.none.build.usb_type=USB_TYPE_NONE
 
@@ -250,8 +238,6 @@ Gnat-L082CZ.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS
 
 Gnat-L082CZ.menu.usb.cdc=Serial
 Gnat-L082CZ.menu.usb.cdc.build.usb_type=USB_TYPE_CDC
-Gnat-L082CZ.menu.usb.cdc_hid=Serial + Keyboard + Mouse
-Gnat-L082CZ.menu.usb.cdc_hid.build.usb_type=USB_TYPE_CDC_HID
 Gnat-L082CZ.menu.usb.none=No USB
 Gnat-L082CZ.menu.usb.none.build.usb_type=USB_TYPE_NONE
 

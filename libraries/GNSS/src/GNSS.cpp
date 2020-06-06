@@ -342,11 +342,6 @@ void GNSSClass::begin(GNSSmode mode, GNSSrate rate)
               &g_Serial,
               &g_SerialParams,
 #endif
-#if defined(STM32L0_CONFIG_PIN_GNSS_WAKEUP)
-              STM32L0_CONFIG_PIN_GNSS_WAKEUP,
-#else
-              STM32L0_GPIO_PIN_NONE,
-#endif
 #if defined(STM32L0_CONFIG_PIN_GNSS_PPS)
               STM32L0_CONFIG_PIN_GNSS_PPS,
 #else
@@ -370,12 +365,8 @@ void GNSSClass::begin(GNSSmode mode, GNSSrate rate)
               );
 }
 
-void GNSSClass::begin(GNSSmode mode, GNSSrate rate, Uart &uart, int pinWAKEUP, int pinPPS, int pinENABLE, int pinBACKUP)
+void GNSSClass::begin(GNSSmode mode, GNSSrate rate, Uart &uart, int pinPPS, int pinENABLE, int pinBACKUP)
 {
-    if ((pinWAKEUP < 0) || (pinWAKEUP >= (int)PINS_COUNT) || (g_APinDescription[pinWAKEUP].GPIO == NULL)) {
-        pinWAKEUP = -1;
-    }
-
     if ((pinPPS < 0) || (pinPPS >= (int)PINS_COUNT) || (g_APinDescription[pinPPS].GPIO == NULL)) {
         pinPPS = -1;
     }
@@ -392,7 +383,6 @@ void GNSSClass::begin(GNSSmode mode, GNSSrate rate, Uart &uart, int pinWAKEUP, i
               rate,
               uart._uart,
               NULL,
-              ((pinWAKEUP >= 0) ? g_APinDescription[pinWAKEUP].pin : STM32L0_GPIO_PIN_NONE),
               ((pinPPS >= 0)    ? g_APinDescription[pinPPS].pin    : STM32L0_GPIO_PIN_NONE),
               ((pinENABLE >= 0) ? g_APinDescription[pinENABLE].pin : STM32L0_GPIO_PIN_NONE),
               ((pinBACKUP >= 0) ? g_APinDescription[pinBACKUP].pin : STM32L0_GPIO_PIN_NONE),
@@ -554,7 +544,7 @@ void GNSSClass::disableWakeup()
     _wakeup = false;
 }
 
-void GNSSClass::uartBegin(GNSSmode mode, GNSSrate rate, struct _stm32l0_uart_t *uart, const struct _stm32l0_uart_params_t *params, uint16_t wakeup, uint16_t pps, uint16_t enable, uint16_t backup, bool internal)
+void GNSSClass::uartBegin(GNSSmode mode, GNSSrate rate, struct _stm32l0_uart_t *uart, const struct _stm32l0_uart_params_t *params, uint16_t pps, uint16_t enable, uint16_t backup, bool internal)
 {
     static const gnss_callbacks_t GNSSCallbacks = {
         NULL,
@@ -580,7 +570,6 @@ void GNSSClass::uartBegin(GNSSmode mode, GNSSrate rate, struct _stm32l0_uart_t *
 
     _uart = uart;
 
-    _pins.wakeup = wakeup;
     _pins.pps = pps;
     _pins.enable = enable;
     _pins.backup = backup;

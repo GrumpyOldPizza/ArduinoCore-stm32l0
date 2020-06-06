@@ -66,11 +66,11 @@ static __attribute__((naked, used)) void armv6m_work_execute(void)
         "   add     r7, r7, #1                           \n"
         "   svc     0                                    \n"
         "   .align 2                                     \n"
-        "2: add     sp, #0x28                            \n"
-        "   ldr     r3, =armv6m_work_control             \n"
+        "2: ldr     r3, =armv6m_work_control             \n"
         "   mov     r0, #0                               \n"
         "   str     r0, [r3, %[offset_CONTROL_ROUTINE]]  \n"
         "   bl      armv6m_work_dispatch                 \n"
+        "   add     sp, #0x28                            \n"
         "   pop     { r7, pc }                           \n"
         :
         : [offset_CONTROL_ROUTINE]  "I" (offsetof(armv6m_work_control_t, callback.routine)),

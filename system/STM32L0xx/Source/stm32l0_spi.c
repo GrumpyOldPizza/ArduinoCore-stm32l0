@@ -79,6 +79,7 @@ typedef struct _stm32l0_spi_device_t {
      STM32L0_DMA_OPTION_MEMORY_DATA_INCREMENT |     \
      STM32L0_DMA_OPTION_PRIORITY_MEDIUM)
 
+
 static stm32l0_spi_device_t stm32l0_spi_device;
 
 static void stm32l0_spi_dma_callback(stm32l0_spi_t *spi, uint32_t events)
@@ -90,16 +91,14 @@ static void stm32l0_spi_dma_callback(stm32l0_spi_t *spi, uint32_t events)
         return;
     }
 
-    while (!(SPI->SR & SPI_SR_TXE))
-    {
-    }
-    
-    SPI->CR1 &= ~SPI_CR1_SPE;
+    stm32l0_dma_stop(spi->tx_dma);
+    stm32l0_dma_stop(spi->rx_dma);
 
     while (SPI->SR & SPI_SR_BSY)
     {
     }
     
+    SPI->CR1 &= ~SPI_CR1_SPE;
     SPI->CR2 = 0;
     SPI->CR1 |= SPI_CR1_SPE;
     
@@ -369,13 +368,14 @@ __attribute__((optimize("O3"))) void stm32l0_spi_data(stm32l0_spi_t *spi, const 
     SPI_TypeDef *SPI = spi->SPI;
     const uint8_t *tx_data_e;
     uint8_t *rx_data_e;
-    uint8_t rx_temp, tx_temp, tx_default;
+    uint8_t rx_temp, tx_temp;
+    const uint8_t tx_default = 0xff;
 
-    if (tx_data)
+    if ((xf_count <= 16) || !stm32l0_dma_channel(spi->rx_dma))
     {
-        if (rx_data)
+        if (tx_data)
         {
-            if ((xf_count <= 16) || !stm32l0_dma_channel(spi->rx_dma))
+            if (rx_data)
             {
                 if (xf_count == 1)
                 {
@@ -421,75 +421,6 @@ __attribute__((optimize("O3"))) void stm32l0_spi_data(stm32l0_spi_t *spi, const 
             }
             else
             {
-	      if (!stm32l0_dma_channel(spi->tx_dma))
-                {
-                    SPI->CR1 &= ~SPI_CR1_SPE;
-                    SPI->CR2 = SPI_CR2_RXDMAEN;
-                    SPI->CR1 |= SPI_CR1_SPE;
-            
-                    stm32l0_dma_start(spi->rx_dma, (uint32_t)rx_data, (uint32_t)&SPI->DR, xf_count, STM32L0_SPI_RX_DMA_OPTION_TRANSFER_8);
-
-                    tx_data_e = tx_data + xf_count;
-            
-                    SPI->DR = *tx_data++;
-            
-                    do 
-                    {
-                        tx_temp = *tx_data++;
-                
-                        __asm__ volatile("": : : "memory");
-                
-                        while (!(SPI->SR & SPI_SR_TXE))
-                        {
-                        }
-                
-                        SPI->DR = tx_temp;
-                
-                        __asm__ volatile("": : : "memory");
-                    } 
-                    while (tx_data != tx_data_e);
-            
-                    while (!stm32l0_dma_done(spi->rx_dma))
-                    {
-                    }
-            
-                    stm32l0_dma_stop(spi->rx_dma);
-                }
-                else
-                {
-                    SPI->CR1 &= ~SPI_CR1_SPE;
-                    SPI->CR2 = SPI_CR2_RXDMAEN | SPI_CR2_TXDMAEN;
-                    SPI->CR1 |= SPI_CR1_SPE;
-            
-                    stm32l0_dma_start(spi->rx_dma, (uint32_t)rx_data, (uint32_t)&SPI->DR, xf_count, STM32L0_SPI_RX_DMA_OPTION_TRANSFER_8);
-                    stm32l0_dma_start(spi->tx_dma, (uint32_t)&SPI->DR, (uint32_t)tx_data, xf_count, STM32L0_SPI_TX_DMA_OPTION_TRANSFER_8);
-            
-                    while (!stm32l0_dma_done(spi->rx_dma))
-                    {
-                    }
-            
-                    stm32l0_dma_stop(spi->rx_dma);
-                    stm32l0_dma_stop(spi->tx_dma);
-                }
-            
-                while (!(SPI->SR & SPI_SR_TXE))
-                {
-                }
-        
-                SPI->CR1 &= ~SPI_CR1_SPE;
-
-                while (SPI->SR & SPI_SR_BSY)
-                {
-                }
-        
-                SPI->CR2 = 0;
-                SPI->CR1 |= SPI_CR1_SPE;
-            }
-        }
-        else
-        {
-            if ((xf_count <= 16) || !stm32l0_dma_channel(spi->tx_dma))
-            {
                 if (xf_count == 1)
                 {
                     SPI->DR = *tx_data;
@@ -497,74 +428,39 @@ __attribute__((optimize("O3"))) void stm32l0_spi_data(stm32l0_spi_t *spi, const 
                 else
                 {
                     tx_data_e = tx_data + xf_count;
-                    
+                
                     SPI->DR = *tx_data++;
-                    
+                
                     do 
                     {
                         tx_temp = *tx_data++;
-                        
+                    
                         __asm__ volatile("": : : "memory");
-                        
+                    
                         while (!(SPI->SR & SPI_SR_TXE))
                         {
                         }
-                        
+                    
                         SPI->DR = tx_temp;
-                        
+                    
                         __asm__ volatile("": : : "memory");
                     } 
                     while (tx_data != tx_data_e);
                 }
-                
+            
                 while (!(SPI->SR & SPI_SR_TXE))
                 {
                 }
-                
+            
                 while (SPI->SR & SPI_SR_BSY)
                 {
                 }
-                
-                SPI->DR;
-                SPI->SR;
-            }
-            else
-            {
-                SPI->CR1 &= ~SPI_CR1_SPE;
-                SPI->CR2 = SPI_CR2_TXDMAEN;
-                SPI->CR1 |= SPI_CR1_SPE;
-                
-                stm32l0_dma_start(spi->tx_dma, (uint32_t)&SPI->DR, (uint32_t)tx_data, xf_count, STM32L0_SPI_TX_DMA_OPTION_TRANSMIT_8);
-                
-                while (!stm32l0_dma_done(spi->tx_dma))
-                {
-                }
-                
-                stm32l0_dma_stop(spi->tx_dma);
-                
-                while (!(SPI->SR & SPI_SR_TXE))
-                {
-                }
-                
-                SPI->CR1 &= ~SPI_CR1_SPE;
-
-                while (SPI->SR & SPI_SR_BSY)
-                {
-                }
-                
-                SPI->CR2 = 0;
-                SPI->CR1 |= SPI_CR1_SPE;
-                
+            
                 SPI->DR;
                 SPI->SR;
             }
         }
-    }
-    else
-    {
-        tx_default = 0xff;
-
-        if ((xf_count <= 16) || !stm32l0_dma_channel(spi->rx_dma))
+        else
         {
             if (xf_count == 1)
             {
@@ -606,59 +502,124 @@ __attribute__((optimize("O3"))) void stm32l0_spi_data(stm32l0_spi_t *spi, const 
                 *rx_data++ = SPI->DR;
             }
         }
-        else
+    }
+    else
+    {
+        if (tx_data)
         {
-            if (!stm32l0_dma_channel(spi->tx_dma))
+            if (rx_data)
             {
+                while (SPI->SR & SPI_SR_BSY)
+                {
+                }
+
                 SPI->CR1 &= ~SPI_CR1_SPE;
                 SPI->CR2 = SPI_CR2_RXDMAEN;
                 SPI->CR1 |= SPI_CR1_SPE;
-                
-                stm32l0_dma_start(spi->rx_dma, (uint32_t)rx_data, (uint32_t)&SPI->DR, xf_count, STM32L0_SPI_RX_DMA_OPTION_RECEIVE_8);
+            
+                stm32l0_dma_start(spi->rx_dma, (uint32_t)rx_data, (uint32_t)&SPI->DR, xf_count, STM32L0_SPI_RX_DMA_OPTION_TRANSFER_8);
 
-                do
+                tx_data_e = tx_data + xf_count;
+                
+                SPI->DR = *tx_data++;
+                
+                do 
                 {
+                    tx_temp = *tx_data++;
+                    
+                    __asm__ volatile("": : : "memory");
+                    
                     while (!(SPI->SR & SPI_SR_TXE))
                     {
                     }
                     
-                    SPI->DR = tx_default;
-                }
-                while (--xf_count);
-
+                    SPI->DR = tx_temp;
+                    
+                    __asm__ volatile("": : : "memory");
+                } 
+                while (tx_data != tx_data_e);
+                
                 while (!stm32l0_dma_done(spi->rx_dma))
                 {
                 }
                 
                 stm32l0_dma_stop(spi->rx_dma);
+            
+                while (SPI->SR & SPI_SR_BSY)
+                {
+                }
+
+                SPI->CR1 &= ~SPI_CR1_SPE;
+                SPI->CR2 = 0;
+                SPI->CR1 |= SPI_CR1_SPE;
             }
             else
             {
-                SPI->CR1 &= ~SPI_CR1_SPE;
-                SPI->CR2 = SPI_CR2_RXDMAEN | SPI_CR2_TXDMAEN;
-                SPI->CR1 |= SPI_CR1_SPE;
-                
-                stm32l0_dma_start(spi->rx_dma, (uint32_t)rx_data, (uint32_t)&SPI->DR, xf_count, STM32L0_SPI_RX_DMA_OPTION_RECEIVE_8);
-                stm32l0_dma_start(spi->tx_dma, (uint32_t)&SPI->DR, (uint32_t)&spi->tx_default, xf_count, STM32L0_SPI_TX_DMA_OPTION_RECEIVE_8);
-                
-                while (!stm32l0_dma_done(spi->rx_dma))
+                tx_data_e = tx_data + xf_count;
+                    
+                SPI->DR = *tx_data++;
+                    
+                do 
+                {
+                    tx_temp = *tx_data++;
+                    
+                    __asm__ volatile("": : : "memory");
+                    
+                    while (!(SPI->SR & SPI_SR_TXE))
+                    {
+                    }
+                    
+                    SPI->DR = tx_temp;
+                    
+                    __asm__ volatile("": : : "memory");
+                } 
+                while (tx_data != tx_data_e);
+            
+                while (!(SPI->SR & SPI_SR_TXE))
                 {
                 }
                 
-                stm32l0_dma_stop(spi->rx_dma);
-                stm32l0_dma_stop(spi->tx_dma);
-            }
+                while (SPI->SR & SPI_SR_BSY)
+                {
+                }
                 
-            while (!(SPI->SR & SPI_SR_TXE))
+                SPI->DR;
+                SPI->SR;
+            }
+        }
+        else
+        {
+            while (SPI->SR & SPI_SR_BSY)
+            {
+            }
+
+            SPI->CR1 &= ~SPI_CR1_SPE;
+            SPI->CR2 = SPI_CR2_RXDMAEN;
+            SPI->CR1 |= SPI_CR1_SPE;
+            
+            stm32l0_dma_start(spi->rx_dma, (uint32_t)rx_data, (uint32_t)&SPI->DR, xf_count, STM32L0_SPI_RX_DMA_OPTION_RECEIVE_8);
+
+            do
+            {
+                while (!(SPI->SR & SPI_SR_TXE))
+                {
+                }
+                
+                SPI->DR = tx_default;
+            }
+            while (--xf_count);
+            
+            while (!stm32l0_dma_done(spi->rx_dma))
             {
             }
             
-            SPI->CR1 &= ~SPI_CR1_SPE;
-
+            stm32l0_dma_stop(spi->rx_dma);
+                
             while (SPI->SR & SPI_SR_BSY)
             {
             }
             
+            SPI->CR1 &= ~SPI_CR1_SPE;
             SPI->CR2 = 0;
             SPI->CR1 |= SPI_CR1_SPE;
         }
@@ -742,13 +703,13 @@ __attribute__((optimize("O3"))) uint16_t stm32l0_spi_data16(stm32l0_spi_t *spi, 
 bool stm32l0_spi_receive(stm32l0_spi_t *spi, uint8_t *rx_data, uint32_t xf_count, stm32l0_spi_done_callback_t callback, void *context)
 {
     SPI_TypeDef *SPI = spi->SPI;
-
-    if (spi->state != STM32L0_SPI_STATE_DATA)
+    
+    if (!stm32l0_dma_channel(spi->rx_dma) || !stm32l0_dma_channel(spi->tx_dma))
     {
         return false;
     }
 
-    if (!stm32l0_dma_channel(spi->rx_dma) || !stm32l0_dma_channel(spi->tx_dma))
+    if (armv6m_atomic_casb(&spi->state, STM32L0_SPI_STATE_DATA, STM32L0_SPI_STATE_DMA) != STM32L0_SPI_STATE_DATA)
     {
         return false;
     }
@@ -757,6 +718,10 @@ bool stm32l0_spi_receive(stm32l0_spi_t *spi, uint8_t *rx_data, uint32_t xf_count
     spi->xf_callback = callback;
     spi->xf_context = context;
     spi->rx_data = rx_data;
+
+    while (SPI->SR & SPI_SR_BSY)
+    {
+    }
     
     SPI->CR1 &= ~SPI_CR1_SPE;
     SPI->CR2 = SPI_CR2_RXDMAEN | SPI_CR2_TXDMAEN;
@@ -772,12 +737,12 @@ bool stm32l0_spi_transmit(stm32l0_spi_t *spi, const uint8_t *tx_data, uint32_t x
 {
     SPI_TypeDef *SPI = spi->SPI;
 
-    if (spi->state != STM32L0_SPI_STATE_DATA)
+    if (!stm32l0_dma_channel(spi->rx_dma) || !stm32l0_dma_channel(spi->tx_dma))
     {
         return false;
     }
 
-    if (!stm32l0_dma_channel(spi->rx_dma) || !stm32l0_dma_channel(spi->tx_dma))
+    if (armv6m_atomic_casb(&spi->state, STM32L0_SPI_STATE_DATA, STM32L0_SPI_STATE_DMA) != STM32L0_SPI_STATE_DATA)
     {
         return false;
     }
@@ -786,6 +751,10 @@ bool stm32l0_spi_transmit(stm32l0_spi_t *spi, const uint8_t *tx_data, uint32_t x
     spi->xf_callback = callback;
     spi->xf_context = context;
     spi->rx_data = NULL;
+
+    while (SPI->SR & SPI_SR_BSY)
+    {
+    }
 
     SPI->CR1 &= ~SPI_CR1_SPE;
     SPI->CR2 = SPI_CR2_RXDMAEN | SPI_CR2_TXDMAEN;
@@ -815,6 +784,10 @@ bool stm32l0_spi_transfer(stm32l0_spi_t *spi, const uint8_t *tx_data, uint8_t *r
     spi->xf_context = context;
     spi->rx_data = rx_data;
 
+    while (SPI->SR & SPI_SR_BSY)
+    {
+    }
+
     SPI->CR1 &= ~SPI_CR1_SPE;
     SPI->CR2 = SPI_CR2_RXDMAEN | SPI_CR2_TXDMAEN;
     SPI->CR1 |= SPI_CR1_SPE;
@@ -842,12 +815,11 @@ uint32_t stm32l0_spi_cancel(stm32l0_spi_t *spi)
     {
     }
     
-    SPI->CR1 &= ~SPI_CR1_SPE;
-
     while (SPI->SR & SPI_SR_BSY)
     {
     }
-    
+
+    SPI->CR1 &= ~SPI_CR1_SPE;
     SPI->CR2 = 0;
 
     xf_count = stm32l0_dma_stop(spi->rx_dma);

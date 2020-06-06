@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2014-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -32,9 +32,10 @@
 #include <stdio.h>
 
 #include "armv6m.h"
-#include "dosfs_core.h"
-#include "usbd_msc.h"
 #include "stm32l0_rtc.h"
+#include "stm32l0_usbd_msc.h"
+#include "dosfs_core.h"
+#include "dosfs_storage.h"
 
 #define STANDARD_INQUIRY_DATA_LEN 0x24
 
@@ -62,7 +63,7 @@ static bool dosfs_storage_delay(void)
 
     if (delay)
     {
-	clock = stm32l0_rtc_clock_read();
+        clock = stm32l0_rtc_clock_read();
 
         if (clock >= (2 * STM32L0_RTC_CLOCK_TICKS_PER_SECOND))
         {
@@ -236,18 +237,18 @@ static bool dosfs_storage_start_stop_unit(bool start, bool loej)
 
     if (!start)
     {
-	status = (*dosfs_device.interface->sync)(dosfs_device.context);
+        status = (*dosfs_device.interface->sync)(dosfs_device.context);
 
-	if (status != F_NO_ERROR)
-	{
-	    return false;
-	}
-	
-	if (loej)
-	{
-	    dosfs_device.lock &= ~(DOSFS_DEVICE_LOCK_ACCESSED | DOSFS_DEVICE_LOCK_SCSI | DOSFS_DEVICE_LOCK_MEDIUM);
-	    dosfs_device.lock |= DOSFS_DEVICE_LOCK_EJECTED;
-	}
+        if (status != F_NO_ERROR)
+        {
+            return false;
+        }
+        
+        if (loej)
+        {
+            dosfs_device.lock &= ~(DOSFS_DEVICE_LOCK_ACCESSED | DOSFS_DEVICE_LOCK_SCSI | DOSFS_DEVICE_LOCK_MEDIUM);
+            dosfs_device.lock |= DOSFS_DEVICE_LOCK_EJECTED;
+        }
     }
 
     return true;
@@ -333,7 +334,7 @@ static bool dosfs_storage_write(const uint8_t *data, uint32_t blk_address, uint3
 
     if (status != F_NO_ERROR)
     {
-	dosfs_device.lock &= ~DOSFS_DEVICE_LOCK_SCSI;
+        dosfs_device.lock &= ~DOSFS_DEVICE_LOCK_SCSI;
 
         return false;
     }
@@ -348,8 +349,7 @@ static bool dosfs_storage_write(const uint8_t *data, uint32_t blk_address, uint3
     return true;
 }
 
-const USBD_StorageTypeDef dosfs_storage_interface =
-{
+const dosfs_storage_interface_t dosfs_storage_interface = {
     dosfs_storage_init,
     dosfs_storage_deinit,
     dosfs_storage_is_ready,

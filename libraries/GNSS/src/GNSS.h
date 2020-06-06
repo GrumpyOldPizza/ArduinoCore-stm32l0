@@ -162,7 +162,7 @@ public:
     GNSSClass();
 
     void begin(GNSSmode mode = MODE_UBLOX, GNSSrate rate = RATE_1HZ);
-    void begin(GNSSmode mode, GNSSrate rate, Uart &uart, int pinWAKEUP = -1, int pinPPS = -1, int pinENABLE = -1, int pinBACKUP = -1);
+    void begin(GNSSmode mode, GNSSrate rate, Uart &uart, int pinPPS = -1, int pinENABLE = -1, int pinBACKUP = -1);
     void end();
 
     bool setAntenna(GNSSantenna antenna);
@@ -191,10 +191,9 @@ public:
 private:
     struct _stm32l0_uart_t *_uart;
     struct {
-	uint16_t wakeup;
-	uint16_t pps;
-	uint16_t enable;
-	uint16_t backup;
+        uint16_t pps;
+        uint16_t enable;
+        uint16_t backup;
     } _pins;
     bool _enabled;
     bool _wakeup;
@@ -211,7 +210,7 @@ private:
 
     void (*_doneCallback)(void);
 
-    void uartBegin(GNSSmode mode, GNSSrate rate, struct _stm32l0_uart_t *uart, const struct _stm32l0_uart_params_t *params, uint16_t wakeup, uint16_t pps, uint16_t enable, uint16_t backup, bool internal);
+    void uartBegin(GNSSmode mode, GNSSrate rate, struct _stm32l0_uart_t *uart, const struct _stm32l0_uart_params_t *params, uint16_t pps, uint16_t enable, uint16_t backup, bool internal);
     void uartEnd();
     static void uartReceiveCallback(class GNSSClass*);
     static void uartEventCallback(class GNSSClass*, uint32_t);

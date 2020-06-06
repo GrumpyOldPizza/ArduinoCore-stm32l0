@@ -50,7 +50,6 @@
 #include "stm32l0_timer.h"
 #include "stm32l0_uart.h"
 #include "stm32l0_usbd_cdc.h"
-#include "stm32l0_usbd_hid.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -58,8 +57,6 @@ extern "C" {
 
 extern void USBD_CDC_Initialize(void *);
 extern void USBD_CDC_MSC_Initialize(void *);
-extern void USBD_CDC_HID_Initialize(void *);
-extern void USBD_CDC_MSC_HID_Initialize(void *);
 
 extern bool USBD_Initialize(uint16_t vid, uint16_t pid, const uint8_t *manufacturer, const uint8_t *product, void(*initialize)(void *),
                             unsigned int pin_vbus, unsigned int priority,

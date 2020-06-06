@@ -308,66 +308,74 @@ static void stm32l0_sdspi_transmit_crc16(stm32l0_sdspi_t *sdspi, const uint8_t *
 
 #if 1
 
+#define STM32L0_SDSPI_TX_DMA_OPTION_RECEIVE_16       \
+    (STM32L0_DMA_OPTION_MEMORY_TO_PERIPHERAL |       \
+     STM32L0_DMA_OPTION_PERIPHERAL_DATA_SIZE_16 |    \
+     STM32L0_DMA_OPTION_MEMORY_DATA_SIZE_16 |        \
+     STM32L0_DMA_OPTION_PRIORITY_MEDIUM)
+
 static inline __attribute__((optimize("O3"))) uint16_t stm32l0_sdspi_receive_crc16(stm32l0_sdspi_t *sdspi, uint8_t *data, uint32_t count)
 {
     stm32l0_spi_t *spi = sdspi->spi;
     SPI_TypeDef *SPI = spi->SPI;
     uint16_t crc16;
     uint8_t *data_e;
-    uint16_t rx_data, tx_data;
+    uint16_t rx_data, tx_default;
+
+    tx_default = 0xffff;
 
     data_e = data + count - 2;
-
-    tx_data = 0xffff;
     
     SPI->CR1 &= ~SPI_CR1_SPE;
     SPI->CR1 |= (SPI_CR1_DFF | SPI_CR1_CRCEN);
     SPI->CR1 |= SPI_CR1_SPE;
     
-    SPI->DR = tx_data;
+    SPI->DR = tx_default;
     
     do
     {
         __asm__ volatile("": : : "memory");
-
+            
         while (!(SPI->SR & SPI_SR_RXNE))
         {
         }
-    
+            
         rx_data = SPI->DR;
-        SPI->DR = tx_data;
-
+        SPI->DR = tx_default;
+            
         __asm__ volatile("": : : "memory");
-
-        *data++ = rx_data >> 8;
-        *data++ = rx_data;
+            
+        data[1] = rx_data >> 0;
+        data[0] = rx_data >> 8;
+        data += 2;
     } 
     while (data != data_e);
-
+        
     while (!(SPI->SR & SPI_SR_RXNE))
     {
     }
-        
+    
     rx_data = SPI->DR;
-
-    *data++ = rx_data >> 8;
-    *data++ = rx_data;
-
+    
+    data[1] = rx_data >> 0;
+    data[0] = rx_data >> 8;
+    data += 2;
+    
     while (!(SPI->SR & SPI_SR_TXE))
     {
     }
-
+    
     while (SPI->SR & SPI_SR_BSY)
     {
     }
-
+    
     SPI->CR1 &= ~SPI_CR1_SPE;
     SPI->CR1 &= ~SPI_CR1_CRCEN;
     SPI->CR1 |= SPI_CR1_SPE;
 
     crc16 = SPI->RXCRCR;
     
-    SPI->DR = tx_data;
+    SPI->DR = tx_default;
 
     while (!(SPI->SR & SPI_SR_RXNE))
     {
@@ -411,9 +419,9 @@ static inline __attribute__((optimize("O3"))) void stm32l0_sdspi_transmit_crc16(
 
     do
     {
-        tx_data = *data++ << 8;
-        tx_data |= *data++;
-
+        tx_data = (data[0] << 8) | (data[1] << 0);;
+        data += 2;
+        
         __asm__ volatile("": : : "memory");
         
         while (!(SPI->SR & SPI_SR_TXE))

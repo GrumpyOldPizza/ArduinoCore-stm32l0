@@ -84,9 +84,9 @@ extern void SWI31_IRQHandler(void);
 #define ARMV6M_PENDSV_SWI_RTC_MODIFY        3
 #define ARMV6M_PENDSV_SWI_RTC_ALARM         4
 #define ARMV6M_PENDSV_SWI_RTC_TIMER         5
-#define ARMV6M_PENDSV_SWI_USBD_CDC_RECEIVE  6
-#define ARMV6M_PENDSV_SWI_USBD_CDC_TRANSMIT 7
-#define ARMV6M_PENDSV_SWI_USBD_HID_TRANSMIT 8
+#define ARMV6M_PENDSV_SWI_USBD_CDC_CONTROL  6
+#define ARMV6M_PENDSV_SWI_USBD_CDC_RECEIVE  7
+#define ARMV6M_PENDSV_SWI_USBD_CDC_TRANSMIT 8
 #define ARMV6M_PENDSV_SWI_WORK_SCHEDULE     9
 
 #define SWI_RADIO_IRQHandler                SWI0_IRQHandler
@@ -95,9 +95,9 @@ extern void SWI31_IRQHandler(void);
 #define SWI_RTC_MODIFY_IRQHandler           SWI3_IRQHandler
 #define SWI_RTC_ALARM_IRQHandler            SWI4_IRQHandler
 #define SWI_RTC_TIMER_IRQHandler            SWI5_IRQHandler
-#define SWI_USBD_CDC_RECEIVE_IRQHandler     SWI6_IRQHandler
-#define SWI_USBD_CDC_TRANSMIT_IRQHandler    SWI7_IRQHandler
-#define SWI_USBD_HID_TRANSMIT_IRQHandler    SWI8_IRQHandler
+#define SWI_USBD_CDC_CONTROL_IRQHandler     SWI6_IRQHandler
+#define SWI_USBD_CDC_RECEIVE_IRQHandler     SWI7_IRQHandler
+#define SWI_USBD_CDC_TRANSMIT_IRQHandler    SWI8_IRQHandler
 #define SWI_WORK_SCHEDULE_IRQHandler        SWI9_IRQHandler
   
 #ifdef __cplusplus

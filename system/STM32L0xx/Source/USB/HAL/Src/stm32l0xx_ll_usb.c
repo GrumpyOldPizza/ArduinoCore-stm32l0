@@ -559,16 +559,27 @@ HAL_StatusTypeDef USB_EPSetStall(USB_TypeDef *USBx, USB_EPTypeDef *ep)
   */
 HAL_StatusTypeDef USB_EPClearStall(USB_TypeDef *USBx, USB_EPTypeDef *ep)
 {
-  if (ep->is_in != 0U)
+  if (ep->doublebuffer == 0U)
   {
-    PCD_CLEAR_TX_DTOG(USBx, ep->num);
-    PCD_SET_EP_TX_STATUS(USBx, ep->num, USB_EP_TX_VALID);
+    if (ep->is_in != 0U)
+    {
+      PCD_CLEAR_TX_DTOG(USBx, ep->num);
+
+      if (ep->type != EP_TYPE_ISOC)
+      {
+        /* Configure NAK status for the Endpoint */
+        PCD_SET_EP_TX_STATUS(USBx, ep->num, USB_EP_TX_NAK);
+      }
+    }
+    else
+    {
+      PCD_CLEAR_RX_DTOG(USBx, ep->num);
+
+      /* Configure VALID status for the Endpoint*/
+      PCD_SET_EP_RX_STATUS(USBx, ep->num, USB_EP_RX_VALID);
+    }
   }
-  else
-  {
-    PCD_CLEAR_RX_DTOG(USBx, ep->num);
-    PCD_SET_EP_RX_STATUS(USBx, ep->num, USB_EP_RX_VALID);
-  }
+
   return HAL_OK;
 }
 
@@ -790,32 +801,48 @@ __attribute__((optimize("O3"))) void USB_WritePMA(USB_TypeDef *USBx, uint8_t *pb
   volatile uint16_t *pPMABufEnd = pPMABuf + ((wNBytes >> 1) * PMA_ACCESS);
   uint16_t data;
 
-  if ((uint32_t)pbUsrBuf & 1)
+  if (!((uint32_t)pbUsrBuf & 1))
   {
-      while (pPMABuf != pPMABufEnd)
-      {
-	  data = *pbUsrBuf++;
-	  data |= (*pbUsrBuf++ << 8);
-	  
-	  *pPMABuf++ = data;
-#if PMA_ACCESS > 1U
-	  pPMABuff++;
-#endif
-      }
-  }
-  else
-  {
+      volatile uint16_t *pPMABufEnd2 = pPMABuf + (((wNBytes & ~15) >> 1) * PMA_ACCESS);
       uint16_t *pwUsrBuf = (void*)pbUsrBuf;
 
+      while (pPMABuf != pPMABufEnd2)
+      {
+          pPMABuf[0 * PMA_ACCESS] = pwUsrBuf[0];
+          pPMABuf[1 * PMA_ACCESS] = pwUsrBuf[1];
+          pPMABuf[2 * PMA_ACCESS] = pwUsrBuf[2];
+          pPMABuf[3 * PMA_ACCESS] = pwUsrBuf[3];
+          pPMABuf[4 * PMA_ACCESS] = pwUsrBuf[4];
+          pPMABuf[5 * PMA_ACCESS] = pwUsrBuf[5];
+          pPMABuf[6 * PMA_ACCESS] = pwUsrBuf[6];
+          pPMABuf[7 * PMA_ACCESS] = pwUsrBuf[7];
+
+          pPMABuf += (8 * PMA_ACCESS);
+          pwUsrBuf += 8;
+      }
+      
       while (pPMABuf != pPMABufEnd)
       {
-	  *pPMABuf++ = *pwUsrBuf++;
+          *pPMABuf++ = *pwUsrBuf++;
 #if PMA_ACCESS > 1U
-	  pPMABuff++;
+          pPMABuff++;
 #endif
       }
 
       pbUsrBuf = (void*)pwUsrBuf;
+  }
+  else
+  {
+      while (pPMABuf != pPMABufEnd)
+      {
+          data = *pbUsrBuf++;
+          data |= (*pbUsrBuf++ << 8);
+          
+          *pPMABuf++ = data;
+#if PMA_ACCESS > 1U
+          pPMABuff++;
+#endif
+      }
   }
 
   if (wNBytes & 1)
@@ -840,32 +867,48 @@ __attribute__((optimize("O3"))) void USB_ReadPMA(USB_TypeDef *USBx, uint8_t *pbU
   volatile uint16_t *pPMABufEnd = pPMABuf + ((wNBytes >> 1) * PMA_ACCESS);
   uint16_t data;
 
-  if ((uint32_t)pbUsrBuf & 1)
+  if (!((uint32_t)pbUsrBuf & 1))
   {
-      while (pPMABuf != pPMABufEnd)
-      {
-	  data = *pPMABuf++;
-#if PMA_ACCESS > 1U
-	  pPMABuff++;
-#endif
-	  
-	  *pbUsrBuf++ = data;
-	  *pbUsrBuf++ = data >> 8;
-      }
-  }
-  else
-  {
+      volatile uint16_t *pPMABufEnd2 = pPMABuf + (((wNBytes & ~15) >> 1) * PMA_ACCESS);
       uint16_t *pwUsrBuf = (void*)pbUsrBuf;
+
+      while (pPMABuf != pPMABufEnd2)
+      {
+          pwUsrBuf[0] = pPMABuf[0 * PMA_ACCESS];
+          pwUsrBuf[1] = pPMABuf[1 * PMA_ACCESS];
+          pwUsrBuf[2] = pPMABuf[2 * PMA_ACCESS];
+          pwUsrBuf[3] = pPMABuf[3 * PMA_ACCESS];
+          pwUsrBuf[4] = pPMABuf[4 * PMA_ACCESS];
+          pwUsrBuf[5] = pPMABuf[5 * PMA_ACCESS];
+          pwUsrBuf[6] = pPMABuf[6 * PMA_ACCESS];
+          pwUsrBuf[7] = pPMABuf[7 * PMA_ACCESS];
+
+          pPMABuf += (8 * PMA_ACCESS);
+          pwUsrBuf += 8;
+      }
 
       while (pPMABuf != pPMABufEnd)
       {
-	  *pwUsrBuf++ = *pPMABuf++;
+          *pwUsrBuf++ = *pPMABuf++;
 #if PMA_ACCESS > 1U
-	  pPMABuff++;
+          pPMABuff++;
 #endif
       }
 
       pbUsrBuf = (void*)pwUsrBuf;
+  }
+  else
+  {
+      while (pPMABuf != pPMABufEnd)
+      {
+          data = *pPMABuf++;
+#if PMA_ACCESS > 1U
+          pPMABuff++;
+#endif
+          
+          *pbUsrBuf++ = data;
+          *pbUsrBuf++ = data >> 8;
+      }
   }
 
   if (wNBytes & 1)

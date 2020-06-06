@@ -90,9 +90,6 @@ static void stm32l0_lptim_clock_stop()
     
     stm32l0_lptim_device.state = STM32L0_LPTIM_STATE_NONE;
     
-    LPTIM1->CR = 0;
-    LPTIM1->ICR = ~0ul;
-
     /* ERRATA: MCU may remain stuck in LPTIM interrupt when entering Stop mode
      */
     stm32l0_system_periph_reset(STM32L0_SYSTEM_PERIPH_LPTIM1);
@@ -310,14 +307,14 @@ static void stm32l0_lptim_timeout_flush(uint32_t reference)
                         stm32l0_lptim_clock_start(clock);
                     }
                 }
-                else
+            }
+            else
+            {
+                if (stm32l0_lptim_device.state != STM32L0_LPTIM_STATE_NONE)
                 {
-                    if (stm32l0_lptim_device.state != STM32L0_LPTIM_STATE_NONE)
-                    {
-                        stm32l0_lptim_clock_stop();
-                        
-                        stm32l0_lptim_device.timeout_clock = 0;
-                    }
+                    stm32l0_lptim_clock_stop();
+                    
+                    stm32l0_lptim_device.timeout_clock = 0;
                 }
             }
         }

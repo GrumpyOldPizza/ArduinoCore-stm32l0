@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2018 Thomas Roell.  All rights reserved.
+ * Copyright (c) 2019-2020 Thomas Roell.  All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -26,8 +26,8 @@
  * WITH THE SOFTWARE.
  */
 
-#if !defined(_STM32L0_USBD_HID_H)
-#define _STM32L0_USBD_HID_H
+#if !defined(_STM32L0_USBD_MSC_H)
+#define _STM32L0_USBD_MSC_H
 
 #include "stm32l0xx.h"
 
@@ -35,11 +35,19 @@
  extern "C" {
 #endif
 
-extern bool stm32l0_usbd_hid_send_report(uint8_t id, const uint8_t *data, uint32_t count);
-extern bool stm32l0_usbd_hid_done(void);
+#define STM32L0_USBD_MSC_DATA_IN_EP_ADDR         0x83
+#define STM32L0_USBD_MSC_DATA_OUT_EP_ADDR        0x03
 
+#define STM32L0_USBD_MSC_DATA_INTERFACE          2
+
+#define STM32L0_USBD_MSC_DATA_MAX_PACKET_SIZE    64
+
+#define STM32L0_USBD_MSC_DATA_BLOCK_SIZE         512
+
+extern void USBD_MSC_Notify(uint8_t lun, int acquire);
+   
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* _STM32L0_USBD_HID_H */
+#endif /* _STM32L0_STM32L0_USBD_MSC_H */

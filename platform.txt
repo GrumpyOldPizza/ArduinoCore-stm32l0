@@ -91,20 +91,23 @@ recipe.ar.pattern="{compiler.path}{compiler.ar.cmd}" {compiler.ar.flags} {compil
 ## Combine gc-sections, archives, and objects
 recipe.c.combine.pattern="{compiler.path}{compiler.c.elf.cmd}"  "-L{build.path}" {compiler.c.elf.flags} {compiler.c.elf.extra_flags} {build.extra_flags} "-T{build.variant.path}/{build.ldscript}" "-Wl,-Map,{build.path}/{build.project_name}.map" {build.flags.ldspecs} {compiler.ldflags} -o "{build.path}/{build.project_name}.elf" {object_files} -Wl,--start-group "{build.path}/{archive_file}"  -Wl,--end-group {build.variant_system_libs} -lc -lm
 
-## Create output (dfu file)
-recipe.objcopy.dfu.pattern="{compiler.path}{compiler.elf2hex.cmd}" {compiler.elf2hex.bin.flags} {compiler.elf2hex.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.dfu"
+## Create output (hex file)
+recipe.objcopy.bin.pattern="{compiler.path}{compiler.elf2hex.cmd}" {compiler.elf2hex.hex.flags} {compiler.elf2hex.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.hex"
 
-## Append DFU suffix (dfu file)
-recipe.hooks.objcopy.postobjcopy.1.pattern="{compiler.platform.path}/{compiler.suffix.cmd}"  -v "{build.vid}" -p "{build.pid}" -d "{build.did}" -a "{build.path}/{build.project_name}.dfu"
+## Create output (bin file)
+recipe.objcopy.bin.pattern="{compiler.path}{compiler.elf2hex.cmd}" {compiler.elf2hex.bin.flags} {compiler.elf2hex.extra_flags} "{build.path}/{build.project_name}.elf" "{build.path}/{build.project_name}.bin"
 
-recipe.output.tmp_file={build.project_name}.dfu
-recipe.output.save_file={build.project_name}.{build.variant}.dfu
+## Append DFU suffix (bin file)
+recipe.hooks.objcopy.postobjcopy.1.pattern="{compiler.platform.path}/{compiler.suffix.cmd}"  -v "{build.vid}" -p "{build.pid}" -d "{build.did}" -a "{build.path}/{build.project_name}.bin"
+
+## Save hex
+recipe.output.tmp_file={build.project_name}.hex
+recipe.output.save_file={build.project_name}.{build.variant}.hex
 
 ## Compute size
 recipe.size.pattern="{compiler.path}{compiler.size.cmd}" -A "{build.path}/{build.project_name}.elf"
-##recipe.size.regex=^\.(?:boot|text|rodata|data)\s+([0-9]+).*
-recipe.size.regex=^(?:\.text|\.rodata|\.data)\s+([0-9]+).*
-recipe.size.regex.data=^(?:\.data|\.bss|\.noinit)\s+([0-9]+).*
+recipe.size.regex=^(?:\.text|\.rodata|\.data|\.rodata2|.\data2)\s+([0-9]+).*
+recipe.size.regex.data=^(?:\.data|\.bss|\.noinit|\.data2|\.bss2|\.noinit2)\s+([0-9]+).*
 
 
 # Uploader tools
@@ -118,10 +121,10 @@ tools.stm32l0_dfu.path.macosx={runtime.platform.path}/tools/macosx
 tools.stm32l0_dfu.path.linux={runtime.platform.path}/tools/linux
 tools.stm32l0_dfu.upload.params.verbose=-v
 tools.stm32l0_dfu.upload.params.quiet=
-tools.stm32l0_dfu.upload.pattern="{path}/{cmd}" "{build.vid}" "{build.pid}" "{build.path}/{build.project_name}.dfu"
+tools.stm32l0_dfu.upload.pattern="{path}/{cmd}" "{build.vid}" "{build.pid}" "{build.path}/{build.project_name}.bin"
 tools.stm32l0_dfu.program.params.verbose=-v
 tools.stm32l0_dfu.program.params.quiet=
-tools.stm32l0_dfu.program.pattern="{path}/{cmd}" "{build.vid}" "{build.pid}" "{build.path}/{build.project_name}.dfu"
+tools.stm32l0_dfu.program.pattern="{path}/{cmd}" "{build.vid}" "{build.pid}" "{build.path}/{build.project_name}.bin"
 tools.stm32l0_dfu.erase.params.verbose=-v
 tools.stm32l0_dfu.erase.params.quiet=
 tools.stm32l0_dfu.erase.pattern=

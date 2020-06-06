@@ -96,9 +96,8 @@ enum {
 #define STM32L0_SYSTEM_LOCK_SLEEP              1
 #define STM32L0_SYSTEM_LOCK_DEEPSLEEP          2
 #define STM32L0_SYSTEM_LOCK_REGULATOR          3
-#define STM32L0_SYSTEM_LOCK_VREFINT            4
-#define STM32L0_SYSTEM_LOCK_EEPROM             5
-#define STM32L0_SYSTEM_LOCK_COUNT              6
+#define STM32L0_SYSTEM_LOCK_EEPROM             4
+#define STM32L0_SYSTEM_LOCK_COUNT              5
 
 #define STM32L0_SYSTEM_REFERENCE_SWD           0x00000001
 #define STM32L0_SYSTEM_REFERENCE_RNG           0x00000002
@@ -174,6 +173,8 @@ extern void     stm32l0_system_hsi48_enable(void);
 extern void     stm32l0_system_hsi48_disable(void);
 extern void     stm32l0_system_clk48_enable(void);
 extern void     stm32l0_system_clk48_disable(void);
+extern void     stm32l0_system_vrefint_enable(void);
+extern void     stm32l0_system_vrefint_disable(void);
 extern uint32_t stm32l0_system_reset_cause(void);
 extern uint32_t stm32l0_system_wakeup_reason(void);
 extern uint32_t stm32l0_system_lseclk(void);
@@ -183,6 +184,7 @@ extern uint32_t stm32l0_system_sysclk(void);
 extern uint32_t stm32l0_system_hclk(void);
 extern uint32_t stm32l0_system_pclk1(void);
 extern uint32_t stm32l0_system_pclk2(void);
+extern uint64_t stm32l0_system_serial(void);
 extern void     stm32l0_system_uid(uint32_t *uid);
 extern void     stm32l0_system_periph_reset(unsigned int periph);
 extern void     stm32l0_system_periph_enable(unsigned int periph);

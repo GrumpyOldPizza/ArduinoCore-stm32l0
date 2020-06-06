@@ -433,10 +433,6 @@ static void stm32l0_uart_stop(stm32l0_uart_t *uart)
     {
         USART->CR1 &= ~USART_CR1_TE;
             
-        while (!(USART->ISR & USART_ISR_TEACK))
-        {
-        }
-        
         stm32l0_gpio_pin_configure(uart->pins.tx, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_MODE_ANALOG));
         
         if (uart->option & STM32L0_UART_OPTION_CTS)
@@ -461,10 +457,6 @@ static void stm32l0_uart_stop(stm32l0_uart_t *uart)
 
     USART->CR1 &= ~USART_CR1_RE;
 
-    while (!(USART->ISR & USART_ISR_REACK))
-    {
-    }
-    
     stm32l0_gpio_pin_configure(uart->pins.rx, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_MODE_ANALOG));
 
     if (uart->option & STM32L0_UART_OPTION_RTS)
@@ -692,10 +684,6 @@ static __attribute__((optimize("O3"))) void stm32l0_uart_interrupt(stm32l0_uart_
     if (uart->rq_break)
     {
         USART->CR1 &= ~USART_CR1_TE;
-        
-        while (!(USART->ISR & USART_ISR_TEACK))
-        {
-        }
         
         stm32l0_gpio_pin_configure(uart->pins.tx, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_MODE_ANALOG));
         
@@ -1180,65 +1168,69 @@ uint32_t stm32l0_uart_input(stm32l0_uart_t *uart, uint8_t *rx_data, uint32_t rx_
         return 0;
     }
 
+    uart->rx_event = true;
+    
     if (rx_count > uart->rx_count)
     {
         rx_count = uart->rx_count;
     }
 
-    rx_read = uart->rx_read;
-    rx_size = rx_count;
-
-    if ((rx_read + rx_size) > uart->rx_size)
+    if (rx_count)
     {
-        rx_size = uart->rx_size - rx_read;
-    }
+        rx_read = uart->rx_read;
+        rx_size = rx_count;
 
-    memcpy(rx_data, &uart->rx_data[rx_read], rx_size);
-
-    rx_data += rx_size;
-    rx_read += rx_size;
-
-    if (rx_read == uart->rx_size)
-    {
-        rx_read = 0;
-    }
-
-    if (rx_count != rx_size)
-    {
-        rx_size = rx_count - rx_size;
+        if ((rx_read + rx_size) > uart->rx_size)
+        {
+            rx_size = uart->rx_size - rx_read;
+        }
 
         memcpy(rx_data, &uart->rx_data[rx_read], rx_size);
 
         rx_data += rx_size;
         rx_read += rx_size;
-    }
 
-    if (consume)
-    {
-        uart->rx_read = rx_read;
-        uart->rx_event = true;
-
-        rx_entries = armv6m_atomic_sub(&uart->rx_count, rx_count);
-
-        if (uart->option & STM32L0_UART_OPTION_RTS)
+        if (rx_read == uart->rx_size)
         {
-            if (uart->rx_enable)
+            rx_read = 0;
+        }
+
+        if (rx_count != rx_size)
+        {
+            rx_size = rx_count - rx_size;
+
+            memcpy(rx_data, &uart->rx_data[rx_read], rx_size);
+
+            rx_data += rx_size;
+            rx_read += rx_size;
+        }
+
+        if (consume)
+        {
+            uart->rx_read = rx_read;
+
+            rx_entries = armv6m_atomic_sub(&uart->rx_count, rx_count);
+
+            if (uart->option & STM32L0_UART_OPTION_RTS)
             {
-                if ((rx_entries >= uart->rx_threshold) && (uart->rx_count < uart->rx_threshold))
+                if (uart->rx_enable)
                 {
-                    stm32l0_gpio_pin_write(uart->pins.rts, 0);
-                
-                    /* Check for a async uart interrupt race condition.
-                     */
-                    if (uart->rx_count >= uart->rx_threshold)
+                    if ((rx_entries >= uart->rx_threshold) && (uart->rx_count < uart->rx_threshold))
                     {
-                        stm32l0_gpio_pin_write(uart->pins.rts, 1);
+                        stm32l0_gpio_pin_write(uart->pins.rts, 0);
+                
+                        /* Check for a async uart interrupt race condition.
+                         */
+                        if (uart->rx_count >= uart->rx_threshold)
+                        {
+                            stm32l0_gpio_pin_write(uart->pins.rts, 1);
+                        }
                     }
                 }
             }
         }
     }
-
+    
     return rx_count;
 }
 

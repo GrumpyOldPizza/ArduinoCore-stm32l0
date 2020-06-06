@@ -36,6 +36,7 @@
 
 #define UART_RX_BUFFER_SIZE 64
 #define UART_TX_BUFFER_SIZE 64
+#define UART_TX_PACKET_SIZE 32
 
 class Uart : public HardwareSerial
 {
@@ -68,6 +69,11 @@ public:
     void rts(bool enable);
     bool cts();
 
+    // STM32L0 EXTENSTION: asynchronous write with callback
+    bool write(const uint8_t *buffer, size_t size, void(*callback)(void));
+    bool write(const uint8_t *buffer, size_t size, Callback callback);
+    bool done();
+    
     // STM32L0 EXTENSION: enable/disable non-blocking writes
     void setNonBlocking(bool enable);
 
@@ -97,7 +103,11 @@ public:
     volatile uint32_t _tx_count;
     volatile uint32_t _tx_size;
 
+    const uint8_t *_tx_data2;
+    volatile uint32_t _tx_size2;
+
     Callback _receiveCallback;
+    Callback _completionCallback;
 
     static void _eventCallback(class Uart *self, uint32_t events);
     static void _doneCallback(class Uart *self);

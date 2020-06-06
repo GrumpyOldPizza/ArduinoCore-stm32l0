@@ -92,3 +92,8 @@ void armv6m_core_cxx_method(armv6m_core_callback_t *callback, const void *method
 
     callback->context = (void*)((uintptr_t)object + adj);
 }
+
+static void __empty() { }
+
+void __armv6m_systick_initialize(void) __attribute__ ((weak, alias("__empty")));
+void __armv6m_work_initialize(void) __attribute__ ((weak, alias("__empty")));

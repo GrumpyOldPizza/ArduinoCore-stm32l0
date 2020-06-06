@@ -30,8 +30,6 @@
 #include "Uart.h"
 #include "wiring_private.h"
 
-#define UART_TX_PACKET_SIZE 16
-
 Uart::Uart(struct _stm32l0_uart_t *uart, const struct _stm32l0_uart_params_t *params, void (*serialEventRun)(void))
 {
     _uart = uart;
@@ -46,6 +44,9 @@ Uart::Uart(struct _stm32l0_uart_t *uart, const struct _stm32l0_uart_params_t *pa
     _tx_write = 0;
     _tx_count = 0;
     _tx_size = 0;
+
+    _tx_data2 = NULL;
+    _tx_size2 = 0;
 
     if (serialEventRun) {
         g_serialEventRun = serialEventRun;
@@ -119,6 +120,10 @@ int Uart::availableForWrite()
         return 0;
     }
 
+    if (_tx_size2 != 0) {
+        return 0;
+    }
+
     return UART_TX_BUFFER_SIZE - _tx_count;
 }
 
@@ -174,6 +179,16 @@ size_t Uart::write(const uint8_t *buffer, size_t size)
 
     if (size == 0) {
         return 0;
+    }
+
+    if (_tx_size2 != 0) {
+        if (_nonblocking || (__get_IPSR() != 0)) {
+            return 0;
+        }
+        
+        while (_tx_size2 != 0) {
+            __WFE();
+        }
     }
 
     count = 0;
@@ -266,6 +281,50 @@ size_t Uart::write(const uint8_t *buffer, size_t size)
 
     return count;
 }
+bool Uart::write(const uint8_t *buffer, size_t size, void(*callback)(void))
+{
+    return write(buffer, size, Callback(callback));
+}
+
+bool Uart::write(const uint8_t *buffer, size_t size, Callback callback)
+{
+    if (!_enabled) {
+        return false;
+    }
+
+    if (size == 0) {
+        return false;
+    }
+
+    if (_tx_size2 != 0) {
+        return false;
+    }
+
+    _completionCallback = callback;
+
+    _tx_data2 = buffer;
+    _tx_size2 = size;
+
+    if (!_tx_busy) {
+        _tx_busy = true;
+
+        if (!stm32l0_uart_transmit(_uart, _tx_data2, _tx_size2, (stm32l0_uart_done_callback_t)Uart::_doneCallback, (void*)this)) {
+            _tx_busy = false;
+
+            _tx_size2 = 0;
+            _tx_data2 = NULL;
+
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool Uart::done()
+{
+    return (_tx_size2 == 0);
+}
 
 void Uart::rts(bool enable)
 {
@@ -355,7 +414,32 @@ void Uart::_doneCallback(class Uart *self)
                 self->_tx_size = 0;
                 self->_tx_count = 0;
                 self->_tx_read = self->_tx_write;
+
+                if (self->_tx_size2 != 0) {
+                    self->_tx_size2 = 0;
+                    self->_tx_data2 = NULL;
+
+                    self->_completionCallback.queue(self->_wakeup);
+                }
+            }
+        } else {
+            if (self->_tx_size2 != 0) {
+                self->_tx_busy = true;
+
+                if (!stm32l0_uart_transmit(self->_uart, self->_tx_data2, self->_tx_size2, (stm32l0_uart_done_callback_t)Uart::_doneCallback, (void*)self)) {
+                    self->_tx_busy = false;
+
+                    self->_tx_size2 = 0;
+                    self->_tx_data2 = NULL;
+                    
+                    self->_completionCallback.queue(self->_wakeup);
+                }
             }
         }
+    } else {
+        self->_tx_size2 = 0;
+        self->_tx_data2 = NULL;
+
+        self->_completionCallback.queue(self->_wakeup);
     }
 }

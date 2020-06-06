@@ -58,13 +58,9 @@ extern "C" {
 #define STM32L0_DAC_CONTROL_TRIG_TIM7                    0x00000028
 #define STM32L0_DAC_CONTROL_TRIG_EXTI_9_RISING           0x00000030 /* EXTI_9 */
 
-typedef void (*stm32l0_dac_done_callback_t)(void *context, uint32_t count);
-
 extern bool stm32l0_dac_enable(uint32_t channels);
 extern bool stm32l0_dac_disable(uint32_t channels);
 extern void stm32l0_dac_write(uint32_t channels, uint32_t output);
-extern bool stm32l0_dac_convert(const void *data, uint32_t count, uint32_t control, stm32l0_dac_done_callback_t callback, void *context);
-extern void stm32l0_dac_cancel(void);
 
 #ifdef __cplusplus
 }

@@ -100,13 +100,9 @@ bool stm32l0_comp_enable(uint16_t pin, uint32_t option)
             comp_csr |= (COMP_CSR_COMP2INPSEL_2 | COMP_CSR_COMP2INPSEL_1);
         }
 
-        armv6m_atomic_or(&SYSCFG->CFGR3, (SYSCFG_CFGR3_ENBUFLP_VREFINT_COMP | SYSCFG_CFGR3_EN_VREFINT));
-
-        while (!(SYSCFG->CFGR3 & SYSCFG_CFGR3_VREFINT_RDYF))
-        {
-        }
-
-        stm32l0_system_lock(STM32L0_SYSTEM_LOCK_VREFINT);
+        stm32l0_system_vrefint_enable();
+        
+        armv6m_atomic_or(&SYSCFG->CFGR3, SYSCFG_CFGR3_ENBUFLP_VREFINT_COMP);
     }
 
     if (option & STM32L0_COMP_OPTION_POLARITY)
@@ -135,9 +131,9 @@ bool stm32l0_comp_disable(void)
 
     if (SYSCFG->CFGR3 & SYSCFG_CFGR3_ENBUFLP_VREFINT_COMP)
     {
-        stm32l0_system_unlock(STM32L0_SYSTEM_LOCK_VREFINT);
-
         armv6m_atomic_and(&SYSCFG->CFGR3, ~SYSCFG_CFGR3_ENBUFLP_VREFINT_COMP);
+
+        stm32l0_system_vrefint_disable();
     }
 
     stm32l0_comp_device.state = STM32L0_COMP_STATE_NONE;

@@ -32,18 +32,7 @@
 
 uint64_t STM32L0Class::getSerial()
 {
-    uint32_t serial0, serial1, serial2;
-
-    /* This crummy value is what the USB/DFU bootloader uses.
-     */
-
-    serial0 = *((uint32_t*)0x1ff80050);
-    serial1 = *((uint32_t*)0x1ff80054);
-    serial2 = *((uint32_t*)0x1ff80058);
-
-    serial0 += serial2;
-
-    return (((uint64_t)serial0 << 16) | ((uint64_t)serial1 >> 16));
+    return stm32l0_system_serial();
 }
 
 void STM32L0Class::getUID(uint32_t uid[3])

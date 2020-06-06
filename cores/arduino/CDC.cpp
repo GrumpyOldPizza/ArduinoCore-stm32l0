@@ -32,8 +32,6 @@
 
 #if defined(USBCON)
 
-#define CDC_TX_PACKET_SIZE 64
-
 stm32l0_usbd_cdc_t stm32l0_usbd_cdc;
 
 extern int (*stm32l0_stdio_put)(char, FILE*);
@@ -60,6 +58,9 @@ CDC::CDC(struct _stm32l0_usbd_cdc_t *usbd_cdc, void (*serialEventRun)(void))
     _tx_count = 0;
     _tx_size = 0;
 
+    _tx_data2 = NULL;
+    _tx_size2 = 0;
+    
     if (serialEventRun) {
         g_serialEventRun = serialEventRun;
     }
@@ -116,6 +117,10 @@ int CDC::available()
 int CDC::availableForWrite(void)
 {
     if (!_enabled) {
+        return 0;
+    }
+
+    if (_tx_size2 != 0) {
         return 0;
     }
 
@@ -176,6 +181,16 @@ size_t CDC::write(const uint8_t *buffer, size_t size)
         return 0;
     }
 
+    if (_tx_size2 != 0) {
+        if (_nonblocking || (__get_IPSR() != 0)) {
+            return 0;
+        }
+        
+        while (_tx_size2 != 0) {
+            __WFE();
+        }
+    }
+
     count = 0;
 
     while (count < size) {
@@ -195,7 +210,7 @@ size_t CDC::write(const uint8_t *buffer, size_t size)
                 if (tx_size > (CDC_TX_BUFFER_SIZE - tx_read)) {
                     tx_size = (CDC_TX_BUFFER_SIZE - tx_read);
                 }
-                
+
                 if (tx_size > CDC_TX_PACKET_SIZE) {
                     tx_size = CDC_TX_PACKET_SIZE;
                 }
@@ -267,6 +282,52 @@ size_t CDC::write(const uint8_t *buffer, size_t size)
     return count;
 }
 
+bool CDC::write(const uint8_t *buffer, size_t size, void(*callback)(void))
+{
+    return write(buffer, size, Callback(callback));
+}
+
+bool CDC::write(const uint8_t *buffer, size_t size, Callback callback)
+{
+    if (!_enabled) {
+        return false;
+    }
+
+    if (size == 0) {
+        return false;
+    }
+
+    if (_tx_size2 != 0) {
+        return false;
+    }
+
+    _completionCallback = callback;
+
+    _tx_data2 = buffer;
+    _tx_size2 = size;
+
+    if (!_tx_busy) {
+
+        _tx_busy = true;
+
+        if (!stm32l0_usbd_cdc_transmit(_usbd_cdc, _tx_data2, _tx_size2, (stm32l0_usbd_cdc_done_callback_t)CDC::_doneCallback, (void*)this)) {
+            _tx_busy = false;
+
+            _tx_size2 = 0;
+            _tx_data2 = NULL;
+
+            return false;
+        }
+    }
+
+    return true;
+}
+
+bool CDC::done()
+{
+    return (_tx_size2 == 0);
+}
+
 void CDC::setNonBlocking(bool enabled)
 {
     _nonblocking = enabled;
@@ -294,37 +355,73 @@ void CDC::disableWakeup()
 
 CDC::operator bool()
 {
-    return (_enabled && (stm32l0_usbd_cdc_info.lineState & 1));
+    return (_enabled && (stm32l0_usbd_cdc_line_state(_usbd_cdc) & USB_CDC_LINE_STATE_DTR));
 }
 
 unsigned long CDC::baud()
 {
-    return stm32l0_usbd_cdc_info.dwDTERate;
+    stm32l0_usbd_cdc_line_coding_t line_coding;
+
+    if (_enabled)
+    {
+        stm32l0_usbd_cdc_line_coding(_usbd_cdc, &line_coding);
+
+        return line_coding.dwDTERate;
+    }
+
+    return STM32L0_USBD_CDC_LINE_CODING_DTE_RATE;
 }
 
 uint8_t CDC::stopbits()
 {
-    return stm32l0_usbd_cdc_info.bCharFormat;
+    stm32l0_usbd_cdc_line_coding_t line_coding;
+
+    if (_enabled)
+    {
+        stm32l0_usbd_cdc_line_coding(_usbd_cdc, &line_coding);
+
+        return line_coding.bCharFormat;
+    }
+
+    return STM32L0_USBD_CDC_LINE_CODING_CHAR_FORMAT;
 }
 
 uint8_t CDC::paritytype()
 {
-    return stm32l0_usbd_cdc_info.bParityType;
+    stm32l0_usbd_cdc_line_coding_t line_coding;
+
+    if (_enabled)
+    {
+        stm32l0_usbd_cdc_line_coding(_usbd_cdc, &line_coding);
+
+        return line_coding.bParityType;
+    }
+
+    return STM32L0_USBD_CDC_LINE_CODING_PARITY_TYPE;
 }
 
 uint8_t CDC::numbits()
 {
-    return stm32l0_usbd_cdc_info.bDataBits;
+    stm32l0_usbd_cdc_line_coding_t line_coding;
+
+    if (_enabled)
+    {
+        stm32l0_usbd_cdc_line_coding(_usbd_cdc, &line_coding);
+
+        return line_coding.bDataBits;
+    }
+
+    return STM32L0_USBD_CDC_LINE_CODING_DATA_BITS;
 }
 
 bool CDC::dtr()
 {
-    return stm32l0_usbd_cdc_info.lineState & 1;
+    return (_enabled && (stm32l0_usbd_cdc_line_state(_usbd_cdc) & USB_CDC_LINE_STATE_DTR));
 }
 
 bool CDC::rts() 
 {
-    return stm32l0_usbd_cdc_info.lineState & 2;
+    return (_enabled && (stm32l0_usbd_cdc_line_state(_usbd_cdc) & USB_CDC_LINE_STATE_RTS));
 }
 
 void CDC::_eventCallback(class CDC *self, uint32_t events)
@@ -360,7 +457,7 @@ void CDC::_doneCallback(class CDC *self)
             if (tx_size > CDC_TX_PACKET_SIZE) {
                 tx_size = CDC_TX_PACKET_SIZE;
             }
-                    
+            
             self->_tx_size = tx_size;
             self->_tx_busy = true;
                     
@@ -370,8 +467,33 @@ void CDC::_doneCallback(class CDC *self)
                 self->_tx_size = 0;
                 self->_tx_count = 0;
                 self->_tx_read = self->_tx_write;
+
+                if (self->_tx_size2 != 0) {
+                    self->_tx_size2 = 0;
+                    self->_tx_data2 = NULL;
+                    
+                    self->_completionCallback.queue(self->_wakeup);
+                }
+            }
+        } else {
+            if (self->_tx_size2 != 0) {
+                self->_tx_busy = true;
+
+                if (!stm32l0_usbd_cdc_transmit(self->_usbd_cdc, self->_tx_data2, self->_tx_size2, (stm32l0_usbd_cdc_done_callback_t)CDC::_doneCallback, (void*)self)) {
+                    self->_tx_busy = false;
+
+                    self->_tx_size2 = 0;
+                    self->_tx_data2 = NULL;
+                    
+                    self->_completionCallback.queue(self->_wakeup);
+                }
             }
         }
+    } else {
+        self->_tx_size2 = 0;
+        self->_tx_data2 = NULL;
+        
+        self->_completionCallback.queue(self->_wakeup);
     }
 }
 

@@ -187,6 +187,9 @@ void __stm32l0_rtc_initialize(void)
         /* Use LSE as source for RTC */
         
         RCC->CSR = (RCC->CSR & ~RCC_CSR_RTCSEL) | (RCC_CSR_RTCSEL_0 | RCC_CSR_RTCEN);
+
+        RTC->WPR = 0xca;
+        RTC->WPR = 0x53;
             
         RTC->ISR = RTC_ISR_INIT;
         
@@ -200,8 +203,6 @@ void __stm32l0_rtc_initialize(void)
         RTC->PRER = (STM32L0_RTC_PREDIV_S -1) << RTC_PRER_PREDIV_S_Pos;
         RTC->PRER |= (STM32L0_RTC_PREDIV_A -1) << RTC_PRER_PREDIV_A_Pos;
 
-        RTC->ISR = 0;
-	
         reset = true;
     }
     

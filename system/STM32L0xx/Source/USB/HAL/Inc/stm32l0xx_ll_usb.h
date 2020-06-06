@@ -55,25 +55,29 @@ typedef enum
   */
 typedef struct
 {
-  uint32_t dev_endpoints;           /*!< Device Endpoints number.
+  uint8_t  dev_endpoints;           /*!< Device Endpoints number.
                                          This parameter depends on the used USB core.
                                          This parameter must be a number between Min_Data = 1 and Max_Data = 15 */
 
-  uint32_t speed;                   /*!< USB Core speed.
+  uint8_t  speed;                   /*!< USB Core speed.
                                          This parameter can be any value of @ref USB_Core_Speed                 */
 
-  uint32_t ep0_mps;                 /*!< Set the Endpoint 0 Max Packet size.                                    */
+  uint8_t  ep0_mps;                 /*!< Set the Endpoint 0 Max Packet size.                                    */
 
-  uint32_t phy_itface;              /*!< Select the used PHY interface.
+  uint8_t  phy_itface;              /*!< Select the used PHY interface.
                                          This parameter can be any value of @ref USB_Core_PHY                   */
 
-  uint32_t Sof_enable;              /*!< Enable or disable the output of the SOF signal.                        */
+  uint8_t  Sof_enable;              /*!< Enable or disable the output of the SOF signal.                        */
 
-  uint32_t low_power_enable;        /*!< Enable or disable Low Power mode                                       */
+  uint8_t  low_power_enable;        /*!< Enable or disable Low Power mode                                       */
 
-  uint32_t lpm_enable;              /*!< Enable or disable Battery charging.                                    */
-
-  uint32_t battery_charging_enable; /*!< Enable or disable Battery charging.                                    */
+#if (USBD_LPM_ENABLE == 1)
+  uint8_t  lpm_enable;              /*!< Enable or disable Battery charging.                                    */
+#endif
+  
+#if (USBD_BCD_ENABLE == 1)
+  uint8_t  battery_charging_enable; /*!< Enable or disable Battery charging.                                    */
+#endif  
 } USB_CfgTypeDef;
 
 typedef struct
@@ -93,6 +97,10 @@ typedef struct
   uint8_t   data_pid_start;  /*!< Initial data PID
                                   This parameter must be a number between Min_Data = 0 and Max_Data = 1     */
 
+#if defined (USB)
+  uint8_t   doublebuffer;    /*!< Double buffer enable
+                                  This parameter can be 0 or 1                                              */
+
   uint16_t  pmaadress;       /*!< PMA Address
                                   This parameter can be any value between Min_addr = 0 and Max_addr = 1K    */
 
@@ -101,22 +109,22 @@ typedef struct
 
   uint16_t  pmaaddr1;        /*!< PMA Address1
                                   This parameter can be any value between Min_addr = 0 and Max_addr = 1K    */
-
-  uint8_t   doublebuffer;    /*!< Double buffer enable
-                                  This parameter can be 0 or 1                                              */
-
+#endif
+  
+#if defined (USB_OTG_FS)
   uint16_t  tx_fifo_num;     /*!< This parameter is not required by USB Device FS peripheral, it is used
                                   only by USB OTG FS peripheral
                                   This parameter is added to ensure compatibility across USB peripherals    */
-
-  uint32_t  maxpacket;       /*!< Endpoint Max packet size
+#endif
+  
+  uint16_t  maxpacket;       /*!< Endpoint Max packet size
                                   This parameter must be a number between Min_Data = 0 and Max_Data = 64KB  */
 
+  uint16_t  xfer_len;        /*!< Current transfer length                                                   */
+
+  uint16_t  xfer_count;      /*!< Partial transfer length in case of multi packet transfer                  */
+
   uint8_t   *xfer_buff;      /*!< Pointer to transfer buffer                                                */
-
-  uint32_t  xfer_len;        /*!< Current transfer length                                                   */
-
-  uint32_t  xfer_count;      /*!< Partial transfer length in case of multi packet transfer                  */
 
 } USB_EPTypeDef;
 

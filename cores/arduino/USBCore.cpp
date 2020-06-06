@@ -35,27 +35,19 @@
 #define USB_TYPE_NONE        0
 #define USB_TYPE_CDC         1
 #define USB_TYPE_CDC_MSC     2
-#define USB_TYPE_CDC_HID     3
-#define USB_TYPE_CDC_MSC_HID 4
 
 #if !defined(USB_TYPE)
 #define USB_VID 0x1209
 #define USB_PID 0x6665
 #define USB_MANUFACTURER "Tlera Corporation"
 #define USB_PRODUCT "CMWX1ZZABZ"
-#define USB_CLASS USBD_CDC_MSC_HID_Initialize
+#define USB_CLASS USBD_CDC_MSC_Initialize
 #else
 #if (USB_TYPE == USB_TYPE_CDC)
 #define USB_CLASS USBD_CDC_Initialize
 #endif
 #if (USB_TYPE == USB_TYPE_CDC_MSC)
 #define USB_CLASS USBD_CDC_MSC_Initialize
-#endif
-#if (USB_TYPE == USB_TYPE_CDC_HID)
-#define USB_CLASS USBD_CDC_HID_Initialize
-#endif
-#if (USB_TYPE == USB_TYPE_CDC_MSC_HID)
-#define USB_CLASS USBD_CDC_MSC_HID_Initialize
 #endif
 #endif
 
