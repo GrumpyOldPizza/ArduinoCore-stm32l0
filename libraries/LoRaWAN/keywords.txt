@@ -81,6 +81,8 @@ setDownLinkDwellTime	KEYWORD2
 setMaxEIRP	KEYWORD2
 setAntennaGain	KEYWORD2
 setDutyCycle	KEYWORD2
+setRxWindows	KEYWORD2
+setTxContinuousWave	KEYWORD2
 setComplianceTest	KEYWORD2
 setBatteryLevel	KEYWORD2
 

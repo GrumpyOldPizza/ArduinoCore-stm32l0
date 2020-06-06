@@ -2222,6 +2222,32 @@ int LoRaWANClass::setComplianceTest(bool enable)
     return 1;
 }
 
+int LoRaWANClass::setTxContinuousWave(unsigned long frequency, float power, unsigned long timeout)
+{
+    unsigned int txPower;
+    MlmeReq_t mlmeReq;
+    
+    if (!_Band) {
+        return 0;
+    }
+
+    if (_tx_busy) {
+        return 0;
+    }
+
+    txPower = floorf(power);
+
+    mlmeReq.Type = MLME_TXCW_1;
+    mlmeReq.Req.TxCw.Timeout = timeout;
+    mlmeReq.Req.TxCw.Frequency = frequency;
+    mlmeReq.Req.TxCw.Power = txPower;
+    if (LoRaWANMlmeRequest(&mlmeReq) != LORAMAC_STATUS_OK) {
+        return 0;
+    }
+
+    return 1;
+}
+
 int LoRaWANClass::setBatteryLevel(unsigned int level)
 {
     if (level > 255) {

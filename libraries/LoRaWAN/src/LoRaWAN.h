@@ -220,6 +220,7 @@ public:
 
     int setDutyCycle(bool enable);
     int setRxWindows(bool enable);
+    int setTxContinuousWave(unsigned long frequency, float power, unsigned long seconds);
     int setComplianceTest(bool enable);
 
     int setBatteryLevel(unsigned int level);
