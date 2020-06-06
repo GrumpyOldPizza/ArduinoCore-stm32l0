@@ -28,6 +28,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 class Callback {
 public:
     Callback() : _callback(nullptr), _context(nullptr) {  }
