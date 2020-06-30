@@ -203,6 +203,8 @@ void __stm32l0_rtc_initialize(void)
         RTC->PRER = (STM32L0_RTC_PREDIV_S -1) << RTC_PRER_PREDIV_S_Pos;
         RTC->PRER |= (STM32L0_RTC_PREDIV_A -1) << RTC_PRER_PREDIV_A_Pos;
 
+        RTC->ISR = ~RTC_ISR_INIT;
+
         reset = true;
     }
     
