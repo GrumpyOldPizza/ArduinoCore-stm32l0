@@ -1,4 +1,4 @@
-/* Simple ABB join for TheThingNetwork LoRaWAN network
+/* Simple ABP join for TheThingNetwork LoRaWAN network
  *
  *  Uncomment one of the region defined below to select the
  *  proper radio setup.
@@ -88,6 +88,9 @@ void setup( void )
     LoRaWAN.begin(US915);
     LoRaWAN.setSubBand(2);
 #endif
+
+    Serial.begin(9600);
+    while (!Serial) {}
 
     // LoRaWAN.setDutyCycle(false);     
     // LoRaWAN.setAntennaGain(2.0);
