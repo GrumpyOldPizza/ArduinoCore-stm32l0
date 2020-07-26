@@ -489,6 +489,7 @@ void RegionAU915ApplyCFList( ApplyCFListParams_t* applyCFList )
 
 bool RegionAU915ChanMaskSet( ChanMaskSetParams_t* chanMaskSet )
 {
+#if 0
     uint8_t nbChannels = RegionCommonCountChannels( chanMaskSet->ChannelsMaskIn, 0, 4 );
 
     // Check the number of active channels
@@ -499,7 +500,8 @@ bool RegionAU915ChanMaskSet( ChanMaskSetParams_t* chanMaskSet )
     {
         return false;
     }
-
+#endif
+    
     switch( chanMaskSet->ChannelsMaskType )
     {
         case CHANNELS_MASK:
