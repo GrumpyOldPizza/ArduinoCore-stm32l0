@@ -25,8 +25,10 @@
 #ifndef _IO_H_
 #define _IO_H_
 
-#define RAMSTART 0x20000000
-#define RAMSIZE  (20 * 1024)
+#include <stm32l0xx.h>
+
+#define RAMSTART (SRAM_BASE)
+#define RAMSIZE  (SRAM_SIZE_MAX)
 #define RAMEND   (RAMSTART + RAMSIZE - 1)
 
 #define E2END    0xfff
