@@ -50,6 +50,9 @@
 #define STM32L0_CONFIG_PIN_GNSS_RX        STM32L0_GPIO_PIN_PA10_USART1_RX
 #define STM32L0_CONFIG_PIN_GNSS_TX        STM32L0_GPIO_PIN_PA9_USART1_TX
 
+// Reserve some room at the end of EEPROM for LoRaWAN library
+#define STM32L0_CONFIG_EEPROM_RESERVED    2048
+
 #define USBCON
 
 /** Master clock frequency */

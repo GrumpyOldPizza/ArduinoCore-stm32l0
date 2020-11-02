@@ -25,12 +25,27 @@
 #ifndef _IO_H_
 #define _IO_H_
 
-#include <stm32l0xx.h>
+#include <Arduino.h>
+#include <assert.h>
 
 #define RAMSTART (SRAM_BASE)
 #define RAMSIZE  (SRAM_SIZE_MAX)
 #define RAMEND   (RAMSTART + RAMSIZE - 1)
 
-#define E2END    0xfff
+#if defined(DATA_EEPROM_BASE) && defined(DATA_EEPROM_END)
+  #define REAL_E2END (DATA_EEPROM_END - DATA_EEPROM_BASE)
+#elif defined(DATA_EEPROM_BASE) && defined(DATA_EEPROM_BANK2_BASE) && defined(DATA_EEPROM_BANK1_END) && defined(DATA_EEPROM_BANK2_END)
+  #define REAL_E2END (DATA_EEPROM_BANK1_END - DATA_EEPROM_BASE + 1 + DATA_EEPROM_BANK2_END - DATA_EEPROM_BANK2_BASE)
+#else
+  #error "Cannot determine EEPROM size"
+#endif
+
+#if defined(STM32L0_CONFIG_EEPROM_RESERVED)
+  static_assert(STM32L0_CONFIG_EEPROM_RESERVED <= REAL_E2END + 1, "STM32L0_CONFIG_EEPROM_RESERVED bigger than EEPROM");
+  #define E2END (REAL_E2END - STM32L0_CONFIG_EEPROM_RESERVED)
+#else
+  #define E2END REAL_E2END
+#endif
+
 
 #endif
