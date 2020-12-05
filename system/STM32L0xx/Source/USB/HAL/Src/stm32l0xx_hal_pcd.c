@@ -240,7 +240,7 @@ HAL_StatusTypeDef HAL_PCD_DeInit(PCD_HandleTypeDef *hpcd)
   hpcd->State = HAL_PCD_STATE_BUSY;
 
   /* Stop Device */
-  (void)HAL_PCD_Stop(hpcd);
+  (void)USB_StopDevice(hpcd->Instance);
 
 #if (USE_HAL_PCD_REGISTER_CALLBACKS == 1U)
   if (hpcd->MspDeInitCallback == NULL)
@@ -998,7 +998,7 @@ HAL_StatusTypeDef HAL_PCD_Stop(PCD_HandleTypeDef *hpcd)
   __HAL_LOCK(hpcd);
   __HAL_PCD_DISABLE(hpcd);
 
-  (void)USB_StopDevice(hpcd->Instance);
+  (void)USB_DevDisconnect(hpcd->Instance);
 
   __HAL_UNLOCK(hpcd);
 
