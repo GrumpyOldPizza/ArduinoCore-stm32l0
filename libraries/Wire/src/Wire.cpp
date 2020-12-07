@@ -42,7 +42,7 @@ TwoWire::TwoWire(struct _stm32l0_i2c_t *i2c, const struct _stm32l0_i2c_params_t 
     _xf_address = 0;
 
     _rx_read = 0;
-    _rx_write = 0;
+    _rx_count = 0;
 
     _tx_write = 0;
     _tx_active = false;
@@ -214,7 +214,7 @@ size_t TwoWire::requestFrom(uint8_t address, size_t size, bool stopBit)
     _xf_address = 0;
 
     _rx_read = 0;
-    _rx_write = 0;
+    _rx_count = 0;
 
     while (transaction.status == STM32L0_I2C_STATUS_BUSY) {
         __WFE();
@@ -226,10 +226,10 @@ size_t TwoWire::requestFrom(uint8_t address, size_t size, bool stopBit)
             _xf_address = address;
         }
 
-        _rx_write = size;
+        _rx_count = size;
     }
 
-    return size;
+    return _rx_count;
 }
 
 size_t TwoWire::write(uint8_t data)
@@ -266,12 +266,12 @@ size_t TwoWire::write(const uint8_t *data, size_t size)
 
 int TwoWire::available(void)
 {
-    return (_rx_write - _rx_read);
+    return (_rx_count - _rx_read);
 }
 
 int TwoWire::read(void)
 {
-    if (_rx_read >= _rx_write) {
+    if (_rx_read >= _rx_count) {
         return -1;
     }
 
@@ -280,9 +280,9 @@ int TwoWire::read(void)
 
 int TwoWire::read(uint8_t *buffer, size_t size)
 {
-    if (size > (unsigned int)(_rx_write - _rx_read))
+    if (size > (unsigned int)(_rx_count - _rx_read))
     {
-        size = (_rx_write - _rx_read);
+        size = (_rx_count - _rx_read);
     }
 
     memcpy(buffer, &_rx_data[_rx_read], size);
@@ -294,7 +294,7 @@ int TwoWire::read(uint8_t *buffer, size_t size)
 
 int TwoWire::peek(void)
 {
-    if (_rx_read >= _rx_write) {
+    if (_rx_read >= _rx_count) {
         return -1;
     }
 
@@ -507,10 +507,10 @@ void TwoWire::_eventCallback(class TwoWire *self, uint32_t events)
 
     if (events & STM32L0_I2C_EVENT_RECEIVE_DONE) {
         self->_rx_read = 0;
-        self->_rx_write = (events & STM32L0_I2C_EVENT_COUNT_MASK) >> STM32L0_I2C_EVENT_COUNT_SHIFT;
+        self->_rx_count = (events & STM32L0_I2C_EVENT_COUNT_MASK) >> STM32L0_I2C_EVENT_COUNT_SHIFT;
 
         if (self->_receiveCallback) {
-            (*self->_receiveCallback)(self->_rx_write);
+            (*self->_receiveCallback)(self->_rx_count);
         }
     }
     

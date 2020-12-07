@@ -93,7 +93,7 @@ public:
 
     uint8_t _rx_data[BUFFER_LENGTH];
     uint8_t _rx_read;
-    uint8_t _rx_write;
+    uint8_t _rx_count;
     uint8_t _rx_address;
 
     uint8_t _tx_data[BUFFER_LENGTH];
