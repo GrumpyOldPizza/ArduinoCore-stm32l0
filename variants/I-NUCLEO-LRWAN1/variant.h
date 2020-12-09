@@ -37,6 +37,9 @@
 #define STM32L0_CONFIG_HSECLK             0
 #define STM32L0_CONFIG_SYSOPT             0
 
+// Reserve some room at the end of EEPROM for LoRaWAN library
+#define STM32L0_CONFIG_EEPROM_RESERVED    2048
+
 /** Master clock frequency */
 #define VARIANT_MCK                       F_CPU
 

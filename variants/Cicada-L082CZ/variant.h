@@ -46,6 +46,9 @@
 
 #define STM32L0_CONFIG_SFLASH_DATA_START  (256 * 1024)
 
+// Reserve some room at the end of EEPROM for LoRaWAN library
+#define STM32L0_CONFIG_EEPROM_RESERVED    2048
+
 #define USBCON
 
 /** Master clock frequency */

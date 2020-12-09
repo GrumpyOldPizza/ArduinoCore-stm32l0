@@ -30,13 +30,6 @@ typedef bool boolean;
 typedef uint8_t byte;
 typedef uint16_t word;
 
-// some libraries and sketches depend on this AVR stuff,
-// assuming Arduino.h or WProgram.h automatically includes it...
-//
-#include "avr/pgmspace.h"
-#include "avr/interrupt.h"
-#include "avr/io.h"
-
 #include "binary.h"
 #include "itoa.h"
 
@@ -88,6 +81,12 @@ void loop( void ) ;
 
 // Include board variant
 #include "variant.h"
+
+// some libraries and sketches depend on this AVR stuff,
+// assuming Arduino.h or WProgram.h automatically includes it...
+#include "avr/pgmspace.h"
+#include "avr/interrupt.h"
+#include "avr/io.h"
 
 #include "wiring.h"
 #include "wiring_digital.h"
