@@ -59,7 +59,7 @@ extern void USBD_CDC_Initialize(void *);
 extern void USBD_CDC_MSC_Initialize(void *);
 
 extern bool USBD_Initialize(uint16_t vid, uint16_t pid, const uint8_t *manufacturer, const uint8_t *product, void(*initialize)(void *),
-                            unsigned int pin_vbus, unsigned int priority,
+                            unsigned int pin_vbus, bool pin_vbus_needs_pulldown, unsigned int priority,
                             void(*connect_callback)(void), void(*disconnect_callback)(void), void(*suspend_callback)(void), void(*resume_callback)(void));
 extern void USBD_Teardown(void);
 extern void USBD_Attach(void);

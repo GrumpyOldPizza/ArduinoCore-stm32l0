@@ -182,7 +182,7 @@ static void USBD_VBUSChangedIrq(void)
 }
 
 bool USBD_Initialize(uint16_t vid, uint16_t pid, const uint8_t *manufacturer, const uint8_t *product, void(*initialize)(struct _USBD_HandleTypeDef *),
-                     unsigned int pin_vbus, unsigned int priority,
+                     unsigned int pin_vbus, bool pin_vbus_needs_pulldown, unsigned int priority,
                      void(*connect_callback)(void), void(*disconnect_callback)(void), void(*suspend_callback)(void), void(*resume_callback)(void))
 {
     if (stm32l0_system_pclk1() < 10000000)
@@ -213,7 +213,10 @@ bool USBD_Initialize(uint16_t vid, uint16_t pid, const uint8_t *manufacturer, co
 
         stm32l0_lptim_timeout_create(&USBD_VBUSTimeout);
 
-        stm32l0_gpio_pin_configure(usbd_pin_vbus, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
+        uint32_t mode = (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT);
+        if (pin_vbus_needs_pulldown)
+            mode |= STM32L0_GPIO_PUPD_PULLDOWN;
+        stm32l0_gpio_pin_configure(usbd_pin_vbus, mode);
 
         if (stm32l0_gpio_pin_read(usbd_pin_vbus))
         {
