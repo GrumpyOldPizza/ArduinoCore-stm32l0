@@ -12,18 +12,23 @@
         {
           "name": "Tlera Corp STM32WB Boards",
           "architecture": "stm32wb",
-          "version": "0.0.30",
+          "version": "0.0.31",
           "category": "Contributed",
-          "url": "https://grumpyoldpizza.github.io/ArduinoCore-stm32l0/stm32wb-030.tar.bz2",
-          "archiveFileName": "ArduinoCore-stm32wb-0.0.30.tar.bz2",
-          "checksum": "SHA-256:9f569197d9c4636dc19a35dc96bba9be1d17f0d9b519f38ede50d05281f5211d",
-          "size": "16112046",
+          "url": "https://grumpyoldpizza.github.io/ArduinoCore-stm32l0/stm32wb-031.tar.bz2",
+          "archiveFileName": "ArduinoCore-stm32wb-0.0.31.tar.bz2",
+          "checksum": "SHA-256:ba8a144a05e481dcecca1a3f3e4fcf57cd4510e99b96c9b7d367b4a03209a9bf",
+          "size": "9163415",
           "boards": [
-            {"name": "Firefly-WB55CG"},
-            {"name": "Katydid-WB55CG"},
-            {"name": "NUCLEO-WB55RG"}
+            { "name": "Firefly-WB55CG" },
+            { "name": "Katydid-WB55CG" },
+            { "name": "NUCLEO-WB55RG"  }
           ],
           "toolsDependencies": [
+            {
+              "packager": "arduino",
+              "name": "openocd",
+              "version": "0.10.0-arduino13"
+            },
             {
               "packager": "arduino",
               "name": "arm-none-eabi-gcc",
