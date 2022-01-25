@@ -19,6 +19,9 @@ ArduinoCore-stm32l0 is targeted at ultra low power scenarios, sensor hubs, with 
  * [NUCLEO-L053R8](http://www.st.com/en/evaluation-tools/nucleo-l053r8.html)
  * [NUCLEO-L073RZ](http://www.st.com/en/evaluation-tools/nucleo-l073rz.html)
 
+### AI Thinker / RuiXingHengFang / RisingHF 
+ * [RHF76-052](http://www.risinghf.com/#/product-details?product_id=5&lang=en)
+
 
 ## Installing
 
