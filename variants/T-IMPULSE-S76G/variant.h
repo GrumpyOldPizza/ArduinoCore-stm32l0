@@ -42,20 +42,20 @@
 #define STM32L0_CONFIG_PIN_VBAT           STM32L0_GPIO_PIN_PC4
 #define STM32L0_CONFIG_CHANNEL_VBAT       STM32L0_ADC_CHANNEL_14
 #define STM32L0_CONFIG_VBAT_PERIOD        40
-#define STM32L0_CONFIG_VBAT_SCALE         ((float)1.27)
+#define STM32L0_CONFIG_VBAT_SCALE         ((float)2.08)
 
 #define STM32L0_CONFIG_PIN_GNSS_ENABLE    STM32L0_GPIO_PIN_PA3
-#define STM32L0_CONFIG_PIN_LEV_SHIFT_EN   STM32L0_GPIO_PIN_PC6
+#define STM32L0_CONFIG_PIN_LSHIFTER_EN    STM32L0_GPIO_PIN_PC6
 #define STM32L0_CONFIG_PIN_GNSS_PPS       STM32L0_GPIO_PIN_PB5
 #define STM32L0_CONFIG_PIN_GNSS_RX        STM32L0_GPIO_PIN_PC11_USART4_RX
 #define STM32L0_CONFIG_PIN_GNSS_TX        STM32L0_GPIO_PIN_PC10_USART4_TX
-#define GPS_PWR_SWITCH          (2ul)   //PA3
-#define GPS_LEVEL_SHIFTER_EN    (3ul)   //PC6
-#define GPS_RST                 (4ul)   //PB2
-#define GPS_RX                  (5ul)   //PC11
-#define GPS_TX                  (6ul)   //PC10
-#define GPS_PPS                 (7ul)   //PB5
-#define GPS_BAUD_RATE           115200
+#define GPS_PWR_SWITCH                    (2ul)
+#define GPS_LEVEL_SHIFTER_EN              (3ul)
+#define GPS_RST                           (4ul)
+#define GPS_RX                            (5ul)
+#define GPS_TX                            (6ul)
+#define GPS_PPS                           (7ul)
+#define GPS_BAUD_RATE                     115200
 
 #define USBCON
 
@@ -81,8 +81,8 @@ extern "C"
  *----------------------------------------------------------------------------*/
 
 // Number of pins defined in PinDescription array
-#define PINS_COUNT           (22u)
-#define NUM_DIGITAL_PINS     (21u)
+#define PINS_COUNT           (19u)
+#define NUM_DIGITAL_PINS     (18u)
 #define NUM_ANALOG_INPUTS    (1u)
 #define NUM_ANALOG_OUTPUTS   (0u)
 
@@ -90,6 +90,7 @@ extern "C"
  * Analog pins
  */
 #define PIN_A0               (16ul)
+#define PIN_VBAT             (16ul)
 
 static const uint8_t A0  = PIN_A0;
 
@@ -132,8 +133,6 @@ static const uint8_t SCL = PIN_WIRE_SCL;
  */
 #define PIN_USB_DM           (17ul)
 #define PIN_USB_DP           (18ul) 
-#define PIN_USB_VBUS         (19ul)
-
 
 #ifdef __cplusplus
 }

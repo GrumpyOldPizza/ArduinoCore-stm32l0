@@ -57,13 +57,10 @@ extern const PinDescription g_APinDescription[PINS_COUNT] =
     { GPIOB, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PB7),  STM32L0_GPIO_PIN_PB7,            0,                                             PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },    //SDA
     { GPIOB, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PB6),  STM32L0_GPIO_PIN_PB6,            0,                                             PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },    //SCL
     // 16 - Analog pin
-    { GPIOC, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PC4),  STM32L0_GPIO_PIN_PC4,            (PIN_ATTR_EXTI),                               PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_14   },    //BAT_VOL_DET
-    // 17..21 - Special pins (USB_DM, USB_DP, no USB_VBUS, SWD)
+    { GPIOC, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PC4),  STM32L0_GPIO_PIN_PC4,            (PIN_ATTR_EXTI),                               PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_14   },    //PIN_VBAT
+    // 17..18 - Special pins (USB_DM, USB_DP)
     { NULL,  STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PA11), STM32L0_GPIO_PIN_PA11,           (PIN_ATTR_EXTI),                               PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },    //DM
     { NULL,  STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PA12), STM32L0_GPIO_PIN_PA12,           (PIN_ATTR_EXTI),                               PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },    //DP
-    { NULL,  0,                                            STM32L0_GPIO_PIN_NONE,           0,                                             PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },    //VBUS_USB
-    { GPIOA, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PA13), STM32L0_GPIO_PIN_PA13,           (PIN_ATTR_SWD | PIN_ATTR_EXTI),                PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },    //SWCLK
-    { GPIOA, STM32L0_GPIO_PIN_MASK(STM32L0_GPIO_PIN_PA14), STM32L0_GPIO_PIN_PA14,           (PIN_ATTR_SWD | PIN_ATTR_EXTI),                PWM_INSTANCE_NONE,  PWM_CHANNEL_NONE, ADC_CHANNEL_NONE },    //SWDIO
 };
 
 static uint8_t stm32l0_usart4_rx_fifo[32];
@@ -94,6 +91,8 @@ extern const stm32l0_i2c_params_t g_WireParams = {
     },
 };
 
+extern stm32l0_i2c_t g_Wire;
+
 void RadioInit( const RadioEvents_t *events, uint32_t freq )
 {
     SX1276Init(events, freq);
@@ -101,6 +100,7 @@ void RadioInit( const RadioEvents_t *events, uint32_t freq )
 
 void initVariant()
 {
+    //S76G_Initialize(STM32L0_GPIO_PIN_PD7, STM32L0_GPIO_PIN_NONE);
     // Enable 1V8 Power Switch
     stm32l0_gpio_pin_configure(STM32L0_GPIO_PIN_PB0, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
     stm32l0_gpio_pin_write(STM32L0_GPIO_PIN_PB0, 1);
@@ -129,6 +129,9 @@ void initVariant()
     // Set Ant Rx/Tx switch to Rx Mode
     stm32l0_gpio_pin_configure(STM32L0_GPIO_PIN_PA1, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
     stm32l0_gpio_pin_write(STM32L0_GPIO_PIN_PA1, 1);
+    // Disable TCXO_EN pin
+    //stm32l0_gpio_pin_configure(STM32L0_GPIO_PIN_PD7, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
+    //stm32l0_gpio_pin_write(STM32L0_GPIO_PIN_PD7, 0);
     // Configure RESET as input
     stm32l0_gpio_pin_configure(STM32L0_GPIO_PIN_PB10, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
     armv6m_core_udelay(6000);   // Wait 6 ms
