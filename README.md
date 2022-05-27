@@ -19,9 +19,15 @@ ArduinoCore-stm32l0 is targeted at ultra low power scenarios, sensor hubs, with 
  * [NUCLEO-L053R8](http://www.st.com/en/evaluation-tools/nucleo-l053r8.html)
  * [NUCLEO-L073RZ](http://www.st.com/en/evaluation-tools/nucleo-l073rz.html)
 
+### LilyGo  
+ * [TTGO T-Impulse Wristband](https://github.com/Xinyuan-LilyGO/LilyGo-T-Impulse)
+ * [TTGO T-Motion S76G](https://github.com/Xinyuan-LilyGO/LilyGO-T-Motion)
+
 ### AI Thinker / RuiXingHengFang / RisingHF 
  * [RHF76-052](http://www.risinghf.com/#/product-details?product_id=5&lang=en)
 
+### Dragino 
+ * [LGT92](https://www.dragino.com/products/lora-lorawan-end-node/item/142-lgt-92.html)
 
 ## Installing
 

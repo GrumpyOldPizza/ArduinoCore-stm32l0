@@ -26,48 +26,37 @@
  * WITH THE SOFTWARE.
  */
 
-#ifndef _VARIANT_T_IMPULSE_S76G_
-#define _VARIANT_T_IMPULSE_S76G_
+#ifndef _VARIANT_K92_L072Z_
+#define _VARIANT_K92_L072Z_
 
 /*----------------------------------------------------------------------------
  *        Definitions
  *----------------------------------------------------------------------------*/
 
-#define STM32L0_CONFIG_LSECLK             32768
-#define STM32L0_CONFIG_HSECLK             0
-#define STM32L0_CONFIG_SYSOPT             0
+#define STM32L0_CONFIG_LSECLK           32768
+#define STM32L0_CONFIG_HSECLK           0
+#define STM32L0_CONFIG_SYSOPT           0
 
-#define STM32L0_CONFIG_PIN_VBUS           STM32L0_GPIO_PIN_PA9
+#define STM32L0_CONFIG_PIN_VBAT_TEST    STM32L0_GPIO_PIN_PA2
+#define STM32L0_CONFIG_PIN_VBAT         STM32L0_GPIO_PIN_PA0
+#define STM32L0_CONFIG_CHANNEL_VBAT     STM32L0_ADC_CHANNEL_0
+#define STM32L0_CONFIG_VBAT_PERIOD      40
+#define STM32L0_CONFIG_VBAT_SCALE       ((float)1.27)
 
-#define STM32L0_CONFIG_PIN_VBAT           STM32L0_GPIO_PIN_PC4
-#define STM32L0_CONFIG_CHANNEL_VBAT       STM32L0_ADC_CHANNEL_14
-#define STM32L0_CONFIG_VBAT_PERIOD        40
-#define STM32L0_CONFIG_VBAT_SCALE         ((float)2.08)
-
-#define STM32L0_CONFIG_PIN_GNSS_ENABLE    STM32L0_GPIO_PIN_PA3
-#define STM32L0_CONFIG_PIN_LSHIFTER_EN    STM32L0_GPIO_PIN_PC6
-#define STM32L0_CONFIG_PIN_GNSS_PPS       STM32L0_GPIO_PIN_PB5
-#define STM32L0_CONFIG_PIN_GNSS_RX        STM32L0_GPIO_PIN_PC11_USART4_RX
-#define STM32L0_CONFIG_PIN_GNSS_TX        STM32L0_GPIO_PIN_PC10_USART4_TX
-#define GPS_PWR_SWITCH                    (2ul)
-#define GPS_LEVEL_SHIFTER_EN              (3ul)
-#define GPS_RST                           (4ul)
-#define GPS_RX                            (5ul)
-#define GPS_TX                            (6ul)
-#define GPS_PPS                           (7ul)
-#define GPS_BAUD_RATE                     115200
-
-#define USBCON
+#define STM32L0_CONFIG_PIN_GNSS_ENABLE  STM32L0_GPIO_PIN_PB5
+#define STM32L0_CONFIG_PIN_GNSS_PPS     STM32L0_GPIO_PIN_PA4
+#define STM32L0_CONFIG_PIN_GNSS_RX      STM32L0_GPIO_PIN_PB7_USART1_RX
+#define STM32L0_CONFIG_PIN_GNSS_TX      STM32L0_GPIO_PIN_PB6_USART1_TX
+#define STM32L0_CONFIG_PIN_GNSS_STANDBY STM32L0_GPIO_PIN_PB3
 
 /** Master clock frequency */
-#define VARIANT_MCK                       F_CPU
+#define VARIANT_MCK                     F_CPU
 
 /*----------------------------------------------------------------------------
  *        Headers
  *----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
-#include "USBAPI.h"
 #include "Uart.h"
 #endif // __cplusplus
 
@@ -81,64 +70,76 @@ extern "C"
  *----------------------------------------------------------------------------*/
 
 // Number of pins defined in PinDescription array
-#define PINS_COUNT           (20u)
-#define NUM_DIGITAL_PINS     (19u)
-#define NUM_ANALOG_INPUTS    (1u)
+#define PINS_COUNT           (19u)
+#define NUM_DIGITAL_PINS     (16u)
+#define NUM_ANALOG_INPUTS    (3u)
 #define NUM_ANALOG_OUTPUTS   (0u)
+#define PWM_INSTANCE_COUNT   0
+#define SPI_INTERFACES_COUNT 0
 
 /*
- * Analog pins
- */
-#define PIN_A0               (16ul)
-#define PIN_VBAT             (16ul)
-
-static const uint8_t A0  = PIN_A0;
-
-#define ADC_RESOLUTION          12
-
-/*
- * Other pins
+ * Button pin
  */
 #define PIN_BUTTON          (0ul)
+#define PIN_SENSOR_INT      (0ul)
 static const uint8_t BUTTON = PIN_BUTTON;
-#define TOUCH_PAD           (0ul)
-#define TTP223_VDD_PIN      (1ul)
+static const uint8_t SENSOR = PIN_SENSOR_INT;
 
 /*
- * Serial interfaces
+ * LEDs
+ */
+#define PIN_LED_RED         (1ul)
+#define PIN_LED_GREEN       (2ul)
+#define PIN_LED_BLUE        (3ul)
+#define LED_BUILTIN         PIN_LED_GREEN
+#define LED_ON              HIGH
+#define LED_OFF             LOW
+
+/*
+ * ADC open-drain enablers
+ */
+#define PIN_VBAT_TEST       (4ul)
+
+/*
+ * Serial interface
  */
 #define SERIAL_INTERFACES_COUNT 2
 
-#define PIN_SERIAL1_RX       (5ul)
-#define PIN_SERIAL1_TX       (6ul)
+#define PIN_SERIAL_RX       (12ul)
+#define PIN_SERIAL_TX       (13ul)
+
+#define PIN_SERIAL1_TX      (11ul)
+#define PIN_SERIAL1_RX      (12ul)
 
 /*
  * Wire Interfaces
  */
 #define WIRE_INTERFACES_COUNT 1
 
-#define OLED_RESET           (13u)
-#define PIN_WIRE_SDA         (14u)
-#define PIN_WIRE_SCL         (15u)
+#define PIN_WIRE_SDA        (14u)
+#define PIN_WIRE_SCL        (15u)
 
-static const uint8_t SDA = PIN_WIRE_SDA;
 static const uint8_t SCL = PIN_WIRE_SCL;
+static const uint8_t SDA = PIN_WIRE_SDA;
 
-#define SPI_INTERFACES_COUNT 0
+/*
+ * Analog pins
+ */
+#define PIN_VBUS_ADC        (16ul)
+#define PIN_VBAT_ADC        (17ul)
+#define PIN_A2              (18ul)
 
-#define PWM_INSTANCE_COUNT   0
+static const uint8_t A0  = PIN_VBUS_ADC;
+static const uint8_t A1  = PIN_VBAT_ADC;
+static const uint8_t A2  = PIN_A2;
+
+#define ADC_RESOLUTION       12
 
 /*
  * RadioHead Driver
  */
-#define RH                  s76g
+#define RH                  rfm95
 
-/*
- * USB Interface
- */
-#define PIN_USB_DM           (17ul)
-#define PIN_USB_DP           (18ul) 
-#define PIN_USB_VBUS         (19ul)
 
 #ifdef __cplusplus
 }
@@ -149,7 +150,7 @@ static const uint8_t SCL = PIN_WIRE_SCL;
  *----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
-extern CDC  SerialUSB;
+extern Uart Serial;
 extern Uart Serial1;
 #endif
 
@@ -168,13 +169,10 @@ extern Uart Serial1;
 //
 // SERIAL_PORT_HARDWARE_OPEN  Hardware serial ports which are open for use.  Their RX & TX
 //                            pins are NOT connected to anything by default.
-#define SERIAL_PORT_USBVIRTUAL      SerialUSB
-#define SERIAL_PORT_MONITOR         SerialUSB
+#define SERIAL_PORT_MONITOR         Serial
+#define SERIAL_PORT_HARDWARE1       Serial
+#define SERIAL_PORT_HARDWARE2       Serial1
 #define SERIAL_PORT_GNSS            Serial1
-#define SERIAL_PORT_HARDWARE1       Serial1
 
-// Alias Serial to SerialUSB
-#define Serial                      SerialUSB
-
-#endif /*_VARIANT_T_IMPULSE_S76G_ */
+#endif /*_VARIANT_K92_L072Z_ */
 
