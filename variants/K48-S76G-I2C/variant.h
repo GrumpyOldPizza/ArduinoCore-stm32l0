@@ -102,7 +102,6 @@ static const uint8_t SENSOR = PIN_SENSOR_INT;
  * ADC open-drain enablers Control pins
  */
 #define PIN_VBAT_TEST        (4ul)
-#define PIN_TEMP_TEST        (5ul)
 
 /*
  * Genarator control pins
@@ -111,24 +110,22 @@ static const uint8_t SENSOR = PIN_SENSOR_INT;
 #define PIN_GEN_ENABLE       (7ul)
 
 /*
- * Serial interface
+ * GPS receiver pins
  */
-
-#define SERIAL_INTERFACES_COUNT 1
-
-#define PIN_SERIAL_RX        (12ul)
-#define PIN_SERIAL_TX        (13ul)
+#define GPS_RST              (5ul)
+#define GPS_1PPS             (8ul)
+#define GPS_LEVEL_SHIFTER_EN (9ul)
 
 /*
- * Wire Interfaces
+ * Serial interface
  */
-#define WIRE_INTERFACES_COUNT 1
+#define SERIAL_INTERFACES_COUNT 3
 
-#define PIN_WIRE_SDA         (14u)
-#define PIN_WIRE_SCL         (15u)
+#define PIN_SERIAL1_RX      (10ul)
+#define PIN_SERIAL1_TX      (11ul)
 
-static const uint8_t SDA = PIN_WIRE_SDA;
-static const uint8_t SCL = PIN_WIRE_SCL;
+#define PIN_SERIAL2_RX      (12ul)
+#define PIN_SERIAL2_TX      (13ul)
 
 /*
  * Analog pins
@@ -143,10 +140,7 @@ static const uint8_t A2  = PIN_TEMP_ADC;
 
 #define ADC_RESOLUTION          12
 
-/*
- * RadioHead Driver
- */
-#define RH                  s76g
+#define POUT_MAX            (23ul)
 
 /*
  * USB Interface
@@ -167,6 +161,7 @@ static const uint8_t A2  = PIN_TEMP_ADC;
 #ifdef __cplusplus
 extern CDC  SerialUSB;
 extern Uart Serial1;
+extern Uart Serial2;
 #endif
 
 // These serial port names are intended to allow libraries and architecture-neutral
@@ -185,12 +180,13 @@ extern Uart Serial1;
 // SERIAL_PORT_HARDWARE_OPEN  Hardware serial ports which are open for use.  Their RX & TX
 //                            pins are NOT connected to anything by default.
 #define SERIAL_PORT_USBVIRTUAL      SerialUSB
-#define SERIAL_PORT_MONITOR         SerialUSB
+#define SERIAL_PORT_MONITOR         Serial2
 #define SERIAL_PORT_GNSS            Serial1
 #define SERIAL_PORT_HARDWARE1       Serial1
+#define SERIAL_PORT_HARDWARE2       Serial2
 
 // Alias Serial to SerialUSB
-#define Serial                      SerialUSB
+#define Serial                      Serial2
 
 #endif /*_VARIANT_K48_S76G_I2C */
 

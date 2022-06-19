@@ -132,6 +132,8 @@ static const uint8_t SDA = PIN_WIRE_SDA;
 
 #define PWM_INSTANCE_COUNT    0
 
+#define POUT_MAX             (13ul)
+
 #ifdef __cplusplus
 }
 #endif

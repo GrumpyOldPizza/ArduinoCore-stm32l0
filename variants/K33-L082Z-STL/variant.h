@@ -114,8 +114,9 @@ static const uint8_t MOSI = PIN_SPI_MOSI;
 static const uint8_t MISO = PIN_SPI_MISO;
 static const uint8_t SCK  = PIN_SPI_SCK;
 
-
 #define PWM_INSTANCE_COUNT      2
+
+#define POUT_MAX            (23ul)
 
 #ifdef __cplusplus
 }

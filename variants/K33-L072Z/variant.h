@@ -103,7 +103,9 @@ static const uint8_t SCL = PIN_WIRE_SCL;
 
 #define SPI_INTERFACES_COUNT 0
 
-#define PWM_INSTANCE_COUNT    0
+#define PWM_INSTANCE_COUNT   0
+
+#define POUT_MAX             (23ul)
 
 #ifdef __cplusplus
 }

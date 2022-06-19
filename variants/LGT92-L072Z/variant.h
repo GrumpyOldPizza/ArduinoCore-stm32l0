@@ -83,8 +83,8 @@ extern "C"
 #define PIN_LED_RED         (8ul)
 
 #define LED_BUILTIN         PIN_LED_GREEN
-#define LED_ON              HIGH
-#define LED_OFF             LOW
+#define LED_ON              LOW
+#define LED_OFF             HIGH
 
 /*
  * Analog pins

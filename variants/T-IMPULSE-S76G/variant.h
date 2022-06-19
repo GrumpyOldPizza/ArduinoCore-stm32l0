@@ -128,10 +128,7 @@ static const uint8_t SCL = PIN_WIRE_SCL;
 
 #define PWM_INSTANCE_COUNT   0
 
-/*
- * RadioHead Driver
- */
-#define RH                  s76g
+#define POUT_MAX             (23ul)
 
 /*
  * USB Interface

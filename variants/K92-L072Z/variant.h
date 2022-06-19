@@ -135,11 +135,7 @@ static const uint8_t A2  = PIN_A2;
 
 #define ADC_RESOLUTION       12
 
-/*
- * RadioHead Driver
- */
-#define RH                  rfm95
-
+#define POUT_MAX            (23ul)
 
 #ifdef __cplusplus
 }

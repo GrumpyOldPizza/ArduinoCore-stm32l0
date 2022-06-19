@@ -39,15 +39,15 @@
 
 #define STM32L0_CONFIG_PIN_VBUS           STM32L0_GPIO_PIN_PA8
 
-#define STM32L0_CONFIG_PIN_VBAT           STM32L0_GPIO_PIN_PA2
-#define STM32L0_CONFIG_CHANNEL_VBAT       STM32L0_ADC_CHANNEL_2
-#define STM32L0_CONFIG_VBAT_PERIOD        40
-#define STM32L0_CONFIG_VBAT_SCALE         ((float)2.08)
+// #define STM32L0_CONFIG_PIN_VBAT           STM32L0_GPIO_PIN_PA2
+// #define STM32L0_CONFIG_CHANNEL_VBAT       STM32L0_ADC_CHANNEL_2
+// #define STM32L0_CONFIG_VBAT_PERIOD        40
+// #define STM32L0_CONFIG_VBAT_SCALE         ((float)2.08)
 
-#define STM32L0_CONFIG_PIN_GNSS_ENABLE    STM32L0_GPIO_PIN_NONE
-#define STM32L0_CONFIG_PIN_GNSS_RX        STM32L0_GPIO_PIN_PC11_USART4_RX
-#define STM32L0_CONFIG_PIN_GNSS_TX        STM32L0_GPIO_PIN_PC10_USART4_TX
-#define GPS_BAUD_RATE                     115200
+// #define STM32L0_CONFIG_PIN_GNSS_ENABLE    STM32L0_GPIO_PIN_NONE
+// #define STM32L0_CONFIG_PIN_GNSS_RX        STM32L0_GPIO_PIN_PC11_USART4_RX
+// #define STM32L0_CONFIG_PIN_GNSS_TX        STM32L0_GPIO_PIN_PC10_USART4_TX
+// #define GPS_BAUD_RATE                     115200
 
 #define USBCON
 
@@ -102,7 +102,6 @@ static const uint8_t SENSOR = PIN_SENSOR_INT;
  * ADC open-drain enablers Control pins
  */
 #define PIN_VBAT_TEST        (4ul)
-#define PIN_TEMP_TEST        (5ul)
 
 /*
  * Genarator control pins
@@ -111,13 +110,19 @@ static const uint8_t SENSOR = PIN_SENSOR_INT;
 #define PIN_GEN_ENABLE       (7ul)
 
 /*
+ * GPS receiver pins
+ */
+#define GPS_RST              (5ul)
+#define GPS_1PPS             (8ul)
+#define GPS_LEVEL_SHIFTER_EN (9ul)
+
+/*
  * Serial interface
  */
-
 #define SERIAL_INTERFACES_COUNT 3
 
-#define PIN_SERIAL1_RX      (12ul)
-#define PIN_SERIAL1_TX      (13ul)
+#define PIN_SERIAL1_RX      (10ul)
+#define PIN_SERIAL1_TX      (11ul)
 
 #define PIN_SERIAL2_RX      (12ul)
 #define PIN_SERIAL2_TX      (13ul)
@@ -146,10 +151,7 @@ static const uint8_t A2  = PIN_TEMP_ADC;
 
 #define ADC_RESOLUTION          12
 
-/*
- * RadioHead Driver
- */
-#define RH                  s76g
+#define POUT_MAX            (23ul)
 
 /*
  * USB Interface

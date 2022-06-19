@@ -37,8 +37,8 @@
 #define STM32L0_CONFIG_HSECLK             0
 #define STM32L0_CONFIG_SYSOPT             0
 
-#define STM32L0_CONFIG_PIN_VBAT           STM32L0_GPIO_PIN_PA8
-#define STM32L0_CONFIG_CHANNEL_VBAT       STM32L0_ADC_CHANNEL_8
+#define STM32L0_CONFIG_PIN_VBAT           STM32L0_GPIO_PIN_PA0
+#define STM32L0_CONFIG_CHANNEL_VBAT       STM32L0_ADC_CHANNEL_0
 #define STM32L0_CONFIG_VBAT_PERIOD        40
 #define STM32L0_CONFIG_VBAT_SCALE         ((float)1.27)
 
@@ -63,9 +63,9 @@ extern "C"
  *----------------------------------------------------------------------------*/
 
 // Number of pins defined in PinDescription array
-#define PINS_COUNT          (19u)
+#define PINS_COUNT          (20u)
 #define NUM_DIGITAL_PINS    (16u)
-#define NUM_ANALOG_INPUTS   (3u)
+#define NUM_ANALOG_INPUTS   (4u)
 #define NUM_ANALOG_OUTPUTS  (0u)
 #define PWM_INSTANCE_COUNT   0
 #define SPI_INTERFACES_COUNT 0
@@ -124,7 +124,7 @@ static const uint8_t SDA = PIN_WIRE_SDA;
  */
 #define PIN_LOAD_ADC         (16ul)
 #define PIN_VBAT_ADC         (17ul)
-#define PIN_TEMP_ADC         (17ul)
+#define PIN_TEMP_ADC         (18ul)
 
 static const uint8_t A0  = PIN_LOAD_ADC;
 static const uint8_t A1  = PIN_VBAT_ADC;
@@ -132,11 +132,7 @@ static const uint8_t A2  = PIN_TEMP_ADC;
 
 #define ADC_RESOLUTION       12
 
-/*
- * RadioHead Driver
- */
-#define RH                  rhf76
-#define RF_POUT             (13ul)
+#define POUT_MAX            (13ul)
 
 #ifdef __cplusplus
 }

@@ -138,10 +138,7 @@ static const uint8_t A2  = PIN_TEMP_ADC;
 
 #define ADC_RESOLUTION          12
 
-/*
- * RadioHead Driver
- */
-#define RH                  s76g
+#define POUT_MAX            (23ul)
 
 /*
  * USB Interface

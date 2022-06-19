@@ -102,7 +102,6 @@ static const uint8_t SENSOR = PIN_SENSOR_INT;
  * ADC open-drain enablers Control pins
  */
 #define PIN_VBAT_TEST        (4ul)
-#define PIN_TEMP_TEST        (5ul)
 
 /*
  * Genarator control pins
@@ -111,10 +110,16 @@ static const uint8_t SENSOR = PIN_SENSOR_INT;
 #define PIN_GEN_ENABLE       (7ul)
 
 /*
+ * GPS receiver pins
+ */
+#define GPS_RST              (5ul)
+#define GPS_1PPS             (8ul)
+#define GPS_LEVEL_SHIFTER_EN (9ul)
+
+/*
  * Serial interface
  */
-
-#define SERIAL_INTERFACES_COUNT 1
+#define SERIAL_INTERFACES_COUNT 2
 
 #define PIN_SERIAL_RX        (12ul)
 #define PIN_SERIAL_TX        (13ul)
@@ -143,10 +148,7 @@ static const uint8_t A2  = PIN_TEMP_ADC;
 
 #define ADC_RESOLUTION          12
 
-/*
- * RadioHead Driver
- */
-#define RH                  s76g
+#define POUT_MAX             (23ul)
 
 /*
  * USB Interface
@@ -185,7 +187,7 @@ extern Uart Serial1;
 // SERIAL_PORT_HARDWARE_OPEN  Hardware serial ports which are open for use.  Their RX & TX
 //                            pins are NOT connected to anything by default.
 #define SERIAL_PORT_USBVIRTUAL      SerialUSB
-#define SERIAL_PORT_MONITOR         SerialUSB
+#define SERIAL_PORT_MONITOR         Serial1
 #define SERIAL_PORT_GNSS            Serial1
 #define SERIAL_PORT_HARDWARE1       Serial1
 
