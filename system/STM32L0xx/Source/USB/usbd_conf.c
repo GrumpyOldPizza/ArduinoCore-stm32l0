@@ -182,7 +182,7 @@ static void USBD_VBUSChangedIrq(void)
 }
 
 bool USBD_Initialize(uint16_t vid, uint16_t pid, const uint8_t *manufacturer, const uint8_t *product, void(*initialize)(struct _USBD_HandleTypeDef *),
-                     unsigned int pin_vbus, unsigned int priority,
+                     unsigned int pin_vbus, bool pin_vbus_needs_pulldown, unsigned int priority,
                      void(*connect_callback)(void), void(*disconnect_callback)(void), void(*suspend_callback)(void), void(*resume_callback)(void))
 {
     if (stm32l0_system_pclk1() < 10000000)
@@ -198,9 +198,6 @@ bool USBD_Initialize(uint16_t vid, uint16_t pid, const uint8_t *manufacturer, co
     USBD_ProductString = product;
     USBD_ClassInitialize = initialize;
     
-    usbd_pin_vbus = pin_vbus;
-    usbd_mask_vbus = 1 << ((pin_vbus & STM32L0_GPIO_PIN_INDEX_MASK) >> STM32L0_GPIO_PIN_INDEX_SHIFT);
-    
     /* Set USB Interrupt priority */
     NVIC_SetPriority(USB_IRQn, priority);
 
@@ -209,19 +206,32 @@ bool USBD_Initialize(uint16_t vid, uint16_t pid, const uint8_t *manufacturer, co
     usbd_suspend_callback = suspend_callback;
     usbd_resume_callback = resume_callback;
     
-    stm32l0_lptim_timeout_create(&USBD_VBUSTimeout);
-
     /* Configure USB FS GPIOs */
-    stm32l0_gpio_pin_configure(usbd_pin_vbus, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
+    usbd_pin_vbus = pin_vbus;
+    if (pin_vbus != STM32L0_GPIO_PIN_NONE) {
+        usbd_mask_vbus = 1 << ((pin_vbus & STM32L0_GPIO_PIN_INDEX_MASK) >> STM32L0_GPIO_PIN_INDEX_SHIFT);
 
-    if (stm32l0_gpio_pin_read(usbd_pin_vbus))
-    {
-        stm32l0_lptim_timeout_start(&USBD_VBUSTimeout, stm32l0_lptim_millis_to_ticks(40), (stm32l0_lptim_callback_t)USBD_VBUSTimeoutIrq); /* 40ms */
+        stm32l0_lptim_timeout_create(&USBD_VBUSTimeout);
+
+        uint32_t mode = (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT);
+        if (pin_vbus_needs_pulldown)
+            mode |= STM32L0_GPIO_PUPD_PULLDOWN;
+        stm32l0_gpio_pin_configure(usbd_pin_vbus, mode);
+
+        if (stm32l0_gpio_pin_read(usbd_pin_vbus))
+        {
+            stm32l0_lptim_timeout_start(&USBD_VBUSTimeout, stm32l0_lptim_millis_to_ticks(40), (stm32l0_lptim_callback_t)USBD_VBUSTimeoutIrq); /* 40ms */
+        }
+        
+        stm32l0_exti_attach(usbd_pin_vbus,
+                            (STM32L0_EXTI_CONTROL_NOWAKEUP | STM32L0_EXTI_CONTROL_PRIORITY_LOW | STM32L0_EXTI_CONTROL_EDGE_RISING | STM32L0_EXTI_CONTROL_EDGE_FALLING),
+                            (stm32l0_exti_callback_t)USBD_VBUSChangedIrq, NULL);
+    } else {
+        // No VBUS pin, assume VBUS is always present
+        usbd_attached = true;
+        usbd_mask_vbus = 0;
     }
-    
-    stm32l0_exti_attach(usbd_pin_vbus,
-                        (STM32L0_EXTI_CONTROL_NOWAKEUP | STM32L0_EXTI_CONTROL_PRIORITY_LOW | STM32L0_EXTI_CONTROL_EDGE_RISING | STM32L0_EXTI_CONTROL_EDGE_FALLING),
-                        (stm32l0_exti_callback_t)USBD_VBUSChangedIrq, NULL);
+        
     
     return true;
 }
@@ -230,11 +240,13 @@ void USBD_Teardown()
 {
     USBD_Detach();
 
-    stm32l0_exti_detach(usbd_pin_vbus);
+    if (usbd_pin_vbus != STM32L0_GPIO_PIN_NONE) {
+        stm32l0_exti_detach(usbd_pin_vbus);
 
-    stm32l0_lptim_timeout_stop(&USBD_VBUSTimeout);
+        stm32l0_lptim_timeout_stop(&USBD_VBUSTimeout);
 
-    stm32l0_gpio_pin_configure(usbd_pin_vbus, STM32L0_GPIO_MODE_ANALOG);
+        stm32l0_gpio_pin_configure(usbd_pin_vbus, STM32L0_GPIO_MODE_ANALOG);
+    }
 
     usbd_wakeup = false;
     usbd_enabled = false;
@@ -370,16 +382,18 @@ void USBD_SetupVBUS(bool wakeup)
     {
         usbd_wakeup = wakeup;
 
-        stm32l0_exti_detach(usbd_pin_vbus);
-        
-        stm32l0_gpio_pin_configure(usbd_pin_vbus,
-                                   (usbd_wakeup ? STM32L0_GPIO_PARK_NONE : STM32L0_GPIO_PARK_HIZ) |
-                                   (STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
+        if (usbd_pin_vbus != STM32L0_GPIO_PIN_NONE) {
+            stm32l0_exti_detach(usbd_pin_vbus);
+            
+            stm32l0_gpio_pin_configure(usbd_pin_vbus,
+                                       (usbd_wakeup ? STM32L0_GPIO_PARK_NONE : STM32L0_GPIO_PARK_HIZ) |
+                                       (STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
 
-        stm32l0_exti_attach(usbd_pin_vbus,
-                            ((usbd_wakeup ? 0 : STM32L0_EXTI_CONTROL_NOWAKEUP) |
-                             (STM32L0_EXTI_CONTROL_PRIORITY_LOW | STM32L0_EXTI_CONTROL_EDGE_RISING | STM32L0_EXTI_CONTROL_EDGE_FALLING)),
-                            (stm32l0_exti_callback_t)USBD_VBUSChangedIrq, NULL);
+            stm32l0_exti_attach(usbd_pin_vbus,
+                                ((usbd_wakeup ? 0 : STM32L0_EXTI_CONTROL_NOWAKEUP) |
+                                 (STM32L0_EXTI_CONTROL_PRIORITY_LOW | STM32L0_EXTI_CONTROL_EDGE_RISING | STM32L0_EXTI_CONTROL_EDGE_FALLING)),
+                                (stm32l0_exti_callback_t)USBD_VBUSChangedIrq, NULL);
+        }
     }
 }
 
