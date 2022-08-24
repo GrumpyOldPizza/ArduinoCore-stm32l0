@@ -26,8 +26,8 @@
  * WITH THE SOFTWARE.
  */
 
-#ifndef _VARIANT_K48_S76G_
-#define _VARIANT_K48_S76G_
+#ifndef _VARIANT_K76_S76G_STL_
+#define _VARIANT_K76_S76G_STL_
 
 /*----------------------------------------------------------------------------
  *        Definitions
@@ -37,19 +37,10 @@
 #define STM32L0_CONFIG_HSECLK             0
 #define STM32L0_CONFIG_SYSOPT             0
 
-#define STM32L0_CONFIG_PIN_VBUS           STM32L0_GPIO_PIN_PA8
-
-// #define STM32L0_CONFIG_PIN_VBAT           STM32L0_GPIO_PIN_PA2
-// #define STM32L0_CONFIG_CHANNEL_VBAT       STM32L0_ADC_CHANNEL_2
-// #define STM32L0_CONFIG_VBAT_PERIOD        40
-// #define STM32L0_CONFIG_VBAT_SCALE         ((float)2.08)
-
-#define STM32L0_CONFIG_PIN_GNSS_ENABLE    STM32L0_GPIO_PIN_NONE
-#define STM32L0_CONFIG_PIN_GNSS_RX        STM32L0_GPIO_PIN_PC11_USART4_RX
-#define STM32L0_CONFIG_PIN_GNSS_TX        STM32L0_GPIO_PIN_PC10_USART4_TX
-#define GPS_BAUD_RATE                     115200
-
-#define USBCON
+#define STM32L0_CONFIG_PIN_VBAT           STM32L0_GPIO_PIN_PA4
+#define STM32L0_CONFIG_CHANNEL_VBAT       STM32L0_ADC_CHANNEL_4
+#define STM32L0_CONFIG_VBAT_PERIOD        40
+#define STM32L0_CONFIG_VBAT_SCALE         ((float)2.08)
 
 /** Master clock frequency */
 #define VARIANT_MCK                       F_CPU
@@ -59,7 +50,6 @@
  *----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
-#include "USBAPI.h"
 #include "Uart.h"
 #endif // __cplusplus
 
@@ -73,8 +63,8 @@ extern "C"
  *----------------------------------------------------------------------------*/
 
 // Number of pins defined in PinDescription array
-#define PINS_COUNT          (22u)
-#define NUM_DIGITAL_PINS    (19u)
+#define PINS_COUNT          (19u)
+#define NUM_DIGITAL_PINS    (16u)
 #define NUM_ANALOG_INPUTS   (3u)
 #define NUM_ANALOG_OUTPUTS  (0u)
 #define PWM_INSTANCE_COUNT   0
@@ -102,6 +92,7 @@ static const uint8_t SENSOR = PIN_SENSOR_INT;
  * ADC open-drain enablers Control pins
  */
 #define PIN_VBAT_TEST        (4ul)
+#define PIN_TEMP_TEST        (5ul)
 
 /*
  * Genarator control pins
@@ -109,19 +100,12 @@ static const uint8_t SENSOR = PIN_SENSOR_INT;
 #define PIN_GEN_POWER        (6ul)
 #define PIN_GEN_ENABLE       (7ul)
 
-/*
- * GPS receiver pins
- */
-#define GPS_RST              (5ul)
-#define GPS_1PPS             (8ul)
-#define GPS_LEVEL_SHIFTER_EN (9ul)
-
-#define PIN_PERIPH_ENABLE    (18ul)
+#define PIN_PERIPH_ENABLE    (9ul)
 
 /*
  * Serial interface
  */
-#define SERIAL_INTERFACES_COUNT 2
+#define SERIAL_INTERFACES_COUNT 1
 
 #define PIN_SERIAL_RX        (12ul)
 #define PIN_SERIAL_TX        (13ul)
@@ -142,21 +126,15 @@ static const uint8_t SCL = PIN_WIRE_SCL;
  */
 #define PIN_LOAD_ADC         (16ul)
 #define PIN_VBAT_ADC         (17ul)
+#define PIN_TEMP_ADC         (18ul)
 
 static const uint8_t A0  = PIN_LOAD_ADC;
 static const uint8_t A1  = PIN_VBAT_ADC;
-
+static const uint8_t A2  = PIN_TEMP_ADC;
 
 #define ADC_RESOLUTION          12
 
-#define POUT_MAX             (23ul)
-
-/*
- * USB Interface
- */
-#define PIN_USB_VBUS         (19ul)
-#define PIN_USB_DM           (20ul)
-#define PIN_USB_DP           (21ul) 
+#define POUT_MAX            (23ul)
 
 
 #ifdef __cplusplus
@@ -168,8 +146,7 @@ static const uint8_t A1  = PIN_VBAT_ADC;
  *----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
-extern CDC  SerialUSB;
-extern Uart Serial1;
+extern Uart Serial;
 #endif
 
 // These serial port names are intended to allow libraries and architecture-neutral
@@ -187,13 +164,10 @@ extern Uart Serial1;
 //
 // SERIAL_PORT_HARDWARE_OPEN  Hardware serial ports which are open for use.  Their RX & TX
 //                            pins are NOT connected to anything by default.
-#define SERIAL_PORT_USBVIRTUAL      SerialUSB
-#define SERIAL_PORT_MONITOR         Serial1
-#define SERIAL_PORT_GNSS            Serial1
-#define SERIAL_PORT_HARDWARE1       Serial1
+#define SERIAL_PORT_MONITOR         Serial
+#define SERIAL_PORT_HARDWARE1       Serial
+#define SERIAL_PORT_HARDWARE_OPEN   Serial
 
-// Alias Serial to SerialUSB
-#define Serial                      SerialUSB
-
-#endif /*_VARIANT_K48_S76G_ */
+#endif /*_VARIANT_K76_S76S_STL
+_ */
 

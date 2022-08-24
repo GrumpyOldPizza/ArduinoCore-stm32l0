@@ -63,9 +63,9 @@ extern "C"
  *----------------------------------------------------------------------------*/
 
 // Number of pins defined in PinDescription array
-#define PINS_COUNT          (20u)
+#define PINS_COUNT          (18u)
 #define NUM_DIGITAL_PINS    (16u)
-#define NUM_ANALOG_INPUTS   (4u)
+#define NUM_ANALOG_INPUTS   (2u)
 #define NUM_ANALOG_OUTPUTS  (0u)
 #define PWM_INSTANCE_COUNT   0
 #define SPI_INTERFACES_COUNT 0
@@ -100,6 +100,7 @@ static const uint8_t SENSOR = PIN_SENSOR_INT;
 #define PIN_GEN_POWER        (6ul)
 #define PIN_GEN_ENABLE       (7ul)
 
+#define PIN_PERIPH_ENABLE    (9ul)
 /*
  * Serial interface
  */
@@ -124,11 +125,9 @@ static const uint8_t SDA = PIN_WIRE_SDA;
  */
 #define PIN_LOAD_ADC         (16ul)
 #define PIN_VBAT_ADC         (17ul)
-#define PIN_TEMP_ADC         (18ul)
 
 static const uint8_t A0  = PIN_LOAD_ADC;
 static const uint8_t A1  = PIN_VBAT_ADC;
-static const uint8_t A2  = PIN_TEMP_ADC;
 
 #define ADC_RESOLUTION       12
 

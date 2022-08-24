@@ -781,60 +781,6 @@ K48-S76G-SWD.menu.opt.o3.build.flags.optimize=-O3
 K48-S76G-SWD.menu.opt.o3.build.flags.ldspecs=
 
 
-# UT2UH K48 S76G w/o I2C
-# ---------------------------------------
-K48-S76G-I2C.name=K48-S76G-I2C
-K48-S76G-I2C.vid.0=0x0483
-K48-S76G-I2C.pid.0=0xDF11
-
-K48-S76G-I2C.upload.tool=stm32l0_dfu
-K48-S76G-I2C.upload.protocol=dfu
-K48-S76G-I2C.upload.maximum_size=196608
-K48-S76G-I2C.upload.maximum_data_size=20480
-K48-S76G-I2C.upload.use_1200bps_touch=true
-K48-S76G-I2C.upload.wait_for_upload_port=false
-K48-S76G-I2C.upload.native_usb=false
-
-K48-S76G-I2C.build.mcu=cortex-m0plus
-K48-S76G-I2C.build.f_cpu=32000000L
-K48-S76G-I2C.build.board=K48_S76G_I2C
-K48-S76G-I2C.build.arch=stm32l0
-K48-S76G-I2C.build.core=arduino
-K48-S76G-I2C.build.vid=0x0483
-K48-S76G-I2C.build.pid=0xDF11
-K48-S76G-I2C.build.did=0xffff
-K48-S76G-I2C.build.usb_manufacturer="ACSIP"
-K48-S76G-I2C.build.usb_product="K48"
-K48-S76G-I2C.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
-K48-S76G-I2C.build.ldscript=linker_scripts/STM32L073RZ_FLASH.ld
-K48-S76G-I2C.build.openocdscript=openocd_scripts/s7Xg-l073rz.cfg
-K48-S76G-I2C.build.variant=K48-S76G-I2C
-K48-S76G-I2C.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l072xx -larm_cortexM0l_math
-K48-S76G-I2C.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
-
-K48-S76G-I2C.menu.usb.cdc=Serial
-K48-S76G-I2C.menu.usb.cdc.build.usb_type=USB_TYPE_CDC
-K48-S76G-I2C.menu.usb.cdc_msc=Serial + Mass Storage
-K48-S76G-I2C.menu.usb.cdc_msc.build.usb_type=USB_TYPE_CDC_MSC
-K48-S76G-I2C.menu.usb.none=No USB
-K48-S76G-I2C.menu.usb.none.build.usb_type=USB_TYPE_NONE
-
-K48-S76G-I2C.menu.speed.32=32 MHz
-K48-S76G-I2C.menu.speed.32.build.f_cpu=32000000L
-
-K48-S76G-I2C.menu.opt.os=Smallest Code
-K48-S76G-I2C.menu.opt.os.build.flags.optimize=-Os
-K48-S76G-I2C.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
-K48-S76G-I2C.menu.opt.o1=Fast
-K48-S76G-I2C.menu.opt.o1.build.flags.optimize=-O1
-K48-S76G-I2C.menu.opt.o1.build.flags.ldspecs=
-K48-S76G-I2C.menu.opt.o2=Faster
-K48-S76G-I2C.menu.opt.o2.build.flags.optimize=-O2
-K48-S76G-I2C.menu.opt.o2.build.flags.ldspecs=
-K48-S76G-I2C.menu.opt.o3=Fastest
-K48-S76G-I2C.menu.opt.o3.build.flags.optimize=-O3
-K48-S76G-I2C.menu.opt.o3.build.flags.ldspecs=
-
 # UT2UH K52 RHF76-052
 # ---------------------------------------
 K52-RHF76-052.name=K52-RHF76-052
@@ -883,6 +829,56 @@ K52-RHF76-052.menu.opt.o2.build.flags.ldspecs=
 K52-RHF76-052.menu.opt.o3=Fastest
 K52-RHF76-052.menu.opt.o3.build.flags.optimize=-O3
 K52-RHF76-052.menu.opt.o3.build.flags.ldspecs=
+
+
+# UT2UH K52 RHF78-052
+# ---------------------------------------
+K52-RHF78-052.name=K52-RHF78-052
+K52-RHF78-052.vid.0=0x0483
+K52-RHF78-052.pid.0=0x374e
+
+K52-RHF78-052.upload.tool=stm32l0_openocd
+K52-RHF78-052.upload.protocol=stlink
+K52-RHF78-052.upload.maximum_size=65536
+K52-RHF78-052.upload.maximum_data_size=8192
+K52-RHF78-052.upload.use_1200bps_touch=true
+K52-RHF78-052.upload.wait_for_upload_port=false
+K52-RHF78-052.upload.native_usb=false
+
+K52-RHF78-052.build.mcu=cortex-m0plus
+K52-RHF78-052.build.f_cpu=32000000L
+K52-RHF78-052.build.board=K52_RHF78_052
+K52-RHF78-052.build.arch=stm32l0
+K52-RHF78-052.build.core=arduino
+K52-RHF78-052.build.vid=0x0483
+K52-RHF78-052.build.pid=0x374e
+K52-RHF78-052.build.did=0xffff
+K52-RHF78-052.build.extra_flags=-DSTM32L052xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+K52-RHF78-052.build.ldscript=linker_scripts/STM32L052C8_FLASH.ld
+K52-RHF78-052.build.openocdscript=openocd_scripts/rhf76-l051c8.cfg
+K52-RHF78-052.build.variant=K52-RHF78-052
+K52-RHF78-052.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l052xx -larm_cortexM0l_math
+K52-RHF78-052.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include"
+
+K52-RHF78-052.menu.speed.32=32 MHz
+K52-RHF78-052.menu.speed.32.build.f_cpu=32000000L
+K52-RHF78-052.menu.speed.16=16 MHz
+K52-RHF78-052.menu.speed.16.build.f_cpu=16000000L
+K52-RHF78-052.menu.speed.4=4.2 MHz
+K52-RHF78-052.menu.speed.4.build.f_cpu=4200000L
+
+K52-RHF78-052.menu.opt.os=Smallest Code
+K52-RHF78-052.menu.opt.os.build.flags.optimize=-Os
+K52-RHF78-052.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
+K52-RHF78-052.menu.opt.o1=Fast
+K52-RHF78-052.menu.opt.o1.build.flags.optimize=-O1
+K52-RHF78-052.menu.opt.o1.build.flags.ldspecs=
+K52-RHF78-052.menu.opt.o2=Faster
+K52-RHF78-052.menu.opt.o2.build.flags.optimize=-O2
+K52-RHF78-052.menu.opt.o2.build.flags.ldspecs=
+K52-RHF78-052.menu.opt.o3=Fastest
+K52-RHF78-052.menu.opt.o3.build.flags.optimize=-O3
+K52-RHF78-052.menu.opt.o3.build.flags.ldspecs=
 
 
 # UT2UH K76 S76S
@@ -938,6 +934,58 @@ K76-S76S.menu.opt.o2.build.flags.ldspecs=
 K76-S76S.menu.opt.o3=Fastest
 K76-S76S.menu.opt.o3.build.flags.optimize=-O3
 K76-S76S.menu.opt.o3.build.flags.ldspecs=
+
+
+# UT2UH K76 S76S
+# ---------------------------------------
+K76-S76S-STLINK.name=K76-S76S-STLINK
+K76-S76S-STLINK.vid.0=0x0483
+K76-S76S-STLINK.pid.0=0x374E
+
+K76-S76S-STLINK.upload.tool=stm32l0_openocd
+K76-S76S-STLINK.upload.protocol=stlink
+K76-S76S-STLINK.upload.maximum_size=196608
+K76-S76S-STLINK.upload.maximum_data_size=20480
+K76-S76S-STLINK.upload.use_1200bps_touch=true
+K76-S76S-STLINK.upload.wait_for_upload_port=false
+K76-S76S-STLINK.upload.native_usb=false
+
+K76-S76S-STLINK.build.mcu=cortex-m0plus
+K76-S76S-STLINK.build.f_cpu=32000000L
+K76-S76S-STLINK.build.board=K76_S76S_STL
+K76-S76S-STLINK.build.arch=stm32l0
+K76-S76S-STLINK.build.core=arduino
+K76-S76S-STLINK.build.vid=0x0483
+K76-S76S-STLINK.build.pid=0x374e
+K76-S76S-STLINK.build.did=0xffff
+K76-S76S-STLINK.build.usb_manufacturer="ACSIP"
+K76-S76S-STLINK.build.usb_product="K76"
+K76-S76S-STLINK.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+K76-S76S-STLINK.build.ldscript=linker_scripts/STM32L073RZ_FLASH.ld
+K76-S76S-STLINK.build.openocdscript=openocd_scripts/s7Xs-l073rz.cfg
+K76-S76S-STLINK.build.variant=K76-S76S-STLINK
+K76-S76S-STLINK.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l072xx -larm_cortexM0l_math
+K76-S76S-STLINK.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
+
+K76-S76S-STLINK.menu.speed.32=32 MHz
+K76-S76S-STLINK.menu.speed.32.build.f_cpu=32000000L
+K76-S76S-STLINK.menu.speed.16=16 MHz
+K76-S76S-STLINK.menu.speed.16.build.f_cpu=16000000L
+K76-S76S-STLINK.menu.speed.4=4.2 MHz
+K76-S76S-STLINK.menu.speed.4.build.f_cpu=4200000L
+
+K76-S76S-STLINK.menu.opt.os=Smallest Code
+K76-S76S-STLINK.menu.opt.os.build.flags.optimize=-Os
+K76-S76S-STLINK.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
+K76-S76S-STLINK.menu.opt.o1=Fast
+K76-S76S-STLINK.menu.opt.o1.build.flags.optimize=-O1
+K76-S76S-STLINK.menu.opt.o1.build.flags.ldspecs=
+K76-S76S-STLINK.menu.opt.o2=Faster
+K76-S76S-STLINK.menu.opt.o2.build.flags.optimize=-O2
+K76-S76S-STLINK.menu.opt.o2.build.flags.ldspecs=
+K76-S76S-STLINK.menu.opt.o3=Fastest
+K76-S76S-STLINK.menu.opt.o3.build.flags.optimize=-O3
+K76-S76S-STLINK.menu.opt.o3.build.flags.ldspecs=
 
 
 # UT2UH K92 L072Z
@@ -1088,7 +1136,6 @@ RHF76-052.menu.opt.o2.build.flags.ldspecs=
 RHF76-052.menu.opt.o3=Fastest
 RHF76-052.menu.opt.o3.build.flags.optimize=-O3
 RHF76-052.menu.opt.o3.build.flags.ldspecs=
-
 
 # LILYGO T-Impulse-S76G
 # ---------------------------------------

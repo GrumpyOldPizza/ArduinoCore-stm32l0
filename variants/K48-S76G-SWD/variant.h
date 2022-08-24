@@ -116,6 +116,8 @@ static const uint8_t SENSOR = PIN_SENSOR_INT;
 #define GPS_1PPS             (8ul)
 #define GPS_LEVEL_SHIFTER_EN (9ul)
 
+#define PIN_PERIPH_ENABLE    (18ul)
+
 /*
  * Serial interface
  */
@@ -143,11 +145,9 @@ static const uint8_t SCL = PIN_WIRE_SCL;
  */
 #define PIN_LOAD_ADC        (16ul)
 #define PIN_VBAT_ADC        (17ul)
-#define PIN_TEMP_ADC        (18ul)
 
 static const uint8_t A0  = PIN_LOAD_ADC;
 static const uint8_t A1  = PIN_VBAT_ADC;
-static const uint8_t A2  = PIN_TEMP_ADC;
 
 #define ADC_RESOLUTION          12
 

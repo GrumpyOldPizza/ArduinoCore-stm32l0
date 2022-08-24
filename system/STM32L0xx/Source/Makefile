@@ -33,7 +33,7 @@ SRCS = \
 	./LoRa/Boards/cmwx1zzabz-board.c \
 	./LoRa/Boards/lgt92-board.c \
 	./LoRa/Boards/rhf76-052-board.c \
-	./LoRa/Boards/s76g-board.c \
+	./LoRa/Boards/s76x-board.c \
 	./LoRa/Boards/sx1272mb2das-board.c \
 	./LoRa/Boards/wmsgsm42-board.c \
 	./LoRa/Crypto/aes.c \

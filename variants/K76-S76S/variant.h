@@ -105,11 +105,12 @@ static const uint8_t SENSOR = PIN_SENSOR_INT;
 #define PIN_GEN_POWER        (6ul)
 #define PIN_GEN_ENABLE       (7ul)
 
+#define PIN_PERIPH_ENABLE    (9ul)
+
 /*
  * Serial interface
  */
-
-#define SERIAL_INTERFACES_COUNT 1
+#define SERIAL_INTERFACES_COUNT 2
 
 #define PIN_SERIAL_RX        (12ul)
 #define PIN_SERIAL_TX        (13ul)
@@ -178,8 +179,8 @@ extern Uart Serial1;
 //                            pins are NOT connected to anything by default.
 #define SERIAL_PORT_USBVIRTUAL      SerialUSB
 #define SERIAL_PORT_MONITOR         SerialUSB
-#define SERIAL_PORT_GNSS            Serial1
 #define SERIAL_PORT_HARDWARE1       Serial1
+#define SERIAL_PORT_HARDWARE_OPEN   Serial1
 
 // Alias Serial to SerialUSB
 #define Serial                      SerialUSB
