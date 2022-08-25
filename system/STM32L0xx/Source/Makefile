@@ -1,7 +1,6 @@
-TOOLS	 = ~/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/
-#TOOLS	  = ~/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/4.8.3-2014q1/
+TOOLS	 = /opt/gcc-arm-none-eabi-${ARM_TOOLCHAIN_VERSION}
 CPP	 = $(TOOLS)/bin/arm-none-eabi-cpp
-CC	 = $(TOOLS)/bin/arm-none-eabi-gcc
+CC	 = ccache $(TOOLS)/bin/arm-none-eabi-gcc
 CXX	 = $(TOOLS)/bin/arm-none-eabi-g++
 AS	 = $(TOOLS)/bin/arm-none-eabi-as
 AR	 = $(TOOLS)/bin/arm-none-eabi-ar
