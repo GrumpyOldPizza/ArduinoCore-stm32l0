@@ -114,17 +114,17 @@ void SX1276SetBoardTcxo( bool state )
 
 void SX1276AntSwInit( void )
 {
-    stm32l0_gpio_pin_configure(RADIO_ANT_SWITCH_RX,       (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
-    stm32l0_gpio_pin_configure(RADIO_ANT_SWITCH_TX_RFO,   (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
+    stm32l0_gpio_pin_configure(RADIO_ANT_SWITCH_RX,     (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
+    stm32l0_gpio_pin_configure(RADIO_ANT_SWITCH_TX_RFO, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
 
-    stm32l0_gpio_pin_write(RADIO_ANT_SWITCH_RX,       0);
-    stm32l0_gpio_pin_write(RADIO_ANT_SWITCH_TX_RFO,   0);
+    stm32l0_gpio_pin_write(RADIO_ANT_SWITCH_RX,     0);
+    stm32l0_gpio_pin_write(RADIO_ANT_SWITCH_TX_RFO, 0);
 }
 
 void SX1276AntSwDeInit( void )
 {
-    stm32l0_gpio_pin_configure(RADIO_ANT_SWITCH_RX,       (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
-    stm32l0_gpio_pin_configure(RADIO_ANT_SWITCH_TX_RFO,   (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
+    stm32l0_gpio_pin_configure(RADIO_ANT_SWITCH_RX,     (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
+    stm32l0_gpio_pin_configure(RADIO_ANT_SWITCH_TX_RFO, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
 }
 
 void SX1276SetAntSw( uint8_t opMode, int8_t power )
@@ -134,13 +134,13 @@ void SX1276SetAntSw( uint8_t opMode, int8_t power )
     case RFLR_OPMODE_TRANSMITTER:
         stm32l0_gpio_pin_write(RADIO_ANT_SWITCH_RX, 0);
         if( power > 15 ) power = 15;
-        stm32l0_gpio_pin_write(RADIO_ANT_SWITCH_TX_RFO,   1);
+        stm32l0_gpio_pin_write(RADIO_ANT_SWITCH_TX_RFO, 1);
         break;
     case RFLR_OPMODE_RECEIVER:
     case RFLR_OPMODE_RECEIVER_SINGLE:
     case RFLR_OPMODE_CAD:
-        stm32l0_gpio_pin_write(RADIO_ANT_SWITCH_RX,       1);
-        stm32l0_gpio_pin_write(RADIO_ANT_SWITCH_TX_RFO,   0);
+        stm32l0_gpio_pin_write(RADIO_ANT_SWITCH_RX,     1);
+        stm32l0_gpio_pin_write(RADIO_ANT_SWITCH_TX_RFO, 0);
         break;
     default:
         break;
@@ -218,7 +218,7 @@ void SX1276SetRfTxPower( int8_t power )
 
 bool SX1276CheckRfFrequency( uint32_t frequency )
 {
-    if( (frequency < 400000000) || (frequency > 1020000000) )
+    if( (frequency < 862000000) || (frequency > 1020000000) )
     {
         return false;
     }
