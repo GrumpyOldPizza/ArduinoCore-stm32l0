@@ -111,8 +111,13 @@ void SX1276Reset( void )
     SX1276Delay( 6 );
 
     SX1276Write( REG_OCP, ( RF_OCP_ON | RF_OCP_TRIM_120_MA ) );
-    SX1276Write( REG_TCXO, ( SX1276Read( REG_TCXO ) & RF_TCXO_TCXOINPUT_MASK ) | RF_TCXO_TCXOINPUT_ON );
-
+    // Do not enable TCXO input for S76S/S78S
+    if (RADIO_TCXO_VCC != STM32L0_GPIO_PIN_NONE)
+    {
+        SX1276Write( REG_TCXO, ( SX1276Read( REG_TCXO ) & RF_TCXO_TCXOINPUT_MASK ) | RF_TCXO_TCXOINPUT_ON );
+    } else {
+        SX1276Write( REG_TCXO, ( SX1276Read( REG_TCXO ) & RF_TCXO_TCXOINPUT_MASK ) );
+    }
     SX1276Write( REG_OPMODE, ( SX1276Read( REG_OPMODE ) & RF_OPMODE_MASK ) | RF_OPMODE_SLEEP );
 
     SX1276Release( );
@@ -144,12 +149,12 @@ void SX1276SetBoardTcxo( bool state )
 void SX1276AntSwInit( void )
 {
     stm32l0_gpio_pin_configure(RADIO_ANT_SWITCH_RX, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
-    stm32l0_gpio_pin_write(RADIO_ANT_SWITCH_RX, 0);
+    stm32l0_gpio_pin_write(RADIO_ANT_SWITCH_RX, 1);
 }
 
 void SX1276AntSwDeInit( void )
 {
-    stm32l0_gpio_pin_configure(RADIO_ANT_SWITCH_RX,       (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
+    stm32l0_gpio_pin_configure(RADIO_ANT_SWITCH_RX, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
 }
 
 void SX1276SetAntSw( uint8_t opMode, int8_t power )

@@ -118,6 +118,7 @@ void initVariant()
     stm32l0_gpio_pin_write(STM32L0_GPIO_PIN_PB9, 0);
     // Set IMU_INT
     stm32l0_gpio_pin_configure(STM32L0_GPIO_PIN_PC13, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_PULLDOWN | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_INPUT));
+    // RHF76_052_Initialize();
     // Disable NSS
     stm32l0_gpio_pin_configure(STM32L0_GPIO_PIN_PA4, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
     stm32l0_gpio_pin_write(STM32L0_GPIO_PIN_PA4, 1);
@@ -135,6 +136,5 @@ void initVariant()
     stm32l0_gpio_pin_configure(STM32L0_GPIO_PIN_PB11, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
     // Wait 6 ms
     armv6m_core_udelay(6000);
-
     stm32l0_system_swd_enable();
 }
