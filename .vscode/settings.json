@@ -15,5 +15,9 @@
 			"tooltip": "Build Arduino Core",
 			"label": "Build Arduino Core"
 		}
-	]
+	],
+	"files.associations": {
+        "*.c": "cpp",
+        "*.h": "cpp"
+    }
 }

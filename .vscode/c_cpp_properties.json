@@ -22,6 +22,8 @@
                 "${workspaceFolder}/system/CMSIS/Include",
                 "${workspaceFolder}/system/CMSIS/Device/ST/STM32L0xx/Include",
                 "${workspaceFolder}/system/STM32L0xx/Include",
+                "${workspaceFolder}/system/STM32L0xx/Source/LoRa/**",
+                "${workspaceFolder}/system/STM32L0xx/Source/USB/**",
                 "${workspaceFolder}/cores/arduino",
                 "${workspaceFolder}/variants/**",
                 "${workspaceFolder}/libraries/**",
