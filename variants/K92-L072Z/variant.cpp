@@ -138,21 +138,6 @@ void initVariant()
     stm32l0_gpio_pin_write(STM32L0_GPIO_PIN_PA2, 1);
     // Set VBAT_ADC input
     stm32l0_gpio_pin_configure(STM32L0_GPIO_PIN_PA0, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
-    // RFM95_Initialize();
-    // Disable NSS
-    stm32l0_gpio_pin_configure(STM32L0_GPIO_PIN_PA15, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
-    stm32l0_gpio_pin_write(STM32L0_GPIO_PIN_PA15, 1);
-    // Set Ant Rx/Tx switch to Rx Mode
-    stm32l0_gpio_pin_configure(STM32L0_GPIO_PIN_PA1, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
-    stm32l0_gpio_pin_write(STM32L0_GPIO_PIN_PA1, 1);
-    // Set RESET pin to 0
-    stm32l0_gpio_pin_configure(STM32L0_GPIO_PIN_PB0, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_LOW | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
-    stm32l0_gpio_pin_write(STM32L0_GPIO_PIN_PB0, 0);
-    // Wait 1 ms
-    armv6m_core_udelay(1000);
-    // Configure RESET as input
-    stm32l0_gpio_pin_configure(STM32L0_GPIO_PIN_PB0, (STM32L0_GPIO_PARK_NONE | STM32L0_GPIO_MODE_ANALOG));
-    // Wait 6 ms
-    armv6m_core_udelay(6000);
-    stm32l0_system_swd_enable();
+   
+   	RFM95_Initialize();
 }
