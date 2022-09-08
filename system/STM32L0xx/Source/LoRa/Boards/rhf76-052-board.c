@@ -301,8 +301,6 @@ void SX1276ReadBuffer( uint8_t addr, uint8_t *buffer, uint8_t size )
 
 void RHF76_052_Initialize( void )
 {
-    uint32_t datarate, primask;
-
     stm32l0_gpio_pin_configure(RADIO_NSS, (STM32L0_GPIO_PARK_HIZ | STM32L0_GPIO_PUPD_NONE | STM32L0_GPIO_OSPEED_HIGH | STM32L0_GPIO_OTYPE_PUSHPULL | STM32L0_GPIO_MODE_OUTPUT));
     stm32l0_gpio_pin_write(RADIO_NSS, 1);
 
@@ -310,22 +308,6 @@ void RHF76_052_Initialize( void )
     stm32l0_spi_enable(&RADIO_SPI);
 
     SX1276Reset( );
-
-    datarate = ( 16 * XTAL_FREQ ) / 2048;
-    SX1276Write( REG_BITRATEMSB,  ( uint8_t )( datarate >> 12 ) );
-    SX1276Write( REG_BITRATELSB,  ( uint8_t )( datarate >> 4  ) );
-    SX1276Write( REG_BITRATEFRAC, ( uint8_t )( datarate >> 0  ) );
-
-    SX1276Write( REG_PACONFIG, 0x00 );
-    SX1276Write( REG_PACKETCONFIG2, ( SX1276Read( REG_PACKETCONFIG2 ) & RF_PACKETCONFIG2_DATAMODE_MASK ) );
-    SX1276Write( REG_OPMODE, ( SX1276Read( REG_OPMODE ) & RF_OPMODE_MASK ) | RF_OPMODE_TRANSMITTER );
-
-    // Wait 25 ms
-    SX1276Delay( 25 );
-
-    SX1276Write( REG_OPMODE, ( SX1276Read( REG_OPMODE ) & RF_OPMODE_MASK ) | RF_OPMODE_SLEEP );
-
-    SX1276Release( );
 }
 
 #endif /* defined(STM32L052xx) */
