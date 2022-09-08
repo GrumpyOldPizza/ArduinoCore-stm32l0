@@ -516,13 +516,13 @@ NUCLEO-L073RZ.menu.opt.o3.build.flags.ldspecs=
 # ---------------------------------------
 K33-L072Z.name=K33-L072Z
 K33-L072Z.vid.0=0x0483
-K33-L072Z.pid.0=0x374e
+K33-L072Z.pid.0=0x5740
 
 K33-L072Z.upload.tool=stm32l0_openocd
 K33-L072Z.upload.protocol=stlink
 K33-L072Z.upload.maximum_size=196608
 K33-L072Z.upload.maximum_data_size=20480
-K33-L072Z.upload.use_1200bps_touch=true
+K33-L072Z.upload.use_1200bps_touch=false
 K33-L072Z.upload.wait_for_upload_port=false
 K33-L072Z.upload.native_usb=false
 
@@ -532,9 +532,11 @@ K33-L072Z.build.board=K33
 K33-L072Z.build.arch=stm32l0
 K33-L072Z.build.core=arduino
 K33-L072Z.build.vid=0x0483
-K33-L072Z.build.pid=0x374e
+K33-L072Z.build.pid=0x5740
 K33-L072Z.build.did=0xffff
-K33-L072Z.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+K33-L072Z.build.usb_manufacturer="UT2UH"
+K33-L072Z.build.usb_product="K33"
+K33-L072Z.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags}
 K33-L072Z.build.ldscript=linker_scripts/STM32L072CZ_FLASH.ld
 K33-L072Z.build.openocdscript=openocd_scripts/k33_test.cfg
 K33-L072Z.build.variant=K33-L072Z
@@ -566,13 +568,13 @@ K33-L072Z.menu.opt.o3.build.flags.ldspecs=
 # ---------------------------------------
 K33-L082Z-STL.name=K33-L082Z-STL
 K33-L082Z-STL.vid.0=0x0483
-K33-L082Z-STL.pid.0=0x374e
+K33-L082Z-STL.pid.0=0x5740
 
 K33-L082Z-STL.upload.tool=stm32l0_openocd
 K33-L082Z-STL.upload.protocol=stlink
 K33-L082Z-STL.upload.maximum_size=196608
 K33-L082Z-STL.upload.maximum_data_size=20480
-K33-L082Z-STL.upload.use_1200bps_touch=true
+K33-L082Z-STL.upload.use_1200bps_touch=false
 K33-L082Z-STL.upload.wait_for_upload_port=false
 K33-L082Z-STL.upload.native_usb=false
 
@@ -582,9 +584,11 @@ K33-L082Z-STL.build.board=K33_STLINK
 K33-L082Z-STL.build.arch=stm32l0
 K33-L082Z-STL.build.core=arduino
 K33-L082Z-STL.build.vid=0x0483
-K33-L082Z-STL.build.pid=0x374e
+K33-L082Z-STL.build.pid=0x5740
 K33-L082Z-STL.build.did=0xffff
-K33-L082Z-STL.build.extra_flags=-DSTM32L082xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+K33-L082Z-STL.build.usb_manufacturer="UT2UH"
+K33-L082Z-STL.build.usb_product="K33"
+K33-L082Z-STL.build.extra_flags=-DSTM32L082xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags}
 K33-L082Z-STL.build.ldscript=linker_scripts/STM32L082CZ_FLASH.ld
 K33-L082Z-STL.build.openocdscript=openocd_scripts/k33.cfg
 K33-L082Z-STL.build.variant=K33-L082Z-STL
@@ -615,8 +619,8 @@ K33-L082Z-STL.menu.opt.o3.build.flags.ldspecs=
 # UT2UH K33-L082Z-DFU
 # ---------------------------------------
 K33-L082Z-DFU.name=K33-L082Z-DFU
-K33-L082Z-DFU.vid.0=0x1209
-K33-L082Z-DFU.pid.0=0x6662
+K33-L082Z-DFU.vid.0=0x0483
+K33-L082Z-DFU.pid.0=0x5740
 
 K33-L082Z-DFU.upload.tool=stm32l0_dfu
 K33-L082Z-DFU.upload.protocol=dfu
@@ -624,19 +628,19 @@ K33-L082Z-DFU.upload.maximum_size=196608
 K33-L082Z-DFU.upload.maximum_data_size=20480
 K33-L082Z-DFU.upload.use_1200bps_touch=true
 K33-L082Z-DFU.upload.wait_for_upload_port=false
-K33-L082Z-DFU.upload.native_usb=false
+K33-L082Z-DFU.upload.native_usb=true
 
 K33-L082Z-DFU.build.mcu=cortex-m0plus
 K33-L082Z-DFU.build.f_cpu=32000000L
 K33-L082Z-DFU.build.board=K33_DFU
 K33-L082Z-DFU.build.arch=stm32l0
 K33-L082Z-DFU.build.core=arduino
-K33-L082Z-DFU.build.vid=0x1209
-K33-L082Z-DFU.build.pid=0x6662
+K33-L082Z-DFU.build.vid=0x0483
+K33-L082Z-DFU.build.pid=0x5740
 K33-L082Z-DFU.build.did=0xffff
 K33-L082Z-DFU.build.usb_manufacturer="UT2UH"
 K33-L082Z-DFU.build.usb_product="K33"
-K33-L082Z-DFU.build.extra_flags=-DSTM32L082xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+K33-L082Z-DFU.build.extra_flags=-DSTM32L082xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags}
 K33-L082Z-DFU.build.ldscript=linker_scripts/STM32L082CZ_FLASH.ld
 K33-L082Z-DFU.build.openocdscript=openocd_scripts/k33_usb.cfg
 K33-L082Z-DFU.build.variant=K33-L082Z-DFU
@@ -645,8 +649,6 @@ K33-L082Z-DFU.build.variant_system_include="-I{runtime.platform.path}/system/CMS
 
 K33-L082Z-DFU.menu.usb.cdc=Serial
 K33-L082Z-DFU.menu.usb.cdc.build.usb_type=USB_TYPE_CDC
-K33-L082Z-DFU.menu.usb.cdc_msc=Serial + Mass Storage
-K33-L082Z-DFU.menu.usb.cdc_msc.build.usb_type=USB_TYPE_CDC_MSC
 K33-L082Z-DFU.menu.usb.none=No USB
 K33-L082Z-DFU.menu.usb.none.build.usb_type=USB_TYPE_NONE
 
@@ -675,7 +677,7 @@ K33-L082Z-DFU.menu.opt.o3.build.flags.ldspecs=
 # ---------------------------------------
 K48-S76G.name=K48-S76G
 K48-S76G.vid.0=0x0483
-K48-S76G.pid.0=0xDF11
+K48-S76G.pid.0=0x5740
 
 K48-S76G.upload.tool=stm32l0_dfu
 K48-S76G.upload.protocol=dfu
@@ -683,7 +685,7 @@ K48-S76G.upload.maximum_size=196608
 K48-S76G.upload.maximum_data_size=20480
 K48-S76G.upload.use_1200bps_touch=true
 K48-S76G.upload.wait_for_upload_port=false
-K48-S76G.upload.native_usb=false
+K48-S76G.upload.native_usb=true
 
 K48-S76G.build.mcu=cortex-m0plus
 K48-S76G.build.f_cpu=32000000L
@@ -691,11 +693,11 @@ K48-S76G.build.board=K48_S76G
 K48-S76G.build.arch=stm32l0
 K48-S76G.build.core=arduino
 K48-S76G.build.vid=0x0483
-K48-S76G.build.pid=0xDF11
+K48-S76G.build.pid=0x5740
 K48-S76G.build.did=0xffff
-K48-S76G.build.usb_manufacturer="ACSIP"
+K48-S76G.build.usb_manufacturer="UT2UH"
 K48-S76G.build.usb_product="K48"
-K48-S76G.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+K48-S76G.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags}
 K48-S76G.build.ldscript=linker_scripts/STM32L073RZ_FLASH.ld
 K48-S76G.build.openocdscript=openocd_scripts/s7Xg-l073rz.cfg
 K48-S76G.build.variant=K48-S76G
@@ -704,8 +706,6 @@ K48-S76G.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/In
 
 K48-S76G.menu.usb.cdc=Serial
 K48-S76G.menu.usb.cdc.build.usb_type=USB_TYPE_CDC
-K48-S76G.menu.usb.cdc_msc=Serial + Mass Storage
-K48-S76G.menu.usb.cdc_msc.build.usb_type=USB_TYPE_CDC_MSC
 K48-S76G.menu.usb.none=No USB
 K48-S76G.menu.usb.none.build.usb_type=USB_TYPE_NONE
 
@@ -730,7 +730,7 @@ K48-S76G.menu.opt.o3.build.flags.ldspecs=
 # ---------------------------------------
 K48-S76G-SWD.name=K48-S76G-SWD
 K48-S76G-SWD.vid.0=0x0483
-K48-S76G-SWD.pid.0=0xDF11
+K48-S76G-SWD.pid.0=0x5740
 
 K48-S76G-SWD.upload.tool=stm32l0_dfu
 K48-S76G-SWD.upload.protocol=dfu
@@ -738,7 +738,7 @@ K48-S76G-SWD.upload.maximum_size=196608
 K48-S76G-SWD.upload.maximum_data_size=20480
 K48-S76G-SWD.upload.use_1200bps_touch=true
 K48-S76G-SWD.upload.wait_for_upload_port=false
-K48-S76G-SWD.upload.native_usb=false
+K48-S76G-SWD.upload.native_usb=true
 
 K48-S76G-SWD.build.mcu=cortex-m0plus
 K48-S76G-SWD.build.f_cpu=32000000L
@@ -746,11 +746,11 @@ K48-S76G-SWD.build.board=K48_S76G_SWD
 K48-S76G-SWD.build.arch=stm32l0
 K48-S76G-SWD.build.core=arduino
 K48-S76G-SWD.build.vid=0x0483
-K48-S76G-SWD.build.pid=0xDF11
+K48-S76G-SWD.build.pid=0x5740
 K48-S76G-SWD.build.did=0xffff
-K48-S76G-SWD.build.usb_manufacturer="ACSIP"
+K48-S76G-SWD.build.usb_manufacturer="UT2UH"
 K48-S76G-SWD.build.usb_product="K48"
-K48-S76G-SWD.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+K48-S76G-SWD.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags}
 K48-S76G-SWD.build.ldscript=linker_scripts/STM32L073RZ_FLASH.ld
 K48-S76G-SWD.build.openocdscript=openocd_scripts/s7Xg-l073rz.cfg
 K48-S76G-SWD.build.variant=K48-S76G-SWD
@@ -759,8 +759,6 @@ K48-S76G-SWD.build.variant_system_include="-I{runtime.platform.path}/system/CMSI
 
 K48-S76G-SWD.menu.usb.cdc=Serial
 K48-S76G-SWD.menu.usb.cdc.build.usb_type=USB_TYPE_CDC
-K48-S76G-SWD.menu.usb.cdc_msc=Serial + Mass Storage
-K48-S76G-SWD.menu.usb.cdc_msc.build.usb_type=USB_TYPE_CDC_MSC
 K48-S76G-SWD.menu.usb.none=No USB
 K48-S76G-SWD.menu.usb.none.build.usb_type=USB_TYPE_NONE
 
@@ -785,13 +783,13 @@ K48-S76G-SWD.menu.opt.o3.build.flags.ldspecs=
 # ---------------------------------------
 K52-RHF76-052.name=K52-RHF76-052
 K52-RHF76-052.vid.0=0x0483
-K52-RHF76-052.pid.0=0x374e
+K52-RHF76-052.pid.0=0x5740
 
 K52-RHF76-052.upload.tool=stm32l0_openocd
 K52-RHF76-052.upload.protocol=stlink
 K52-RHF76-052.upload.maximum_size=65536
 K52-RHF76-052.upload.maximum_data_size=8192
-K52-RHF76-052.upload.use_1200bps_touch=true
+K52-RHF76-052.upload.use_1200bps_touch=false
 K52-RHF76-052.upload.wait_for_upload_port=false
 K52-RHF76-052.upload.native_usb=false
 
@@ -801,9 +799,11 @@ K52-RHF76-052.build.board=K52_RHF76_052
 K52-RHF76-052.build.arch=stm32l0
 K52-RHF76-052.build.core=arduino
 K52-RHF76-052.build.vid=0x0483
-K52-RHF76-052.build.pid=0x374e
+K52-RHF76-052.build.pid=0x5740
 K52-RHF76-052.build.did=0xffff
-K52-RHF76-052.build.extra_flags=-DSTM32L052xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+K52-RHF76-052.build.usb_manufacturer="UT2UH"
+K52-RHF76-052.build.usb_product="K52"
+K52-RHF76-052.build.extra_flags=-DSTM32L052xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags}
 K52-RHF76-052.build.ldscript=linker_scripts/STM32L052C8_FLASH.ld
 K52-RHF76-052.build.openocdscript=openocd_scripts/rhf76-l051c8.cfg
 K52-RHF76-052.build.variant=K52-RHF76-052
@@ -835,13 +835,13 @@ K52-RHF76-052.menu.opt.o3.build.flags.ldspecs=
 # ---------------------------------------
 K52-RHF78-052.name=K52-RHF78-052
 K52-RHF78-052.vid.0=0x0483
-K52-RHF78-052.pid.0=0x374e
+K52-RHF78-052.pid.0=0x5740
 
 K52-RHF78-052.upload.tool=stm32l0_openocd
 K52-RHF78-052.upload.protocol=stlink
 K52-RHF78-052.upload.maximum_size=65536
 K52-RHF78-052.upload.maximum_data_size=8192
-K52-RHF78-052.upload.use_1200bps_touch=true
+K52-RHF78-052.upload.use_1200bps_touch=false
 K52-RHF78-052.upload.wait_for_upload_port=false
 K52-RHF78-052.upload.native_usb=false
 
@@ -851,9 +851,11 @@ K52-RHF78-052.build.board=K52_RHF78_052
 K52-RHF78-052.build.arch=stm32l0
 K52-RHF78-052.build.core=arduino
 K52-RHF78-052.build.vid=0x0483
-K52-RHF78-052.build.pid=0x374e
+K52-RHF78-052.build.pid=0x5740
 K52-RHF78-052.build.did=0xffff
-K52-RHF78-052.build.extra_flags=-DSTM32L052xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+K52-RHF78-052.build.usb_manufacturer="UT2UH"
+K52-RHF78-052.build.usb_product="K52"
+K52-RHF78-052.build.extra_flags=-DSTM32L052xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags}
 K52-RHF78-052.build.ldscript=linker_scripts/STM32L052C8_FLASH.ld
 K52-RHF78-052.build.openocdscript=openocd_scripts/rhf76-l051c8.cfg
 K52-RHF78-052.build.variant=K52-RHF78-052
@@ -885,7 +887,7 @@ K52-RHF78-052.menu.opt.o3.build.flags.ldspecs=
 # ---------------------------------------
 K76-S76S.name=K76-S76S
 K76-S76S.vid.0=0x0483
-K76-S76S.pid.0=0xDF11
+K76-S76S.pid.0=0x5740
 
 K76-S76S.upload.tool=stm32l0_dfu
 K76-S76S.upload.protocol=dfu
@@ -893,7 +895,7 @@ K76-S76S.upload.maximum_size=196608
 K76-S76S.upload.maximum_data_size=20480
 K76-S76S.upload.use_1200bps_touch=true
 K76-S76S.upload.wait_for_upload_port=false
-K76-S76S.upload.native_usb=false
+K76-S76S.upload.native_usb=true
 
 K76-S76S.build.mcu=cortex-m0plus
 K76-S76S.build.f_cpu=32000000L
@@ -901,11 +903,11 @@ K76-S76S.build.board=K76_S76S
 K76-S76S.build.arch=stm32l0
 K76-S76S.build.core=arduino
 K76-S76S.build.vid=0x0483
-K76-S76S.build.pid=0xDF11
+K76-S76S.build.pid=0x5740
 K76-S76S.build.did=0xffff
-K76-S76S.build.usb_manufacturer="ACSIP"
+K76-S76S.build.usb_manufacturer="UT2UH"
 K76-S76S.build.usb_product="K76"
-K76-S76S.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+K76-S76S.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags}
 K76-S76S.build.ldscript=linker_scripts/STM32L073RZ_FLASH.ld
 K76-S76S.build.openocdscript=openocd_scripts/s7Xs-l073rz.cfg
 K76-S76S.build.variant=K76-S76S
@@ -914,8 +916,6 @@ K76-S76S.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/In
 
 K76-S76S.menu.usb.cdc=Serial
 K76-S76S.menu.usb.cdc.build.usb_type=USB_TYPE_CDC
-K76-S76S.menu.usb.cdc_msc=Serial + Mass Storage
-K76-S76S.menu.usb.cdc_msc.build.usb_type=USB_TYPE_CDC_MSC
 K76-S76S.menu.usb.none=No USB
 K76-S76S.menu.usb.none.build.usb_type=USB_TYPE_NONE
 
@@ -939,14 +939,14 @@ K76-S76S.menu.opt.o3.build.flags.ldspecs=
 # UT2UH K76 S76S
 # ---------------------------------------
 K76-S76S-STLINK.name=K76-S76S-STLINK
-K76-S76S-STLINK.vid.0=0x0483
-K76-S76S-STLINK.pid.0=0x374E
+K76-S76S-STLINK.vid=0x0483
+K76-S76S-STLINK.pid=0x5740
 
 K76-S76S-STLINK.upload.tool=stm32l0_openocd
 K76-S76S-STLINK.upload.protocol=stlink
 K76-S76S-STLINK.upload.maximum_size=196608
 K76-S76S-STLINK.upload.maximum_data_size=20480
-K76-S76S-STLINK.upload.use_1200bps_touch=true
+K76-S76S-STLINK.upload.use_1200bps_touch=false
 K76-S76S-STLINK.upload.wait_for_upload_port=false
 K76-S76S-STLINK.upload.native_usb=false
 
@@ -956,11 +956,11 @@ K76-S76S-STLINK.build.board=K76_S76S_STL
 K76-S76S-STLINK.build.arch=stm32l0
 K76-S76S-STLINK.build.core=arduino
 K76-S76S-STLINK.build.vid=0x0483
-K76-S76S-STLINK.build.pid=0x374e
+K76-S76S-STLINK.build.pid=0x5740
 K76-S76S-STLINK.build.did=0xffff
-K76-S76S-STLINK.build.usb_manufacturer="ACSIP"
+K76-S76S-STLINK.build.usb_manufacturer="UT2UH"
 K76-S76S-STLINK.build.usb_product="K76"
-K76-S76S-STLINK.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+K76-S76S-STLINK.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags}
 K76-S76S-STLINK.build.ldscript=linker_scripts/STM32L073RZ_FLASH.ld
 K76-S76S-STLINK.build.openocdscript=openocd_scripts/s7Xs-l073rz.cfg
 K76-S76S-STLINK.build.variant=K76-S76S-STLINK
@@ -992,13 +992,13 @@ K76-S76S-STLINK.menu.opt.o3.build.flags.ldspecs=
 # ---------------------------------------
 K92-L072Z.name=K92-L072Z
 K92-L072Z.vid.0=0x0483
-K92-L072Z.pid.0=0x374e
+K92-L072Z.pid.0=0x5740
 
 K92-L072Z.upload.tool=stm32l0_openocd
 K92-L072Z.upload.protocol=stlink
 K92-L072Z.upload.maximum_size=196608
 K92-L072Z.upload.maximum_data_size=20480
-K92-L072Z.upload.use_1200bps_touch=true
+K92-L072Z.upload.use_1200bps_touch=false
 K92-L072Z.upload.wait_for_upload_port=false
 K92-L072Z.upload.native_usb=false
 
@@ -1008,9 +1008,11 @@ K92-L072Z.build.board=K92_L072Z
 K92-L072Z.build.arch=stm32l0
 K92-L072Z.build.core=arduino
 K92-L072Z.build.vid=0x0483
-K92-L072Z.build.pid=0x374e
+K92-L072Z.build.pid=0x5740
 K92-L072Z.build.did=0xffff
-K92-L072Z.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+K92-L072Z.build.usb_manufacturer="UT2UH"
+K92-L072Z.build.usb_product="K92"
+K92-L072Z.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags}
 K92-L072Z.build.ldscript=linker_scripts/STM32L072CZ_FLASH.ld
 K92-L072Z.build.openocdscript=openocd_scripts/lgt92_l072cz.cfg
 K92-L072Z.build.variant=K92-L072Z
@@ -1042,13 +1044,13 @@ K92-L072Z.menu.opt.o3.build.flags.ldspecs=
 # ---------------------------------------
 LGT92-L072Z.name=LGT92-L072Z
 LGT92-L072Z.vid.0=0x0483
-LGT92-L072Z.pid.0=0x374e
+LGT92-L072Z.pid.0=0x5740
 
 LGT92-L072Z.upload.tool=stm32l0_openocd
 LGT92-L072Z.upload.protocol=stlink
 LGT92-L072Z.upload.maximum_size=196608
 LGT92-L072Z.upload.maximum_data_size=20480
-LGT92-L072Z.upload.use_1200bps_touch=true
+LGT92-L072Z.upload.use_1200bps_touch=false
 LGT92-L072Z.upload.wait_for_upload_port=false
 LGT92-L072Z.upload.native_usb=false
 
@@ -1058,9 +1060,11 @@ LGT92-L072Z.build.board=LGT92
 LGT92-L072Z.build.arch=stm32l0
 LGT92-L072Z.build.core=arduino
 LGT92-L072Z.build.vid=0x0483
-LGT92-L072Z.build.pid=0x374e
+LGT92-L072Z.build.pid=0x5740
 LGT92-L072Z.build.did=0xffff
-LGT92-L072Z.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+LGT92-L072Z.build.usb_manufacturer="DRAGINO"
+LGT92-L072Z.build.usb_product="LGT92"
+LGT92-L072Z.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags}
 LGT92-L072Z.build.ldscript=linker_scripts/STM32L072CZ_FLASH.ld
 LGT92-L072Z.build.openocdscript=openocd_scripts/lgt92_l072cz.cfg
 LGT92-L072Z.build.variant=LGT92-L072Z
@@ -1092,13 +1096,13 @@ LGT92-L072Z.menu.opt.o3.build.flags.ldspecs=
 # ---------------------------------------
 RHF76-052.name=RHF76-052
 RHF76-052.vid.0=0x0483
-RHF76-052.pid.0=0x374e
+RHF76-052.pid.0=0x5740
 
 RHF76-052.upload.tool=stm32l0_openocd
 RHF76-052.upload.protocol=stlink
 RHF76-052.upload.maximum_size=65536
 RHF76-052.upload.maximum_data_size=8192
-RHF76-052.upload.use_1200bps_touch=true
+RHF76-052.upload.use_1200bps_touch=false
 RHF76-052.upload.wait_for_upload_port=false
 RHF76-052.upload.native_usb=false
 
@@ -1108,9 +1112,11 @@ RHF76-052.build.board=RHF76_052
 RHF76-052.build.arch=stm32l0
 RHF76-052.build.core=arduino
 RHF76-052.build.vid=0x0483
-RHF76-052.build.pid=0x374e
+RHF76-052.build.pid=0x5740
 RHF76-052.build.did=0xffff
-RHF76-052.build.extra_flags=-DSTM32L052xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+RHF76-052.build.usb_manufacturer="AI Thinker"
+RHF76-052.build.usb_product="RHF76-052"
+RHF76-052.build.extra_flags=-DSTM32L052xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags}
 RHF76-052.build.ldscript=linker_scripts/STM32L052C8_FLASH.ld
 RHF76-052.build.openocdscript=openocd_scripts/rhf76-l051c8.cfg
 RHF76-052.build.variant=RHF76-052
@@ -1141,7 +1147,7 @@ RHF76-052.menu.opt.o3.build.flags.ldspecs=
 # ---------------------------------------
 T-IMPULSE-S76G.name=T-IMPULSE-S76G
 T-IMPULSE-S76G.vid.0=0x0483
-T-IMPULSE-S76G.pid.0=0xDF11
+T-IMPULSE-S76G.pid.0=0x5740
 
 T-IMPULSE-S76G.upload.tool=stm32l0_dfu
 T-IMPULSE-S76G.upload.protocol=dfu
@@ -1149,7 +1155,7 @@ T-IMPULSE-S76G.upload.maximum_size=196608
 T-IMPULSE-S76G.upload.maximum_data_size=20480
 T-IMPULSE-S76G.upload.use_1200bps_touch=true
 T-IMPULSE-S76G.upload.wait_for_upload_port=false
-T-IMPULSE-S76G.upload.native_usb=false
+T-IMPULSE-S76G.upload.native_usb=true
 
 T-IMPULSE-S76G.build.mcu=cortex-m0plus
 T-IMPULSE-S76G.build.f_cpu=32000000L
@@ -1157,11 +1163,11 @@ T-IMPULSE-S76G.build.board=T_IMPULSE
 T-IMPULSE-S76G.build.arch=stm32l0
 T-IMPULSE-S76G.build.core=arduino
 T-IMPULSE-S76G.build.vid=0x0483
-T-IMPULSE-S76G.build.pid=0xDF11
+T-IMPULSE-S76G.build.pid=0x5740
 T-IMPULSE-S76G.build.did=0xffff
 T-IMPULSE-S76G.build.usb_manufacturer="LILYGO"
 T-IMPULSE-S76G.build.usb_product="TIMPULSE"
-T-IMPULSE-S76G.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant
+T-IMPULSE-S76G.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags}
 T-IMPULSE-S76G.build.ldscript=linker_scripts/STM32L073RZ_FLASH.ld
 T-IMPULSE-S76G.build.openocdscript=openocd_scripts/s7Xg-l073rz.cfg
 T-IMPULSE-S76G.build.variant=T-IMPULSE-S76G
@@ -1170,8 +1176,6 @@ T-IMPULSE-S76G.build.variant_system_include="-I{runtime.platform.path}/system/CM
 
 T-IMPULSE-S76G.menu.usb.cdc=Serial
 T-IMPULSE-S76G.menu.usb.cdc.build.usb_type=USB_TYPE_CDC
-T-IMPULSE-S76G.menu.usb.cdc_msc=Serial + Mass Storage
-T-IMPULSE-S76G.menu.usb.cdc_msc.build.usb_type=USB_TYPE_CDC_MSC
 T-IMPULSE-S76G.menu.usb.none=No USB
 T-IMPULSE-S76G.menu.usb.none.build.usb_type=USB_TYPE_NONE
 
