@@ -26,8 +26,8 @@
  * WITH THE SOFTWARE.
  */
 
-#ifndef _VARIANT_K33_L082Z_STL_
-#define _VARIANT_K33_L082Z_STL_
+#ifndef _VARIANT_K33_L082Z_
+#define _VARIANT_K33_L082Z_
 
 /*----------------------------------------------------------------------------
  *        Definitions
@@ -37,6 +37,10 @@
 #define STM32L0_CONFIG_HSECLK             0
 #define STM32L0_CONFIG_SYSOPT             0
 
+#define STM32L0_CONFIG_PIN_VBUS           STM32L0_GPIO_PIN_PA8
+
+#define USBCON
+
 /** Master clock frequency */
 #define VARIANT_MCK                       F_CPU
 
@@ -45,6 +49,7 @@
  *----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
+#include "USBAPI.h"
 #include "Uart.h"
 #endif // __cplusplus
 
@@ -58,36 +63,44 @@ extern "C"
  *----------------------------------------------------------------------------*/
 
 // Number of pins defined in PinDescription array
-#define PINS_COUNT           (17u)
-#define NUM_DIGITAL_PINS     (16u)
-#define NUM_ANALOG_INPUTS    (1u)
-#define NUM_ANALOG_OUTPUTS   (0u)
+#define PINS_COUNT              (22u)
+#define NUM_DIGITAL_PINS        (21u)
+#define NUM_ANALOG_INPUTS       (1u)
+#define NUM_ANALOG_OUTPUTS      (0u)
+#define PWM_INSTANCE_COUNT      0
+#define SPI_INTERFACES_COUNT    0
 
 /*
- * ADC pin
+ * Button pin
  */
-#define PIN_A0               (16ul)
-static const uint8_t A0  = PIN_A0;
-
-#define ADC_RESOLUTION       12
+#define PIN_BUTTON          (0ul)
+#define PIN_SENSOR_INT      (0ul)
+static const uint8_t BUTTON = PIN_BUTTON;
+static const uint8_t SENSOR = PIN_SENSOR_INT;
 
 /*
  * LEDs
  */
-#define PIN_LED_RED          (8ul)
-#define PIN_LED_GREEN        (2ul)
-#define PIN_LED_BLUE         (5ul)
+#define PIN_LED_RED         (1ul)
+#define PIN_LED_GREEN       (2ul)
+#define PIN_LOAD_TEST       (3ul)
+#define LED_BUILTIN         PIN_LED_GREEN
+#define LED_ON              HIGH
+#define LED_OFF             LOW
 
-#define LED_BUILTIN          PIN_LED_GREEN
+/*
+ * Genarator control pins
+ */
+#define PIN_GEN_POWER        (6ul)
+#define PIN_GEN_ENABLE       (7ul)
 
 /*
  * Serial interfaces
  */
+#define SERIAL_INTERFACES_COUNT 2
 
-#define SERIAL_INTERFACES_COUNT 1
-
-#define PIN_SERIAL_RX        (0ul)
-#define PIN_SERIAL_TX        (1ul)
+#define PIN_SERIAL1_RX       (12ul)
+#define PIN_SERIAL1_TX       (13ul)
 
 /*
  * Wire Interfaces
@@ -101,22 +114,23 @@ static const uint8_t SDA = PIN_WIRE_SDA;
 static const uint8_t SCL = PIN_WIRE_SCL;
 
 /*
- * SPI Interfaces
+ * ADC pin
  */
-#define SPI_INTERFACES_COUNT 1
+#define PIN_LOAD_ADC         (16ul)
 
-#define PIN_SPI_MOSI         (11u)
-#define PIN_SPI_MISO         (12u)
-#define PIN_SPI_SCK          (13u)
+static const uint8_t A0  = PIN_LOAD_ADC;
 
-static const uint8_t SS   = 10;
-static const uint8_t MOSI = PIN_SPI_MOSI;
-static const uint8_t MISO = PIN_SPI_MISO;
-static const uint8_t SCK  = PIN_SPI_SCK;
+#define ADC_RESOLUTION       12
 
-#define PWM_INSTANCE_COUNT      2
+#define POUT_MAX             (23ul)
 
-#define POUT_MAX            (23ul)
+/*
+ * USB Interface
+ */
+#define PIN_USB_VBUS          (17ul)
+#define PIN_USB_DM            (18ul)
+#define PIN_USB_DP            (19ul) 
+
 
 #ifdef __cplusplus
 }
@@ -127,7 +141,8 @@ static const uint8_t SCK  = PIN_SPI_SCK;
  *----------------------------------------------------------------------------*/
 
 #ifdef __cplusplus
-extern Uart Serial;
+extern CDC  SerialUSB;
+extern Uart Serial1;
 #endif
 
 // These serial port names are intended to allow libraries and architecture-neutral
@@ -145,9 +160,12 @@ extern Uart Serial;
 //
 // SERIAL_PORT_HARDWARE_OPEN  Hardware serial ports which are open for use.  Their RX & TX
 //                            pins are NOT connected to anything by default.
-#define SERIAL_PORT_MONITOR         Serial
-#define SERIAL_PORT_HARDWARE1       Serial
-#define SERIAL_PORT_HARDWARE_OPEN1  Serial
+#define SERIAL_PORT_USBVIRTUAL      SerialUSB
+#define SERIAL_PORT_MONITOR         SerialUSB
+#define SERIAL_PORT_HARDWARE1       Serial1
+#define SERIAL_PORT_HARDWARE_OPEN1  Serial1
 
-#endif /*_VARIANT_K33_L082Z_STL_ */
+// Alias Serial to SerialUSB
+#define Serial                      SerialUSB
 
+#endif /*_VARIANT_K33_L082Z_ */

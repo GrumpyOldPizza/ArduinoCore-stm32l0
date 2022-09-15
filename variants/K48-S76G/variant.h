@@ -147,7 +147,6 @@ static const uint8_t SCL = PIN_WIRE_SCL;
 static const uint8_t A0  = PIN_LOAD_ADC;
 static const uint8_t A1  = PIN_VBAT_ADC;
 
-
 #define ADC_RESOLUTION          12
 
 #define POUT_MAX             (23ul)

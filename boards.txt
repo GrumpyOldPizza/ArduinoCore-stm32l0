@@ -512,165 +512,61 @@ NUCLEO-L073RZ.menu.opt.o3.build.flags.optimize=-O3
 NUCLEO-L073RZ.menu.opt.o3.build.flags.ldspecs=
 
 
-# UT2UH K33-L072Z
+# UT2UH K33-L082Z
 # ---------------------------------------
-K33-L072Z.name=K33-L072Z
-K33-L072Z.vid.0=0x0483
-K33-L072Z.pid.0=0x5740
+K33-L082Z.name=K33-L082Z
+K33-L082Z.vid.0=0x0483
+K33-L082Z.pid.0=0x5740
 
-K33-L072Z.upload.tool=stm32l0_openocd
-K33-L072Z.upload.protocol=stlink
-K33-L072Z.upload.maximum_size=196608
-K33-L072Z.upload.maximum_data_size=20480
-K33-L072Z.upload.use_1200bps_touch=false
-K33-L072Z.upload.wait_for_upload_port=false
-K33-L072Z.upload.native_usb=false
+K33-L082Z.upload.tool=stm32l0_dfu
+K33-L082Z.upload.protocol=dfu
+K33-L082Z.upload.maximum_size=196608
+K33-L082Z.upload.maximum_data_size=20480
+K33-L082Z.upload.use_1200bps_touch=true
+K33-L082Z.upload.wait_for_upload_port=false
+K33-L082Z.upload.native_usb=true
 
-K33-L072Z.build.mcu=cortex-m0plus
-K33-L072Z.build.f_cpu=32000000L
-K33-L072Z.build.board=K33
-K33-L072Z.build.arch=stm32l0
-K33-L072Z.build.core=arduino
-K33-L072Z.build.vid=0x0483
-K33-L072Z.build.pid=0x5740
-K33-L072Z.build.did=0xffff
-K33-L072Z.build.usb_manufacturer="UT2UH"
-K33-L072Z.build.usb_product="K33"
-K33-L072Z.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags}
-K33-L072Z.build.ldscript=linker_scripts/STM32L072CZ_FLASH.ld
-K33-L072Z.build.openocdscript=openocd_scripts/k33_test.cfg
-K33-L072Z.build.variant=K33-L072Z
-K33-L072Z.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l072xx -larm_cortexM0l_math
-K33-L072Z.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
+K33-L082Z.build.mcu=cortex-m0plus
+K33-L082Z.build.f_cpu=32000000L
+K33-L082Z.build.board=K33_L082Z
+K33-L082Z.build.arch=stm32l0
+K33-L082Z.build.core=arduino
+K33-L082Z.build.vid=0x0483
+K33-L082Z.build.pid=0x5740
+K33-L082Z.build.did=0xffff
+K33-L082Z.build.usb_manufacturer="UT2UH"
+K33-L082Z.build.usb_product="K33"
+K33-L082Z.build.extra_flags=-DSTM32L082xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags}
+K33-L082Z.build.ldscript=linker_scripts/STM32L082CZ_FLASH.ld
+K33-L082Z.build.openocdscript=openocd_scripts/k33_l082cz.cfg
+K33-L082Z.build.variant=K33-L082Z
+K33-L082Z.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l082xx -larm_cortexM0l_math
+K33-L082Z.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
 
-K33-L072Z.menu.speed.32=32 MHz
-K33-L072Z.menu.speed.32.build.f_cpu=32000000L
-K33-L072Z.menu.speed.16=16 MHz (No USB)
-K33-L072Z.menu.speed.16.build.f_cpu=16000000L
-K33-L072Z.menu.speed.4=4.2 MHz (No USB)
-K33-L072Z.menu.speed.4.build.f_cpu=4200000L
+K33-L082Z.menu.usb.cdc=Serial
+K33-L082Z.menu.usb.cdc.build.usb_type=USB_TYPE_CDC
+K33-L082Z.menu.usb.none=No USB
+K33-L082Z.menu.usb.none.build.usb_type=USB_TYPE_NONE
 
-K33-L072Z.menu.opt.os=Smallest Code
-K33-L072Z.menu.opt.os.build.flags.optimize=-Os
-K33-L072Z.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
-K33-L072Z.menu.opt.o1=Fast
-K33-L072Z.menu.opt.o1.build.flags.optimize=-O1
-K33-L072Z.menu.opt.o1.build.flags.ldspecs=
-K33-L072Z.menu.opt.o2=Faster
-K33-L072Z.menu.opt.o2.build.flags.optimize=-O2
-K33-L072Z.menu.opt.o2.build.flags.ldspecs=
-K33-L072Z.menu.opt.o3=Fastest
-K33-L072Z.menu.opt.o3.build.flags.optimize=-O3
-K33-L072Z.menu.opt.o3.build.flags.ldspecs=
+K33-L082Z.menu.speed.32=32 MHz
+K33-L082Z.menu.speed.32.build.f_cpu=32000000L
+K33-L082Z.menu.speed.16=16 MHz (No USB)
+K33-L082Z.menu.speed.16.build.f_cpu=16000000L
+K33-L082Z.menu.speed.4=4.2 MHz (No USB)
+K33-L082Z.menu.speed.4.build.f_cpu=4200000L
 
-
-# UT2UH K33-L082Z-STL
-# ---------------------------------------
-K33-L082Z-STL.name=K33-L082Z-STL
-K33-L082Z-STL.vid.0=0x0483
-K33-L082Z-STL.pid.0=0x5740
-
-K33-L082Z-STL.upload.tool=stm32l0_openocd
-K33-L082Z-STL.upload.protocol=stlink
-K33-L082Z-STL.upload.maximum_size=196608
-K33-L082Z-STL.upload.maximum_data_size=20480
-K33-L082Z-STL.upload.use_1200bps_touch=false
-K33-L082Z-STL.upload.wait_for_upload_port=false
-K33-L082Z-STL.upload.native_usb=false
-
-K33-L082Z-STL.build.mcu=cortex-m0plus
-K33-L082Z-STL.build.f_cpu=32000000L
-K33-L082Z-STL.build.board=K33_STLINK
-K33-L082Z-STL.build.arch=stm32l0
-K33-L082Z-STL.build.core=arduino
-K33-L082Z-STL.build.vid=0x0483
-K33-L082Z-STL.build.pid=0x5740
-K33-L082Z-STL.build.did=0xffff
-K33-L082Z-STL.build.usb_manufacturer="UT2UH"
-K33-L082Z-STL.build.usb_product="K33"
-K33-L082Z-STL.build.extra_flags=-DSTM32L082xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags}
-K33-L082Z-STL.build.ldscript=linker_scripts/STM32L082CZ_FLASH.ld
-K33-L082Z-STL.build.openocdscript=openocd_scripts/k33.cfg
-K33-L082Z-STL.build.variant=K33-L082Z-STL
-K33-L082Z-STL.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l082xx -larm_cortexM0l_math
-K33-L082Z-STL.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
-
-K33-L082Z-STL.menu.speed.32=32 MHz
-K33-L082Z-STL.menu.speed.32.build.f_cpu=32000000L
-K33-L082Z-STL.menu.speed.16=16 MHz (No USB)
-K33-L082Z-STL.menu.speed.16.build.f_cpu=16000000L
-K33-L082Z-STL.menu.speed.4=4.2 MHz (No USB)
-K33-L082Z-STL.menu.speed.4.build.f_cpu=4200000L
-
-K33-L082Z-STL.menu.opt.os=Smallest Code
-K33-L082Z-STL.menu.opt.os.build.flags.optimize=-Os
-K33-L082Z-STL.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
-K33-L082Z-STL.menu.opt.o1=Fast
-K33-L082Z-STL.menu.opt.o1.build.flags.optimize=-O1
-K33-L082Z-STL.menu.opt.o1.build.flags.ldspecs=
-K33-L082Z-STL.menu.opt.o2=Faster
-K33-L082Z-STL.menu.opt.o2.build.flags.optimize=-O2
-K33-L082Z-STL.menu.opt.o2.build.flags.ldspecs=
-K33-L082Z-STL.menu.opt.o3=Fastest
-K33-L082Z-STL.menu.opt.o3.build.flags.optimize=-O3
-K33-L082Z-STL.menu.opt.o3.build.flags.ldspecs=
-
-
-# UT2UH K33-L082Z-DFU
-# ---------------------------------------
-K33-L082Z-DFU.name=K33-L082Z-DFU
-K33-L082Z-DFU.vid.0=0x0483
-K33-L082Z-DFU.pid.0=0x5740
-
-K33-L082Z-DFU.upload.tool=stm32l0_dfu
-K33-L082Z-DFU.upload.protocol=dfu
-K33-L082Z-DFU.upload.maximum_size=196608
-K33-L082Z-DFU.upload.maximum_data_size=20480
-K33-L082Z-DFU.upload.use_1200bps_touch=true
-K33-L082Z-DFU.upload.wait_for_upload_port=false
-K33-L082Z-DFU.upload.native_usb=true
-
-K33-L082Z-DFU.build.mcu=cortex-m0plus
-K33-L082Z-DFU.build.f_cpu=32000000L
-K33-L082Z-DFU.build.board=K33_DFU
-K33-L082Z-DFU.build.arch=stm32l0
-K33-L082Z-DFU.build.core=arduino
-K33-L082Z-DFU.build.vid=0x0483
-K33-L082Z-DFU.build.pid=0x5740
-K33-L082Z-DFU.build.did=0xffff
-K33-L082Z-DFU.build.usb_manufacturer="UT2UH"
-K33-L082Z-DFU.build.usb_product="K33"
-K33-L082Z-DFU.build.extra_flags=-DSTM32L082xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags}
-K33-L082Z-DFU.build.ldscript=linker_scripts/STM32L082CZ_FLASH.ld
-K33-L082Z-DFU.build.openocdscript=openocd_scripts/k33_usb.cfg
-K33-L082Z-DFU.build.variant=K33-L082Z-DFU
-K33-L082Z-DFU.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l082xx -larm_cortexM0l_math
-K33-L082Z-DFU.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
-
-K33-L082Z-DFU.menu.usb.cdc=Serial
-K33-L082Z-DFU.menu.usb.cdc.build.usb_type=USB_TYPE_CDC
-K33-L082Z-DFU.menu.usb.none=No USB
-K33-L082Z-DFU.menu.usb.none.build.usb_type=USB_TYPE_NONE
-
-K33-L082Z-DFU.menu.speed.32=32 MHz
-K33-L082Z-DFU.menu.speed.32.build.f_cpu=32000000L
-K33-L082Z-DFU.menu.speed.16=16 MHz (No USB)
-K33-L082Z-DFU.menu.speed.16.build.f_cpu=16000000L
-K33-L082Z-DFU.menu.speed.4=4.2 MHz (No USB)
-K33-L082Z-DFU.menu.speed.4.build.f_cpu=4200000L
-
-K33-L082Z-DFU.menu.opt.os=Smallest Code
-K33-L082Z-DFU.menu.opt.os.build.flags.optimize=-Os
-K33-L082Z-DFU.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
-K33-L082Z-DFU.menu.opt.o1=Fast
-K33-L082Z-DFU.menu.opt.o1.build.flags.optimize=-O1
-K33-L082Z-DFU.menu.opt.o1.build.flags.ldspecs=
-K33-L082Z-DFU.menu.opt.o2=Faster
-K33-L082Z-DFU.menu.opt.o2.build.flags.optimize=-O2
-K33-L082Z-DFU.menu.opt.o2.build.flags.ldspecs=
-K33-L082Z-DFU.menu.opt.o3=Fastest
-K33-L082Z-DFU.menu.opt.o3.build.flags.optimize=-O3
-K33-L082Z-DFU.menu.opt.o3.build.flags.ldspecs=
+K33-L082Z.menu.opt.os=Smallest Code
+K33-L082Z.menu.opt.os.build.flags.optimize=-Os
+K33-L082Z.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
+K33-L082Z.menu.opt.o1=Fast
+K33-L082Z.menu.opt.o1.build.flags.optimize=-O1
+K33-L082Z.menu.opt.o1.build.flags.ldspecs=
+K33-L082Z.menu.opt.o2=Faster
+K33-L082Z.menu.opt.o2.build.flags.optimize=-O2
+K33-L082Z.menu.opt.o2.build.flags.ldspecs=
+K33-L082Z.menu.opt.o3=Fastest
+K33-L082Z.menu.opt.o3.build.flags.optimize=-O3
+K33-L082Z.menu.opt.o3.build.flags.ldspecs=
 
 
 # UT2UH K48 S76G
@@ -857,7 +753,7 @@ K52-RHF78-052.build.usb_manufacturer="UT2UH"
 K52-RHF78-052.build.usb_product="K52"
 K52-RHF78-052.build.extra_flags=-DSTM32L052xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags}
 K52-RHF78-052.build.ldscript=linker_scripts/STM32L052C8_FLASH.ld
-K52-RHF78-052.build.openocdscript=openocd_scripts/rhf76-l051c8.cfg
+K52-RHF78-052.build.openocdscript=openocd_scripts/rhf78-l051c8.cfg
 K52-RHF78-052.build.variant=K52-RHF78-052
 K52-RHF78-052.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l052xx -larm_cortexM0l_math
 K52-RHF78-052.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include"
@@ -934,58 +830,6 @@ K76-S76S.menu.opt.o2.build.flags.ldspecs=
 K76-S76S.menu.opt.o3=Fastest
 K76-S76S.menu.opt.o3.build.flags.optimize=-O3
 K76-S76S.menu.opt.o3.build.flags.ldspecs=
-
-
-# UT2UH K76 S76S
-# ---------------------------------------
-K76-S76S-STLINK.name=K76-S76S-STLINK
-K76-S76S-STLINK.vid=0x0483
-K76-S76S-STLINK.pid=0x5740
-
-K76-S76S-STLINK.upload.tool=stm32l0_openocd
-K76-S76S-STLINK.upload.protocol=stlink
-K76-S76S-STLINK.upload.maximum_size=196608
-K76-S76S-STLINK.upload.maximum_data_size=20480
-K76-S76S-STLINK.upload.use_1200bps_touch=false
-K76-S76S-STLINK.upload.wait_for_upload_port=false
-K76-S76S-STLINK.upload.native_usb=false
-
-K76-S76S-STLINK.build.mcu=cortex-m0plus
-K76-S76S-STLINK.build.f_cpu=32000000L
-K76-S76S-STLINK.build.board=K76_S76S_STL
-K76-S76S-STLINK.build.arch=stm32l0
-K76-S76S-STLINK.build.core=arduino
-K76-S76S-STLINK.build.vid=0x0483
-K76-S76S-STLINK.build.pid=0x5740
-K76-S76S-STLINK.build.did=0xffff
-K76-S76S-STLINK.build.usb_manufacturer="UT2UH"
-K76-S76S-STLINK.build.usb_product="K76"
-K76-S76S-STLINK.build.extra_flags=-DSTM32L072xx -march=armv6-m -mthumb -mabi=aapcs -mfloat-abi=soft -fsingle-precision-constant {build.usb_flags}
-K76-S76S-STLINK.build.ldscript=linker_scripts/STM32L073RZ_FLASH.ld
-K76-S76S-STLINK.build.openocdscript=openocd_scripts/s7Xs-l073rz.cfg
-K76-S76S-STLINK.build.variant=K76-S76S-STLINK
-K76-S76S-STLINK.build.variant_system_libs="-L{runtime.platform.path}/system/STM32L0xx/Lib" "-L{runtime.platform.path}/system/CMSIS/Lib" -lstm32l072xx -larm_cortexM0l_math
-K76-S76S-STLINK.build.variant_system_include="-I{runtime.platform.path}/system/CMSIS/Include" "-I{runtime.platform.path}/system/CMSIS/Device/ST/STM32L0xx/Include" "-I{runtime.platform.path}/system/STM32L0xx/Include" 
-
-K76-S76S-STLINK.menu.speed.32=32 MHz
-K76-S76S-STLINK.menu.speed.32.build.f_cpu=32000000L
-K76-S76S-STLINK.menu.speed.16=16 MHz
-K76-S76S-STLINK.menu.speed.16.build.f_cpu=16000000L
-K76-S76S-STLINK.menu.speed.4=4.2 MHz
-K76-S76S-STLINK.menu.speed.4.build.f_cpu=4200000L
-
-K76-S76S-STLINK.menu.opt.os=Smallest Code
-K76-S76S-STLINK.menu.opt.os.build.flags.optimize=-Os
-K76-S76S-STLINK.menu.opt.os.build.flags.ldspecs=--specs=nano.specs
-K76-S76S-STLINK.menu.opt.o1=Fast
-K76-S76S-STLINK.menu.opt.o1.build.flags.optimize=-O1
-K76-S76S-STLINK.menu.opt.o1.build.flags.ldspecs=
-K76-S76S-STLINK.menu.opt.o2=Faster
-K76-S76S-STLINK.menu.opt.o2.build.flags.optimize=-O2
-K76-S76S-STLINK.menu.opt.o2.build.flags.ldspecs=
-K76-S76S-STLINK.menu.opt.o3=Fastest
-K76-S76S-STLINK.menu.opt.o3.build.flags.optimize=-O3
-K76-S76S-STLINK.menu.opt.o3.build.flags.ldspecs=
 
 
 # UT2UH K92 L072Z
