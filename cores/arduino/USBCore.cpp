@@ -54,8 +54,17 @@
 bool USBDeviceClass::begin()
 {
 #if defined(USB_CLASS)
+    #if defined(STM32L0_CONFIG_PIN_VBUS_HAS_DIVIDER)
+    // On boards with an external divider (to allow measuring
+    // voltage rather than just on/off), do not enable the pulldown
+    // since that influences the divider (and the divider works as
+    // an external pulldown too).
+    bool needs_pulldown = false;
+    #else
+    bool needs_pulldown = true;
+    #endif
     return USBD_Initialize(USB_VID, USB_PID, (const uint8_t*)USB_MANUFACTURER, (const uint8_t*)USB_PRODUCT, USB_CLASS,
-                           STM32L0_CONFIG_PIN_VBUS, STM32L0_USB_IRQ_PRIORITY,
+                           STM32L0_CONFIG_PIN_VBUS, needs_pulldown, STM32L0_USB_IRQ_PRIORITY,
                            &USBDeviceClass::connectCallback, &USBDeviceClass::disconnectCallback, &USBDeviceClass::suspendCallback, &USBDeviceClass::resumeCallback);
 #endif
     return false;

@@ -1,7 +1,6 @@
-TOOLS	 = ~/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/7-2017q4/
-#TOOLS	  = ~/.arduino15/packages/arduino/tools/arm-none-eabi-gcc/4.8.3-2014q1/
+TOOLS	 = /opt/gcc-arm-none-eabi-${ARM_TOOLCHAIN_VERSION}
 CPP	 = $(TOOLS)/bin/arm-none-eabi-cpp
-CC	 = $(TOOLS)/bin/arm-none-eabi-gcc
+CC	 = ccache $(TOOLS)/bin/arm-none-eabi-gcc
 CXX	 = $(TOOLS)/bin/arm-none-eabi-g++
 AS	 = $(TOOLS)/bin/arm-none-eabi-as
 AR	 = $(TOOLS)/bin/arm-none-eabi-ar
@@ -31,6 +30,10 @@ INCLUDES = \
 
 SRCS = \
 	./LoRa/Boards/cmwx1zzabz-board.c \
+	./LoRa/Boards/lgt92-board.c \
+	./LoRa/Boards/rhf76-052-board.c \
+	./LoRa/Boards/rhf78-052-board.c \
+	./LoRa/Boards/s76x-board.c \
 	./LoRa/Boards/sx1272mb2das-board.c \
 	./LoRa/Boards/wmsgsm42-board.c \
 	./LoRa/Crypto/aes.c \

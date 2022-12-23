@@ -1,0 +1,52 @@
+{
+	// See https://go.microsoft.com/fwlink/?LinkId=733558
+	// for the documentation about the tasks.json format
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "build",
+			"type": "shell",
+			"command": "make -j5",
+			"group": "build",
+			"options": {
+				"cwd": "${workspaceFolder}/system/STM32L0xx/Source"
+			},
+			"problemMatcher": {
+				"base": "$gcc",
+				"fileLocation": ["relative", "${workspaceFolder}/system/STM32L0xx/Source"]
+			}
+		},
+		{
+			"label": "build_copy",
+			"type": "shell",
+			"command": "echo 'Copying compiled binaries to Lib:' && cp -v *.a ../Lib/",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"options": {
+				"cwd": "${workspaceFolder}/system/STM32L0xx/Source"
+			},
+			"dependsOn": [
+				"build"
+			],
+			"problemMatcher": []
+		},
+		{
+			"label": "clean",
+			"type": "shell",
+			"command": "make clean",
+			"group": {
+				"kind": "none",
+				"isDefault": true
+			},
+			"options": {
+				"cwd": "${workspaceFolder}/system/STM32L0xx/Source"
+			},
+			"problemMatcher": {
+				"base": "$gcc",
+				"fileLocation": ["relative", "${workspaceFolder}/system/STM32L0xx/Source"]
+			}
+		}
+	]
+}

@@ -1,0 +1,23 @@
+{
+	"activitusbar.alignment":"Left",
+	"activitusbar.priority": 10,
+	"activitusbar.inactiveColour": "#ffffff",
+	"activitusbar.views": [
+		{
+			"name": "task.clean",
+			"codicon": "clear-all",
+			"tooltip": "Clean Arduino Core",
+			"label": "Clean Arduino Core"
+		},
+		{
+			"name": "task.build_copy",
+			"codicon": "tools",
+			"tooltip": "Build Arduino Core",
+			"label": "Build Arduino Core"
+		}
+	],
+	"files.associations": {
+        "*.c": "cpp",
+        "*.h": "cpp"
+    }
+}
