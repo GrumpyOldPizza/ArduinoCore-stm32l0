@@ -33,24 +33,24 @@
  *        Definitions
  *----------------------------------------------------------------------------*/
 
-#define STM32L0_CONFIG_LSECLK             32768
-#define STM32L0_CONFIG_HSECLK             0
-#define STM32L0_CONFIG_SYSOPT             0
+#define STM32L0_CONFIG_LSECLK           32768
+#define STM32L0_CONFIG_HSECLK           0
+#define STM32L0_CONFIG_SYSOPT           0
 
-#define STM32L0_CONFIG_PIN_VBAT_EN        STM32L0_GPIO_PIN_PA2
-#define STM32L0_CONFIG_PIN_VBAT           STM32L0_GPIO_PIN_PA0
-#define STM32L0_CONFIG_CHANNEL_VBAT       STM32L0_ADC_CHANNEL_0
-#define STM32L0_CONFIG_VBAT_PERIOD        40
-#define STM32L0_CONFIG_VBAT_SCALE         ((float)1.27)
+#define STM32L0_CONFIG_PIN_VBAT_TEST    STM32L0_GPIO_PIN_PA2
+#define STM32L0_CONFIG_PIN_VBAT         STM32L0_GPIO_PIN_PA0
+#define STM32L0_CONFIG_CHANNEL_VBAT     STM32L0_ADC_CHANNEL_0
+#define STM32L0_CONFIG_VBAT_PERIOD      40
+#define STM32L0_CONFIG_VBAT_SCALE       ((float)1.27)
 
-#define STM32L0_CONFIG_PIN_GNSS_ENABLE    STM32L0_GPIO_PIN_PB5
-#define STM32L0_CONFIG_PIN_GNSS_PPS       STM32L0_GPIO_PIN_PA4
-#define STM32L0_CONFIG_PIN_GNSS_RX        STM32L0_GPIO_PIN_PB7_USART1_RX
-#define STM32L0_CONFIG_PIN_GNSS_TX        STM32L0_GPIO_PIN_PB6_USART1_TX
-#define STM32L0_CONFIG_PIN_GNSS_STANDBY   STM32L0_GPIO_PIN_PB3
+#define STM32L0_CONFIG_PIN_GNSS_ENABLE  STM32L0_GPIO_PIN_PB5
+#define STM32L0_CONFIG_PIN_GNSS_PPS     STM32L0_GPIO_PIN_PA4
+#define STM32L0_CONFIG_PIN_GNSS_RX      STM32L0_GPIO_PIN_PB7_USART1_RX
+#define STM32L0_CONFIG_PIN_GNSS_TX      STM32L0_GPIO_PIN_PB6_USART1_TX
+#define STM32L0_CONFIG_PIN_GNSS_STANDBY STM32L0_GPIO_PIN_PB3
 
 /** Master clock frequency */
-#define VARIANT_MCK                       F_CPU
+#define VARIANT_MCK                     F_CPU
 
 /*----------------------------------------------------------------------------
  *        Headers
@@ -74,66 +74,65 @@ extern "C"
 #define NUM_DIGITAL_PINS     (16u)
 #define NUM_ANALOG_INPUTS    (3u)
 #define NUM_ANALOG_OUTPUTS   (0u)
+#define PWM_INSTANCE_COUNT   0
+#define SPI_INTERFACES_COUNT 0
+
+/*
+ * Button pin
+ */
+#define PIN_BUTTON          (0ul)
+#define PIN_SENSOR_INT      (0ul)
+static const uint8_t BUTTON = PIN_BUTTON;
+static const uint8_t SENSOR = PIN_SENSOR_INT;
 
 /*
  * LEDs
  */
+#define PIN_LED_RED         (1ul)
 #define PIN_LED_GREEN       (2ul)
-#define PIN_LED_BLUE        (5ul)
-#define PIN_LED_RED         (8ul)
-
+#define PIN_LED_BLUE        (3ul)
 #define LED_BUILTIN         PIN_LED_GREEN
-#define LED_ON              LOW
-#define LED_OFF             HIGH
+#define LED_ON              HIGH
+#define LED_OFF             LOW
 
 /*
- * Analog pins
+ * ADC open-drain enablers
  */
-#define PIN_A0               (16ul)
-#define PIN_A1               (17ul)
-#define PIN_A2               (18ul)
-
-static const uint8_t A0  = PIN_A0;
-static const uint8_t A1  = PIN_A1;
-static const uint8_t A2  = PIN_A2;
-
-#define ADC_RESOLUTION       12
+#define PIN_VBAT_TEST       (4ul)
 
 /*
- * Other pins
+ * Serial interface
  */
-#define PIN_BUTTON           (7l)
-static const uint8_t BUTTON = PIN_BUTTON;
+#define SERIAL_INTERFACES_COUNT 1
 
-/*
- * Serial interfaces
- */
-
-#define SERIAL_INTERFACES_COUNT 2
-
-#define PIN_SERIAL_RX       (0ul)
-#define PIN_SERIAL_TX       (1ul)
-
-#define PIN_SERIAL1_TX      (11ul)
-#define PIN_SERIAL1_RX      (12ul)
-
-/*
- * SPI Interfaces
- */
-#define SPI_INTERFACES_COUNT    0
+#define PIN_SERIAL_RX       (10ul)
+#define PIN_SERIAL_TX       (11ul)
 
 /*
  * Wire Interfaces
  */
 #define WIRE_INTERFACES_COUNT 1
 
-#define PIN_WIRE_SDA         (14u)
-#define PIN_WIRE_SCL         (15u)
+#define PIN_WIRE_SDA        (14u)
+#define PIN_WIRE_SCL        (15u)
 
-static const uint8_t SDA = PIN_WIRE_SDA;
 static const uint8_t SCL = PIN_WIRE_SCL;
+static const uint8_t SDA = PIN_WIRE_SDA;
 
-#define PWM_INSTANCE_COUNT      0
+/*
+ * Analog pins
+ */
+#define PIN_VBUS_ADC        (16ul)
+#define PIN_VBAT_ADC        (17ul)
+#define PIN_A2              (18ul)
+
+static const uint8_t A0  = PIN_VBUS_ADC;
+static const uint8_t A1  = PIN_VBAT_ADC;
+static const uint8_t A2  = PIN_A2;
+
+#define ADC_RESOLUTION       12
+
+#define POUT_MAX            (23ul)
 
 #ifdef __cplusplus
 }
@@ -145,7 +144,6 @@ static const uint8_t SCL = PIN_WIRE_SCL;
 
 #ifdef __cplusplus
 extern Uart Serial;
-extern Uart Serial1;
 #endif
 
 // These serial port names are intended to allow libraries and architecture-neutral
@@ -163,10 +161,9 @@ extern Uart Serial1;
 //
 // SERIAL_PORT_HARDWARE_OPEN  Hardware serial ports which are open for use.  Their RX & TX
 //                            pins are NOT connected to anything by default.
-#define SERIAL_PORT_MONITOR         Serial
+//#define SERIAL_PORT_MONITOR         Serial
 #define SERIAL_PORT_HARDWARE1       Serial
-#define SERIAL_PORT_HARDWARE2       Serial1
-#define SERIAL_PORT_GNSS            Serial1
+#define SERIAL_PORT_GNSS            Serial
 
 #endif /*_VARIANT_LGT92_L072Z_ */
 

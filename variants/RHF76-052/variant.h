@@ -71,11 +71,9 @@ extern "C"
 /*
  * LEDs
  */
-#define PIN_LED_RED          (8ul)
-#define PIN_LED_GREEN        (2ul)
-#define PIN_LED_BLUE         (5ul)
+#define PIN_LED_BLUE         (3ul)
 
-#define LED_BUILTIN          PIN_LED_GREEN
+#define LED_BUILTIN          PIN_LED_BLUE
 #define LED_ON               HIGH
 #define LED_OFF              LOW
 
@@ -102,8 +100,8 @@ static const uint8_t BUTTON = PIN_BUTTON;
 
 #define SERIAL_INTERFACES_COUNT 1
 
-#define PIN_SERIAL_RX        (0ul)
-#define PIN_SERIAL_TX        (1ul)
+#define PIN_SERIAL_RX        (19ul)
+#define PIN_SERIAL_TX        (18ul)
 
 /*
  * SPI Interfaces
